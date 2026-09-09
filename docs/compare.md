@@ -4,6 +4,8 @@
 
 **Method.** Code and configuration verification of `squads/Scoring and Underwriting/bravo-bpm-service` (checkout at `v2.93.43`, last commit 2026-09-07) against the LORA documentation set (`lora-workspace/docs`: design-rationale, assessment, architecture, production-findings, August to September 2026). Every Bravo claim below cites a file. LORA claims cite the LORA docs, which in turn cite LORA code and production data. Counts are `grep`/`find` over the checkout.
 
+**Revision 2026-09-09.** The Bravo team responded to rows 1–3 of §2. Each response was checked against the code; the rows were revised and §8 records the arguments, the evidence and what changed. Production-share figures come from the 90-day PostgreSQL and Datadog measurements in [workflow-gap.md §8](workflow-gap.md).
+
 **Scope caveats, read first.**
 
 - LORA's production-findings pack measured LORA in production (Temporal Cloud billing, Datadog). For Bravo we have code, git history and the GCP bill as recorded by the LORA cost document. We do **not** have Bravo's manual-intervention rate, incident counts or per-activity failure data. Where LORA has a measured number and Bravo has only a code-level mechanism, the table says so.
@@ -18,7 +20,7 @@
 |---|---|---|
 | Orchestration paradigm | Process-centric BPMN 2.0 on embedded Camunda 7.23 | Data-centric GSM planner (`GSMBELExecutor`) on Temporal Cloud |
 | Language / runtime | Java 17, Spring Boot 3.5.16, one monolithic service | Go, 13 repos across 7 product families, shared `lora-process-sdk` |
-| State store | PostgreSQL (Cloud SQL) via JPA: 238 `@Entity`, 271 tables, 1,350 Flyway migrations | One JSON document per loan in ArangoDB (`dp-ndf-v0_24_0`, 777 fields), held in Temporal workflow memory |
+| State store | PostgreSQL (Cloud SQL) via JPA: 238 `@Entity`, 271 tables, 1,350 Flyway migrations | One JSON document per loan in ArangoDB (`dp-ndf-v0_24_0`; 777 leaf fields by the LORA assessment's count, ≈1,200 properties when nested object nodes are counted), held in Temporal workflow memory |
 | Process model artefacts | 53 production BPMN files (largest `ndf4w.bpmn` 9,494 lines, `ndf2w.bpmn` 8,464), 3 DMN, used only by the pre-MVP unsecured flow, one unreferenced | No flowchart. 172 registered ProcessSteps with ReadSet/WriteSet, 155 `SetPrecondition` guards, 3 hard precursors |
 | Automated step implementations | 225 classes implementing `JavaDelegate` directly, 276 including subclasses of the abstract bases, all in `activity/` (31,677 LOC, 6.4% of code) | 172 activity constructors + 301 schema-validated gateway proxies |
 | Human-task code | ~217k LOC (43.6% of code): `SurveyorAssignmentServiceImpl` 10,419 lines, `OperationAssignmentServiceImpl` 8,177, `BaseUnderwritingApprovalServiceImpl` 4,604 | ~12k LOC of hand-written FSMs: `survey.go` 5,473 lines / 125 transitions, `bpkb_review.go` 3,421 / 79, `underwriting.go` 3,041 / 72; 77 form builders |
@@ -36,9 +38,9 @@ The LORA rationale made five arguments against the workflow approach. Bravo is t
 
 | # | Rationale claim | What Bravo shows | Verdict |
 |---|---|---|---|
-| 1 | Flowcharts need "branching arrows for every edge case"; complexity explodes | `ndf4w.bpmn` alone: 111 service tasks, 21 user tasks, 137 exclusive gateways, 48 sub-processes, 70 error definitions, in one 9,494-line file. The 2024 "unified" rewrite split it into 36 `unified-*.bpmn` files chained by 56 `callActivity` elements, but the count of decision points did not fall: 122 gateways are literally named "Checkpoint", and 240 exclusive gateways carry `asyncAfter` as transaction boundaries. Product routing is re-expressed inside gateway expressions as string-compared variables plus Spring property lookups (`environment.getProperty('setting.feature.config.featDF2W') == 'true' && applicationWorkflowSelectorType == "OPTION_DF2W"`) | **Confirmed** |
-| 2 | Loan events are parallel and out-of-order; process-centric models handle this badly | Bravo's flows are almost entirely sequential: 4 `parallelGateway` in `ndf4w.bpmn`, 1 in `ndf2w.bpmn`, 0 in `unified-main-workflow.bpmn`. There are 0 message events, 0 signal events, 0 event-based gateways and 0 non-interrupting boundary events across all 53 files. An external event cannot be injected into a waiting process; it can only be reflected by a REST call that sets a variable or completes a task | **Confirmed** |
-| 3 | In workflow tools the data "lives in scattered process variables outside the diagram" | Not how Bravo did it. Camunda holds only routing flags: 255 variable keys in `WorkflowConstants.java`, all decision booleans, scores and one `applicationId`. Business data is in 238 JPA entities with `Application` as aggregate root. What *is* scattered is **status**: 30 `ApplicationStatus` values plus ~105 other status enums, `OperationAssignment` carrying 7 parallel status fields, `SurveyorAssignment` 8+. The "current stage" is not persisted at all (`Application.lastStage` is `@Transient`); it is recovered by querying Camunda's active activity ids, and Camunda history is purged after 90 days | **Partly refuted, redirected.** The weakness is not scattered data but scattered *lifecycle state* with no single artefact |
+| 1 | Flowcharts need "branching arrows for every edge case"; complexity explodes | **Observed:** `ndf4w.bpmn` alone has 111 service tasks, 21 user tasks, 137 exclusive gateways, 48 sub-processes and 70 error definitions in one 9,494-line file, and product routing sits inside gateway conditions as string-compared variables plus Spring property lookups (`environment.getProperty('setting.feature.config.featDF2W') == 'true' && applicationWorkflowSelectorType == "OPTION_DF2W"`). **Mitigated:** the 2024 unified rewrite applies the standard spine-plus-children remedy (an 8-step spine, 36 children) and is 3.4× smaller with 7× fewer flag lookups. **Not removed:** decision density is unchanged at ≈0.7 business gateways and ≈1.3–1.4 conditions per service task in both generations, escalation plumbing rose to 1.67 definitions per service task, and the spine carries 5.5% of production volume (DF4W only) while the monoliths carry ≈94% and were edited more often in 2026. Detail in §8.1 | **Observed in Bravo; a consequence of modelling practice, not a law of the paradigm.** The mitigation exists and is unproven at scale |
+| 2 | Loan events are parallel and out-of-order; process-centric models handle this badly | Bravo's flows are almost entirely sequential: 14 `parallelGateway` and 4 `inclusiveGateway` across 53 files, 0 in `unified-main-workflow.bpmn`; 0 message events, 0 signal events, 0 event-based gateways, 0 event sub-processes, 0 non-interrupting boundary events. Camunda supports every one of these, so their absence is a modelling choice. An external event cannot be injected into a waiting process; it is reflected by a REST call that sets a variable or completes a task. Detail in §8.2 | **Confirmed as observed.** Fork/join parallelism is a modelling choice Bravo could adopt; unplanned, data-driven order is a paradigm difference |
+| 3 | In workflow tools the data "lives in scattered process variables outside the diagram" | Not how Bravo did it. Camunda holds only routing flags (255 variable keys in `WorkflowConstants.java`, all decision booleans, scores and one `applicationId`). Business data is a relational aggregate of 238 JPA entities with `Application` as root, which gives SQL fleet queries and independent evolution of sub-entities. What *is* scattered is **lifecycle state**: 30 `ApplicationStatus` values plus ~105 other status enums, `OperationAssignment` with 7 parallel status fields, `SurveyorAssignment` 8+, 197 `setStatus` sites in 73 files, an `Application` root that is a Lombok `@Data` class with no transition method, and no persisted "current stage" (`lastStage` is `@Transient`; stage is recovered from Camunda, whose history is purged after 90 days). Detail in §8.3 | **Partly refuted, redirected.** The relational aggregate is legitimate; the weakness is an aggregate root that does not own its lifecycle |
 | 4 | Temporal gives retries, durable waits and event loops "natively"; workflow engines need plumbing | Bravo built a lot of plumbing: 186 `failedJobRetryTimeCycle` declarations with 30 distinct values, a custom last-attempt degrade framework (`OutboundAutoErrorHandlerEngineServiceImpl`, 62 call sites, 50 `customErrorHandle` implementations), a DB-backed retry counter (`RetryLog`), a transactional outbox (`event_store`), an inbox for out-of-order messages (`event_retry`), a work/wait/dead queue triple per binding, 15 ShedLock schedulers, and ~25 manual retry/reprocess/revive/cancel endpoints. | **Confirmed on plumbing volume.** But see §3.6: Bravo's retries are *bounded* and degrade gracefully, which is precisely the retry *policy* LORA never wrote |
 | 5 | Saga compensation for failed disbursement is the execution layer's job | Bravo has 0 `compensateEventDefinition`, 0 `bpmn:transaction`, 0 terminate events. Failed go-live is handled by a 5-minute sweeper (`OperationAssignmentScheduler.checkFailedGoLiveDigiSign`) that re-requests and asks CONFINS to republish. LORA has document-field rollback only | **Neither system built it.** The rationale was right that it is needed and wrong that either execution layer would supply it for free |
 
@@ -78,6 +80,8 @@ Unified_Process_Main_Workflow
 
 Chaining is `callActivity` (56) plus BPMN **escalation** as the child-to-parent return channel (190 escalation event definitions) plus BPMN **link** events as intra-process "goto" to shared terminal handlers (194). Every `callActivity` passes `<camunda:in variables="all"/>`; 49 of 56 also declare `<camunda:out variables="all"/>`, and the seven that do not include all five call activities in `unified-workflow-survey.bpmn` plus Create CIF and Document Submission in the main workflow, so child results such as `surveyResult` and `negotiationStatus` never propagate upward through the mapping. None of the 56 sets `camunda:calledElementBinding`, so each child resolves to the **latest deployed version** at call time (see §3.11). The legacy files (`ndf4w.bpmn`, `ndf2w.bpmn`, `unsecured.bpmn`) use BPMN **errors** instead of escalations (210 error definitions, e.g. `Customer Profile - HighRisk` ×15, `Customer Profile - Rejected` ×12), and `ndf2w.bpmn` bridges into the unified underwriting sub-process, so a legacy instance can end up running unified code.
 
+In production the two generations are not equals. Over the 90 days to 2026-09-09 the unified spine started 18,806 applications, all DF4W, against about 321,000 on the legacy monoliths (NDF2W 248,685, NDF4W and RO 71,995); the spine is 5.5% of volume, flat week over week, and DF2W is fully configured with zero applications ([workflow-gap.md §8](workflow-gap.md)). Every comparison of "Bravo's BPMN" with LORA in this document is therefore mostly a comparison with the monoliths, because that is what carries the book.
+
 Service tasks bind to Spring beans exclusively via `camunda:delegateExpression` (483 bindings, 274 distinct bean names, 276 `JavaDelegate` classes all under `com.bfi.bravo.activity`); there are 0 `camunda:class`, 0 `camunda:expression`, 0 external-task workers, 0 execution or task listeners. All 483 service tasks execute inside the engine's job-executor threads, which are left at the Spring Boot starter defaults (core pool 3). The 3 DMN files are reachable only from the pre-MVP unsecured flow; one is referenced by nothing.
 
 **LORA.** No master process. `GSMBELExecutor.Workflow` runs a Temporal `Selector` loop; on every document change `Planner.Next()` recomputes which of the 172 ProcessSteps have their ReadSet available, WriteSet writable and precondition true, and schedules them as parallel Temporal activities. There are zero imperative `ExecuteActivity` chains and only 3 hard precursors. Order is emergent from data dependencies.
@@ -88,7 +92,7 @@ Service tasks bind to Spring beans exclusively via `camunda:delegateExpression` 
 
 | | Bravo | LORA |
 |---|---|---|
-| The record | `Application` JPA entity (444 lines) with `@OneToOne` to `Lead`, `Customer`, `Loan`, `Calculation`, `Asset`, `Referral`, `Simulation`, plus `newLoan`/`newAsset`/`newCalculation` shadow copies; jsonb `additionalInformation` | One `dp-ndf` JSON document, 777 schema-defined fields, addressed by JSON path |
+| The record | `Application` JPA entity (444 lines) with `@OneToOne` to `Lead`, `Customer`, `Loan`, `Calculation`, `Asset`, `Referral`, `Simulation`, plus `newLoan`/`newAsset`/`newCalculation` shadow copies; jsonb `additionalInformation` | One `dp-ndf` JSON document per product family, 777 leaf fields (≈1,200 properties including object nodes), addressed by JSON path |
 | Link to the engine | `application.process_id` UUID → Camunda process instance (65 migrations reference `process_id`) | Workflow ID = document ID; the document *is* workflow state |
 | Where the engine keeps state | Camunda `ACT_RU_*` tables in the same PostgreSQL; history at `full` level, `historyTimeToLive: P90D` | Temporal event history (never `ContinueAsNew`) + ArangoDB checkpoints every 2 minutes while dirty |
 | Audit trail | 31 history/audit tables; `application_status_log` written by a PostgreSQL trigger (`log_status`), generic jsonb-diff shadow tables via `history_update()` trigger; Camunda history purged after 90 days | Append-only field version chain in the document; Temporal history; NATS event stream |
@@ -257,7 +261,7 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 **LORA (hybrid GSM + Temporal) did better at:**
 
 - **Adding automated steps.** 172 activities, 3 precursors, no orchestration edits. The clearest validated win.
-- **One artefact.** The whole loan in one schema-validated document with a version chain; 777 fields with generated constants.
+- **One artefact.** The whole loan in one schema-validated document with a version chain; 777 leaf fields with generated constants.
 - **Parallelism for free.** ReadSet/WriteSet locking runs independent checks concurrently; Bravo has 5 parallel gateways in 53 files.
 - **Principled rework for computed fields.** Rollback by dependency, not by resetting columns.
 - **Product isolation at the data layer.** Separate documents and queues; Bravo has one job executor for everything.
@@ -286,11 +290,69 @@ For Bravo (or any future BPMN work), from LORA:
 
 ## 7. Verdict on the rationale
 
-The rationale's central claim, that GSM and Temporal are complementary layers and that a data-centric model beats a flowchart for the automated pipeline, is **supported** by the comparison: Bravo's flowcharts did explode, are sequential, and mix product routing into XML; LORA's planner adds steps without orchestration edits.
+The rationale's central claim, that GSM and Temporal are complementary layers and that a data-centric model beats a flowchart for the automated pipeline, is **supported** by the comparison: Bravo's flowcharts did explode, are sequential, and mix product routing into XML; LORA's planner adds steps without orchestration edits. The Bravo team's review (§8) establishes that the first two findings are consequences of how Bravo was modelled rather than laws of BPMN, and that the standard remedies exist. It does not change the finding, because the remedies are respectively 5.5% deployed, not started, and not enforced, and a paradigm is fairly judged by what teams build with it under delivery pressure.
 
 Two of its assumptions are **not supported**. It assumed the execution layer would make retries and long waits a solved problem; Bravo shows a workflow engine that forces you to write a retry policy ends up with a better one than an engine that lets you skip it. And it did not anticipate that human-task complexity would return in either paradigm, which is where both systems spend most of their code.
 
 The honest summary is that the paradigm choice decided the shape of roughly 6% (Bravo) to 10% (LORA) of the codebase, the automated pipeline, and decided it in LORA's favour. The remaining 90% (human tasks, integrations, status handling, operations) looks structurally similar in both, and the differences there come from engineering discipline, not from GSM versus BPMN.
+
+---
+
+## 8. Bravo team responses, reviewed (2026-09-09)
+
+The Bravo team replied to rows 1–3 of §2. Each response was checked against the code; the rows were revised where the check supported the response. This section records the argument, the evidence, what changed, and what still stands.
+
+### 8.1 "Flowchart explosion is an anti-pattern, not a paradigm flaw; keep the spine thin and delegate to modular children"
+
+**The argument is correct as a statement about BPMN.** Nothing in the paradigm requires a 9,494-line file, and spine-plus-children is the standard mitigation. It is also not hypothetical for Bravo: the 2024 unified rewrite *is* this mitigation, an eight-step spine with 36 child processes.
+
+**What the code says about whether it worked:**
+
+| Metric | Legacy monoliths (13 files) | Unified spine + children (37 files) |
+|---|---|---|
+| Lines of BPMN | 29,111 | 8,536 |
+| Service tasks | 380 | 82 |
+| Exclusive gateways with more than one outgoing flow (business decisions) | 259 | 58 |
+| Business decision gateways per service task | 0.68 | 0.71 |
+| `conditionExpression` per service task | 1.41 | 1.33 |
+| Escalation event definitions per service task | 0.13 | 1.67 |
+| Feature-flag lookups inside gateway expressions (`environment.getProperty`) | 68 | 10 |
+| Production share of started applications, 90 days to 2026-09-09 | ≈94% (NDF2W, NDF4W, RO, Sharia) | 5.5% (DF4W only; DF2W configured, zero volume) |
+| Commits touching the files in 2026 | 57 | 39 |
+
+Three readings follow. Modularisation cut the absolute size by 3.4× and the flag lookups by 7×, which is a real gain. It did not cut the *density* of branching: a unified service task still sits next to 0.7 business decisions and 1.3 conditions, the same as in the monolith, so the edge cases were partitioned, not removed. And it added a new kind of plumbing: the escalation return channel costs 1.67 escalation definitions per service task, 13× the legacy rate, plus the seven missing `camunda:out` mappings in Appendix C, a defect that can only exist once there are child processes to map from.
+
+The larger point is operational. The mitigation has been in the codebase for two years and carries 5.5% of production volume, one product. The monoliths were changed more often in 2026 than the spine. The Bravo team's remedy is right and is being applied; the evidence that it scales to the whole book does not exist yet, and the present state is two generations running in parallel: two flowcharts, two error idioms, and a bridge from `ndf2w.bpmn` into unified underwriting.
+
+**What changed in the document.** §2 row 1 now reads "observed in Bravo; a consequence of modelling practice, not a law of the paradigm; the mitigation exists and is unproven at scale". The earlier wording "the count of decision points did not fall" is replaced by the density figures above, and the 122 gateways named "Checkpoint" are no longer counted as decision points: 102 of them have a single outgoing flow and are transaction boundaries, not branches.
+
+**What still stands.** "Constraining the spine to high-level orchestration" moves complexity down into children; it does not say where product and risk-type variation goes. In Bravo it went into the six-column selector tables, the per-activity on/off matrix and gateway strings (§3.4, §3.8). LORA's answer is a separate document and worker per product family. Both are legitimate; neither is "the flowchart stays simple".
+
+### 8.2 "Camunda fully supports parallel execution; unlocking it is a product and engineering collaboration problem"
+
+**The argument is correct about the engine.** Camunda 7 has parallel and inclusive gateways, message and signal events, event sub-processes and non-interrupting boundary events, all of which express concurrency and out-of-order arrival. Bravo's 14 parallel gateways and 4 inclusive gateways are a modelling choice, not an engine limit. The unified surveyor assignment already runs two human tasks concurrently through an inclusive gateway (`unified-surveyor-assignment.bpmn`), and the KYC, Pefindo, anti-fraud and dedupe checks in `unified-workflow-check.bpmn` are data-independent and could be forked today.
+
+**Where the argument stops short.** The rationale's claim was not about fork/join parallelism but about *unplanned* order: data arriving whenever it arrives, and work starting whenever its inputs exist. BPMN can model that, but every interleaving has to be drawn: a message event or event sub-process per external signal, a non-interrupting boundary per "this may arrive while that is running". Bravo has zero of each, which is the plain reason the flows are sequential: nobody wanted to draw it. GSM does not draw it; the planner derives it from ReadSet/WriteSet. That is a paradigm difference. The "Speaking Engineer" method the Bravo team cites (LORA `people.md`, steps 1 to 8: classify every arrow as a data dependency, a human decision or an external event) is exactly the exercise that produces a readiness matrix rather than a wider flowchart, so adopting it would pull Bravo's modelling toward LORA's, not merely add gateways.
+
+Two engine caveats apply to Bravo specifically if parallelism is adopted. Parallel branches become concurrent jobs on a job executor left at the starter default of three threads (§3.6). And none of the 14 existing parallel gateways carries `asyncBefore` on the join, the usual Camunda 7 guard against optimistic-locking failures when concurrent branches converge. Both would need fixing first.
+
+Fairness to Bravo: LORA's parallelism benefit is asserted in its design and assessment, not measured. No LORA production document reports a latency or throughput gain from concurrent activities. The comparison is "Bravo does not model it" against "LORA gets it structurally", not "LORA measured a win".
+
+**What changed in the document.** §2 row 2 now distinguishes the two claims: fork/join is a modelling choice Bravo could adopt; data-driven order is a paradigm difference.
+
+### 8.3 "Relational DDD aggregate versus one document is a philosophy difference, not scattered data"
+
+**The argument is correct as far as it goes**, and §2 row 3 already said the rationale's "scattered process variables" criticism does not describe Bravo. The relational aggregate has concrete advantages recorded in §3.9 and §5: fleet questions are SQL, sub-entities evolve independently (1,350 migrations), and there is no schema-version fleet to retire. The field count the Bravo team quotes for LORA is fair: `dp-ndf-v0_23_0` has 1,196 properties when nested object nodes are counted and about 910 leaf fields; the LORA assessment's "777 fields" counts leaves in v0_24_0 by a stricter rule. Whichever count is used, it is one large schema *per product family*, seven families in 13 repos, not one form for everything, so "forces all data into one giant form" overstates the LORA side as well.
+
+**Where the argument turns against itself.** In Domain-Driven Design the aggregate root exists to enforce invariants: state changes go through it, and it refuses illegal ones. Bravo's `Application` is a Lombok `@Data` entity with generated setters, no hand-written behaviour and no transition method (`entity/Application.java:45-52`, zero domain methods). The lifecycle invariants live in BPMN string literals and 197 `setStatus` call sites across 73 files, including an HTTP controller (§3.3). A graph state machine exists in the codebase and is wired to one peripheral entity. That is the pattern the DDD literature calls an anemic domain model, and it is the actual finding behind "scattered": not that data is in 238 tables, but that the loan's lifecycle has no owner. Describing the model as DDD raises the bar the code is measured against rather than lowering it.
+
+The document model does not automatically fix this either. LORA's status field is validated for enum membership only (§3.3). The difference is that LORA has one field to put a validator on; Bravo has four status vocabularies on four entities.
+
+**What changed in the document.** §2 row 3 keeps the "partly refuted" verdict, now credits the relational aggregate explicitly, and names the anemic-aggregate point as the residual criticism. §1 and §3.2 give the field count as a range with both counting rules.
+
+### 8.4 Net effect on the verdict
+
+None of the three responses moves the §7 conclusion, and two of them sharpen it. The "flowchart explosion" and "sequential" findings are true of Bravo and are consequences of how Bravo was modelled, not laws of BPMN; the Bravo team's own remedies (thin spine, parallel gateways, an aggregate that owns its invariants) are the right ones and are, respectively, 5.5% deployed, not started, and not enforced. The pure-workflow approach *could* have avoided most of what §2 rows 1 and 2 describe, and did not. That is itself evidence about how the two paradigms behave under real delivery pressure, which is the only condition under which either will ever run.
 
 ---
 
@@ -306,6 +368,9 @@ The honest summary is that the paradigm choice decided the shape of roughly 6% (
 | Unified selector tables | `entity/workflow/WorkflowProductConfig.java`, `WorkflowMasterConfig.java`, `entity/ApplicationWorkflowConfig.java`; `service/impl/workflow/ApplicationWorkflowConfigMapServiceImpl.java:64-294` |
 | Status enums and writes | `constant/ApplicationConstants.java:76-125`; `activity/SetApplicationStatusActivity.java:164-174,444`; `controller/SalestraxController.java:74` |
 | Unused state machine | `service/statemachine/AbstractSM.java`; `service/unsecured/impl/StateMachine.java` |
+| Aggregate root without behaviour | `entity/Application.java:45-52` (`@Data`, `@Builder`, no domain methods); `entity/common/BaseEntity.java:18-23` |
+| Parallelism constructs | 14 `parallelGateway` (e.g. `ndf4w.bpmn` "Assigned Surveyor Created Task" forks, `unified-underwriting-ca.bpmn` `Gateway_P_*`), 4 `inclusiveGateway` (`unified-surveyor-assignment.bpmn`, `unified-survey-returned.bpmn`); no `asyncBefore` on any join |
+| Unified vs legacy metrics (§8.1) | counts over `unified-*.bpmn` (37 files) vs the 13 legacy files; production share from `workflow-gap.md` §8.1–8.2 |
 | Stage recovery | `entity/Application.java:59-60,265-266`; `service/impl/CamundaServiceImpl.java:479-491` |
 | Human tasks and roles | `constant/ActivityIdConstants.java:36-81`; `annotation/AuthorizeAspect.java:37-76`; `service/impl/SurveyorAssignmentServiceImpl.java:2528-2559`; `service/impl/underwriting/BaseUnderwritingApprovalServiceImpl.java:3102-3189` |
 | Approval ladder | `service/impl/underwriting/UnderwritingApprovalApproverServiceImpl.java:898-1042`; `db/migration/V2_0_202609031000__update-underwriting-job-level-lov-nmh-to-gmb.sql` |
