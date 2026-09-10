@@ -55,16 +55,16 @@ flowchart TB
 |---|---|---|---|
 | **What it is** | 1A: Camunda 7.24.0 CE + Java 21 + hardening, no licence. 1B: buy Camunda 7 EE + Tanzu Spring, change nothing else. 1C: 1B plus Spring Boot 4.1 | Port ~60 BPMN definitions to Temporal Java SDK workflow code; 225 `JavaDelegate`s become Activities; the other 94% of the service stays put | Close LORA's coverage gap, prove parity, cut the remaining book over, switch Bravo off |
 | **Paradigm change** | **None** | **None** — imperative workflow, same language | **Yes** — data-centric GSM, Go, custom SDK and planner |
-| **Effort (eng-months)** | **1A 3.5–5.5** · **1B 4.5–7** · **1C 11–19** | **30–56** (or **8–14** for a DF4W-only pilot) | **30–57** (some overlaps LORA's existing roadmap) |
+| **Effort (eng-months)** | **1A 3.5–5.5** · **1B 4.5–7** · **1C 11–19** | **31–57** (or **8–14** for a DF4W-only pilot) | **30–57** (some overlaps LORA's existing roadmap) |
 | **Elapsed** | 2–3 months (1A/1B); 5–8 months (1C) | 12–18 months, 5–8 engineers | 15–24 months |
-| **Indicative one-off** (Rp30–50M/eng-month) | Rp105M–275M · Rp135M–350M+licences · Rp330M–950M+licence | Rp900M–2.8B | Rp900M–2.85B |
+| **Indicative one-off** (Rp30–50M/eng-month) | Rp105M–275M · Rp135M–350M+licences · Rp330M–950M+licence | Rp930M–2.85B | Rp900M–2.85B |
 | **New licences** | 1A none · 1B Camunda 7 EE **+** Tanzu Spring · 1C Camunda 7 EE | None — Temporal already contracted at Rp140M/month | None |
 | **Run-rate change** | None. Tier stays ≈Rp58M/month prod — the cheapest of the three | ≈neutral. +Rp4.5–12M/month Actions, likely inside the existing commitment; minus the Camunda history load on Cloud SQL | **−≈Rp58M/month** prod, **−≈Rp70–100M** with non-prod, plus a second platform's staffing |
 | **Runway bought** | 1A **none** · 1B/1C **to Apr 2030**, Apr 2032 extended — then the question returns | **Permanent** — no workflow-engine vendor | **Permanent** — the platform ceases to exist |
 | **Solves the EOL finding?** | 1A no (terminal versions, controls only) · 1B/1C yes | Yes | Yes, but only after 15–24 months |
 | **Business capability gained** | None | None | Add an automated step with no orchestration edit — validated at 172 activities, 3 precursors |
 | **Architectural findings addressed** | None | None — a faithful port ports the problems | Yes, by replacement |
-| **Preserves what Bravo does well** | **All of it** — BPMN legibility, Cockpit, relational fleet queries, reprocess generations, bounded/classified failure | Partly — order stays authored and readable in Java; Cockpit and the BPMN diagram are lost | No — replaced by a different model with different strengths |
+| **Preserves what Bravo does well** | **All of it** — BPMN legibility, Cockpit, relational fleet queries, reprocess generations, bounded/classified failure | Mostly — 0.4% engine contact, no data migration, no retraining; process legibility is preserved and made verifiable by a generated-vs-intent diagram diff. Cockpit is the real loss | No — replaced by a different model with different strengths |
 | **Ends with two platforms?** | Yes | Yes | **No** |
 | **Biggest risk** | Every variant rents time on a feature-frozen product; the decision returns in 2027–28 | Large investment whose value depends on Bravo having a long life | Paradigm adoption cost, plus LORA's measured reliability gap at 3× volume |
 
@@ -85,7 +85,7 @@ Each option is the correct answer to a different question. The fastest route to 
 ### What each option optimises for
 
 - **Option 1** optimises for *disruption avoided*. It is the only option that changes nothing about how a single engineer or analyst works, and it preserves everything the comparison found Bravo genuinely does better than LORA — bounded and classified failure handling with a designed dead-letter path, relational fleet queries, durable reprocess generations, an analyst-readable BPMN model, commodity skills, and the cheapest orchestration tier of the three at ≈Rp58M/month ([compare.md §5](compare.md)). It buys time, priced by the year, and does not remove the decision.
-- **Option 2** optimises for *permanence without paradigm change*. It is the only option that removes the vendor dependency for good while keeping the imperative model the team already thinks in — and on infrastructure BFI already owns and staffs. Its weakness is that it changes the engine and preserves the architecture exactly: if the organisation's real complaint is about Bravo's design rather than its runtime, Option 2 does not answer it.
+- **Option 2** optimises for *permanence without paradigm change*, and for **migration risk**. It is the only option that removes the vendor dependency for good while keeping the imperative model the team already thinks in — on infrastructure BFI already owns and staffs. [option-2.md §3](option-2.md) measures why it is the lower-risk migration: only **2,004 of 497,970 lines (0.40%)** touch a Camunda API, the 238 entities and 271 tables do not move at all, parity can be argued element by element rather than demonstrated path by path, and rollback lands on the same database. Note what that does *not* buy — at 31–57 engineer-months it is not materially cheaper than Option 3; the reuse converts into predictability and reversibility, not fewer engineer-months. Its weakness is that it changes the engine and preserves the architecture exactly: if the organisation's real complaint is about Bravo's design rather than its runtime, Option 2 does not answer it.
 - **Option 3** optimises for *one platform and one capability*. Adding an automated step without editing an orchestration model is real, validated, and the clearest thing LORA does better ([compare.md §3.4](compare.md)). Its price is a paradigm change whose cost is documented, partly remediable, and currently unremediated.
 
 ### The paradigm objection, weighed
@@ -98,16 +98,16 @@ The fair summary: the objection is real, mostly remediable, and cheap to remedia
 
 ## 5. What we do not know, and what would settle it
 
-The four gaps below are what stand between this pack and a confident recommendation on Decision B. All are answerable in weeks.
+The gaps below are what stand between this pack and a confident recommendation on Decision B. All are answerable in weeks. **One of the four closed on 2026-09-10** — the OTRS ticket export gave Bravo's manual-intervention rate ([ticket-analysis.md](production-findings/ticket-analysis.md)) — and it is kept in the table with its answer, because the answer arrived with a caveat that is itself a smaller open question.
 
 | Open question | Why it decides something | How to close it |
 |---|---|---|
 | **What does Camunda 7 Enterprise + Tanzu Spring actually cost?** | Options 1B and 1C cannot be compared with 2 and 3 in money. If the licences are cheap, 1B is a strong low-risk answer; if expensive, Option 2 looks better on a 5-year view | Get quotes. Procurement, ~2–4 weeks |
 | **How big is LORA's coverage gap against Bravo, per product and risk tier?** | The largest uncertainty in Option 3's 30–57 eng-months, and the input that says how much of it is incremental versus already-roadmapped | Gap inventory, 1–2 eng-months. Useful under every option |
-| **What is Bravo's manual-intervention rate?** | LORA's is measured (~0.2% of applications, 20–25 permanent wedges/month). Bravo's is not. Nobody should claim either platform is more reliable until both are computed the same way | Derivable today from `application_error_tracking`, reprocess/revive endpoint hits and Cockpit incident history. Days |
+| ~~**What is Bravo's manual-intervention rate?**~~ **Answered 2026-09-10: ≈0.44%, about 3.5× LORA's ≈0.13%** — 1 application in 225 against 1 in 790, from 2,514 stuck-application tickets Jan–Aug against LORA's 1,453 ([ticket-analysis.md](production-findings/ticket-analysis.md)). Bravo's ticket load also rose 82% over eight months while its volume fell 35% | No longer blocks the comparison. Reliability now favours LORA as clearly as orchestration-tier cost favours Bravo | **Residual question, days of work:** the gap turns on one category, `Surveyor Platform - Release reject` (1,542 tickets, 28.4% of Bravo's load, grown 4.8×). Excluding it, Bravo's rate is 0.152% — level with LORA. Nobody has mapped it to a BPMN element or endpoint |
 | **How long must Bravo run?** | Selects 1A (short horizon), 1B (2–4 years), or 1C/2 (long) — and it is a business decision, not a technical one | Steering committee. Set and publish a horizon, even a provisional one |
 
-Two smaller ones: whether Bravo's estimated 5.4–14.4M Temporal Actions/month fit inside the existing commitment before its ~March 2027 renewal, and what the Bravo/LORA application split really is — the billing sheet's counts are the least-verified numbers in the pack, and Bravo's engine meter reports ~120k process starts/month against the sheet's 76,446.
+Three smaller ones: what `Surveyor Platform - Release reject` actually is (above); whether Bravo's estimated 5.4–14.4M Temporal Actions/month fit inside the existing commitment before its ~March 2027 renewal, and what the Bravo/LORA application split really is — the billing sheet's counts are the least-verified numbers in the pack, and Bravo's engine meter reports ~120k process starts/month against the sheet's 76,446.
 
 ---
 
@@ -139,7 +139,7 @@ Sequenced so that nothing on this list is wasted under any option.
 | 3 | **Set and publish a Bravo horizon**, even provisionally | Steering / CTO | Selects the bridge variant, and is the main input to Decision B |
 | 4 | **Take the risk decision** on running unpatched Camunda CE + Spring Boot 3.5 OSS for that horizon | Risk / Compliance + CTO | Selects 1A or 1B |
 | 5 | **Start the LORA gap inventory** — every Bravo delegate, status, assignment rule and approval path mapped to an existing LORA ProcessStep, a required new one, or "drop", per product and risk tier | LORA + Bravo | Gates every number in [option-3.md](option-3.md); the resulting per-product map is useful under every option |
-| 6 | **Compute Bravo's manual-intervention rate** from `application_error_tracking`, reprocess/revive endpoint hits and Cockpit incident history | Bravo | Makes the reliability comparison symmetric. Days of work |
+| 6 | **Map `Surveyor Platform - Release reject` to a BPMN element or endpoint**, then compute Bravo's intervention rate a second way from `application_error_tracking`, reprocess/revive endpoint hits and Cockpit history | Bravo | The OTRS export gave the rate (≈0.44%); one category carries 61% of it and nobody knows what it is. The second source would also catch the interventions that never became tickets. Days of work |
 | 7 | **Confirm Temporal commitment headroom** ahead of the ~March 2027 renewal | Platform + FinOps | Needed for Option 2's costing and for Option 3's capacity planning |
 | 8 | **Reduce Camunda history level** on non-audited processes | Bravo | `full` history with 90-day retention on 483 service tasks is a material slice of the Rp52.7M/month Cloud SQL line. Free money under every option |
 
@@ -151,7 +151,7 @@ Sequenced so that nothing on this list is wasted under any option.
 
 **Sizing inputs, all counted from the checkout at `2d5d856`:** 497,970 LOC main Java across 5,070 files; 1,457 test files of which 4 run a Camunda process; 53 BPMN and 3 DMN; 483 `delegateExpression` bindings over 274 beans; 225 `JavaDelegate` implementations (276 with subclasses); 96 user tasks; 56 `callActivity`; 190 escalation and 194 link event definitions; 186 `failedJobRetryTimeCycle` declarations; 113 `@FeignClient`; 238 `@Entity` over 271 tables; 1,350 Flyway migrations; 23 active authors and 4,514 commits in 2026.
 
-**What is not measured, and would change the numbers:** the four open questions in §5 — licence pricing, LORA's coverage gap, Bravo's manual-intervention rate and Bravo's required horizon — plus Temporal commitment headroom and the true Bravo/LORA application split. Option 3's estimate additionally does not separate incremental cost from work already on LORA's roadmap; the gap inventory is the workstream that would.
+**What is not measured, and would change the numbers:** the open questions in §5 — licence pricing, LORA's coverage gap, the meaning of `Release reject` and Bravo's required horizon — plus Temporal commitment headroom and the true Bravo/LORA application split. Option 3's estimate additionally does not separate incremental cost from work already on LORA's roadmap; the gap inventory is the workstream that would.
 
 ---
 

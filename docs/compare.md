@@ -4,11 +4,13 @@
 
 **Method.** Code and configuration verification of `squads/Scoring and Underwriting/bravo-bpm-service` (checkout at `v2.93.43`, last commit 2026-09-07) against the LORA documentation set (`lora-workspace/docs`: design-rationale, assessment, architecture, production-findings, August to September 2026). Every Bravo claim below cites a file. LORA claims cite the LORA docs, which in turn cite LORA code and production data. Counts are `grep`/`find` over the checkout.
 
+**Revision 2026-09-10.** The OTRS ticket export closed the pack's largest measurement gap; §3.14 is new and §3.6, §3.7, §4, §5 and §6 are amended where they said "not measured".
+
 **Revision 2026-09-09.** The Bravo team responded to rows 1–3 of §2. Each response was checked against the code; the rows were revised and §8 records the arguments, the evidence and what changed. Production-share figures come from the 90-day PostgreSQL and Datadog measurements in [workflow-gap.md §8](workflow-gap.md).
 
 **Scope caveats, read first.**
 
-- LORA's production-findings pack measured LORA in production (Temporal Cloud billing, Datadog). For Bravo we have code, git history and the GCP bill as recorded by the LORA cost document. We do **not** have Bravo's manual-intervention rate, incident counts or per-activity failure data. Where LORA has a measured number and Bravo has only a code-level mechanism, the table says so.
+- LORA's production-findings pack measured LORA in production (Temporal Cloud billing, Datadog). For Bravo we have code, git history and the GCP bill as recorded by the LORA cost document. **Superseded in part on 2026-09-10:** the OTRS support-ticket export ([production-findings/ticket-analysis.md](production-findings/ticket-analysis.md)) now gives Bravo's manual-intervention rate, incident counts and per-activity failure data on the same basis as LORA's — the first symmetric reliability measurement in the pack. Its rates rest on the billing sheet's disputed application counts, so they are provisional; its counts and trends are not. Where LORA still has a measured number and Bravo has only a code-level mechanism, the table says so.
 - "Bravo" in the LORA cost figures means the whole Bravo estate (Cloud SQL, ~50 upstream services, non-prod projects), not `bravo-bpm-service` alone. On 2026-09-09 the Bravo team objected that this makes the cost comparison unfair because LORA itself calls most of that estate; the objection was checked and upheld, and §3.12 and §8.5 now carry a like-for-like orchestration-tier comparison in which Bravo's tier is the cheaper one.
 - Bravo is being drained into LORA (applications fell from ~118k to ~76k per month between July and August 2026), so its unit economics are inflating for reasons unrelated to architecture.
 
@@ -148,7 +150,7 @@ This is where the comparison inverts the rationale's expectation.
 | Retry policy | Per-task `failedJobRetryTimeCycle`, 186 declarations, 30 distinct values (`R5/PT1M` ×39, `R0/PT0M` ×39, `R3/PT1M` ×14, up to `R5/PT15M,PT30M,PT1H,PT3H,PT12H`); Camunda default 3 tries elsewhere. `R0/PT0M` on checkpoint gateways is deliberate: fail fast into an incident and park | One central `makeActivityOption`: `MaximumAttempts: 0` (unbounded), `MaximumInterval: 60s`, `NonRetryableErrorTypes: nil`. Backoff decays for ~63 s then polls flat forever |
 | Terminal-error classification | Yes, two ways: `BpmnError`/`BpmnException` for business outcomes (routed to boundary events), and `OutboundAutoErrorHandlerEngineServiceImpl` which on the **last attempt** persists an error row and calls a per-activity `customErrorHandle` (50 implementations) that typically degrades, e.g. `AntiFraudEngineActivity` sets `WORKFLOW_ANTI_FRAUD_RESULT = BYPASS` | None. Zero `NewNonRetryableApplicationError` in `services/`. ~50,000 4xx/week retried as if transient; 4xx outnumber 5xx 111:1 |
 | Dead letter | Camunda incident + `ApplicationErrorTracking` table with an operator console (`/v1/application-error-tracking`: assign-surveyor, assign-branch, cancel, send-salestrax → `setVariable` + `setJobRetries(…,1)`); `unified-pending-take-over` parks on a user task; RabbitMQ `.dead` queues with 7-day TTL | Undesigned: 1,269 force-cancel Jira tickets Jan–Aug 2026, ops cancels and re-originates from event 1 |
-| Measured consequence | **Not measured.** Bravo's equivalent of the LORA number would be `ApplicationErrorTracking` rows + reprocess/revive endpoint hits + Cockpit interventions; none of this is exported as a metric | 47 loans wedged per 7-day window, 19 still burning daily, one at attempt 1,890; ~1,630 human interventions Jan–Aug; ≈0.2% of applications; 20–25 permanent wedges/month |
+| Measured consequence | **≈0.44% of applications need a person to unstick them** (Jun–Aug 2026; 1,334 stuck-application tickets over 301,164 applications), **2,514 Jan–Aug**; no zombie-loan class, but 3.5× LORA's rate — and the figure excludes silent recoveries through the operator console, which raise no ticket (§3.14) | 47 loans wedged per 7-day window, 19 still burning daily, one at attempt 1,890; ~1,630 human interventions Jan–Aug; ≈0.2% of applications; 20–25 permanent wedges/month |
 | Alerting | Slack (6 channels) + Google Chat, gated to last retry only (`CamundaErrorNotificationServiceImpl.java:35-39`) | Datadog monitor on >10 attempts exists but has the noisiest wedged-loan error excluded |
 | Circuit breaking | None. 113 Feign clients, one with a `Retryer`, global `readTimeout` 300 s, default job-executor pool of 3 | None at activity level; gateway shares one route for ~300 upstreams |
 | Compensation for external side effects | None. Create CIF has no pre-check for an existing `cifId` inside the activity, so a timeout-but-succeeded CONFINS call can create a second CIF; go-live failure is re-synced by a 5-minute sweeper | None. `golive_update_agreement` and `ro_update_cif` are among the wedged activities: external operations that could neither complete nor be reversed |
@@ -164,7 +166,7 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 |---|---|---|
 | Model | Return loops are modelled explicitly in BPMN (`unified-survey-returned.bpmn`, `unified-underwriting-ca.bpmn` return paths, statuses `UW_RETURNED`/`BM_RETURNED`). Full reprocess creates a **new `Application` row** chained via `prevApplication` and `currentIndex`, capped by `reprocessMaxLimit`; scoring and UW data are scoped per generation (~40 `currentIndex` reads) | Planner rollback: identify downstream readers of a changed field, revert their writes on the version chain, re-schedule, fast-forward unchanged inputs. Activities with irreversible effects opt out via `SetRetainDataOnRollback()` |
 | Engine involvement | `ProcessInstanceModification` used live in one place, and only to force-terminate to hardcoded event ids (`"Event_1hx9v4v"`, `"Event_0z554j6"`, `"Event_0r02gct"`) inside a swallowing `catch`; 4 of 7 uses are commented out. Reprocess otherwise resets JPA fields and sets statuses backwards (`UnderwritingReprocessServiceImpl.java:42-88`) | Native to the planner |
-| Production cost | Not measured | 287 rewind incidents at the survey/task-master seam ("event 15"); rewind and force-cancel tickets ≈705 rows |
+| Production cost | **413 `Rescoring / Reproses` tickets Jan–Aug 2026** (OTRS), peaking at 91 in March; a further 145 `Reassign Application` and 128 `Request Take Application` (§3.14) | 287 rewind incidents at the survey/task-master seam ("event 15"); rewind and force-cancel tickets ≈705 rows |
 
 **Assessment.** LORA's rollback is more principled for computed fields (the assessment's "milestone invalidation" praise stands). Bravo's "new row per generation" is crude but has a virtue LORA lacks: every generation is a durable, queryable record, and nothing has to replay Temporal history to reconstruct it.
 
@@ -239,6 +241,31 @@ Numbers from the LORA cost document (GCP billing export + FinOps API, August 202
 
 ---
 
+### 3.14 Production ticket load and manual-intervention rate
+
+*Added 2026-09-10 from the OTRS export `Compare_LOS_LORA.xlsx` (5,677 LOS + 4,184 LORA tickets, 2026-01-01 to 2026-09-09). Full derivation, category membership and caveats: [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md).*
+
+This is the first dataset in the pack that measures the same thing, in the same system, over the same window, for both platforms. Two warnings carry into every row below. **August was a re-categorisation month on both queues** — LORA lost four ticket streams worth 248/month, which is more than its entire July→August decline, so its August total is a floor rather than a measurement. And **the rates divide a verified numerator by the billing sheet's disputed application counts**; the counts and trends need no denominator and are the firmer half.
+
+| | Bravo (LOS) | LORA |
+|---|---|---|
+| Tickets Jan–Aug 2026 | 5,430 | 4,087 (3,217 excluding the customer/WhatsApp channels Bravo has no equivalent of) |
+| Trend Jan→Aug, stable categories only | **×1.82 — rising while application volume fell** (118k→76k) | ×0.66 |
+| Stuck-application tickets Jan–Aug | **2,514** | **1,453** — against ≈1,630 from Jira force-cancel + rewind, an independent cross-check within 11% |
+| **Manual-intervention rate, Jun–Aug** | **≈0.443%** — 1 application in 225 | **≈0.126%** — 1 in 790 (published figure 0.18–0.22%) |
+| Zero-intervention completion | ≈99.56% | ≈99.87% |
+| Top single category | `Surveyor Platform - Release reject` — **1,542 tickets, 28.4% of all Bravo tickets**, grown 4.8× (65→315) and still climbing after normalising for volume (2.36→4.12 per 1,000) | `DBP Surveyor - Lainnya` ("other"), 809 (19.8%); largest *named* failure is `Kendala Assignment Tidak Muncul`, 347 (8.5%) |
+| Load shape | Secular growth, no spikes | Single-month spikes that recover — a defect shipped and fixed |
+| Concentration | 60 categories, top 5 = 53.9% | 42 categories, top 5 = 55.2% |
+
+**Assessment.** Bravo's rate is about 3.5× LORA's, and the errors that are easiest to identify all push the same way: the billing sheet plausibly counts LORA-originated applications again in Bravo at go-live, which inflates Bravo's denominator; and Bravo's operator console lets staff unstick an application without ever raising a ticket, so its numerator is undercounted too. The one confound that flatters LORA is real — a platform being drained keeps the residual hard cases — and it is not controlled for.
+
+**This does not overturn §3.6 or §5; it completes them.** Bravo has bounded, classified failure and no zombie-loan class, *and* it puts three and a half times as many applications in front of a human. Those are consistent: fail-fast checkpoints convert an invisible wedge into a visible ticket, which is a better operational posture and is exactly what a ticket queue counts. LORA's defect class is loans nobody sees; Bravo's is loans everybody sees, more often.
+
+**And it turns on one unexplained category.** `Release reject` is 1,542 of Bravo's 2,514 stuck-application tickets. Remove it and Bravo's rate falls to 0.152%, level with LORA's 0.126%. No code path of that name has been mapped to a BPMN element or endpoint — `bravo-analysis` holds documents, not source. **Whether Bravo's intervention rate is 3.5× LORA's or level with it is currently a single open question**, and answering it is days of work for whoever owns the Surveyor Platform.
+
+---
+
 ## 4. Where the two systems converge
 
 Read side by side, the paradigms differ less than the rationale expected. The same five problems appear in both, in different clothes.
@@ -246,9 +273,10 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 1. **Human-task complexity is paradigm-independent.** Bravo: 44% of code, three service classes over 4,600 lines each. LORA: ~12k lines of FSM inside the declarative shell. Neither engine's native task model was used.
 2. **The lifecycle FSM is declared but not enforced.** Bravo has a state-machine class used once; LORA has an FSM table validated for enum membership only.
 3. **No saga compensation.** Both rely on sweepers, re-sync and humans for failed external commits (CIF, agreement, go-live).
-4. **Operations absorb the design gaps as tickets.** Bravo: `ApplicationErrorTracking` console, ~25 retry/reprocess/revive endpoints, Cockpit. LORA: 1,269 force-cancels, 705 rewinds. Bravo designed its queue; LORA's emerged.
+4. **Operations absorb the design gaps as tickets.** Bravo: `ApplicationErrorTracking` console, ~25 retry/reprocess/revive endpoints, Cockpit, and **2,514 stuck-application tickets Jan–Aug 2026**. LORA: 1,269 force-cancels, 705 rewinds, **1,453 stuck-application tickets over the same window**. Bravo designed its queue; LORA's emerged; both are the same order of magnitude and both are growing out of the human-task layer, not the engine (§3.14).
 5. **The orchestration layer is untested in both.** 4 of 1,457 Bravo tests run a process; LORA's nightly is red and its product-policy tests are not a gate.
-6. **Bravo drifted toward LORA on its own.** The 2024 unified rewrite replaced per-product flowcharts with one superset flowchart plus a per-application boolean matrix that decides which activities run (§3.4). That matrix is a static, hand-configured cousin of LORA's computed guards. The team arrived at "the data decides whether a step runs" without leaving BPMN; what it could not get from BPMN was "the data decides *when*", which is the part LORA's planner adds.
+6. **The surveyor-assignment seam is the top ops complaint on both, in the same words.** 1,182 Bravo tickets (21.8% of load) and 1,021 LORA tickets (25.0%) are "assignment does not appear / cannot reassign / cannot take / cannot cancel". A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer — `SurveyorAssignmentServiceImpl` at 10,419 lines, `survey.go` at 5,473 — and inherited that layer's failure modes at nearly the same rate. This is convergence #1 measured on both sides rather than inferred from code size (§3.14).
+7. **Bravo drifted toward LORA on its own.** The 2024 unified rewrite replaced per-product flowcharts with one superset flowchart plus a per-application boolean matrix that decides which activities run (§3.4). That matrix is a static, hand-configured cousin of LORA's computed guards. The team arrived at "the data decides whether a step runs" without leaving BPMN; what it could not get from BPMN was "the data decides *when*", which is the part LORA's planner adds.
 
 ---
 
@@ -256,7 +284,7 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 
 **Bravo (pure workflow) did better at:**
 
-- **Bounded, classified failure.** Fail-fast checkpoints, business errors as BPMN errors, transient errors retried a finite number of times, degrade on last attempt, alert on last attempt, park in an operator console. Inconsistent, but no zombie loans by construction.
+- **Bounded, classified failure.** Fail-fast checkpoints, business errors as BPMN errors, transient errors retried a finite number of times, degrade on last attempt, alert on last attempt, park in an operator console. Inconsistent, but no zombie loans by construction. **This is a claim about the *shape* of failure, not its frequency** — Bravo's measured manual-intervention rate is ≈3.5× LORA's (§3.14). Bounded failure means the wedge is visible and recoverable, not that it is rare.
 - **A designed dead-letter path.** `ApplicationErrorTracking` plus `setVariable` + `setJobRetries` is the "visible failure" LORA's reliability document asks for.
 - **Fleet queries.** Relational state means "all loans stuck at survey" is a `WHERE` clause.
 - **Durable reprocess generations.** `prevApplication`/`currentIndex` keeps every attempt as a row.
@@ -273,6 +301,7 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 - **Product isolation at the data layer.** Separate documents and queues; Bravo has one job executor for everything.
 - **Marginal cost.** Near-zero cost per additional application once the fixed footprint is paid; volume moved from Bravo to LORA adds almost nothing to LORA's bill. (The earlier bullet claiming ≈Rp2,300 vs ≈Rp21,900 per application is withdrawn; like-for-like, Bravo's orchestration tier is the cheaper one, §3.12.)
 - **Observability of the automated pipeline.** Spans per activity attempt; Bravo has no process metrics.
+- **Measured intervention rate.** ≈0.126% of applications need a person, against Bravo's ≈0.443% — 1 in 790 against 1 in 225 — and LORA's ticket load fell a third over eight months while Bravo's rose 82% (§3.14). Both figures rest on disputed application counts, and Bravo's excludes silent operator-console recoveries; the gap also turns entirely on one unexplained Bravo category.
 
 ---
 
@@ -283,7 +312,7 @@ For LORA, from Bravo:
 1. **Write the retry policy Bravo was forced to write.** Bounded attempts or `ScheduleToCloseTimeout`, a terminal-error class for 4xx, and an explicit parked state with an operator surface. Bravo's `R0/PT0M` checkpoint idiom is the same idea as "convert an invisible wedge into a visible failure".
 2. **Keep the degrade decision out of the exception handler.** Bravo's `customErrorHandle` bypassing anti-fraud after three failures is a credit decision hidden in error handling. If LORA adds terminal errors, decide explicitly whether a terminal error means "reject", "park" or "skip".
 3. **Persist generations.** LORA's rewind-then-re-originate practice loses the history that Bravo keeps in chained `Application` rows.
-4. **Measure the same KPI on both.** The LORA pack proposes "percentage of applications completing with zero human intervention" and computes ≈99.8% for LORA. Bravo's equivalent is derivable from `application_error_tracking`, reprocess and revive endpoint calls and Cockpit incident history, and should be computed before anyone claims either platform is more reliable.
+4. **Measure the same KPI on both — done, and it is now the pack's sharpest comparison.** ≈99.87% zero-intervention for LORA against ≈99.56% for Bravo (§3.14). The remaining work is on the Bravo side and is worth days: `application_error_tracking` rows, reprocess and revive endpoint hits and Cockpit incident history would capture the interventions that never became tickets, giving Bravo the same two-source cross-check LORA already has.
 
 For Bravo (or any future BPMN work), from LORA:
 
@@ -412,6 +441,12 @@ None of the four responses moves the §7 conclusion on architecture, and two of 
 | Engine config | `application.yaml:621-630`; `config/SecurityConfig.java:63-67`; `config/KeycloakIdentityProviderConfig.java` |
 | Tests | `src/test/java/com/bfi/bravo/functional/*`; `pom.xml:855-890`; `makefile:10-33` |
 | Audit | `db/migration/V1_0_202208051538__create-function-history.sql`; `V2_0_202401031042__create-application-status-log-table.sql`; `V1_0_59`/`V1_0_100`/`V2_0_202305181939` event-store migrations |
+
+## Appendix A2. Bravo production sources
+
+- `docs/production-findings/Compare_LOS_LORA.xlsx` — OTRS support tickets, both platforms, 2026-01-01 to 2026-09-09 (5,677 LOS + 4,184 LORA rows). Analysed in [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md).
+- `docs/production-findings/Trend_Tiket_OTRS_LOS(BPM Bravo).pdf`
+- 90-day `ms-bpm` PostgreSQL and Datadog measurements, per [workflow-gap.md §8](workflow-gap.md)
 
 ## Appendix B. LORA sources used
 
