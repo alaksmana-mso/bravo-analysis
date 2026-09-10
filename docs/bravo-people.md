@@ -246,11 +246,14 @@ BLCS-4390  [FE] Deploy - Deploy to SIT
 
 | | Bravo | LORA |
 |---|---|---|
-| Repositories touched by one integration change | **1** (`bravo-bpm-service`) | **5** (LSS, LGS, LPW, LTS, LBOFE) |
-| Deploys to land it | 1 | up to 5, in a mandated order |
+| Repositories touched by one integration change | **1** (`bravo-bpm-service`), or **2** when a console is involved | **5** (LSS, LGS, LPW, LTS, LBOFE) |
+| Deploys to land it | 1–2 | up to 5, in a mandated order |
+| Jira projects the change appears in | **1** (`BLCS`), or **2** when it crosses the underwriting/surveyor boundary | 1 (`BL`) |
 | Jira artefacts | 1–3 | 5–6 |
 | Backward-compatibility obligation | none in-process | additive-only, because 8 worker versions run concurrently |
 | Cost when the change is wrong | one revert | a version-ordered unwind |
+
+> **Corrected 2026-09-10 — the count is 1–2, not 1.** Bravo LOS is four repositories and two Jira projects ([§2](#2-where-bravos-development-work-actually-lives-blcs-and-ln)), so a change that touches a console lands in a console repository too, and one that crosses the underwriting/surveyor boundary appears in both `BLCS` and `LN` — `BLCS-4405` *"[DF2W UW] Sync Surveyor Status Underwriting Return"* is exactly that. **The finding survives comfortably:** two repositories and two projects is still not five repositories in a mandated order with an additive-only compatibility obligation across eight concurrent worker versions. But the honest figure is 1–2, and the earlier flat "1" came from bounding Bravo at `bravo-bpm-service`.
 
 **This is the entire defensible content of "developing in Bravo is faster and easier", and it is worth taking seriously.** A monolith with a relational aggregate really is fewer moving parts per change than thirteen repositories with a schema-first ordering rule. It also explains §3 without any appeal to productivity: LORA's per-change ticket count is ~2–5× Bravo's, so once decomposition is divided out the two teams may well be shipping at similar rates with very different bookkeeping. **This argument has become more important, not less, since `LN` was added** — raw ticket volume now favours Bravo 1.27×, and the same correction that discounted LORA's old 1.83× lead discounts Bravo's new one.
 
@@ -267,7 +270,7 @@ The counter-argument is equally concrete and belongs in the same table: the five
 | Hiring pool | Java 17 / Spring Boot / Camunda 7 — commodity | Go + a bespoke GSM planner + Temporal — "you can get Java or Golang developers, but they won't be able to immediately read the code" |
 | Written onboarding | none found in this analysis pack | `docs/onboarding/` — 14 files, ~5,550 lines, with working hands-on tooling |
 | Week-1 curriculum | not established | **also not established** — LORA's own [people.md](../../lora-workspace/docs/production-findings/people.md) grades this *"overstated, but the entry point is inverted"* |
-| What a hire must actually read | 498k LOC main Java; product identity in 5 places; 197 `setStatus` sites in 73 files; a 10,419-line surveyor assignment service | ~617k LOC Go across 13 repos; 172 activity constructors; 155 preconditions with no generated index |
+| What a hire must actually read | 498k LOC main Java; product identity in 5 places; 197 `setStatus` sites in 73 files; a 10,419-line surveyor assignment service. **A console hire instead reads 208–307k LOC of React/TypeScript in one of three repositories** — a smaller and much more conventional surface, which is a real part of Bravo's onboarding story that this section had missed | ~617k LOC Go across 13 repos; 172 activity constructors; 155 preconditions with no generated index |
 | Concepts with no analogue elsewhere | BPMN escalation as a return channel; a per-application jsonb activity on/off matrix; five-place product discrimination | ReadSet/WriteSet planning; determinism constraints; schema-versioned task queues |
 
 The commodity-skills advantage is real and it is front-loaded. It gets a hire to their first compile faster. It does not help with the parts of Bravo that are actually hard, and by the evidence of this pack those are large: an aggregate root with no behaviour, a lifecycle smeared across four status vocabularies, and orchestration that is untested by 1,453 of 1,457 test files.
@@ -291,7 +294,7 @@ The commodity-skills advantage is real and it is front-loaded. It gets a hire to
 
 ## Recommended actions
 
-1. **Stop citing boards 2099 and 2877 as delivery evidence (S).** They are product intake backlogs with zero assigned and zero resolved issues. Either wire DF/D2W epics to their `BLCS` children so the timeline reflects delivery, or state explicitly that Bravo delivery is tracked in `BLCS` and compare there.
+1. **Stop citing boards 2099 and 2877 as delivery evidence (S).** They are product intake backlogs with zero assigned and zero resolved issues. Either wire DF/D2W epics to their `BLCS` **and `LN`** children so the timeline reflects delivery, or state explicitly that Bravo delivery is tracked in **`BLCS` and `LN`** and compare against both — reading only one of the two is the error this document made until 2026-09-10 ([§3](#3-throughput-on-the-corrected-scope-the-lora-lead-does-not-survive)).
 2. **Measure changes, not tickets (S–M) — and this recommendation just proved itself.** The ticket ratio inverted from LORA 1.83× to Bravo 1.27× on the addition of one Jira project, without a line of code changing. A metric that swings that far on a scope correction is not measuring delivery. The remaining ratio and the 5-repo decomposition still point opposite ways and cancel. Agree one unit — merged PRs per product change, or Story-level lead time — and publish it for both platforms. Until then neither team's velocity claim is checkable.
 3. **Fix the LORA per-change tax directly, since it is the true part of the complaint (M).** The five sub-tasks in `BL-9528..9532` are mechanical and ordered. A generator that scaffolds the schema, handler, activity migration, authorization entry and FE call from one spec turns six tickets into one plus review. LORA's own [people.md](../../lora-workspace/docs/production-findings/people.md) already designs this as "Tier 0 — deterministic, a script not a prompt"; it is not built.
 4. **Set the standing allocation for each platform, and name the bus factor (S, urgent).** Two separate things, and only the second is a risk finding. **The allocation** is an input the other four documents' 30/60/90 plans are sized against — they assume ~25 person-days a month of Squad S&U time, and that number needs an owner rather than an inference. **The bus factor** is the live risk: the Story layer runs through one account on the service carrying ~94% of origination, and re-staffing does not fix knowledge concentration by itself. **Neither is an argument about which platform should host new products** ([§5](#5-team-shape-is-a-prior-decision-not-a-platform-property)).
@@ -311,7 +314,7 @@ Six recommendations, phased. **Almost none of this is Bravo engineering time** �
 | Item | Rec | Owner | Effort | Done when |
 |---|---|---|---|---|
 | **Set the standing allocation, and name the bus factor.** Decide what share of engineering time each platform gets for remediation work, and record that the Story layer runs through one account on the service carrying ~94% of origination | 4 | Leadership | a meeting, **day 1** | A recorded decision, including what percentage of Squad S&U time is available for the other four documents' plans. **Not a platform-choice input** |
-| **Board hygiene.** Wire DF/D2W epics to their `BLCS` children, or state in the board description that Bravo delivery is tracked in `BLCS` | 1 | PMO | 1 d | Boards 2099 and 2877 can no longer be read as a delivery timeline |
+| **Board hygiene.** Wire DF/D2W epics to their `BLCS` and `LN` children, or state in the board description that Bravo delivery is tracked in **`BLCS` and `LN`** — DF2W work runs through both | 1 | PMO | 1 d | Boards 2099 and 2877 can no longer be read as a delivery timeline, and nobody repeats the mistake this pack made of reading only one of the two delivery projects |
 | **Spike the LORA scaffolding generator** — schema + handler + activity + authorization + FE call from one spec | 3 | LORA squad | 5 d spike | A prototype generates the `BL-9528..9532` shape. Full build lands in phase 3 |
 
 ### Days 31–60 — agree the unit of comparison

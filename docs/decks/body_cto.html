@@ -53,7 +53,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <span><b>As at</b> &nbsp;2026-09-11</span>
     </div>
   </div>
-  <p class="cue"><span>&darr;</span> 16 slides &middot; the scoreboard is on 6&ndash;7</p>
+  <p class="cue"><span>&darr;</span> 16 slides &middot; the paradigm assessment is on 6&ndash;7, the scoreboard on 8&ndash;9</p>
 </section>
 
 <section class="slide" data-nav="Two clocks">
@@ -145,7 +145,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </div>
       <div class="side b"><h4>You are not deciding this</h4>
         <ul>
-          <li><b>BPMN versus GSM.</b> Already assessed: the paradigm shaped <b>~6&ndash;10%</b> of each codebase and favoured LORA there. It is not the load-bearing argument.</li>
+          <li><b>BPMN versus GSM.</b> Assessed in full &mdash; and the <b>next two slides show the work</b> rather than asking you to take it on trust: five rationale claims tested against the code, what each paradigm did better, and the Bravo team&rsquo;s review. The paradigm shaped <b>~6% of Bravo&rsquo;s codebase and ~10% of LORA&rsquo;s</b>, and favoured LORA there; the other ~90% turns on engineering discipline. Real, settled, and not load-bearing for <em>this</em> decision.</li>
           <li><b>Whether Bravo works.</b> It does. 76,446 applications in August, bounded failure, no zombie-loan class.</li>
           <li><b>Whether to retire Bravo faster.</b> Explicitly not recommended.</li>
           <li><b>Which platform is cheaper.</b> Bravo is, by 4&ndash;5&times; per application. Settled.</li>
@@ -157,6 +157,60 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
     <p class="pull">A paradigm is fairly judged by what teams build with it under delivery pressure &mdash; not by what it permits in principle.
       <small>The Bravo team&rsquo;s own review established that Bravo&rsquo;s flowchart problems are consequences of <em>how Bravo was modelled</em> rather than laws of BPMN, and that the standard remedies exist. That review is accepted. It does not change the finding, because those remedies are respectively <strong>5.5% deployed, not started, and not enforced.</strong></small></p>
     <div class="foot"><span class="src">compare-architecture.md &sect;7, &sect;8 (Bravo team responses, reviewed 2026-09-09)</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="BPMN vs GSM">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the paradigm question, assessed</p>
+    <h2 class="st">BPMN versus GSM: what the code actually showed</h2>
+    <p class="lede">The previous slide says this is <em>not</em> what you are deciding. That is a conclusion, and you should see the work behind it rather than take it on trust. LORA&rsquo;s design rationale made <strong>five arguments against the workflow approach</strong>. Bravo is the concrete workflow system it was arguing against, so each one was testable against the code.</p>
+    <div class="tw"><table>
+      <thead><tr><th style="width:26%">The rationale claimed</th><th>What the code showed</th><th class="n">Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Flowcharts need an arrow for every edge case; complexity explodes</td><td><code>ndf4w.bpmn</code> alone: <b>111 service tasks, 21 user tasks, 137 exclusive gateways, 48 sub-processes, 70 error definitions</b> in one 9,494-line file, with product routing inside gateway condition strings</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Loan events are parallel and out-of-order; flowcharts handle it badly</td><td>Bravo is almost entirely sequential: <b>14 parallel and 4 inclusive gateways across 53 files</b>, and <b>zero</b> message events, signal events, event-based gateways or event sub-processes. <b>Camunda supports all of them</b> &mdash; their absence is a modelling choice, not an engine limit</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Workflow data &ldquo;lives in scattered process variables outside the diagram&rdquo;</td><td><b>Not how Bravo did it.</b> Camunda holds only routing flags; business data is a relational aggregate of 238 JPA entities, which buys SQL fleet queries. What <em>is</em> scattered is <b>lifecycle state</b> &mdash; 30 <code>ApplicationStatus</code> values plus ~105 other status enums and 197 <code>setStatus</code> sites</td><td class="n"><span class="e e--b">refuted</span></td></tr>
+        <tr><td class="k">Temporal gives retries and durable waits &ldquo;natively&rdquo;; engines need plumbing</td><td>Bravo built plumbing &mdash; and got a <b>better retry policy for it</b>: 186 retry-cycle declarations, a last-attempt degrade framework, a DB-backed retry counter, a transactional outbox and an out-of-order inbox</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr><td class="k">Saga compensation for a failed disbursement is the execution layer&rsquo;s job</td><td>Bravo: <b>0</b> compensation events, 0 BPMN transactions. LORA: document-field rollback only. Failed go-live is handled by a 5-minute sweeper that re-requests and asks CONFINS to republish</td><td class="n"><span class="e e--t">neither built it</span></td></tr>
+      </tbody>
+      <caption>Full assessment with every file and line cited: <code>compare-architecture.md</code> &sect;2 and &sect;3.1&ndash;3.14.</caption>
+    </table></div>
+    <div class="note note--bad" style="margin-top:2px"><h4>The claim the rationale should have made and did not</h4><b>Human tasks re-create flowchart complexity regardless of paradigm.</b> Bravo spends <b>44% of its code</b> on human work (a 10,419-line surveyor assignment service); LORA&rsquo;s own assessment found <b>~12k lines of hand-written state machines</b> inside the declarative shell (<code>survey.go</code>: 5,473 lines, 125 transitions). Same phenomenon, both paradigms &mdash; and it is where both systems spend most of their code.</div>
+    <div class="foot"><span class="src">compare-architecture.md &sect;2, &sect;7 &middot; code verified at <code>v2.93.43</code></span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Paradigm verdict">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the paradigm question, assessed</p>
+    <h2 class="st">Why it is not the load-bearing argument</h2>
+    <div class="verdictbox">
+      <span class="lab">The verdict on the rationale</span>
+      <span class="txt">The paradigm decided the shape of <em>~6%</em> of Bravo&rsquo;s codebase and <em>~10%</em> of LORA&rsquo;s &mdash; the automated pipeline &mdash; and decided it in <span class="pL">LORA</span>&rsquo;s favour. <em>The other ~90%</em> looks structurally similar in both, and the differences there come from engineering discipline, not GSM versus BPMN.</span>
+    </div>
+    <div class="sideby">
+      <div class="side b"><h4>Bravo (pure workflow) did better at</h4>
+        <ul>
+          <li><b>Bounded, classified failure</b> &mdash; no zombie-loan class by construction. A claim about the <em>shape</em> of failure, not its frequency</li>
+          <li><b>A designed dead-letter path</b> &mdash; the &ldquo;visible failure&rdquo; LORA&rsquo;s own reliability doc asks for</li>
+          <li><b>Fleet queries</b> &mdash; &ldquo;all loans stuck at survey&rdquo; is a <code>WHERE</code> clause</li>
+          <li><b>A forced retry policy</b> &mdash; an engine that makes you write one ends up with a better one than an engine that lets you skip it</li>
+          <li><b>Orchestration-tier cost</b> &mdash; ≈Rp58M/month against ≈Rp431M</li>
+        </ul>
+      </div>
+      <div class="side l"><h4>LORA (GSM + Temporal) did better at</h4>
+        <ul>
+          <li><b>Adding an automated step</b> &mdash; 172 activities, 3 hard precursors, <b>no orchestration edit</b>. The clearest validated win</li>
+          <li><b>One artefact</b> &mdash; the whole loan in one schema-validated document with a version chain</li>
+          <li><b>Parallelism for free</b> &mdash; ReadSet/WriteSet locking against Bravo&rsquo;s 5 parallel gateways in 53 files</li>
+          <li><b>Product isolation at the data layer</b> &mdash; separate documents and queues; Bravo has one job executor for everything</li>
+          <li><b>Observability of the pipeline</b> &mdash; a span per activity attempt; Bravo has none</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note note--ok"><h4>The Bravo team reviewed this, and their review was accepted</h4>Four responses were checked against the code (&sect;8). <b>None moved the verdict, two sharpened it, and the fourth reversed a cost claim in Bravo&rsquo;s favour</b> &mdash; like-for-like, Bravo&rsquo;s orchestration tier is the cheaper one. Their central point is <b>correct and accepted:</b> the flowchart explosion and the sequential flows are consequences of <em>how Bravo was modelled</em>, not laws of BPMN, and the standard remedies exist. It does not change the finding, because those remedies are respectively <b>5.5% deployed, not started, and not enforced</b> &mdash; and a paradigm is fairly judged by what teams build with it under delivery pressure, which is the only condition under which either will ever run.</div>
+    <div class="foot"><span class="src">compare-architecture.md &sect;5, &sect;7, &sect;8.5 &middot; Bravo team review 2026-09-09</span><span>07</span></div>
   </div>
 </section>
 

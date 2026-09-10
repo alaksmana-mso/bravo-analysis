@@ -322,11 +322,12 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#8CBBDC;--acBg:#8CBBDC24;--acBg2:#8CBBDC12}}
 :root[data-theme="dark"]{--ac:#8CBBDC;--acBg:#8CBBDC24;--acBg2:#8CBBDC12}
 @media print{
-  /* print-fit bravo-lora-cto-decision: 4 of 17 slides scaled to fit 620px of content; smallest 0.744 */
-  .deck > section.slide:nth-of-type(6) > .inner{flex:none;height:auto;zoom:0.851}
-  .deck > section.slide:nth-of-type(7) > .inner{flex:none;height:auto;zoom:0.744}
-  .deck > section.slide:nth-of-type(15) > .inner{flex:none;height:auto;zoom:0.831}
-  .deck > section.slide:nth-of-type(17) > .inner{flex:none;height:auto;zoom:0.774}
+  /* print-fit bravo-lora-cto-decision: 5 of 19 slides scaled to fit 620px of content; smallest 0.744 */
+  .deck > section.slide:nth-of-type(7) > .inner{flex:none;height:auto;zoom:0.892}
+  .deck > section.slide:nth-of-type(8) > .inner{flex:none;height:auto;zoom:0.851}
+  .deck > section.slide:nth-of-type(9) > .inner{flex:none;height:auto;zoom:0.744}
+  .deck > section.slide:nth-of-type(17) > .inner{flex:none;height:auto;zoom:0.831}
+  .deck > section.slide:nth-of-type(19) > .inner{flex:none;height:auto;zoom:0.774}
 }
 </style>
 <main class="deck" id="deck">
@@ -385,7 +386,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <span><b>As at</b> &nbsp;2026-09-11</span>
     </div>
   </div>
-  <p class="cue"><span>&darr;</span> 17 slides &middot; the scoreboard is on 6&ndash;7</p>
+  <p class="cue"><span>&darr;</span> 19 slides &middot; the paradigm assessment is on 6&ndash;7, the scoreboard on 8&ndash;9</p>
 </section>
 
 <section class="slide" data-nav="Two clocks">
@@ -477,7 +478,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </div>
       <div class="side b"><h4>You are not deciding this</h4>
         <ul>
-          <li><b>BPMN versus GSM.</b> Already assessed: the paradigm shaped <b>~6&ndash;10%</b> of each codebase and favoured LORA there. It is not the load-bearing argument.</li>
+          <li><b>BPMN versus GSM.</b> Assessed in full &mdash; and the <b>next two slides show the work</b> rather than asking you to take it on trust: five rationale claims tested against the code, what each paradigm did better, and the Bravo team&rsquo;s review. The paradigm shaped <b>~6% of Bravo&rsquo;s codebase and ~10% of LORA&rsquo;s</b>, and favoured LORA there; the other ~90% turns on engineering discipline. Real, settled, and not load-bearing for <em>this</em> decision.</li>
           <li><b>Whether Bravo works.</b> It does. 76,446 applications in August, bounded failure, no zombie-loan class.</li>
           <li><b>Whether to retire Bravo faster.</b> Explicitly not recommended.</li>
           <li><b>Which platform is cheaper.</b> Bravo is, by 4&ndash;5&times; per application. Settled.</li>
@@ -489,6 +490,60 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
     <p class="pull">A paradigm is fairly judged by what teams build with it under delivery pressure &mdash; not by what it permits in principle.
       <small>The Bravo team&rsquo;s own review established that Bravo&rsquo;s flowchart problems are consequences of <em>how Bravo was modelled</em> rather than laws of BPMN, and that the standard remedies exist. That review is accepted. It does not change the finding, because those remedies are respectively <strong>5.5% deployed, not started, and not enforced.</strong></small></p>
     <div class="foot"><span class="src">compare-architecture.md &sect;7, &sect;8 (Bravo team responses, reviewed 2026-09-09)</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="BPMN vs GSM">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the paradigm question, assessed</p>
+    <h2 class="st">BPMN versus GSM: what the code actually showed</h2>
+    <p class="lede">The previous slide says this is <em>not</em> what you are deciding. That is a conclusion, and you should see the work behind it rather than take it on trust. LORA&rsquo;s design rationale made <strong>five arguments against the workflow approach</strong>. Bravo is the concrete workflow system it was arguing against, so each one was testable against the code.</p>
+    <div class="tw"><table>
+      <thead><tr><th style="width:26%">The rationale claimed</th><th>What the code showed</th><th class="n">Verdict</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Flowcharts need an arrow for every edge case; complexity explodes</td><td><code>ndf4w.bpmn</code> alone: <b>111 service tasks, 21 user tasks, 137 exclusive gateways, 48 sub-processes, 70 error definitions</b> in one 9,494-line file, with product routing inside gateway condition strings</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Loan events are parallel and out-of-order; flowcharts handle it badly</td><td>Bravo is almost entirely sequential: <b>14 parallel and 4 inclusive gateways across 53 files</b>, and <b>zero</b> message events, signal events, event-based gateways or event sub-processes. <b>Camunda supports all of them</b> &mdash; their absence is a modelling choice, not an engine limit</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Workflow data &ldquo;lives in scattered process variables outside the diagram&rdquo;</td><td><b>Not how Bravo did it.</b> Camunda holds only routing flags; business data is a relational aggregate of 238 JPA entities, which buys SQL fleet queries. What <em>is</em> scattered is <b>lifecycle state</b> &mdash; 30 <code>ApplicationStatus</code> values plus ~105 other status enums and 197 <code>setStatus</code> sites</td><td class="n"><span class="e e--b">refuted</span></td></tr>
+        <tr><td class="k">Temporal gives retries and durable waits &ldquo;natively&rdquo;; engines need plumbing</td><td>Bravo built plumbing &mdash; and got a <b>better retry policy for it</b>: 186 retry-cycle declarations, a last-attempt degrade framework, a DB-backed retry counter, a transactional outbox and an out-of-order inbox</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr><td class="k">Saga compensation for a failed disbursement is the execution layer&rsquo;s job</td><td>Bravo: <b>0</b> compensation events, 0 BPMN transactions. LORA: document-field rollback only. Failed go-live is handled by a 5-minute sweeper that re-requests and asks CONFINS to republish</td><td class="n"><span class="e e--t">neither built it</span></td></tr>
+      </tbody>
+      <caption>Full assessment with every file and line cited: <code>compare-architecture.md</code> &sect;2 and &sect;3.1&ndash;3.14.</caption>
+    </table></div>
+    <div class="note note--bad" style="margin-top:2px"><h4>The claim the rationale should have made and did not</h4><b>Human tasks re-create flowchart complexity regardless of paradigm.</b> Bravo spends <b>44% of its code</b> on human work (a 10,419-line surveyor assignment service); LORA&rsquo;s own assessment found <b>~12k lines of hand-written state machines</b> inside the declarative shell (<code>survey.go</code>: 5,473 lines, 125 transitions). Same phenomenon, both paradigms &mdash; and it is where both systems spend most of their code.</div>
+    <div class="foot"><span class="src">compare-architecture.md &sect;2, &sect;7 &middot; code verified at <code>v2.93.43</code></span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Paradigm verdict">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the paradigm question, assessed</p>
+    <h2 class="st">Why it is not the load-bearing argument</h2>
+    <div class="verdictbox">
+      <span class="lab">The verdict on the rationale</span>
+      <span class="txt">The paradigm decided the shape of <em>~6%</em> of Bravo&rsquo;s codebase and <em>~10%</em> of LORA&rsquo;s &mdash; the automated pipeline &mdash; and decided it in <span class="pL">LORA</span>&rsquo;s favour. <em>The other ~90%</em> looks structurally similar in both, and the differences there come from engineering discipline, not GSM versus BPMN.</span>
+    </div>
+    <div class="sideby">
+      <div class="side b"><h4>Bravo (pure workflow) did better at</h4>
+        <ul>
+          <li><b>Bounded, classified failure</b> &mdash; no zombie-loan class by construction. A claim about the <em>shape</em> of failure, not its frequency</li>
+          <li><b>A designed dead-letter path</b> &mdash; the &ldquo;visible failure&rdquo; LORA&rsquo;s own reliability doc asks for</li>
+          <li><b>Fleet queries</b> &mdash; &ldquo;all loans stuck at survey&rdquo; is a <code>WHERE</code> clause</li>
+          <li><b>A forced retry policy</b> &mdash; an engine that makes you write one ends up with a better one than an engine that lets you skip it</li>
+          <li><b>Orchestration-tier cost</b> &mdash; ≈Rp58M/month against ≈Rp431M</li>
+        </ul>
+      </div>
+      <div class="side l"><h4>LORA (GSM + Temporal) did better at</h4>
+        <ul>
+          <li><b>Adding an automated step</b> &mdash; 172 activities, 3 hard precursors, <b>no orchestration edit</b>. The clearest validated win</li>
+          <li><b>One artefact</b> &mdash; the whole loan in one schema-validated document with a version chain</li>
+          <li><b>Parallelism for free</b> &mdash; ReadSet/WriteSet locking against Bravo&rsquo;s 5 parallel gateways in 53 files</li>
+          <li><b>Product isolation at the data layer</b> &mdash; separate documents and queues; Bravo has one job executor for everything</li>
+          <li><b>Observability of the pipeline</b> &mdash; a span per activity attempt; Bravo has none</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note note--ok"><h4>The Bravo team reviewed this, and their review was accepted</h4>Four responses were checked against the code (&sect;8). <b>None moved the verdict, two sharpened it, and the fourth reversed a cost claim in Bravo&rsquo;s favour</b> &mdash; like-for-like, Bravo&rsquo;s orchestration tier is the cheaper one. Their central point is <b>correct and accepted:</b> the flowchart explosion and the sequential flows are consequences of <em>how Bravo was modelled</em>, not laws of BPMN, and the standard remedies exist. It does not change the finding, because those remedies are respectively <b>5.5% deployed, not started, and not enforced</b> &mdash; and a paradigm is fairly judged by what teams build with it under delivery pressure, which is the only condition under which either will ever run.</div>
+    <div class="foot"><span class="src">compare-architecture.md &sect;5, &sect;7, &sect;8.5 &middot; Bravo team review 2026-09-09</span><span>07</span></div>
   </div>
 </section>
 
@@ -520,7 +575,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
               </tbody>
       <caption>Continued on the next slide: cost, delivery, reliability, volume and platform lifecycle.</caption>
     </table></div>
-    <div class="foot"><span class="src">compare.md &sect;1</span><span>06</span></div>
+    <div class="foot"><span class="src">compare.md &sect;1</span><span>08</span></div>
   </div>
 </section>
 
@@ -556,7 +611,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </tbody>
       <caption>Full matrix with per-row sources in compare.md &sect;1. Rows where both platforms are equally weak are collected on the <em>What converges</em> slide.</caption>
     </table></div>
-    <div class="foot"><span class="src">compare.md &sect;1</span><span>07</span></div>
+    <div class="foot"><span class="src">compare.md &sect;1</span><span>09</span></div>
   </div>
 </section>
 
@@ -594,7 +649,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <div class="note"><h4>What is missing entirely</h4><strong>No agreement, disbursement, NTF or revenue data exists anywhere in either platform&rsquo;s records.</strong> The billing sheet has 14 cost columns and 2 application-count columns. The Rp figures above are a <strong>CTO-office estimate, period and basis to be confirmed</strong> &mdash; and since the ~47&times; ratio is load-bearing, confirming it is gating measurement #1.</div>
       </div>
     </div>
-    <div class="foot"><span class="src">Business value per CTO office, 2026-09-11 &middot; family liveness verified in LORA&rsquo;s own production findings (cost.md, testing.md, people.md) &middot; compare.md &sect;1</span><span>08</span></div>
+    <div class="foot"><span class="src">Business value per CTO office, 2026-09-11 &middot; family liveness verified in LORA&rsquo;s own production findings (cost.md, testing.md, people.md) &middot; compare.md &sect;1</span><span>10</span></div>
   </div>
 </section>
 
@@ -614,7 +669,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <div class="note note--bad"><h4>3 &middot; Observability and testability &mdash; points at LORA, and is cheap to fix</h4>Zero orchestration spans, no loan id in logs, zero process monitors among 38, a journey suite frozen with its scheduled run unable to fail. <strong>But the two layers that would catch the most run in milliseconds</strong> and are ~7 days of work, and 349 usable journey descriptions already exist. <strong>A decision nobody has made, not a mountain nobody can climb</strong> &mdash; so it is a reason to fund remediation, and a weak reason to move products.</div>
     </div>
     <div class="note"><h4>Two drivers were withdrawn since the last version, and both had pointed at LORA</h4><strong>Team size</strong> &mdash; 7 against 22 &mdash; is the output of the previous decision to consolidate on LORA, reversible by the same office. Circular as evidence. <strong>And &ldquo;Bravo&rsquo;s modern generation is only 5.5% of its volume&rdquo;</strong> cannot carry weight while LORA&rsquo;s entire production estate is one family and six of its seven have never launched. <em>Symmetrically applied, it cancels</em> &mdash; and DF2W, the family that would raise Bravo&rsquo;s share, is in UAT now.</div>
-    <div class="foot"><span class="src">compare.md &sect;4 &middot; people.md &sect;5 &middot; ticket-analysis.md</span><span>09</span></div>
+    <div class="foot"><span class="src">compare.md &sect;4 &middot; people.md &sect;5 &middot; ticket-analysis.md</span><span>11</span></div>
   </div>
 </section>
 
@@ -649,7 +704,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <div class="note note--bad"><h4>And the biggest cost lever is unrelated to the decision</h4><strong>Cloud Logging alone is Rp140.5M/month — 2.4&times; the entire tier the migration would retire</strong> — and it is a configuration fix behind a global Feign setting. <strong>A team that fixed logging config would save more in September than retiring Bravo LOS will save when the migration completes.</strong> Do it either way.</div>
       </div>
     </div>
-    <div class="foot"><span class="src">compare.md &sect;4.1 &middot; bravo-cost.md &sect;3&ndash;6 &middot; GCP billing, complete month August 2026</span><span>10</span></div>
+    <div class="foot"><span class="src">compare.md &sect;4.1 &middot; bravo-cost.md &sect;3&ndash;6 &middot; GCP billing, complete month August 2026</span><span>12</span></div>
   </div>
 </section>
 
@@ -663,7 +718,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
     </div>
     <p class="pull">Each new product family adds surface, and on this platform nothing watches it.
       <small>Capacity used to be the third panel here. It has been removed: <strong>headcount is the output of the previous decision to consolidate on LORA</strong>, so citing it to the office that holds that lever is circular. What is left is a statement about <em>engineering discipline</em> &mdash; and it is fixable in days-to-weeks, which is why it is a reason to fund remediation rather than to move products.</small></p>
-    <div class="foot"><span class="src">bravo-people.md &sect;5 &middot; bravo-observability.md &sect;2&ndash;6 &middot; bravo-testing.md &sect;6&ndash;7</span><span>11</span></div>
+    <div class="foot"><span class="src">bravo-people.md &sect;5 &middot; bravo-observability.md &sect;2&ndash;6 &middot; bravo-testing.md &sect;6&ndash;7</span><span>13</span></div>
   </div>
 </section>
 
@@ -689,7 +744,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <small>A BPMN flowchart and a GSM planner each modelled surveyor assignment around a hand-written service layer and inherited its failure modes, at nearly the same rate. Neither team knew the other had abandoned a journey suite.</small></p>
       <div class="note"><h4>The cheapest item on either backlog</h4>Both teams had rich instrumentation they were <strong>not reading</strong>. LORA&rsquo;s two RUM applications had been on all along and were never consulted; all four Bravo consoles are instrumented and produce <strong>2.4M errors a week that nobody had opened.</strong> This is not an architecture finding. It is the same operational gap on both sides, and it costs a weekly meeting to close.</div>
     </div>
-    <div class="foot"><span class="src">compare.md &sect;3 &middot; compare-architecture.md &sect;6</span><span>12</span></div>
+    <div class="foot"><span class="src">compare.md &sect;3 &middot; compare-architecture.md &sect;6</span><span>14</span></div>
   </div>
 </section>
 
@@ -720,7 +775,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </div>
     </div>
     <p class="lede" style="font-weight:600;color:var(--ink)">Both columns are now roughly the same size, which is the honest position: <strong>LORA&rsquo;s risks are unproven scale, Bravo&rsquo;s are unfixed discipline, and both are addressable with engineering that has already been scoped.</strong> That is why Decision B is presented as open rather than answered.</p>
-    <div class="foot"><span class="src">compare.md &sect;2, &sect;5 &middot; both platforms&rsquo; production-findings packs</span><span>13</span></div>
+    <div class="foot"><span class="src">compare.md &sect;2, &sect;5 &middot; both platforms&rsquo; production-findings packs</span><span>15</span></div>
   </div>
 </section>
 
@@ -745,7 +800,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <tr><td class="k">LORA&rsquo;s never-terminating loans and uncapped retry go unfixed for two more quarters</td><td>LORA&rsquo;s reliability edge is partly failures nobody can see</td></tr>
         <tr><td class="k">Bravo is re-staffed</td><td><b>No longer a falsifier.</b> Headcount was withdrawn as evidence &mdash; it is an input you set, not a finding that moves</td></tr>
       </tbody></table></div>
-    <div class="foot"><span class="src">compare.md &sect;5&ndash;6</span><span>14</span></div>
+    <div class="foot"><span class="src">compare.md &sect;5&ndash;6</span><span>16</span></div>
   </div>
 </section>
 
@@ -768,7 +823,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <div class="askrow"><span class="n">4</span><span class="t"><b>Authorise the Cloud Logging fix &mdash; Rp 50&ndash;90M/month, configuration only.</b> Larger than the saving from retiring the whole Bravo LOS tier, available now, and it stops PEFINDO, SLIK, Dukcapil and CONFINS request bodies landing in Cloud Logging. <b>Unconditional.</b></span><span class="c">weeks<br>Rp 50–90M / mo</span></div>
     </div>
     <div class="note note--ok"><h4>And one standing instruction that does not wait for any of it</h4><strong>Bravo carries the majority of the book and the majority of the money.</strong> Whatever is decided about new products, it must be resourced and treated as a strategically important platform &mdash; not as a system being wound down. Its runtime is out of support today, its orchestration is unobservable, and its journey tests do not run &mdash; and it will be originating most of BFI&rsquo;s business value throughout whatever migration is or is not chosen.</div>
-    <div class="foot"><span class="src">option-summary.md &sect;6&ndash;7 &middot; compare.md &sect;5, &sect;7 &middot; bravo-cost.md &sect;6</span><span>15</span></div>
+    <div class="foot"><span class="src">option-summary.md &sect;6&ndash;7 &middot; compare.md &sect;5, &sect;7 &middot; bravo-cost.md &sect;6</span><span>17</span></div>
   </div>
 </section>
 
@@ -785,7 +840,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <div class="note"><h4>Why it is here rather than in the scoreboard</h4>Including it as a Bravo mark against LORA would be misleading — it is an access-control and deployment-hygiene failure, not a property of BPMN, and nothing in this analysis establishes that LORA&rsquo;s equivalent surfaces are better protected. <strong>They have not been checked. That is itself worth an hour.</strong></div>
       </div>
     </div>
-    <div class="foot"><span class="src">SECURITY-FINDING-camunda-rce.md &middot; found 2026-09-09, severity critical</span><span>16</span></div>
+    <div class="foot"><span class="src">SECURITY-FINDING-camunda-rce.md &middot; found 2026-09-09, severity critical</span><span>18</span></div>
   </div>
 </section>
 
@@ -799,7 +854,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <div class="note"><h4>Read further</h4><strong><code>compare.md</code></strong> — the 40-row matrix with per-row sources, and this recommendation in full.<br><br><strong><code>compare-architecture.md</code></strong> — BPMN vs GSM+Temporal at the paradigm level, plus the Bravo team&rsquo;s review and the reply to it.<br><br><strong>Five findings documents</strong> — people, testing, observability, cost, delivery. Each carries its own 30/60/90 plan, and each has a slide deck.<br><br><strong><code>ticket-analysis.md</code></strong> — the symmetric reliability measurement across both platforms.<br><br><strong><code>workflow-gap.md</code></strong> — the 5.5% / 94% volume split between Bravo&rsquo;s two generations.</div>
     </div>
     <p class="pull">Decision A has a firm answer and costs 18&ndash;33 engineer-days. Decision B is open, and the two measurements that would settle it cost days &mdash; and nobody has taken them.</p>
-    <div class="foot"><span class="src">bravo-analysis/docs &middot; prepared 2026-09-11</span><span>17</span></div>
+    <div class="foot"><span class="src">bravo-analysis/docs &middot; prepared 2026-09-11</span><span>19</span></div>
   </div>
 </section>
 

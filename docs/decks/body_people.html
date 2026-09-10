@@ -38,10 +38,10 @@
   <div class="inner" style="justify-content:center">
     <p class="eyebrow"><b>The through-line</b></p>
     <p class="pull">The claim is asking about <em>ergonomics</em> and being defended with <em>velocity</em>.
-      <small>On velocity the data does not support it. On ergonomics it is right &mdash; and nobody had measured the size of the effect until now: five repositories per change against two lanes.</small></p>
+      <small><b>Velocity cannot settle it</b> &mdash; the ticket metric reversed direction the moment a missing project was added, which is the clearest possible evidence it was never measuring what it was asked to measure. On ergonomics the claim is right, and nobody had measured the size of the effect until now: <b>five repositories per change against one or two</b>.</small></p>
     <div class="cols" style="margin-top:10px">
-      <div class="note note--bad"><h4>What the data refuses</h4>Every throughput measure in this document favours LORA or ties. Bravo&rsquo;s June median cycle time is <strong>9 days against LORA&rsquo;s 2</strong>, and the cause is release batching, not architecture.</div>
-      <div class="note note--ok"><h4>What the data confirms</h4>One integration change is <strong>1 repository and 1 deploy</strong> in Bravo against <strong>5 and 5</strong> in LORA, in a mandated order. That is the whole real effect, and it is worth taking seriously.</div>
+      <div class="note note--bad"><h4>What the data refuses</h4><b>No throughput measure here is trustworthy in either direction.</b> The ticket ratio <em>inverted</em> when a missing Bravo project was added &mdash; LORA 1.83&times; became Bravo 1.27&times; &mdash; and a metric that swings that far on a scope fix is not measuring delivery. On cycle time the August medians tie at <strong>1&ndash;2 days across all three projects</strong>; June&rsquo;s apparent Bravo gap is release batching and backlog loading, not architecture.</div>
+      <div class="note note--ok"><h4>What the data confirms</h4>One integration change is <strong>1&ndash;2 repositories and 1&ndash;2 deploys</strong> in Bravo &mdash; two when a console is involved &mdash; against <strong>5 and 5</strong> in LORA, in a mandated order. That is the whole real effect, and it survives the scope correction: two is still not five.</div>
     </div>
     <div class="foot"><span class="src">bravo-people.md &sect;Verdicts, &sect;4, &sect;6</span><span>03</span></div>
   </div>
@@ -51,6 +51,7 @@
   <div class="inner">
     <p class="eyebrow"><b>&sect;1</b><span class="sep">/</span>What we found</p>
     <h2 class="st">The two boards the claim cites contain no development work</h2>
+    <p class="lede">&hellip;but Bravo has <strong>two boards that do</strong> &mdash; <code>BLCS</code> (Team Scoring &amp; Underwriting) and <code>LN</code> (Team Surveyor &amp; Verificator). The claim points at the wrong boards, not at an absence of work; see the next slide.</p>
     <div class="tw"><table>
       <thead><tr><th>Project</th><th>Board</th><th class="n">Issues</th><th>Types</th><th class="n">Assigned</th><th class="n">Resolved</th><th>First &rarr; last created</th></tr></thead>
       <tbody>
@@ -159,13 +160,15 @@
       <div style="display:flex;flex-direction:column;gap:14px">
         <p class="eyebrow">The measurement still stands &mdash; it is the inference that does not</p>
         <div class="tw"><table>
-          <thead><tr><th>Distinct assignees, 100 sampled issues</th><th class="n">Bravo BLCS</th><th class="n">LORA BL</th></tr></thead>
+          <thead><tr><th>Distinct assignees, 100 sampled issues</th><th class="n">Bravo BLCS</th><th class="n">Bravo LN</th><th class="n">LORA BL</th></tr></thead>
           <tbody>
-            <tr><td class="k">Across both samples</td><td class="n"><b>7</b></td><td class="n"><b>22</b></td></tr>
-            <tr><td class="k">June sample</td><td class="n">6</td><td class="n">19</td></tr>
-            <tr><td class="k">August sample</td><td class="n">7</td><td class="n">13</td></tr>
-            <tr><td class="k">Unassigned resolved issues</td><td class="n">1</td><td class="n">3</td></tr>
+            <tr><td class="k">Across both samples</td><td class="n"><b>7</b></td><td class="n"><b>10</b></td><td class="n"><b>22</b></td></tr>
+            <tr><td class="k">June sample</td><td class="n">6</td><td class="n">&mdash;</td><td class="n">19</td></tr>
+            <tr><td class="k">August sample</td><td class="n">7</td><td class="n">8</td><td class="n">13</td></tr>
+            <tr><td class="k">Unassigned resolved issues</td><td class="n">1</td><td class="n">0</td><td class="n">3</td></tr>
+            <tr><td class="k"><b>Git authors, all 4 Bravo LOS repos, 12 mo</b></td><td class="n" colspan="2"><b>25</b></td><td class="n">&mdash;</td></tr>
           </tbody></table></div>
+        <div class="note note--bad"><h4>The number was also wrong, not just circular</h4>The <b>7</b> was <code>BLCS</code> only. Sampling <code>LN</code> the same way gives <b>10 more people, none overlapping</b>, and git authorship across Bravo&rsquo;s four LOS repositories over 12 months is <strong>25 humans</strong>. The figure used against Bravo was <strong>too low by a factor of three</strong> &mdash; which makes withdrawing it easier, not harder.</div>
         <div class="note note--bad"><h4>And it takes &sect;3 down with it</h4>&sect;3 has now been overtaken twice. It explained LORA&rsquo;s <strong>1.83&times;</strong> as <em>decomposition</em>; headcount was a second explanation pointing the same way; and then the 1.83&times; turned out to be an artefact of the missing <code>LN</code> project, leaving <strong>Bravo ahead at 1.27&times;</strong>. The instruction is unchanged and now applies in Bravo&rsquo;s favour: no per-team velocity claim built on it is a platform measurement. <strong>&sect;6 survives</strong>, because it counts artefacts per <em>change</em> rather than tickets per team.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
@@ -195,7 +198,7 @@
         <p class="lede" style="font-size:13.5px">That is the Schema-First order &mdash; <code>LSS &rarr; LGS &rarr; LPW/LTW &rarr; LTS &rarr; LBOFE</code> &mdash; mandated by LORA&rsquo;s own service-dependencies rule, rendered as a ticket each. <strong>It is not overhead someone added; it is the architecture made visible in the tracker.</strong> The pattern repeats: <code>BL-9506/9507/9508</code> split one fee calculation across <code>[LSS]</code>, <code>[LTW]</code> and <code>[LBOFE]</code>.</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px">
-        <p class="eyebrow" style="margin-top:2px">The equivalent Bravo change is one sub-task</p>
+        <p class="eyebrow" style="margin-top:2px">The equivalent Bravo change is one sub-task, in one of its two projects</p>
         <pre><b>BLCS-4433</b>  <span class="a">[4W Scoring]</span> BE Implementation &mdash;
             Adjustment NST Rate &ndash; RO Rate
             Standard Override Indicator</pre>
@@ -205,6 +208,12 @@
 <b>BLCS-4389</b>  <span class="a">[FE]</span> Manual Testing &mdash; verify DF2W
             reduced view + 4W no-regression
 <b>BLCS-4390</b>  <span class="a">[FE]</span> Deploy &mdash; Deploy to SIT</pre>
+        <p class="eyebrow">And when the change is surveyor-side, the same shape in <code>LN</code></p>
+        <pre><b>LN-4533</b>   <span class="a">[DF2W] [O]</span> Application Tracking
+            Regular Risk
+<b>LN-6625</b>   <span class="a">[BE]</span> Code Review of LN-6617
+<b>LN-6626</b>   <span class="a">[FE]</span> Code Review of LN-6621</pre>
+        <div class="note note--bad" style="margin-top:2px"><h4>The one case that costs Bravo two projects</h4><code>BLCS-4405</code> <em>&ldquo;[DF2W UW] Sync Surveyor Status Underwriting Return&rdquo;</em> &mdash; a change whose whole purpose is keeping the underwriting and surveyor sides of the boundary consistent. <b>Bravo&rsquo;s seam lets two squads ship independently and it pays for it here.</b> Still 2 projects against LORA&rsquo;s 5 repositories in a mandated order.</div>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-people.md &sect;6 &middot; Jira, both projects, 2026-08-11</span><span>09</span></div>
@@ -214,18 +223,19 @@
 <section class="slide" data-nav="Per-change cost">
   <div class="inner">
     <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>The pivotal finding, continued</p>
-    <h2 class="st">One repository and one deploy, against five and five</h2>
+    <h2 class="st">One or two repositories, against five in a fixed order</h2>
     <div class="tw"><table>
       <thead><tr><th>Per one integration change</th><th>Bravo</th><th>LORA</th></tr></thead>
       <tbody>
-        <tr><td class="k">Repositories touched</td><td><b>1</b> &mdash; <code>bravo-bpm-service</code></td><td><b>5</b> &mdash; LSS, LGS, LPW, LTS, LBOFE</td></tr>
-        <tr><td class="k">Deploys to land it</td><td><b>1</b></td><td>up to <b>5</b>, in a mandated order</td></tr>
+        <tr><td class="k">Repositories touched</td><td><b>1</b> &mdash; <code>bravo-bpm-service</code>; <b>2</b> when a console is involved</td><td><b>5</b> &mdash; LSS, LGS, LPW, LTS, LBOFE</td></tr>
+        <tr><td class="k">Jira projects it appears in</td><td><b>1</b> (<code>BLCS</code>); <b>2</b> across the UW/surveyor boundary</td><td>1 (<code>BL</code>)</td></tr>
+        <tr><td class="k">Deploys to land it</td><td><b>1&ndash;2</b></td><td>up to <b>5</b>, in a mandated order</td></tr>
         <tr><td class="k">Jira artefacts</td><td>1&ndash;3</td><td>5&ndash;6</td></tr>
         <tr><td class="k">Backward-compatibility obligation</td><td>none in-process</td><td>additive-only &mdash; 8 worker versions run concurrently</td></tr>
         <tr><td class="k">Cost when the change is wrong</td><td>one revert</td><td>a version-ordered unwind</td></tr>
       </tbody></table></div>
     <p class="pull">This is the entire defensible content of &ldquo;faster and easier&rdquo;, and it is worth taking seriously.
-      <small>A monolith with a relational aggregate really is fewer moving parts per change than thirteen repositories with a schema-first ordering rule. It also explains &sect;3 without any appeal to productivity: LORA&rsquo;s ticket count is ~1.8&times; Bravo&rsquo;s and its per-change ticket count is ~2&ndash;5&times; Bravo&rsquo;s &mdash; so <em>per change</em>, the two teams may well be shipping at similar rates with very different bookkeeping.</small></p>
+      <small>A monolith with a relational aggregate really is fewer moving parts per change than thirteen repositories with a schema-first ordering rule. It also explains &sect;3 without any appeal to productivity: LORA&rsquo;s <em>per-change</em> ticket count is ~2&ndash;5&times; Bravo&rsquo;s, so once decomposition is divided out the two teams may well be shipping at similar rates with very different bookkeeping. <b>This argument matters more since <code>LN</code> was counted, not less:</b> raw ticket volume now favours Bravo 1.27&times;, and the same correction that discounted LORA&rsquo;s old 1.83&times; lead discounts Bravo&rsquo;s new one.</small></p>
     <div class="cols">
       <div class="note"><h4>What the five-repo tax buys</h4>Product isolation at the data layer, schema-validated contracts, and the ability to add an automated step with <strong>no orchestration edit at all</strong> &mdash; 172 activities against 3 hard precursors.</div>
       <div class="note note--bad"><h4>What the one-repo change pays</h4>One job executor, one deployment, and a BPMN edit that <strong>ships for every product at once.</strong></div>
@@ -245,7 +255,7 @@
         <tr><td class="k">Hiring pool</td><td>Java 17 / Spring Boot / Camunda 7 &mdash; <span class="up">commodity</span></td><td>Go + a bespoke GSM planner + Temporal &mdash; <em>&ldquo;you can get Java or Golang developers, but they won&rsquo;t be able to immediately read the code&rdquo;</em></td></tr>
         <tr><td class="k">Written onboarding</td><td><span class="dn">none found in this analysis pack</span></td><td><code>docs/onboarding/</code> &mdash; 14 files, ~5,550 lines, with working hands-on tooling</td></tr>
         <tr><td class="k">Week-1 curriculum</td><td><span class="dn">not established</span></td><td><span class="dn">also not established</span> &mdash; LORA&rsquo;s own people.md grades this <em>&ldquo;overstated, but the entry point is inverted&rdquo;</em></td></tr>
-        <tr><td class="k">What a hire must actually read</td><td>498k LOC main Java; product identity in 5 places; 197 <code>setStatus</code> sites in 73 files; a 10,419-line surveyor assignment service</td><td>~617k LOC Go across 13 repos; 172 activity constructors; 155 preconditions with no generated index</td></tr>
+        <tr><td class="k">What a hire must actually read</td><td>498k LOC main Java; product identity in 5 places; 197 <code>setStatus</code> sites in 73 files; a 10,419-line surveyor assignment service. <b>A console hire instead reads 208&ndash;307k LOC of React/TypeScript</b> in one of three repos &mdash; a smaller and much more conventional surface</td><td>~617k LOC Go across 13 repos; 172 activity constructors; 155 preconditions with no generated index</td></tr>
         <tr><td class="k">Concepts with no analogue elsewhere</td><td>BPMN escalation as a return channel; a per-application jsonb activity on/off matrix; five-place product discrimination</td><td>ReadSet/WriteSet planning; determinism constraints; schema-versioned task queues</td></tr>
       </tbody></table></div>
     <p class="lede">The commodity-skills advantage is real and it is <strong>front-loaded</strong>. It gets a hire to their first compile faster. It does not help with the parts of Bravo that are actually hard, and by the evidence of this pack those are large: an aggregate root with no behaviour, a lifecycle smeared across four status vocabularies, and orchestration untested by every one of the 2,286 test files in the estate.</p>
@@ -274,8 +284,8 @@
     <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
     <h2 class="st">Six actions</h2>
     <div class="recs">
-      <div class="rec first"><span class="no">4</span><span class="tx"><b>Name Bravo&rsquo;s bus factor <span class="sz">&middot; S, urgent</span></b>Seven active assignees, with the Story layer held by one account, on the service carrying ~94% of origination. Before any new product family is placed on Bravo, that number has to be a staffing decision someone has made on purpose.</span></div>
-      <div class="rec"><span class="no">1</span><span class="tx"><b>Stop citing boards 2099 and 2877 as delivery evidence <span class="sz">&middot; S</span></b>Zero assigned, zero resolved. Either wire DF/D2W epics to their <code>BLCS</code> children so the timeline reflects delivery, or state explicitly that Bravo delivery is tracked in <code>BLCS</code> and compare there.</span></div>
+      <div class="rec first"><span class="no">4</span><span class="tx"><b>Name Bravo&rsquo;s bus factor <span class="sz">&middot; S, urgent</span></b>The <b>Story layer runs through one account</b> on the service carrying ~94% of origination &mdash; that is the risk finding, and it is platform-neutral. <b>Not</b> the headcount: &ldquo;seven active assignees&rdquo; was <code>BLCS</code>-only, and the real figure is <b>25 humans across four repositories</b>. Before any new product family is placed on Bravo, the standing allocation has to be a decision someone has made on purpose.</span></div>
+      <div class="rec"><span class="no">1</span><span class="tx"><b>Stop citing boards 2099 and 2877 as delivery evidence <span class="sz">&middot; S</span></b>Zero assigned, zero resolved. Either wire DF/D2W epics to their <code>BLCS</code> <b>and <code>LN</code></b> children so the timeline reflects delivery, or state explicitly that Bravo delivery is tracked in <b>both</b> and compare against both &mdash; reading only one of the two is the error this deck made until 2026-09-10.</span></div>
       <div class="rec"><span class="no">2</span><span class="tx"><b>Measure changes, not tickets <span class="sz">&middot; S&ndash;M</span></b>This just proved itself: the ratio swung from LORA 1.83&times; to Bravo 1.27&times; on the addition of one Jira project, with no code changing. A metric that moves that far on a scope fix is not measuring delivery. Agree one unit &mdash; merged PRs per product change, or Story-level lead time &mdash; and publish it for both. Until then neither team&rsquo;s velocity claim is checkable.</span></div>
       <div class="rec"><span class="no">3</span><span class="tx"><b>Fix the LORA per-change tax directly <span class="sz">&middot; M</span></b>It is the true part of the complaint. <code>BL-9528..9532</code> are mechanical and ordered; a generator that scaffolds schema, handler, activity migration, authorization entry and FE call from one spec turns six tickets into one plus review. LORA&rsquo;s own people.md designs this as &ldquo;Tier 0 &mdash; a script not a prompt&rdquo;. It is not built.</span></div>
       <div class="rec"><span class="no">5</span><span class="tx"><b>Write the week-1 curriculum for both <span class="sz">&middot; S each</span></b>Neither platform has one. LORA has the raw material and the wrong entry point; Bravo has commodity skills and no map of a 498k-LOC monolith.</span></div>
@@ -296,7 +306,7 @@
         <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">Settle what is measured, and who does it</span></div>
         <ul>
           <li><span class="r">4</span><span><b>Name the bus factor.</b> Decide the staffing and the standing allocation for remediation work. <em>Leadership &middot; a meeting, day 1.</em> Done when a recorded decision exists, including what percentage of Squad S&amp;U time is available for the other four plans.</span></li>
-          <li><span class="r">1</span><span><b>Board hygiene.</b> Wire DF/D2W epics to their <code>BLCS</code> children, or say so in the board description. <em>PMO &middot; 1 d.</em></span></li>
+          <li><span class="r">1</span><span><b>Board hygiene.</b> Wire DF/D2W epics to their <code>BLCS</code> and <code>LN</code> children, or say so in the board description &mdash; DF2W work runs through both. <em>PMO &middot; 1 d.</em></span></li>
           <li><span class="r">3</span><span><b>Spike the LORA scaffolding generator.</b> <em>LORA squad &middot; 5 d spike.</em> A prototype generates the <code>BL-9528..9532</code> shape.</span></li>
         </ul>
       </div>
@@ -333,7 +343,7 @@
     <div class="tw"><table>
       <thead><tr><th>Recommendation</th><th>Example when done</th></tr></thead>
       <tbody>
-        <tr><td class="k">Delivery tracked where delivery happens</td><td>A DF4W epic on board 2099 shows its <code>BLCS</code> children and a real start date. The timeline stops reading as nine months of inactivity.</td></tr>
+        <tr><td class="k">Delivery tracked where delivery happens</td><td>A DF4W epic on board 2099 shows its <code>BLCS</code> and <code>LN</code> children and a real start date. The timeline stops reading as nine months of inactivity.</td></tr>
         <tr><td class="k">One agreed unit of change</td><td>&ldquo;Bravo shipped 40 product changes last month, LORA shipped 44&rdquo; is a sentence someone can check, instead of two ticket counts that measure different things.</td></tr>
         <tr><td class="k">Scaffolding for the five-repo change</td><td><code>BL-9528..9532</code> becomes one ticket and a generated PR set. The strongest argument for Bravo loses most of its force, on the merits.</td></tr>
         <tr><td class="k">Bus factor named</td><td>Placing a new product family on Bravo is a decision that includes &ldquo;and we will hire three more engineers&rdquo; &mdash; or it is a decision not taken.</td></tr>
