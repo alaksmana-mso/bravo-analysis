@@ -333,7 +333,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <div class="stat"><span class="stat__n plain">1,457</span><span class="stat__l">Test files &mdash; <b style="color:var(--ac)">4</b> of which run a Camunda process</span></div>
       <div class="stat"><span class="stat__n neg">248,685</span><span class="stat__l">NDF2W applications reachable by a &ldquo;new generation&rdquo; edit</span></div>
       <div class="stat"><span class="stat__n neg">38,198</span><span class="stat__l">Model-parse warnings emitted in production, per week</span></div>
-      <div class="stat"><span class="stat__n">6 <small>of 9</small></span><span class="stat__l">Test layers that do not exist &mdash; including both that run in milliseconds</span></div>
+      <div class="stat"><span class="stat__n">6 <small>of 9</small></span><span class="stat__l">Test layers absent &mdash; including both that run in milliseconds</span></div>
     </div>
     <div class="meta">
       <span><b>Audience</b> &nbsp;Engineering, QA, release managers &mdash; Squad LOS and Squad S&amp;U</span>
@@ -341,7 +341,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <span><b>Read</b> &nbsp;2026-09-10</span>
     </div>
   </div>
-  <p class="cue"><span>&darr;</span> Arrow keys or scroll &middot; 19 slides</p>
+  <p class="cue"><span>&darr;</span> Arrow keys or scroll &middot; 20 slides</p>
 </section>
 
 <section class="slide" data-nav="Verdicts">
@@ -353,11 +353,11 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <div class="vrow"><p class="cl">CI cannot distinguish an NDF4W-underwriting change from an NDF2W one</p><span class="v v--con">True, and worse</span><p class="gi">Product identity is expressed in <strong>five places at once</strong>. And <code>ndf2w.bpmn</code> bridges into the <em>unified</em> underwriting sub-process, so a change to unified underwriting reaches NDF2W &mdash; <b>248,685 applications over 90 days</b> &mdash; with nothing in the build saying so.</p></div>
       <div class="vrow"><p class="cl">Validation is applied only after the service is serving traffic</p><span class="v v--con">Confirmed</span><p class="gi">All 53 BPMN and 3 DMN files auto-deploy and parse at Spring Boot startup. The engine emitted <b>38,198 <code>ENGINE-09004</code> warnings in production in 7 days</b>, naming real modelling defects in real files. There is no parse or lint gate before that.</p></div>
       <div class="vrow"><p class="cl">&ldquo;Still running&rdquo; is treated as &ldquo;healthy&rdquo;</p><span class="v v--con">Confirmed, in Bravo&rsquo;s form</span><p class="gi"><strong>&ldquo;Not 5xx&rdquo; is treated as healthy.</strong> Every success-rate monitor filters <code>http.status_code:5*</code>. A 404 storm of 748,686 a week across 69% of surveyor sessions is, by that definition, a healthy service.</p></div>
-      <div class="vrow"><p class="cl">A nightly end-to-end run proves the contract</p><span class="v v--ref">No such run</span><p class="gi">The org has <b>8 Synthetics tests, all DNS and SSL checks</b>, and <b>zero CI pipeline events</b> for any repository. LORA&rsquo;s nightly partner-E2E is mostly red &mdash; but it exists, asserts a terminal condition, and can therefore be fixed.</p></div>
+      <div class="vrow"><p class="cl">A nightly end-to-end run proves the contract</p><span class="v v--con">Exists &mdash; and cannot fail</span><p class="gi"><b>Corrected 2026-09-11.</b> Bravo has a <b>595-file Cypress/Cucumber suite</b> in a sibling repo and four CI workflows, one scheduled weekly. But every step in it ends <code>|| true</code>, so <b>the run can never go red</b>; it covers <b>10 of 595</b> files; and the repo has been frozen since <b>2023-11-21</b>. LORA&rsquo;s nightly is mostly red, which is bad. <b>Bravo&rsquo;s is permanently green by construction, which is worse.</b></p></div>
       <div class="vrow"><p class="cl">The 1,457-file suite is a safety net for the orchestration</p><span class="v v--ref">No</span><p class="gi"><b>Four</b> test files deploy and run a Camunda process, one against a production BPMN. There is no test of retry exhaustion, incident creation, escalation across a <code>callActivity</code>, or the forced-termination path.</p></div>
       <div class="vrow"><p class="cl">Coverage is gated</p><span class="v v--ref">No gate exists</span><p class="gi"><code>pom.xml</code> configures JaCoCo <code>report</code> and no <code>check</code>; there is no threshold. The <code>makefile</code> passes <code>-Dspring-boot.run.profiles</code>, which surefire ignores &mdash; <strong>the tests are not running under the profile the build claims.</strong></p></div>
     </div>
-    <div class="foot"><span class="src">bravo-testing.md &sect;Verdicts</span><span>02</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;Verdicts</span><span>01</span></div>
   </div>
 </section>
 
@@ -371,7 +371,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <div class="note"><h4>The tell</h4><code>camunda-bpm-assert</code>, <code>camunda-bpm-process-test-coverage</code> and <code>camunda-bpm-mockito</code> are all in <code>pom.xml</code> and all effectively unused. <strong>Somebody knew this was the right way to test a BPMN system, added the dependencies, and the practice never took hold</strong> &mdash; the same shape as LORA&rsquo;s <code>lora-super-test</code>, which has 150 scenario tests and no CI runner.</div>
     </div>
     <p class="lede" style="font-size:14px;color:var(--ink3)"><strong style="color:var(--ink2)">Sections 1&ndash;6 diagnose. &sect;7 is the architecture</strong> &mdash; nine cost-ordered layers <b>L0&ndash;L8</b>, a regression suite <b>T1&ndash;T12</b> and a negative suite <b>N0&ndash;N12</b>, with a routing rule that says which layer should have caught what.</p>
-    <div class="foot"><span class="src">bravo-testing.md &sect;Verdicts, &sect;1</span><span>03</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;Verdicts, &sect;1</span><span>02</span></div>
   </div>
 </section>
 
@@ -399,7 +399,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
         <div class="note"><h4>Where that leaves the safety net</h4>1,453 of 1,457 files test Java that surrounds the process. The four that start a process do not cover the legacy-to-unified bridge, the retry policies, or the degrade decisions &mdash; and nothing else does either.</div>
       </div>
     </div>
-    <div class="foot"><span class="src"><code>bravo-bpm-service</code> v2.93.43 &middot; <code>src/test/java</code>, <code>pom.xml</code>, <code>makefile</code> &middot; bravo-testing.md &sect;1</span><span>04</span></div>
+    <div class="foot"><span class="src"><code>bravo-bpm-service</code> v2.93.43 &middot; <code>src/test/java</code>, <code>pom.xml</code>, <code>makefile</code> &middot; bravo-testing.md &sect;1</span><span>03</span></div>
   </div>
 </section>
 
@@ -420,7 +420,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       </tbody></table></div>
     <p class="pull">Bravo&rsquo;s Java is testable and largely tested. Bravo&rsquo;s <em>decisions</em> are in XML, YAML and database rows &mdash; and none of those is executed by any test in the build.</p>
     <div class="note note--bad"><h4>The expensive consequence</h4>The <code>customErrorHandle</code> framework contains at least one <strong>credit-policy</strong> decision: bypassing anti-fraud after three failed attempts keeps the pipeline moving. Whether that path is ever reached depends on <code>failedJobRetryTimeCycle</code> &mdash; a string attribute on a BPMN element, <strong>186 declarations, 30 distinct values, including 5 <code>PT4M</code> cycles with no repeat count that do not do what their author intended</strong>. No test asserts that any activity&rsquo;s retry policy is what the modeller meant, and the one that degrades anti-fraud is the one where being wrong is a credit-risk event rather than an outage.</div>
-    <div class="foot"><span class="src">bravo-testing.md &sect;2 &middot; compare-architecture.md Appendix C</span><span>05</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;2 &middot; compare-architecture.md Appendix C</span><span>04</span></div>
   </div>
 </section>
 
@@ -445,7 +445,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
         <div class="note"><h4>LORA&rsquo;s answer is structural, not tested</h4>Product families have separate document schemas, separate workers and separate task queues, so a change to <code>&hellip;/ndf2w</code> cannot reach NDF4W <em>by construction</em>. LORA still cannot tell you <em>which</em> product a shared-planner change affects &mdash; that is its own True verdict &mdash; but it has fewer ways to get it wrong.</div>
       </div>
     </div>
-    <div class="foot"><span class="src">bravo-testing.md &sect;3</span><span>06</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;3</span><span>05</span></div>
   </div>
 </section>
 
@@ -488,7 +488,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
         <div class="note note--bad"><h4>Nothing covers this path</h4>The four Camunda-executing test files do not cover it. Neither does anything else. <strong>This is the most consequential untested edge in either platform, and it is invisible in the diff.</strong></div>
       </div>
     </div>
-    <div class="foot"><span class="src">bravo-testing.md &sect;3 &middot; workflow-gap.md &sect;8 &middot; 56 call activities, none version-pinned</span><span>07</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;3 &middot; workflow-gap.md &sect;8 &middot; 56 call activities, none version-pinned</span><span>06</span></div>
   </div>
 </section>
 
@@ -530,7 +530,7 @@ message: <b>ENGINE-09004 Warnings during parsing:</b>
       </div>
     </div>
     <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">The honest comparison.</strong> LORA&rsquo;s <code>docFieldCheck</code> panics the <em>worker at startup</em> if a schema path is missing &mdash; which is late, but is at least fatal and per-deployment. Bravo&rsquo;s equivalent check emits a warning, assumes a default, and serves traffic.</p>
-    <div class="foot"><span class="src">bravo-testing.md &sect;4</span><span>08</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;4</span><span>07</span></div>
   </div>
 </section>
 
@@ -560,29 +560,79 @@ message: <b>ENGINE-09004 Warnings during parsing:</b>
     </div>
     <p class="pull">Bravo&rsquo;s release gate is <em>it deployed and it is not returning 500.</em>
       <small>That is the same category of statement as <em>the workflow is still Running</em>, and it is wrong for the same reason: it defines health as the absence of the one failure mode the system does not have.</small></p>
-    <div class="foot"><span class="src">bravo-testing.md &sect;5 &middot; evidence and queries in bravo-observability.md &sect;4&ndash;6</span><span>09</span></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;5 &middot; evidence and queries in bravo-observability.md &sect;4&ndash;6</span><span>08</span></div>
   </div>
 </section>
 
-<section class="slide" data-nav="No nightly E2E">
+<section class="slide" data-nav="The abandoned suite">
   <div class="inner">
-    <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">The nightly E2E that does not exist</h2>
-    <p class="lede">The role a nightly run plays for LORA is to prove the Digital Partnership contract: 11 partner journeys through DP &rarr; LORA, with a terminal assertion &mdash; the agreement number comes back on DP tracking status. LORA&rsquo;s own testing.md grades that run harshly: <strong>59 of 83 web cases have never passed in 31 nightly runs</strong>, and the API run fails the same 199 cases every night. But the run <em>exists</em>, asserts, and is fixable.</p>
-    <p class="eyebrow"><b>Bravo has no equivalent, and this was checked three ways</b></p>
-    <div class="tw"><table>
-      <thead><tr><th>Surface</th><th>What is there</th></tr></thead>
-      <tbody>
-        <tr><td class="k">Datadog <b>Synthetics</b></td><td><b>8 tests in the entire org</b>: 4 DNS checks (<code>bfi.co.id</code>, <code>bfidigital.id</code>, the two Bravo microservice domains) and 4 SSL certificate checks (<code>microservices.prod.bravo.bfi.co.id</code>, the Sharia equivalent, <code>e-self.bfi.co.id</code>, <code>sso.bfi.co.id</code>). <span class="dn">Zero browser tests. Zero multi-step API tests. Nothing that creates an application.</span></td></tr>
-        <tr><td class="k">Datadog <b>CI Visibility</b></td><td><b><span class="dn">Zero pipeline events for any repository</span></b> in 30 days &mdash; Bravo or LORA. No build, test or deploy telemetry reaches this org at all.</td></tr>
-        <tr><td class="k">Repository</td><td>4 test files execute a Camunda process; no start-to-go-live walk exists</td></tr>
-      </tbody></table></div>
+    <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>Corrected 2026-09-11</p>
+    <h2 class="st">The journey suite Bravo built, and stopped running</h2>
+    <div class="note note--bad"><h4>A correction to this analysis</h4>The first version of this deck concluded that <em>no</em> Bravo journey suite existed, having checked three surfaces &mdash; Datadog Synthetics, Datadog CI Visibility, and <code>bravo-bpm-service</code>. <strong>It did not check sibling repositories, and there is one.</strong> The corrected finding is <em>worse</em> for Bravo than the original, not better.</div>
     <div class="cols b">
-      <p class="pull" style="font-size:clamp(16px,1.7vw,21px)">So the continuous evidence that a Bravo loan can still be originated end to end is: <em>the production ticket queue.</em>
-        <small><code>Surveyor Platform - Release reject</code> at 315 tickets in August, growing <strong>4.8&times;</strong> since January, is the regression detector.</small></p>
-      <div class="note"><h4>One caveat in Bravo&rsquo;s favour</h4>Bravo&rsquo;s volume is its own smoke test: <strong>76,446 applications in August</strong> means a total break in the main path is visible within minutes through the ticket queue and the latency monitors. <strong>That works for outages.</strong> It does not work for the failure Bravo actually has &mdash; a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls.</div>
+      <div class="tw"><table>
+        <thead><tr><th><code>squads/&lt;squad&gt;/bravo-e2e-test</code></th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="k">Harness</td><td>Cypress + <code>@badeball/cypress-cucumber-preprocessor</code></td></tr>
+          <tr><td class="k">Feature files</td><td><b>595</b></td></tr>
+          <tr><td class="k">Gherkin steps</td><td><b>28,268</b></td></tr>
+          <tr><td class="k">History</td><td>600 commits, <b>46 authors</b> &mdash; 334 in 2022, 266 in 2023</td></tr>
+          <tr><td class="k"><b>Last commit</b></td><td><span class="dn"><b>2023-11-21</b></span></td></tr>
+          <tr><td class="k">CI workflows</td><td>4 &mdash; <code>OPERATION_PLATFORM</code>, <code>LOS_E2E</code>, <code>NDF4W_E2E</code>, <code>LMS_E2E</code></td></tr>
+          <tr><td class="k">Scenario tags</td><td><code>@BLOS-T3424</code>, <code>@B4WH-T808</code> &mdash; the <b>same Zephyr scheme</b> as LORA&rsquo;s <code>@BL-T&lt;n&gt;</code></td></tr>
+        </tbody></table></div>
+      <div class="tw"><table>
+        <thead><tr><th>Feature files by area</th><th class="n">Files</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><b><code>surveyor-platform</code></b> &mdash; the console behind 28.4% of Bravo&rsquo;s tickets <em>and</em> the 404 storm</td><td class="n"><span class="hi"><b>349</b></span></td></tr>
+          <tr><td class="k"><code>agency</code></td><td class="n">114</td></tr>
+          <tr><td class="k"><code>operation-platform</code></td><td class="n">55</td></tr>
+          <tr><td class="k"><code>repeat-order</code></td><td class="n">39</td></tr>
+          <tr><td class="k"><code>lms</code></td><td class="n">22</td></tr>
+          <tr><td class="k"><code>ndf2w</code> &mdash; 73% of production volume</td><td class="n">11</td></tr>
+          <tr><td class="k"><code>ndf4w</code> &middot; <code>unsecured</code></td><td class="n">3 &middot; 2</td></tr>
+        </tbody></table></div>
     </div>
-    <div class="foot"><span class="src">bravo-testing.md &sect;6 &middot; Datadog us5 Synthetics and CI Visibility inventories, 2026-09-10</span><span>10</span></div>
+    <p class="pull">The finding is not that nobody built a journey suite. Somebody built 595 of them, aimed 349 at Bravo&rsquo;s worst-performing console, wired four CI workflows &mdash; and then <em>three things happened.</em></p>
+    <div class="foot"><span class="src">bravo-testing.md &sect;6 &middot; measured from the checkout and its git history, 2026-09-11</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Three things happened">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>Corrected 2026-09-11</p>
+    <h2 class="st">A run that cannot fail, a suite that does not assert, frozen for three years</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow"><b>One</b> &middot; Only one workflow is scheduled, and it cannot fail</p>
+        <pre>on:
+  <b>schedule</b>:
+    - cron: <span class="a">"00 23 * * MON"</span>   <span class="c"># weekly, not nightly</span>
+<span class="c"># the other three workflows are workflow_dispatch only</span>
+      - run: |
+          npx cypress run --browser electron --record \
+            --spec &hellip;/BLOS-T3424.feature <b>|| true</b>
+          <span class="c"># &hellip;nine more specs, every one ending in  || true</span></pre>
+        <div class="note note--bad"><h4><code>|| true</code> swallows the exit code</h4>The workflow <strong>reports success whether the loan journey worked or not</strong>, across <b>10 of the 595</b> files. This is the same defect as &sect;5, one layer further out: <strong>Bravo&rsquo;s release gate treats &ldquo;not 5xx&rdquo; as healthy, and Bravo&rsquo;s CI gate treats &ldquo;the runner finished&rdquo; as healthy.</strong></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow"><b>Two</b> &middot; The suite mostly does not assert</p>
+        <div class="stats stats--4">
+          <div class="stat"><span class="stat__n neg">82<small>%</small></span><span class="stat__l">Of 25,805 <code>Then</code>/<code>And</code> steps carry <b>no assertion verb</b></span></div>
+          <div class="stat"><span class="stat__n neg">70<small>%</small></span><span class="stat__l">Of files named some variant of <code>Positive TestCase</code> &mdash; 415 of 595</span></div>
+        </div>
+        <p class="lede" style="font-size:13px">No <em>should</em>, <em>verify</em>, <em>see</em>, <em>displayed</em>, <em>contain</em>, <em>equal</em>, <em>match</em>, <em>expect</em>, <em>visible</em>, <em>valid</em>. Both figures are keyword heuristics over the step text &mdash; treat them as order of magnitude, not exact. <strong>A suite that walks the UI and asserts nothing detects a crash and nothing else.</strong></p>
+        <p class="eyebrow"><b>Three</b> &middot; Frozen, and the schedule has almost certainly lapsed</p>
+        <div class="note"><h4>Stated as inference, not fact</h4>Last commit <b>2023-11-21</b>. GitHub disables scheduled workflows after 60 days of repository inactivity, so the weekly cron is very likely not firing &mdash; and <strong>zero CI pipeline events in 30 days</strong> is consistent with that. <strong>This deck cannot confirm it from a local checkout.</strong> Someone has to open the Actions tab. <em>Five minutes, and it is the first item in the plan.</em></div>
+      </div>
+    </div>
+    <div class="cols">
+      <p class="pull" style="font-size:clamp(15px,1.55vw,20px)">An absent test cannot mislead anyone. A permanently green one can.
+        <small>The original finding was an <em>absence</em>, and absences are cheap to excuse &mdash; nobody got round to it. The corrected finding is an <strong>abandonment</strong>: the investment was made at scale by 46 people and allowed to decay while the console it covers became the largest single source of production tickets.</small></p>
+      <div class="note note--ok"><h4>And the 595 files are an asset, not just a reproach</h4>349 of them describe the surveyor journeys that &sect;7.3 wants regression cases for. They are Gherkin, so QA and product can read them, and they already carry Zephyr tags. <strong>The L8 canary does not need writing from scratch so much as triaging, re-pointing, and given an exit code that means something.</strong></div>
+      <div class="note"><h4>What still stands</h4>Bravo&rsquo;s volume is its own smoke test &mdash; 76,446 applications in August means a total break is visible in minutes. That works for outages. It does not work for the failure Bravo actually has: a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls. <strong>The continuous evidence remains the production ticket queue.</strong></div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;6 &middot; workflow YAML and git history read 2026-09-11</span><span>10</span></div>
   </div>
 </section>
 

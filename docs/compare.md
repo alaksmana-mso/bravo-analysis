@@ -9,6 +9,8 @@
 
 **Method.** Everything below is measured, and every row names where. New measurements taken 2026-09-10: Jira (`DF`, `D2W`, `BL`, `BLCS`), Datadog `us5` (APM spans, logs, monitors, Synthetics, CI Visibility, RUM on four Bravo consoles), and GCP billing via the FinOps API for complete-month August 2026. Carried forward: the OTRS ticket export ([ticket-analysis.md](production-findings/ticket-analysis.md)), the 90-day PostgreSQL and Datadog volume split ([workflow-gap.md §8](workflow-gap.md)), and the LORA production-findings pack.
 
+> **Revised 2026-09-11.** Three findings landed after the first version: Bravo's journey suite **exists and was abandoned** rather than never built ([testing §6](bravo-testing.md)); Bravo **cannot make an upstream fail on demand**, so its retry and degrade policy is entirely unverified ([testing §7.4](bravo-testing.md)); and the two test layers that would catch the most in Bravo **run in milliseconds** ([testing §7.2](bravo-testing.md)). The first two change rows in §1 and a recommendation in §5. **The recommendation in §5 stands.**
+
 **Two caveats that qualify every row.** Application counts on both sides come from a billing sheet whose platform totals nothing else corroborates, so every *per-application* figure is a verified numerator over a disputed denominator. And Bravo is being drained into LORA, so it keeps the residual hard cases — a real confound, not controlled for.
 
 ---
@@ -30,7 +32,10 @@
 | Can CI say "this change hits NDF2W"? | **No** — product identity in 5 places, and `ndf2w.bpmn` bridges into unified underwriting (73% of volume) | **No** — but product families are isolated by schema, worker and queue | LORA | [testing §3](bravo-testing.md) |
 | Where the model is validated | **production, at pod boot** — 38,198 parse warnings/week, non-fatal | worker startup — fatal panic on a missing path | LORA | [testing §4](bravo-testing.md) |
 | Coverage gate | none (JaCoCo `report`, no `check`) | none; floor proposed | tie | [testing §1](bravo-testing.md) |
-| Automated journey test | **none.** 8 Synthetics in the org, all DNS/SSL. Zero CI events | nightly partner-E2E exists, asserts a terminal condition, **mostly red** | **LORA** | [testing §6](bravo-testing.md) |
+| Automated journey test | **exists and was abandoned.** 595 Cypress/Cucumber features in `bravo-e2e-test`, 349 on the Surveyor Platform; 4 CI workflows, 1 scheduled weekly — **every step ends `\|\| true`, so it cannot fail**; frozen 2023-11-21. Plus 8 org Synthetics, all DNS/SSL, and zero CI events | nightly partner-E2E exists, asserts a terminal condition, **mostly red** | **LORA** | [testing §6](bravo-testing.md) |
+| Assertion quality of the journey suite | **82%** of 25,805 `Then`/`And` steps contain no assertion verb; 70% of files named `Positive TestCase` | asserts a terminal condition per journey | **LORA** | [testing §6](bravo-testing.md) |
+| Can a test make an upstream fail on demand? | **no.** `bravo-mock-service` is static and shared, so **50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths are unexercised** | **yes** — a spec steers one answer with a 2-line delta | **LORA** | [testing §7.4](bravo-testing.md) |
+| Cost of closing the test gap | **L0 + L1 are days and run in seconds**; 6 of 9 layers absent but the two highest-value run in **milliseconds** | CI runner exists but has nowhere to run; SIT access unresolved | **Bravo** | [testing §7.2](bravo-testing.md) |
 | Health assumption | **"not 5xx = healthy"** | "still Running = healthy" | tie (both wrong) | [testing §5](bravo-testing.md) |
 | **OBSERVABILITY** | | | | |
 | Spans on the orchestration layer | **zero** — 7 operation names, none Camunda | **one span per activity attempt**, carrying the loan id | **LORA** | [obs §2](bravo-observability.md) |
@@ -77,6 +82,7 @@
 - **Durable business history.** Every reprocess generation is a queryable row. Nothing has to be replayed.
 - **Bounded, classified failure.** Fail-fast checkpoints, business errors as BPMN errors, degrade on last attempt, an operator console. No zombie loans by construction.
 - **Configuration-driven change on reference data.** A staged approval-role rename was one YAML line and one SQL `UPDATE`.
+- **A cheaper test boundary.** 113 typed Feign interfaces mean stub drift is caught by `javac`. LORA needs a `check:stubs` script against a live schema registry to get the same guarantee ([testing §7.1](bravo-testing.md)).
 - **Commodity skills at hiring.**
 
 **LORA is better at:**
@@ -89,20 +95,22 @@
 - **Product isolation.** Separate schemas, workers and queues. Bravo has one job executor for every product and product identity in five places.
 - **In-flight deploy safety.** Schema-versioned queues against Bravo's unpinned child processes.
 - **Team breadth.** 22 active contributors against 7, with LORA's Stories distributed and Bravo's held by one account.
-- **A journey test that exists.** LORA's nightly is mostly red and that is bad. Bravo has none, and that is worse, because a red test can be fixed and an absent one cannot be consulted.
+- **A journey test that runs and asserts.** LORA's nightly is mostly red and that is bad. **Bravo's is worse in a more specific way:** 595 feature files exist, one workflow is scheduled, and every step in it ends `|| true` — so it reports success whether the loan journey worked or not, on 10 of 595 files, and has been frozen since 2023-11-21. A red test can be fixed. **A permanently green one actively misleads**, and 82% of the corpus's `Then` steps assert nothing even if it ran.
+- **A verified failure policy.** LORA's retry behaviour is bad *and measured*. Bravo's is well-designed and **unverified** — nothing in Bravo can make an upstream fail, so the degrade paths this document recommends porting have never been executed by a test.
 
 ---
 
 ## 3. Where they converge — and what that means for the decision
 
-Six things are the same on both platforms, and they matter because **anything that is the same on both cannot be a reason to choose either.**
+Seven things are the same on both platforms, and they matter because **anything that is the same on both cannot be a reason to choose either.**
 
 1. **Human-task complexity is paradigm-independent.** Bravo spends 44% of its code on human work; LORA has ~12k lines of hand-written FSMs inside a declarative shell. Neither engine's native task model was used.
 2. **The orchestration layer is untested in both.** 4 of 1,457 Bravo tests execute a process; LORA's planner scheduling is untested and its nightly is red.
-3. **The lifecycle FSM is declared and not enforced in both.** Bravo has a state-machine class used once; LORA validates enum membership only.
-4. **Neither has saga compensation.** Both rely on sweepers, re-sync and humans for failed external commits.
-5. **Both mistake the absence of one failure mode for health.** "Not 5xx" and "still Running" are the same error. Both teams also filtered their most informative error class out of their one business monitor — Bravo excluded `ENGINE-16004`, LORA excluded the go-live agreement message.
-6. **Surveyor assignment is the top ops complaint on both, in the same words, at nearly the same rate** — 1,182 Bravo tickets (21.8%) and 1,021 LORA tickets (25.0%). A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer and inherited its failure modes.
+3. **Both built a journey suite and left it unable to run.** Bravo: 595 Cypress features, 46 authors, four workflows, frozen 2023-11-21, and the one scheduled workflow written so it cannot fail. LORA: `lora-super-test`, 150 scenario tests, **a CI workflow file that has nowhere to run yet**. Two teams, two platforms, the same outcome — a large deliberate investment in journey testing that no longer gates anything. This is the closest structural parallel in the pack and neither team knew the other had it.
+4. **The lifecycle FSM is declared and not enforced in both.** Bravo has a state-machine class used once; LORA validates enum membership only.
+5. **Neither has saga compensation.** Both rely on sweepers, re-sync and humans for failed external commits.
+6. **Both mistake the absence of one failure mode for health.** "Not 5xx" and "still Running" are the same error. Both teams also filtered their most informative error class out of their one business monitor — Bravo excluded `ENGINE-16004`, LORA excluded the go-live agreement message.
+7. **Surveyor assignment is the top ops complaint on both, in the same words, at nearly the same rate** — 1,182 Bravo tickets (21.8%) and 1,021 LORA tickets (25.0%). A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer and inherited its failure modes.
 
 **Both teams also had rich instrumentation they were not reading.** LORA's two RUM applications had been on all along and were never consulted. All four Bravo LOS consoles are instrumented at `ALL` and produce 2.4M errors a week that nobody had opened. This is not an architecture finding; it is the same operational gap on both sides, and it is the cheapest thing on either backlog.
 
@@ -116,7 +124,7 @@ Strip out everything that converges and everything that is a wash. Four measurem
 
 **2. Bravo needs a person 3.5× more often, and the trend is diverging.** ≈0.443% against ≈0.126%; ×1.82 against ×0.66 over eight months, with Bravo's volume falling and LORA's rising. **The honest qualifier is large**: the gap turns entirely on one category, `Surveyor Platform - Release reject` — 1,542 tickets, 28.4% of Bravo's load, growing 4.8×, and **still unmapped to any code path**. Remove it and Bravo's rate is 0.152% against LORA's 0.126% — level. Two other errors push the other way (Bravo's denominator is probably inflated; its operator console lets staff unstick applications without a ticket), so the 3.5× is more likely a floor than a ceiling. But it is one category away from being a wash, and mapping that category is days of work nobody has done.
 
-**3. Bravo cannot see its own orchestration, and it has no test that a loan can still be originated.** Zero spans on the engine path. No application id on any log line. Zero process-level monitors among 38. Zero automated journey tests — the org's eight Synthetics check DNS and TLS. Zero CI pipeline telemetry. The continuous evidence that Bravo works is the support-ticket queue. A platform in that state can be operated; it should not receive new product families, because each one adds surface that nothing watches.
+**3. Bravo cannot see its own orchestration, and its proof that a loan can still be originated has been switched off.** Zero spans on the engine path. No application id on any log line. Zero process-level monitors among 38. Zero CI pipeline telemetry. **And the journey suite is the sharpest version of this:** Bravo built 595 Cypress features with 46 authors, aimed 349 of them at the Surveyor Platform, wired four CI workflows — then froze the repo in November 2023 and left the one scheduled workflow written so that every step ends `|| true` and it cannot report a failure. The continuous evidence that Bravo works is the support-ticket queue. **Two things follow, and they pull in opposite directions.** A platform in this state should not receive new product families, because each one adds surface that nothing watches. But the remediation is *cheaper than this document originally implied*: the two test layers that would catch the most in Bravo run in **milliseconds** and are days of work ([testing §7.2](bravo-testing.md)), and 349 usable journey descriptions already exist. **Bravo's testability gap is a decision nobody has made, not a mountain nobody can climb.**
 
 **4. The claim that Bravo is easier rests on the two smallest things Bravo runs.** DF4W is the only product on the unified spine, 5.5% of Bravo's volume. DF2W is fully configured and has started **zero** applications in 90 days; its board is 22 unassigned epics. ~94% of Bravo's book runs on the legacy monoliths, which were edited *more* often in 2026 than the spine. The ergonomic advantage in [people §6](bravo-people.md) is real — one repository against five — but it has not been demonstrated at volume on the generation that carries the business.
 
@@ -126,7 +134,7 @@ Strip out everything that converges and everything that is a wash. Four measurem
 
 > ### Prioritise **LORA** for future business products. Do not start a new product family on Bravo. Do not accelerate the migration of what is already running there.
 
-**The case, in one paragraph.** Bravo is cheaper to run and cheaper to change, and both of those are real. But BFI is not choosing a platform to run for one quarter; it is choosing where to put products that must be operated, observed, tested and staffed for years. On those axes Bravo is measurably behind and moving the wrong way: seven active engineers with the Story layer on one account, zero telemetry on the orchestration layer, no automated proof that origination still works, a health model that missed a 748,686-per-week 404 storm on two-thirds of surveyor sessions, an intervention rate 3.5× LORA's, and an ops load rising 82% while its volume falls 35%. LORA has the opposite profile on every one of those, already carries 69% of applications across seven product families, and has a marginal cost near zero — so the next product costs it almost nothing to host. Bravo's cost advantage is the strongest counter-argument and it shrinks on its own as volume drains, while the single largest cost lever on either platform (Rp140.5M/month of Cloud Logging) is a Bravo configuration fix that has nothing to do with the decision.
+**The case, in one paragraph.** Bravo is cheaper to run and cheaper to change, and both of those are real. But BFI is not choosing a platform to run for one quarter; it is choosing where to put products that must be operated, observed, tested and staffed for years. On those axes Bravo is measurably behind and moving the wrong way: seven active engineers with the Story layer on one account, zero telemetry on the orchestration layer, a journey suite that was built by 46 people and then frozen with its one scheduled run unable to fail, a health model that missed a 748,686-per-week 404 storm on two-thirds of surveyor sessions, an intervention rate 3.5× LORA's, and an ops load rising 82% while its volume falls 35%. LORA has the opposite profile on every one of those, already carries 69% of applications across seven product families, and has a marginal cost near zero — so the next product costs it almost nothing to host. Bravo's cost advantage is the strongest counter-argument and it shrinks on its own as volume drains, while the single largest cost lever on either platform (Rp140.5M/month of Cloud Logging) is a Bravo configuration fix that has nothing to do with the decision.
 
 **Three qualifications, stated plainly, because they are the parts most likely to be right and inconvenient.**
 
@@ -147,6 +155,8 @@ The comparison produces a shopping list, and it is not one-directional.
 
 And keep the degrade decision out of the exception handler: Bravo's `customErrorHandle` bypassing anti-fraud after three failures is a credit-policy decision hidden in error handling. If LORA adds terminal errors, decide explicitly whether terminal means *reject*, *park* or *skip*.
 
+> **Port the design, not the assurance — this qualification is new and it matters.** Every row above is a *design* Bravo got right, and the evidence for each is that Bravo has no zombie-loan class in production. That evidence is real but it is **behavioural, not verified**: [testing §7.4](bravo-testing.md) establishes that **no Bravo test can make an upstream fail**, because `bravo-mock-service` is static and shared. So Bravo's **50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths have never been executed by a test** — including the anti-fraud `BYPASS`, which is a credit-policy decision reached by an exception handler. LORA should copy the shape of these four things and **write the negative tests Bravo never had** ([testing §7.4](bravo-testing.md), N0–N12) rather than inheriting the assumption that they work. LORA is better placed to do this than Bravo is: its mock interceptor can already fail any upstream on demand.
+
 ---
 
 ## 6. What would change this recommendation
@@ -158,7 +168,9 @@ Stated in advance, so the conclusion is falsifiable.
 | **`Surveyor Platform - Release reject` maps to a defect that is then fixed** | Bravo's intervention rate falls to ≈0.152%, level with LORA's. Decision point 2 disappears and the recommendation weakens materially. **This is the single highest-value open item in the pack and it is days of work.** |
 | **The billing owner defines the application counts** and Bravo's denominator is confirmed inflated | Bravo's true intervention rate rises and its per-application cost rises. Strengthens the recommendation. |
 | Bravo is staffed to 15–20 engineers with a named shared-component owner | Removes decision point 3's capacity half. Would need to be sustained, not announced. |
-| Bravo instruments the job executor, adds journey tests and 4xx health gates | Removes the observability half of decision point 3. All three are in [bravo-observability.md](bravo-observability.md) and [bravo-testing.md](bravo-testing.md) recommendations and are weeks, not quarters. |
+| Bravo instruments the job executor, adds journey tests and 4xx health gates | Removes the observability half of decision point 3. All three are in [bravo-observability.md](bravo-observability.md) and [bravo-testing.md](bravo-testing.md) recommendations and are weeks, not quarters. **Cheaper than first stated:** layers L0 and L1 run in seconds and are ~7 days of work between them, and 349 existing feature files cover the journeys. |
+| **`bravo-e2e-test`'s weekly cron turns out to still be firing** | Then Bravo has had a green-by-construction journey signal running for three years on 10 of 595 files. Strengthens decision point 3 rather than weakening it — a misleading signal is worse than none. Checking is **five minutes in the Actions tab.** |
+| Bravo's negative suite (N0–N12) is built and the degrade paths pass | Confirms the four items in §5 are safe to port, and closes the largest verification gap on Bravo's side. Needs the per-run stub layer first ([testing §7.4](bravo-testing.md)). |
 | LORA's never-terminating half and uncapped retry go unfixed for another two quarters | Weakens the recommendation on its own terms — LORA's reliability edge is partly an artefact of failures nobody can see. |
 | DF2W ships on Bravo and its end-to-end delivery cost is measured | The first real test of "building a new product on Bravo is easy". Currently: 22 unstarted epics, zero applications. |
 
@@ -166,17 +178,18 @@ Stated in advance, so the conclusion is falsifiable.
 
 ## 7. What to do next
 
-Ordered by value, not by platform. Items 1–3 are days of work and two of them could change the conclusion above.
+Ordered by value, not by platform. Items 1–4 are hours or days of work and two of them could change the conclusion above.
 
 1. **Map `Surveyor Platform - Release reject` to a code path (days).** 28.4% of Bravo's ticket load, growing 4.8×, unexplained. It decides whether Bravo's intervention rate is 3.5× LORA's or level with it.
 2. **Define `Bravo total app` and `Lora total app` with the billing owner (days).** Every per-application number in this pack — cost, intervention rate, zero-intervention completion — is provisional until this exists.
 3. **Read the `feature-configuration` 404 (hours to look, days to fix).** 266,767 a week on the busiest handler in `ms-bpm`, reaching 69% of surveyor sessions, invisible to every monitor. Live defect or benign probe — either way it should not be unknown.
-4. **Cut Bravo's Cloud Logging bill (weeks, Rp50–90M/month).** Larger than the saving from retiring the Bravo LOS tier entirely, available now, configuration only, and it also removes upstream request bodies containing customer data from Cloud Logging.
-5. **Give both platforms a 4xx-aware health gate and a front-end error budget (weeks).** Both currently define health as the absence of the one failure mode they do not have.
-6. **Build LORA's schema-first scaffolding generator (weeks).** Turns `BL-9528..9532` — five repositories, six tickets — into one ticket and a generated PR set. It removes the strongest argument for Bravo, on the merits.
-7. **Write LORA's retry policy and dead-letter path (weeks).** Port the four items in §5. This is the largest single reliability item on LORA's list and Bravo already shows what the answer looks like.
-8. **Name Bravo's staffing decision (a meeting).** Seven active engineers on the service carrying ~94% of origination, with the Story layer on one account. Whatever is decided about new products, that number needs an owner.
-9. **Instrument Bravo's job executor and add two end-to-end process tests (weeks).** Even under this recommendation, Bravo runs 76,446 applications a month for years to come. It should be observable and testable while it does.
+4. **Delete every `|| true` from `OPERATION_PLATFORM.yml`, and open the Actions tab (one hour, plus five minutes).** Bravo's only scheduled journey run cannot report a failure. Fixing that is a two-character deletion per line. Finding out whether it has fired since 2023 is a five-minute look that this pack could not do from a checkout — and the answer decides whether Bravo has had *no* journey signal or a *false* one.
+5. **Cut Bravo's Cloud Logging bill (weeks, Rp50–90M/month).** Larger than the saving from retiring the Bravo LOS tier entirely, available now, configuration only, and it also removes upstream request bodies containing customer data from Cloud Logging.
+6. **Give both platforms a 4xx-aware health gate and a front-end error budget (weeks).** Both currently define health as the absence of the one failure mode they do not have.
+7. **Build LORA's schema-first scaffolding generator (weeks).** Turns `BL-9528..9532` — five repositories, six tickets — into one ticket and a generated PR set. It removes the strongest argument for Bravo, on the merits.
+8. **Write LORA's retry policy and dead-letter path (weeks).** Port the four items in §5 — the design, not the assurance: write the negative tests Bravo never had. This is the largest single reliability item on LORA's list and Bravo already shows what the answer looks like.
+9. **Name Bravo's staffing decision (a meeting).** Seven active engineers on the service carrying ~94% of origination, with the Story layer on one account. Whatever is decided about new products, that number needs an owner.
+10. **Instrument Bravo's job executor and add two end-to-end process tests (weeks).** Even under this recommendation, Bravo runs 76,446 applications a month for years to come. It should be observable and testable while it does.
 
 ---
 

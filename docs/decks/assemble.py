@@ -51,7 +51,18 @@ NAV = """
 })();
 </script>
 """
+def _renumber(body):
+    """Footer badges follow slide order, so inserting a slide can't desync them."""
+    import re
+    n = [0]
+    def sub(m):
+        n[0] += 1
+        return '%s<span>%02d</span>' % (m.group(1), n[0])
+    return re.sub(r'(<div class="foot">.*?)<span>\d+</span>', sub, body, flags=re.S)
+
+
 def build(slug, title, accent_light, accent_dark, body):
+    body = _renumber(body)
     ov = (":root{--ac:%s;--acBg:%s1f;--acBg2:%s0f}\n"
           "@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){"
           "--ac:%s;--acBg:%s24;--acBg2:%s12}}\n"
