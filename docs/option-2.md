@@ -200,7 +200,7 @@ Four things, and they are substantial.
 The mechanism for moving a product onto the spine has existed since the 2024 unified rewrite. The production record for the 90 days to 2026-09-09 ([workflow-gap.md §8](workflow-gap.md)) is:
 
 - The unified spine started **18,809 applications, all DF4W**, and the weekly series is **flat across all 90 days — no migration trend**.
-- **DF2W has a complete configuration seeded and ran zero applications.**
+- **DF2W has a complete configuration seeded and ran zero applications** — it is in UAT and pen test, not released (verified 2026-09-10).
 - **NDF4W has run four** "company" applications on the spine, in total.
 - The legacy monoliths started ~321,000 applications over the same window and were edited more often in 2026 than the spine.
 

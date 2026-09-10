@@ -48,8 +48,12 @@ html[data-printsim] body{{width:{PAGE_W}px}}
 <script>
 window.addEventListener('load', function(){{
   setTimeout(function(){{
+    // .slide is pinned to 183mm with overflow:hidden by the print rules, so its own
+    // box height is a constant and can never report overflow. Measure .inner instead:
+    // it still lays out at its natural height inside the clipped slide.
     var out = [].map.call(document.querySelectorAll('.slide'), function(s){{
-      return Math.round(s.getBoundingClientRect().height);
+      var inner = s.querySelector('.inner') || s;
+      return Math.round(Math.max(inner.scrollHeight, inner.getBoundingClientRect().height));
     }});
     document.title = 'M:' + JSON.stringify(out);
   }}, 1200);
@@ -73,8 +77,10 @@ if __name__ == "__main__":
         h = measure(slug)
         if h is None: continue
         result[slug] = h
-        over = [(i + 1, v, round(PAGE_H / v, 3)) for i, v in enumerate(h) if v > PAGE_H]
-        print(f"{slug}: {len(h)} slides, {len(over)} over {PAGE_H:.0f}px")
+        AVAIL = (183 - 11 - 8) * 96 / 25.4          # .inner's room inside the printed slide
+        # slides that exactly fill the box measure AVAIL to the pixel; only flag real overflow
+        over = [(i + 1, v, round(AVAIL / v, 3)) for i, v in enumerate(h) if v > AVAIL + 2]
+        print(f"{slug}: {len(h)} slides, {len(over)} over {AVAIL:.0f}px of content box")
         for i, v, k in over:
             print(f"    slide {i:2d}  {v:5d}px  needs zoom {k}")
     (D / "heights.json").write_text(json.dumps(result, indent=1))

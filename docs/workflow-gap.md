@@ -172,7 +172,7 @@ Of the four loan-entry roots, the unified spine is **5.5%** of started applicati
 | 4 | **DF4W** | `Unified_Process_Main_Workflow` | 18,806 |
 | 1 | NDF4W (company pilot) | `Unified_Process_Main_Workflow` | 4 |
 
-Confirmed by the selector variable on the unified roots: 18,806 carried `applicationWorkflowSelectorType = OPTION_DF4W`, 3 were `OPTION_NDF4W`. **The "single workflow for all products" is, in production, the DF4W workflow.** DF2W (product 11) has a complete configuration seeded (8.4) but zero applications in 90 days. NDF2W, NDF4W, RO and Sharia — the entire live retail book — run legacy per-product monoliths. The shared spine is not carrying "all products"; it carries one product plus a 3-application pilot.
+Confirmed by the selector variable on the unified roots: 18,806 carried `applicationWorkflowSelectorType = OPTION_DF4W`, 3 were `OPTION_NDF4W`. **The "single workflow for all products" is, in production, the DF4W workflow.** DF2W (product 11) has a complete configuration seeded (8.4) but zero applications in 90 days — **because it has not been released: verified 2026-09-10 as in UAT with an LOS penetration test running and its go-live epics still open** ([bravo-people.md §2](bravo-people.md)). Read the zero as *pre-launch*, not as *abandoned*. NDF2W, NDF4W, RO and Sharia — the entire live retail book — run legacy per-product monoliths. The shared spine is not carrying "all products"; it carries one product plus a 3-application pilot.
 
 ### 8.3 The config-skip mechanism is real and heavy (gap G2, measured)
 
@@ -336,7 +336,7 @@ flowchart LR
 | Stand up `spine_ndf2w` | Biggest prize: 248k loans/quarter. Reuse the shared domain children; fork only where NDF2W's structure genuinely differs (e.g. its own survey/underwriting-regular path). | `spine_ndf2w` runs in prod for a strangler slice of new NDF2W volume |
 | Strangler cutover | Route a rising % of new NDF2W applications to the spine; legacy `NDF2W` stays for in-flight and rollback. | ≥25% of new NDF2W starts on `spine_ndf2w`, error/latency parity with legacy |
 | De-duplicate delegates | Collapse the worst 2W/4W near-duplicate beans (`createCif`/`createCif2w`, `preFatalRac`/`preFatalRac2w`, `pushApplicationToSalesTrax`/`…2w`) behind shared implementations called by both spines. | Distinct delegate count for 2W/4W trending down from 145 |
-| Plan the rest | Decommission roadmap for `NDF4W`, `NDF4W_RO`, and the Sharia deployment onto spines; DF2W (configured, 0 volume) either launched on `spine_df2w` or its dead config removed. | Written, dated decommission plan for the remaining monoliths |
+| Plan the rest | Decommission roadmap for `NDF4W`, `NDF4W_RO`, and the Sharia deployment onto spines; DF2W (configured, 0 volume, **in UAT — not dead config**) launched on `spine_df2w`. | Written, dated decommission plan for the remaining monoliths |
 
 **Programme-level metrics** (report monthly):
 

@@ -1,1 +1,4 @@
-/* print-fit bravo-delivery-deck: every slide fits the page box unscaled */
+@media print{
+  /* print-fit bravo-delivery-deck: 1 of 11 slides scaled to fit 620px of content; smallest 0.964 */
+  .deck > section.slide:nth-of-type(8) > .inner{flex:none;height:auto;zoom:0.964}
+}

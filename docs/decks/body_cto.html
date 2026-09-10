@@ -1,0 +1,471 @@
+<style>
+/* Platform identity, used on every comparison in this deck:
+   Bravo = warm ochre, LORA = cool teal, steel blue = the deck's own voice. */
+:root{--bravo:#8A6318;--bravoBg:#8A63181c;--lora:#116363;--loraBg:#1163631c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bravo:#D7A84E;--bravoBg:#D7A84E22;--lora:#5FBDBB;--loraBg:#5FBDBB22}}
+:root[data-theme="dark"]{--bravo:#D7A84E;--bravoBg:#D7A84E22;--lora:#5FBDBB;--loraBg:#5FBDBB22}
+.pB{color:var(--bravo);font-weight:600}
+.pL{color:var(--lora);font-weight:600}
+.e{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;
+   font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:4px 8px 3px;border-radius:2px;white-space:nowrap}
+.e::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.e--b{color:var(--bravo);background:var(--bravoBg)}
+.e--l{color:var(--lora);background:var(--loraBg)}
+.e--t{color:var(--neu);background:var(--neuBg)}
+thead th.hB{color:var(--bravo);border-bottom-color:var(--bravo)}
+thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
+.sideby{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:1fr 1fr}
+.side{background:var(--panel);padding:15px 17px;display:flex;flex-direction:column;gap:10px}
+.side h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600}
+.side.b h4{color:var(--bravo)} .side.l h4{color:var(--lora)}
+.side ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.side li{font-size:13px;line-height:1.5;color:var(--ink2);padding-left:14px;position:relative}
+.side li::before{content:"—";position:absolute;left:0;color:var(--ink3)}
+.side li b{color:var(--ink)}
+.verdictbox{border:2px solid var(--ac);border-radius:4px;padding:20px 24px;background:var(--acBg2);display:flex;flex-direction:column;gap:10px}
+.verdictbox .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.verdictbox .txt{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(18px,2.3vw,29px);line-height:1.22;letter-spacing:-.018em;color:var(--ink)}
+.verdictbox .txt em{color:var(--ac);font-style:normal;font-weight:800}
+.verdictbox .txt .pB,.verdictbox .txt .pL{font-weight:800}
+.ask{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.askrow{background:var(--panel);padding:13px 16px;display:grid;grid-template-columns:26px 1fr 118px;gap:14px;align-items:start}
+.askrow .n{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:var(--ac);font-variant-numeric:tabular-nums}
+.askrow .t{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.askrow .t b{color:var(--ink);font-weight:600}
+.askrow .c{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);text-align:right;line-height:1.5}
+</style>
+
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:20px">
+    <p class="cover-kicker">BFI loan origination &middot; Platform decision brief &middot; For the CTO</p>
+    <h1>Two decisions,<br><span class="thin">two clocks</span></h1>
+    <div class="verdictbox" style="max-width:88ch">
+      <span class="lab">Decision A &middot; weeks &middot; firm</span>
+      <p class="txt">Bravo&rsquo;s runtime is <em>out of support</em> with a live code-execution path. Fund the engine and framework upgrade now &mdash; <em>18&ndash;33 engineer-days, no licence.</em></p>
+    </div>
+    <div class="verdictbox" style="max-width:88ch;border-color:var(--ruleS);background:transparent">
+      <span class="lab" style="color:var(--ink3)">Decision B &middot; months &middot; open</span>
+      <p class="txt" style="font-size:clamp(16px,2vw,25px)">Where the next product family is built is <strong>genuinely open.</strong> Three measurements gate it and <strong>none has been taken.</strong></p>
+    </div>
+    <div class="meta">
+      <span><b>Changed since the last version</b> &nbsp;Three of five pillars behind &ldquo;prioritise LORA&rdquo; have failed &mdash; see <em>Evidence base</em></span>
+      <span><b>As at</b> &nbsp;2026-09-11</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> 16 slides &middot; the scoreboard is on 6&ndash;7</p>
+</section>
+
+<section class="slide" data-nav="Two clocks">
+  <div class="inner">
+    <p class="eyebrow"><b>01</b><span class="sep">/</span>Framing</p>
+    <h2 class="st">Separating the two decisions is the most useful thing in this pack</h2>
+    <div class="tw"><table>
+      <thead><tr><th></th><th class="n">Decision A &mdash; urgent</th><th class="n">Decision B &mdash; strategic</th></tr></thead>
+      <tbody>
+        <tr><td class="k">The question</td><td>How do we make Bravo <b>safe to run</b> while B is taken?</td><td>What is Bravo&rsquo;s platform for the next <b>5&ndash;10 years</b>, and where does the next product family go?</td></tr>
+        <tr><td class="k">Clock</td><td><b>Weeks</b></td><td><b>Months</b></td></tr>
+        <tr><td class="k">Answer</td><td><span class="up"><b>Firm.</b></span> Swap the engine and upgrade Spring Boot in one change &mdash; 18&ndash;33 engineer-days, Rp45&ndash;125M, <b>no licence</b></td><td><span class="dn"><b>Open.</b></span> Three measurements gate it, none taken</td></tr>
+        <tr><td class="k">Contingent on the other?</td><td><b>No</b></td><td><b>No</b></td></tr>
+      </tbody></table></div>
+    <p class="pull">Decision A is unconditional under every strategic path.
+      <small>Every option leaves Bravo running the retail book for <strong>at least 12 months</strong> &mdash; a Temporal port takes 12&ndash;18, a LORA migration 15&ndash;24. And the Spring Boot half of the work is owed under those paths anyway. <strong>Nothing in the rest of this deck should delay it.</strong></small></p>
+    <div class="cols">
+      <div class="note note--bad"><h4>Why A cannot wait for B</h4>Bravo is not approaching two end-of-support cliffs. <strong>It has gone over both</strong>, and it sits on the last publicly available build of each stack &mdash; with 61 injected remote-code-execution process definitions in the production engine and no patch channel to fix them.</div>
+      <div class="note"><h4>Why B is open rather than recommended</h4>The previous version of this brief recommended prioritising LORA. <strong>Three of the five pillars that rested on have since failed</strong> &mdash; set out on the <em>Evidence base</em> slide. What survives is genuinely balanced, and the evidence that would decide it does not exist yet.</div>
+      <div class="note note--ok"><h4>What is true either way</h4><strong>Bravo carries the majority of the book and the majority of the money</strong> &mdash; ≈Rp 50.2bn against ≈Rp 2.4bn. It must be resourced and treated as strategically important regardless of where new products go, because it will be originating most of BFI&rsquo;s business value throughout whatever migration is or is not chosen.</div>
+    </div>
+    <div class="foot"><span class="src">option-summary.md &sect;2 &middot; compare.md &sect;0</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="A: the exposure">
+  <div class="inner">
+    <p class="eyebrow"><b>02</b><span class="sep">/</span>Decision A</p>
+    <h2 class="st">Bravo runs on two dead foundations, and one of them is being probed</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Component</th><th>Bravo runs</th><th class="n">Support ended</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Camunda 7 Community Edition</b></td><td>7.23.0</td><td class="n"><span class="dn"><b>14 Oct 2025</b></span> &mdash; line closed, final artifact 7.24.0, repo archived, <b>no security patches ever again</b></td></tr>
+        <tr><td class="k"><b>Spring Boot 3.5.x (OSS)</b></td><td>3.5.16</td><td class="n"><span class="dn"><b>30 Jun 2026</b></span></td></tr>
+        <tr><td class="k">Java 17 (Oracle premier)</td><td>17</td><td class="n">30 Sep 2026</td></tr>
+        <tr><td class="k">Camunda 7.23 (Enterprise maintenance)</td><td><b>&mdash; no licence held &mdash;</b></td><td class="n">13 Oct 2026</td></tr>
+      </tbody>
+      <caption>Verified in the checkout: <code>pom.xml:26</code> pins 7.23.0; no Camunda BOM, no enterprise artifact, no licence file or property, no Camunda EE repository &mdash; only BFI&rsquo;s own Artifact Registry.</caption>
+    </table></div>
+    <div class="cols b">
+      <div class="note note--bad"><h4>And the engine is publicly reachable</h4>Both the <code>-webapp</code> (Cockpit/Tasklist/Admin) and <code>-rest</code> starters are <strong>embedded in the service</strong>, and <code>SecurityConfig.java:65</code> sets <code>/camunda/**</code> to <code>permitAll()</code>.<br><br>The production engine contains <strong>61 injected remote-code-execution process definitions</strong>, deployed across 7 sessions between 2026-05-23 and 2026-06-30, <strong>one confirmed executed</strong>, <strong>all still active</strong>.</div>
+      <p class="pull" style="font-size:clamp(15px,1.6vw,20px)">An engine with no patch channel and a publicly reachable deployment endpoint is the worst combination on the list.
+        <small>And it is live today. This is why Decision A is separated out and why it does not wait for anything else in this deck.</small></p>
+    </div>
+    <div class="foot"><span class="src">option-summary.md &sect;1 &middot; SECURITY-FINDING-camunda-rce.md &middot; verified in the working tree 2026-09-11</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="A: the answer">
+  <div class="inner">
+    <p class="eyebrow"><b>03</b><span class="sep">/</span>Decision A</p>
+    <h2 class="st">A supported destination exists, and it is cheap</h2>
+    <p class="lede">Two Apache-2.0 community forks of Camunda 7 run on Spring Boot 4, keep the <code>ACT_</code> schema unchanged, accept the legacy <code>camunda:</code> BPMN namespace and ship automated migration recipes. Swapping the engine <strong>and</strong> upgrading Spring Boot in one change is <strong>18&ndash;33 engineer-days, Rp45&ndash;125M, no licence</strong> &mdash; against 31&ndash;57 engineer-months for a Temporal port or a LORA migration. <strong>The 53 BPMN files and Java 17 are unchanged.</strong></p>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th></th><th class="n">Operaton 2.1.4</th><th class="n">CIB seven 2.2.0</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Commits, last 52 weeks</td><td class="n"><b>2,310</b></td><td class="n">258</td></tr>
+          <tr><td class="k">Distinct authors, 12 months</td><td class="n"><b>52</b></td><td class="n">31</td></tr>
+          <tr><td class="k">Top-contributor concentration</td><td class="n">~80%</td><td class="n"><b>25%</b></td></tr>
+          <tr><td class="k">Ex-Camunda core engineers active</td><td class="n">none</td><td class="n"><b>two</b></td></tr>
+          <tr><td class="k">Long-term support</td><td class="n"><span class="dn">none</span> &mdash; 6-month lines</td><td class="n"><b>paid</b>, terms undisclosed</td></tr>
+          <tr><td class="k">Legal entity</td><td class="n">none yet; non-profit planned</td><td class="n">CIB software GmbH</td></tr>
+          <tr><td class="k">Requires a 7.24 hop first</td><td class="n"><span class="dn">yes</span></td><td class="n"><span class="up">no</span></td></tr>
+          <tr><td class="k">Cockpit webjar path</td><td class="n">moves</td><td class="n"><span class="up">unchanged</span></td></tr>
+        </tbody></table></div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="verdictbox"><span class="lab">The one open sub-decision</span><p class="txt" style="font-size:clamp(15px,1.7vw,21px)">Is a contractual support agreement <em>required</em> for the workflow engine &mdash; and can one actually be purchased for a BFI entity?<br><br><span class="pB" style="font-size:.8em">Yes &rarr; CIB seven.</span> <span class="pL" style="font-size:.8em">No &rarr; Operaton.</span></p></div>
+        <div class="note"><h4>Start the enquiry before deciding</h4>CIB seven&rsquo;s support terms are <strong>not published</strong> &mdash; length, service levels and pricing are all sales-contact-only. If the answer may be yes, open that enquiry now rather than after.</div>
+        <div class="note note--bad"><h4>One risk to retire first &mdash; hours of work</h4>Two Flyway migrations hand-replayed Camunda&rsquo;s 7.20&rarr;7.22 upgrade DDL with <code>IF NOT EXISTS</code> guards, so the columns arrived but <code>ACT_GE_SCHEMA_LOG</code> may still carry a pre-7.22 version label. <strong>If it does, the engine fails to start at cutover.</strong> Four SQL queries per environment settle it. Run them before setting a date.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">option-1.md &sect;4, &sect;7.1 &middot; option-summary.md &sect;3, &sect;6 &middot; source: the Bravo team&rsquo;s own Camunda 7 Exit Plan</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What you're deciding">
+  <div class="inner">
+    <p class="eyebrow"><b>04</b><span class="sep">/</span>Decision B</p>
+    <h2 class="st">What Decision B is &mdash; and what it is not</h2>
+    <div class="sideby">
+      <div class="side l"><h4>You are deciding this</h4>
+        <ul>
+          <li><b>Observability.</b> Bravo emits <b>zero spans</b> for its entire orchestration layer and has <b>zero process-level monitors</b> among 38.</li>
+          <li><b>Testability.</b> Bravo&rsquo;s only scheduled journey run <b>cannot report a failure</b>, and the suite behind it has been frozen since November 2023.</li>
+          <li><b>Whether adding surface to an unwatched platform is acceptable</b> — each new product family adds more of it.</li>
+          <li><b>Which platform BFI can actually hire for</b>, if capacity is added. Java/Spring/Camunda is a commodity skill set; Go plus a bespoke GSM planner is not. <b>This is the one staffing-adjacent fact a CTO cannot reverse by reallocating people</b> — and it favours Bravo.</li>
+        </ul>
+      </div>
+      <div class="side b"><h4>You are not deciding this</h4>
+        <ul>
+          <li><b>BPMN versus GSM.</b> Already assessed: the paradigm shaped <b>~6&ndash;10%</b> of each codebase and favoured LORA there. It is not the load-bearing argument.</li>
+          <li><b>Whether Bravo works.</b> It does. 76,446 applications in August, bounded failure, no zombie-loan class.</li>
+          <li><b>Whether to retire Bravo faster.</b> Explicitly not recommended.</li>
+          <li><b>Which platform is cheaper.</b> Bravo is, by 4&ndash;5&times; per application. Settled.</li>
+          <li><b>How many engineers each platform has.</b> That is <em>your</em> lever, not a property of either platform — it is the output of the previous decision to consolidate on LORA, and it has been removed from the evidence in this deck.</li>
+          <li><b>Whether Bravo&rsquo;s engine gets fixed.</b> That is Decision A, and it is already answered.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="pull">A paradigm is fairly judged by what teams build with it under delivery pressure &mdash; not by what it permits in principle.
+      <small>The Bravo team&rsquo;s own review established that Bravo&rsquo;s flowchart problems are consequences of <em>how Bravo was modelled</em> rather than laws of BPMN, and that the standard remedies exist. That review is accepted. It does not change the finding, because those remedies are respectively <strong>5.5% deployed, not started, and not enforced.</strong></small></p>
+    <div class="foot"><span class="src">compare-architecture.md &sect;7, &sect;8 (Bravo team responses, reviewed 2026-09-09)</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Scoreboard">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the evidence, grouped</p>
+    <h2 class="st">The scoreboard <span style="color:var(--ink3);font-weight:600">1 / 2</span></h2>
+    <div class="tw"><table>
+      <thead><tr><th></th><th class="hB">Bravo LOS</th><th class="hL">LORA</th><th class="n">Edge</th></tr></thead>
+      <tbody>
+        <tr class="tot"><td colspan="4">PEOPLE</td></tr>
+        <tr><td class="k">Active engineers</td><td><b>25</b> across 4 LOS repos <span style="color:var(--ink3)">(was quoted as 7 &mdash; one project only)</span></td><td>22</td><td class="n"><span class="e e--t">excluded &mdash; your lever</span></td></tr>
+        <tr><td class="k">Repositories touched per integration change</td><td><b>1</b>, or <b>2</b> where a console is involved</td><td><b>5</b>, in a mandated order</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr><td class="k">Delivery tickets, Jan&ndash;Aug</td><td><b>6,518</b> <span style="color:var(--ink3)">(BLCS 2,813 + LN 3,705)</span></td><td>5,144</td><td class="n"><span class="e e--t">excluded &mdash; it <b>inverted</b> on a scope fix</span></td></tr>
+        <tr><td class="k">Median ticket cycle time, Aug</td><td>2 days</td><td>2 days</td><td class="n"><span class="e e--t">tie</span></td></tr>
+        <tr><td class="k">Hiring pool <span style="color:var(--ink3)">(not CTO-reversible)</span></td><td>Java / Spring / Camunda — commodity</td><td>Go + a bespoke planner + Temporal</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr class="tot"><td colspan="4">TESTING</td></tr>
+        <tr><td class="k">Test files</td><td><b>2,286</b> across 4 repos <span style="color:var(--ink3)">(1,457 <code>ms-bpm</code> + 829 consoles)</span></td><td>608 across 13 repos; <span class="dn">4 repos at zero</span></td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr><td class="k">Unit tests block a merge</td><td><span class="up">yes</span> &mdash; no <code>|| true</code> in 28 console workflows</td><td>yes, where a workflow exists</td><td class="n"><span class="e e--t">tie</span></td></tr>
+        <tr><td class="k">Coverage <em>enforced</em>, not just measured</td><td><span class="dn">no</span> &mdash; thresholds at 0% and 1%; bumper installed, never invoked</td><td><span class="dn">no</span></td><td class="n"><span class="e e--t">tie &mdash; same defect</span></td></tr>
+        <tr><td class="k">Automated proof a loan can still be originated</td><td><span class="dn">595 tests, frozen 2023; the one scheduled run <b>cannot fail</b></span></td><td>nightly exists and asserts — <span class="dn">mostly red</span></td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Can a test make an upstream fail on demand?</td><td><span class="dn">no</span> — 50 error handlers, 70 error definitions, 190 escalations unexercised</td><td><span class="up">yes</span> — a 2-line delta per test</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Cost of closing the test gap</td><td><b>L0+L1 run in seconds, ~7 days of work</b></td><td>CI runner has nowhere to run; SIT access unresolved</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr class="tot"><td colspan="4">OBSERVABILITY</td></tr>
+        <tr><td class="k">Spans on the orchestration layer</td><td><span class="dn"><b>zero</b></span></td><td>one per activity attempt, carrying the loan id</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Can you join a failure to a customer?</td><td><span class="dn">no</span></td><td><span class="up">yes</span> — the workflow id <em>is</em> the application</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">&ldquo;All loans stuck in survey?&rdquo;</td><td><span class="up">yes</span> — one SQL query</td><td><span class="dn">cannot be asked at all</span></td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr><td class="k">Which upstream is failing?</td><td><span class="up">yes</span> — 25 hosts, structurally</td><td><span class="dn">no</span> — 300 proxies on one route</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+              </tbody>
+      <caption>Continued on the next slide: cost, delivery, reliability, volume and platform lifecycle.</caption>
+    </table></div>
+    <div class="foot"><span class="src">compare.md &sect;1</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Scoreboard 2/2">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the evidence, grouped</p>
+    <h2 class="st">The scoreboard <span style="color:var(--ink3);font-weight:600">2 / 2</span></h2>
+    <div class="tw"><table>
+      <thead><tr><th></th><th class="hB">Bravo LOS</th><th class="hL">LORA</th><th class="n">Edge</th></tr></thead>
+      <tbody>
+<tr class="tot"><td colspan="4">COST</td></tr>
+        <tr><td class="k">Orchestration tier, monthly</td><td><b>≈Rp 58M</b></td><td>≈Rp 431M</td><td class="n"><span class="e e--b">Bravo 7&times;</span></td></tr>
+        <tr><td class="k">Cost per application</td><td><b>≈Rp 510–760</b></td><td>≈Rp 2,500–3,200</td><td class="n"><span class="e e--b">Bravo 4–5&times;</span></td></tr>
+        <tr><td class="k">Marginal cost of one more application</td><td>pods + database — small but real</td><td><b>≈zero</b></td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr class="tot"><td colspan="4">DELIVERY</td></tr>
+        <tr><td class="k">In-flight deploy safety</td><td><span class="dn">a sub-process redeploy reaches in-flight loans</span> — 73% of volume</td><td><span class="up">version-pinned queues</span></td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Front-end errors, 7 days</td><td><span class="dn">2,413,198</span> across 4 consoles</td><td>416,201 on one back office</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Master data &rarr; dropdowns</td><td><span class="up">live</span> — a role rename was 1 YAML line + 1 SQL update</td><td>startup cache, copied onto the loan</td><td class="n"><span class="e e--b">Bravo</span> on speed</td></tr>
+        <tr class="tot"><td colspan="4">RELIABILITY</td></tr>
+        <tr><td class="k">Manual intervention rate</td><td><b>0.443%</b> — 1 in 225</td><td><b>0.126%</b> — 1 in 790</td><td class="n"><span class="e e--l">LORA 3.5&times;</span></td></tr>
+        <tr><td class="k">Failure shape</td><td><span class="up">bounded, classified, parked</span> — no zombie class</td><td><span class="dn">uncapped retry; ~half never terminate</span></td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr class="tot"><td colspan="4">VOLUME &amp; BUSINESS VALUE</td></tr>
+        <tr><td class="k">Applications, Aug 2026</td><td>76,446 <span style="color:var(--ink3)">(31%)</span></td><td>171,479 <span style="color:var(--ink3)">(69%)</span></td><td class="n"><span class="e e--l">LORA on count</span></td></tr>
+        <tr><td class="k"><b>Business value</b></td><td><b>≈Rp 50.2bn</b></td><td><b>≈Rp 2.4bn</b></td><td class="n"><span class="e e--b">Bravo ≈21&times;</span></td></tr>
+        <tr><td class="k"><b>Value per application</b></td><td><b>≈Rp 657,000</b></td><td><b>≈Rp 14,000</b></td><td class="n"><span class="e e--b">Bravo ≈47&times;</span></td></tr>
+        <tr><td class="k">Product families <b>live in production</b></td><td><b>4</b> — NDF2W, NDF4W, RO, DF4W</td><td><b>1</b> — NDF (2W 90.2%, 4W 9.8%)</td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr><td class="k">Families built, not yet live</td><td><b>DF2W — in UAT, LOS pen test running</b>, go-live epics open</td><td><b>6 of 7</b> — awaiting a CTO decision; three with <b>no <code>deploy-prod.yaml</code></b></td><td class="n"><span class="e e--b">Bravo</span></td></tr>
+        <tr class="tot"><td colspan="4">PLATFORM LIFECYCLE</td></tr>
+        <tr><td class="k">Workflow engine support</td><td><span class="dn"><b>Camunda 7.23.0 CE — dead 14 Oct 2025</b></span>, no licence held</td><td>Temporal Cloud, contracted</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Framework support</td><td><span class="dn">Spring Boot 3.5.16 — dead 30 Jun 2026</span></td><td>Go, current</td><td class="n"><span class="e e--l">LORA</span></td></tr>
+        <tr><td class="k">Cost to reach a supported runtime</td><td><b>18–33 engineer-days, no licence</b></td><td>n/a — already supported</td><td class="n"><span class="e e--t">Decision A</span></td></tr>
+      </tbody>
+      <caption>Full matrix with per-row sources in compare.md &sect;1. Rows where both platforms are equally weak are collected on the <em>What converges</em> slide.</caption>
+    </table></div>
+    <div class="foot"><span class="src">compare.md &sect;1</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Where the business is">
+  <div class="inner">
+    <p class="eyebrow"><b>06</b><span class="sep">/</span>Decision B &mdash; the correction that matters most</p>
+    <h2 class="st">Applications were the wrong unit, by a factor of about 47</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="lede">Every rate in this analysis divides by an <strong>application count</strong> from a billing sheet. On that measure LORA carries 69% and Bravo 31%, and the previous version of this brief used it as a reason to prefer LORA. <strong>Measured by business value the ratio inverts.</strong></p>
+        <svg class="chart" viewBox="0 0 520 240" role="img" aria-label="Applications versus business value, Bravo compared with LORA">
+          <text class="cl-lab" x="0" y="10">APPLICATIONS, AUG 2026</text>
+          <g><rect x="150" y="20" width="130" height="26" fill="var(--bravo)"></rect>
+            <text class="cl-lab" x="144" y="38" text-anchor="end">Bravo</text>
+            <text class="cl-val" x="288" y="38">76,446 &middot; 31%</text></g>
+          <g><rect x="150" y="52" width="292" height="26" fill="var(--lora)"></rect>
+            <text class="cl-lab" x="144" y="70" text-anchor="end">LORA</text>
+            <text class="cl-val" x="434" y="70" text-anchor="end" fill="var(--paper)">171,479 &middot; 69%</text></g>
+          <text class="cl-lab" x="0" y="118">BUSINESS VALUE</text>
+          <g><rect x="150" y="128" width="340" height="26" fill="var(--bravo)"></rect>
+            <text class="cl-lab" x="144" y="146" text-anchor="end">Bravo</text>
+            <text class="cl-val" x="482" y="146" text-anchor="end" fill="var(--paper)">≈ Rp 50.2bn</text></g>
+          <g><rect x="150" y="160" width="16" height="26" fill="var(--lora)"></rect>
+            <text class="cl-lab" x="144" y="178" text-anchor="end">LORA</text>
+            <text class="cl-val" x="174" y="178">≈ Rp 2.4bn</text></g>
+          <line class="cl-ax" x1="150" y1="200" x2="490" y2="200"></line>
+          <g><text class="cl-lab" x="150" y="216">VALUE PER APPLICATION</text>
+            <text class="cl-val" x="150" y="234" fill="var(--bravo)">Bravo ≈ Rp 657,000</text>
+            <text class="cl-val" x="330" y="234" fill="var(--lora)">LORA ≈ Rp 14,000</text></g>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>LORA is live on one product family, not seven</h4>The prod cluster runs <strong>only</strong> the NDF workers. The live set is <strong>NDF2W (90.2% of loans) and NDF4W (9.8%)</strong>, both through the partnership door. <strong>Six of seven families are un-deployed</strong> &mdash; three have <strong>no production deploy workflow at all</strong>, and three more have a copied one naming a schema version that does not exist. There is no switch to flip: enabling a family is a deploy-and-launch project.<br><br>So the previous claim &mdash; <em>&ldquo;already carries 69% of applications across seven product families&rdquo;</em> &mdash; was wrong. <strong>That 69% all runs on the one family.</strong></div>
+        <div class="note note--bad"><h4>This pack applied its own criticism asymmetrically &mdash; then over-corrected</h4>Our analysis faulted Bravo for DF2W being <em>&ldquo;fully configured, zero applications&rdquo;</em> while crediting LORA for <strong>six families in that state.</strong> That double standard was real. But the two are <strong>not the same state</strong>: DF2W is in <b>UAT with a live pen test and a dated go-live path</b>; LORA&rsquo;s six await a decision and three cannot deploy at all. <em>On this row the edge is Bravo&rsquo;s.</em> What survives: unlaunched families tell you nothing about ease of building, on either platform.</div>
+        <div class="note"><h4>What is missing entirely</h4><strong>No agreement, disbursement, NTF or revenue data exists anywhere in either platform&rsquo;s records.</strong> The billing sheet has 14 cost columns and 2 application-count columns. The Rp figures above are a <strong>CTO-office estimate, period and basis to be confirmed</strong> &mdash; and since the ~47&times; ratio is load-bearing, confirming it is gating measurement #1.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">Business value per CTO office, 2026-09-11 &middot; family liveness verified in LORA&rsquo;s own production findings (cost.md, testing.md, people.md) &middot; compare.md &sect;1</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Three drivers">
+  <div class="inner">
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>Decision B &mdash; drivers</p>
+    <h2 class="st">Strip out what ties, what is your own lever, and what cancels. Three measurements remain.</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n" style="color:var(--bravo)">4&ndash;5<small>&times;</small></span><span class="stat__l">Cheaper per application on Bravo &mdash; and it carries ~21&times; the value</span></div>
+      <div class="stat"><span class="stat__n" style="color:var(--lora)">3.5<small>&times;</small></span><span class="stat__l">More often Bravo needs a person &mdash; but one ticket category from level</span></div>
+      <div class="stat"><span class="stat__n neg">0</span><span class="stat__l">Spans, process monitors and working journey runs on Bravo&rsquo;s orchestration</span></div>
+      <div class="stat"><span class="stat__n plain">3</span><span class="stat__l">Measurements that would settle this &mdash; <b>none taken</b></span></div>
+    </div>
+    <div class="cols">
+      <div class="note"><h4>1 &middot; Cost and value &mdash; points at Bravo</h4>≈Rp58M against ≈Rp431M, 4&ndash;5&times; cheaper per application, and ≈21&times; the business value. <strong>Bounded two ways:</strong> LORA&rsquo;s gap is fixed contracts and over-provisioning, not the paradigm; and Bravo&rsquo;s unit advantage erodes on its own as volume drains &mdash; ≈Rp1,450 per application at 40k/month.</div>
+      <div class="note note--bad"><h4>2 &middot; Intervention rate &mdash; points at LORA, one category from a wash</h4>0.443% against 0.126%. But the gap <strong>turns entirely on <code>Surveyor Platform - Release reject</code></strong> &mdash; 28.4% of Bravo&rsquo;s load, growing 4.8&times;, <strong>still unmapped to any code path</strong>. Remove it and Bravo is at 0.152% against 0.126%. <strong>Days of work. Gating measurement #2.</strong></div>
+      <div class="note note--bad"><h4>3 &middot; Observability and testability &mdash; points at LORA, and is cheap to fix</h4>Zero orchestration spans, no loan id in logs, zero process monitors among 38, a journey suite frozen with its scheduled run unable to fail. <strong>But the two layers that would catch the most run in milliseconds</strong> and are ~7 days of work, and 349 usable journey descriptions already exist. <strong>A decision nobody has made, not a mountain nobody can climb</strong> &mdash; so it is a reason to fund remediation, and a weak reason to move products.</div>
+    </div>
+    <div class="note"><h4>Two drivers were withdrawn since the last version, and both had pointed at LORA</h4><strong>Team size</strong> &mdash; 7 against 22 &mdash; is the output of the previous decision to consolidate on LORA, reversible by the same office. Circular as evidence. <strong>And &ldquo;Bravo&rsquo;s modern generation is only 5.5% of its volume&rdquo;</strong> cannot carry weight while LORA&rsquo;s entire production estate is one family and six of its seven have never launched. <em>Symmetrically applied, it cancels</em> &mdash; and DF2W, the family that would raise Bravo&rsquo;s share, is in UAT now.</div>
+    <div class="foot"><span class="src">compare.md &sect;4 &middot; people.md &sect;5 &middot; ticket-analysis.md</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Bravo's best case">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>The counter-case, taken seriously</p>
+    <h2 class="st">Bravo&rsquo;s strongest argument is cost &mdash; and it erodes without anyone acting</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="lede">This is the one place the evidence favours <span class="pB">Bravo</span> decisively, and it should not be minimised: <strong>≈Rp58M against ≈Rp431M</strong> for the orchestration tier, and <strong>4&ndash;5&times; cheaper per application.</strong> One deployment, one database, against fixed contracts and over-provisioned capacity.</p>
+        <svg class="chart" viewBox="0 0 520 210" role="img" aria-label="Cost per application: Bravo today, Bravo at reduced volume, and LORA">
+          <line class="cl-ax" x1="150" y1="176" x2="506" y2="176"></line>
+          <g><rect x="150" y="14" width="86" height="30" fill="var(--bravo)"></rect>
+            <text class="cl-lab" x="144" y="33" text-anchor="end">Bravo today</text>
+            <text class="cl-val" x="244" y="33">Rp 510–760</text></g>
+          <g><rect x="150" y="60" width="164" height="30" fill="var(--bravo)" opacity="0.55"></rect>
+            <text class="cl-lab" x="144" y="72" text-anchor="end">Bravo at 40k/month</text>
+            <text class="cl-lab" x="144" y="85" text-anchor="end">(same fixed cost)</text>
+            <text class="cl-val" x="322" y="79">Rp 1,450</text></g>
+          <g><rect x="150" y="106" width="330" height="30" fill="var(--lora)"></rect>
+            <text class="cl-lab" x="144" y="125" text-anchor="end">LORA today</text>
+            <text class="cl-val" x="470" y="125" text-anchor="end" fill="var(--paper)">Rp 2,500–3,200</text></g>
+          <g><rect x="150" y="152" width="7" height="18" fill="var(--ok)"></rect>
+            <text class="cl-lab" x="144" y="165" text-anchor="end">LORA, next application</text>
+            <text class="cl-val" x="165" y="165">≈ 0 &mdash; marginal cost</text></g>
+          <text class="cl-lab" x="150" y="192">Rp 0</text><text class="cl-lab" x="506" y="192" text-anchor="end">Rp 3,200 per application</text>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note"><h4>Why the gap is not the paradigm</h4>LORA&rsquo;s cost is ~86% fixed and its levers are <strong>time-locked, not architectural</strong>: a 3-year CPU commitment, a Temporal commitment renegotiable at <strong>~March 2027</strong>, 448 GB of requests running at 15.5% utilisation, and five idle worker versions. <strong>Provisioning, not physics.</strong></div>
+        <div class="note note--bad"><h4>Why it erodes on its own</h4>Bravo&rsquo;s platform cost is fixed and its volume is falling <em>by design</em> — <b>&minus;35% in one month</b>. At 40k applications the same ≈Rp58M is <b>≈Rp1,450 each</b> and the gap halves with nobody doing anything. Meanwhile LORA absorbed <b>+23% volume for +3% spend</b>: the next product is close to free to host.</div>
+        <div class="note note--bad"><h4>And the biggest cost lever is unrelated to the decision</h4><strong>Cloud Logging alone is Rp140.5M/month — 2.4&times; the entire tier the migration would retire</strong> — and it is a configuration fix behind a global Feign setting. <strong>A team that fixed logging config would save more in September than retiring Bravo LOS will save when the migration completes.</strong> Do it either way.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">compare.md &sect;4.1 &middot; bravo-cost.md &sect;3&ndash;6 &middot; GCP billing, complete month August 2026</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Where Bravo is behind">
+  <div class="inner">
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>Decision B</p>
+    <h2 class="st">Observability and testability &mdash; the two that are real, and both are cheap to fix</h2>
+    <div class="cols">
+      <div class="note note--bad"><h4>Observability &mdash; the process is invisible</h4><strong>Zero Camunda spans.</strong> Seven operation names cover every span the service emits and none of them is a process, a service task or a job execution — because all 483 service tasks run on job-executor threads that no HTTP request started. <strong>The 90% of Bravo&rsquo;s work that <em>is</em> the loan moving through the flow produces no trace at all.</strong><br><br><strong>No log line carries the application id</strong>, so a failure cannot be joined to a customer without leaving Datadog. <strong>38 monitors, zero on the process</strong>; 8 permanently red, 6 that cannot fire. A health model of <em>&ldquo;not 5xx&rdquo;</em> missed <strong>748,686 404s a week reaching 69% of surveyor sessions.</strong></div>
+      <div class="note note--bad"><h4>Testability &mdash; the proof was switched off</h4>Bravo wrote <strong>595 Cypress journey tests</strong> across 46 authors and aimed <strong>349 of them at the Surveyor Platform</strong> — the console generating 28.4% of its tickets. Then it froze the repository in <strong>November 2023</strong> and left the one scheduled workflow with <strong>every step ending <code>|| true</code>, so it can never report a failure.</strong><br><br><strong>An absent test cannot mislead anyone. A permanently green one can.</strong> And no Bravo test can make an upstream fail, so <strong>50 error handlers, 70 error definitions and 190 escalation paths have never been executed</strong> — including an anti-fraud bypass that is a credit-policy decision reached by an exception handler.<br><br><strong>One point in Bravo&rsquo;s favour:</strong> the corpus&rsquo;s <strong>130 API feature files assert on 87% of their <code>Then</code> steps</strong> — competent Gherkin, and the best-written in the estate. The defect is confined to the 465 UI files, where 57% of steps are pure clicking and typing. <strong>The skill is present; it was not applied where it mattered and then it was switched off.</strong></div>
+    </div>
+    <p class="pull">Each new product family adds surface, and on this platform nothing watches it.
+      <small>Capacity used to be the third panel here. It has been removed: <strong>headcount is the output of the previous decision to consolidate on LORA</strong>, so citing it to the office that holds that lever is circular. What is left is a statement about <em>engineering discipline</em> &mdash; and it is fixable in days-to-weeks, which is why it is a reason to fund remediation rather than to move products.</small></p>
+    <div class="foot"><span class="src">bravo-people.md &sect;5 &middot; bravo-observability.md &sect;2&ndash;6 &middot; bravo-testing.md &sect;6&ndash;7</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What converges">
+  <div class="inner">
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Decision B &mdash; discipline, not paradigm</p>
+    <h2 class="st">Seven things are identical on both platforms &mdash; so none of them chooses for you</h2>
+    <p class="lede">This slide exists to keep the decision honest. <strong>Anything that is the same on both cannot be a reason to prefer either</strong>, and these seven are the strongest evidence that the recommendation is about engineering practice rather than architecture.</p>
+    <div class="tw"><table>
+      <thead><tr><th></th><th class="hB">Bravo</th><th class="hL">LORA</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Human-task complexity returned in both</td><td>44% of the codebase is human work</td><td>~12k lines of hand-written state machines inside a declarative shell</td></tr>
+        <tr><td class="k">The orchestration layer is untested in both</td><td>4 of <b>2,286</b> tests execute a process</td><td>planner scheduling untested; nightly red</td></tr>
+        <tr><td class="k"><b>Both built a journey suite and left it unable to run</b></td><td>595 features, 46 authors, frozen 2023, scheduled run cannot fail</td><td><code>lora-super-test</code>: 150 tests, <b>a CI workflow with nowhere to run</b></td></tr>
+        <tr><td class="k">The lifecycle state machine is declared, not enforced</td><td>a state-machine class used once</td><td>enum membership validated only</td></tr>
+        <tr><td class="k">Neither has saga compensation</td><td>sweepers, re-sync, humans</td><td>sweepers, re-sync, humans</td></tr>
+        <tr><td class="k">Both mistake one absent failure mode for health</td><td>&ldquo;not 5xx = healthy&rdquo;</td><td>&ldquo;still Running = healthy&rdquo;</td></tr>
+        <tr><td class="k">Both filtered their most informative error out of their one business monitor</td><td>excluded <code>ENGINE-16004</code></td><td>excluded the go-live agreement message</td></tr>
+        <tr><td class="k">Surveyor assignment is the top ops complaint on both</td><td>1,182 tickets — 21.8%</td><td>1,021 tickets — 25.0%</td></tr>
+      </tbody></table></div>
+    <div class="cols b">
+      <p class="pull" style="font-size:clamp(15px,1.6vw,20px)">Two teams, two paradigms, the same outcome &mdash; repeatedly.
+        <small>A BPMN flowchart and a GSM planner each modelled surveyor assignment around a hand-written service layer and inherited its failure modes, at nearly the same rate. Neither team knew the other had abandoned a journey suite.</small></p>
+      <div class="note"><h4>The cheapest item on either backlog</h4>Both teams had rich instrumentation they were <strong>not reading</strong>. LORA&rsquo;s two RUM applications had been on all along and were never consulted; all four Bravo consoles are instrumented and produce <strong>2.4M errors a week that nobody had opened.</strong> This is not an architecture finding. It is the same operational gap on both sides, and it costs a weekly meeting to close.</div>
+    </div>
+    <div class="foot"><span class="src">compare.md &sect;3 &middot; compare-architecture.md &sect;6</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Risk both ways">
+  <div class="inner">
+    <p class="eyebrow"><b>11</b><span class="sep">/</span>Decision B &mdash; symmetric risk</p>
+    <h2 class="st">What you are accepting, whichever way you decide</h2>
+    <div class="sideby">
+      <div class="side b"><h4>If the next product goes to Bravo</h4>
+        <ul>
+          <li><b>You are committing to a community fork of a dead engine.</b> Decision A lands Bravo on Operaton or CIB seven — maintained, but on a 6-month support line or an unpublished paid contract. Today&rsquo;s exposure is <em>drift</em>; that would be a <em>chosen</em> dependency, and it attracts different scrutiny.</li>
+          <li><b>The new product will be as unobservable as the existing ones.</b> Zero orchestration spans, no application id in logs, no process-level alert — so its failures surface as support tickets.</li>
+          <li><b>It inherits five product-discrimination mechanisms.</b> Adding a product touches all five, and no test or CI artefact maps a change to the products it affects.</li>
+          <li><b>It inherits the in-flight deploy hazard.</b> A shared sub-process redeploy reaches loans already running — today that is 73% of volume with no migration plan.</li>
+          <li><b>You get a genuinely cheaper tier</b> and the lowest per-change cost in the estate. That is the trade.</li>
+        </ul>
+      </div>
+      <div class="side l"><h4>If the next product goes to LORA</h4>
+        <ul>
+          <li><b>You pay a five-repository tax per integration change</b> — schema, handler, activity, authorisation, front end, in a mandated order. Real, measured, and fixable with a generator that is designed but not built.</li>
+          <li><b>You inherit uncapped retry</b> and a class of loans — roughly half — that never reach a terminal state while every signal reads healthy. LORA&rsquo;s reliability edge is <em>partly</em> an artefact of failures nobody can see.</li>
+          <li><b>You cannot ask fleet questions about business state.</b> &ldquo;All loans stuck in survey&rdquo; has no answer in LORA at all.</li>
+          <li><b>You cannot tell which upstream is degrading</b> until a merged PR is actually released.</li>
+          <li><b>You are betting on a platform proven on one product family.</b> Six of seven are un-deployed, three without a production deploy workflow — so &ldquo;LORA hosts seven families&rdquo; is a statement about repositories, not production.</li>
+          <li><b>You cannot yet show that LORA converts.</b> No agreement, disbursement or revenue data exists for it. On the CTO office&rsquo;s figures it earns ≈Rp 14,000 per application against Bravo&rsquo;s ≈Rp 657,000.</li>
+          <li><b>You get near-zero marginal cost</b>, product isolation by construction, version-pinned deploys, and a journey test that asserts. That is the trade.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="lede" style="font-weight:600;color:var(--ink)">Both columns are now roughly the same size, which is the honest position: <strong>LORA&rsquo;s risks are unproven scale, Bravo&rsquo;s are unfixed discipline, and both are addressable with engineering that has already been scoped.</strong> That is why Decision B is presented as open rather than answered.</p>
+    <div class="foot"><span class="src">compare.md &sect;2, &sect;5 &middot; both platforms&rsquo; production-findings packs</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What would settle it">
+  <div class="inner">
+    <p class="eyebrow"><b>12</b><span class="sep">/</span>Decision B &mdash; what would settle it</p>
+    <h2 class="st">Three measurements gate this. None has been taken.</h2>
+    <div class="tw"><table>
+      <thead><tr><th class="n">#</th><th>Measurement</th><th>What each outcome would mean</th><th class="n">Cost</th></tr></thead>
+      <tbody>
+        <tr><td class="n"><b>1</b></td><td class="k"><b>The agreement / NTF / disbursement split by platform, from a system</b> &mdash; with a stated period and basis</td><td>Confirms ≈21&times; &rarr; <b>Decision B tilts to Bravo</b> for anything revenue-bearing and LORA&rsquo;s volume argument disappears. Shows comparable conversion &rarr; <b>tilts back to LORA.</b> Same measurement, opposite outcomes &mdash; which is exactly why it must be taken rather than assumed</td><td class="n"><b>days</b></td></tr>
+        <tr><td class="n"><b>2</b></td><td class="k"><b><code>Surveyor Platform - Release reject</code> mapped to a code path</b></td><td>If it is a fixable defect, Bravo&rsquo;s intervention rate falls to ≈0.152% against LORA&rsquo;s 0.126% &mdash; <b>level</b> &mdash; and LORA&rsquo;s clearest remaining reliability edge disappears</td><td class="n"><b>days</b></td></tr>
+        <tr><td class="n"><b>3</b></td><td class="k"><b>The cost of launching one un-deployed LORA family</b> &mdash; three of the six have no production deploy workflow</td><td>Prices the actual proposal. &ldquo;Put the next family on LORA&rdquo; assumes launching a family there is cheap, and <b>nobody has done it since NDF</b></td><td class="n">weeks</td></tr>
+      </tbody></table></div>
+    <p class="eyebrow">And these would move it without being commissioned</p>
+    <div class="tw"><table>
+      <thead><tr><th>If this turns out to be true</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Decision A is funded and lands</b></td><td>Removes the runtime-support and RCE exposure from Decision B entirely, so B can be taken on architecture and economics alone. <b>18&ndash;33 engineer-days. The one item here that should not wait for evidence.</b></td></tr>
+        <tr><td class="k">The billing sheet&rsquo;s application counts are defined and Bravo&rsquo;s is confirmed inflated</td><td>Bravo&rsquo;s true intervention rate and per-application cost both rise; its value-per-application rises further still</td></tr>
+        <tr><td class="k"><code>bravo-e2e-test</code>&rsquo;s weekly cron turns out to still be firing</td><td>Bravo has had a green-by-construction journey signal for three years on 10 of 595 files. <b>A misleading signal is worse than none.</b> Five minutes in the Actions tab</td></tr>
+        <tr><td class="k">LORA&rsquo;s never-terminating loans and uncapped retry go unfixed for two more quarters</td><td>LORA&rsquo;s reliability edge is partly failures nobody can see</td></tr>
+        <tr><td class="k">Bravo is re-staffed</td><td><b>No longer a falsifier.</b> Headcount was withdrawn as evidence &mdash; it is an input you set, not a finding that moves</td></tr>
+      </tbody></table></div>
+    <div class="foot"><span class="src">compare.md &sect;5&ndash;6</span><span>13</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The asks">
+  <div class="inner">
+    <p class="eyebrow"><b>13</b><span class="sep">/</span>What we need from you</p>
+    <h2 class="st">One decision to take now, one to defer, four things to authorise</h2>
+    <div class="verdictbox" style="margin-bottom:2px">
+      <span class="lab">Decision A &middot; take it now</span>
+      <p class="txt">Fund <em>Option 1 Path B</em> &mdash; fork the engine and upgrade Spring Boot in one change. <em>18&ndash;33 engineer-days, no licence.</em> And fix the RCE this week.</p>
+    </div>
+    <div class="verdictbox" style="border-color:var(--ruleS);background:transparent">
+      <span class="lab" style="color:var(--ink3)">Decision B &middot; defer, deliberately</span>
+      <p class="txt" style="font-size:clamp(16px,1.9vw,24px)">Do not place the next product family until measurements <strong>1</strong> and <strong>2</strong> are in. They cost <strong>days</strong>, and either could decide it.</p>
+    </div>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Fix the Camunda RCE this week.</b> Remove <code>permitAll()</code> on <code>/camunda/**</code>, authenticate or disable the REST and webapp surfaces in production, purge the 61 injected process definitions, and check for lateral movement. Live, confirmed code execution on an engine with no patch channel.</span><span class="c">this week<br>required under<br>every option</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Fund the engine + Spring Boot upgrade.</b> Answer the fork question first &mdash; is a contractual support agreement required and purchasable? Then run the <code>ACT_GE_SCHEMA_LOG</code> diagnostics before setting a cutover date.</span><span class="c">18–33 eng-days<br>Rp 45–125M<br>no licence</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Commission the agreement / NTF split by platform</b>, with a stated period and basis. The Rp 50.2bn / Rp 2.4bn figures are a CTO-office estimate and the ~47&times; ratio is load-bearing. Pair it with defining <code>Bravo total app</code> and <code>Lora total app</code>.</span><span class="c">days<br>gates Decision B</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Authorise the Cloud Logging fix &mdash; Rp 50&ndash;90M/month, configuration only.</b> Larger than the saving from retiring the whole Bravo LOS tier, available now, and it stops PEFINDO, SLIK, Dukcapil and CONFINS request bodies landing in Cloud Logging. <b>Unconditional.</b></span><span class="c">weeks<br>Rp 50–90M / mo</span></div>
+    </div>
+    <div class="note note--ok"><h4>And one standing instruction that does not wait for any of it</h4><strong>Bravo carries the majority of the book and the majority of the money.</strong> Whatever is decided about new products, it must be resourced and treated as a strategically important platform &mdash; not as a system being wound down. Its runtime is out of support today, its orchestration is unobservable, and its journey tests do not run &mdash; and it will be originating most of BFI&rsquo;s business value throughout whatever migration is or is not chosen.</div>
+    <div class="foot"><span class="src">option-summary.md &sect;6&ndash;7 &middot; compare.md &sect;5, &sect;7 &middot; bravo-cost.md &sect;6</span><span>14</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Outside this decision">
+  <div class="inner">
+    <p class="eyebrow"><b>14</b><span class="sep">/</span>The security half of Decision A</p>
+    <h2 class="st">The finding that makes Decision A urgent rather than tidy</h2>
+    <div class="cols b">
+      <div class="note note--bad"><h4>Unauthenticated Camunda RCE exposure on production BPM</h4>The production <code>ms-bpm</code> Camunda engine contains <strong>61 process definitions that are not part of the application</strong>, deployed across <strong>7 distinct sessions between 2026-05-23 and 2026-06-30</strong>. They are textbook expression-injection remote-code-execution probes — reflection chains that build <code>java.lang.Runtime</code> through string <code>concat()</code> to dodge keyword filters, then run OS commands and capture stdout into a process variable.<br><br><strong>All 61 are still active and startable today</strong>, and there is evidence in the engine&rsquo;s own history that <strong>at least one executed</strong>. Camunda Cockpit is <code>permitAll()</code> at the Spring Security layer.<br><br><strong>This was found incidentally</strong> while querying the production database for the workflow analysis. If it was an authorised penetration test, treat this as confirmation the artefacts are still in production. <strong>If it was not, this is an incident.</strong></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="stats"><div class="stat"><span class="stat__n neg">61</span><span class="stat__l">Injected RCE process definitions, all still active in production</span></div></div>
+        <p class="pull" style="font-size:clamp(15px,1.6vw,20px)">This does not bear on where the next product goes.
+          <small>It is on this deck for one reason: it needs an owner and a route to whoever holds Bravo security, and a platform-strategy decision is exactly the kind of thing it could get parked behind. <strong>It should be actioned this week, independently of decision 1.</strong></small></p>
+        <div class="note"><h4>Why it is here rather than in the scoreboard</h4>Including it as a Bravo mark against LORA would be misleading — it is an access-control and deployment-hygiene failure, not a property of BPMN, and nothing in this analysis establishes that LORA&rsquo;s equivalent surfaces are better protected. <strong>They have not been checked. That is itself worth an hour.</strong></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">SECURITY-FINDING-camunda-rce.md &middot; found 2026-09-09, severity critical</span><span>12</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Evidence base">
+  <div class="inner">
+    <p class="eyebrow"><b>15</b><span class="sep">/</span>Evidence base</p>
+    <h2 class="st">Where every number on these slides comes from</h2>
+    <div class="cols">
+      <div class="note"><h4>Measured for this analysis</h4><strong>Jira</strong> — projects <code>DF</code>, <code>D2W</code>, <code>BL</code>, <code>BLCS</code>; four 50-issue samples across two months.<br><br><strong>Datadog us5</strong> — APM spans, 1.1M log lines/week, the full monitor inventory, Synthetics, CI Visibility, and RUM on four production consoles.<br><br><strong>GCP billing</strong> via the FinOps API, complete month August 2026, per-project and per-service.<br><br><strong>Both codebases</strong> — <code>bravo-bpm-service</code> at v2.93.43, <code>bravo-e2e-test</code>, and 13 LORA repositories.<br><br><strong>OTRS</strong> ticket export for the symmetric reliability measurement.</div>
+      <div class="note note--bad"><h4>Known weaknesses, stated</h4><strong>The denominators.</strong> Application counts come from a billing sheet whose platform totals nothing else corroborates. Every per-application figure is a verified numerator over a disputed denominator — <b>ask #2 fixes this.</b><br><br><strong>The drain confound.</strong> Bravo keeps the residual hard cases as it is migrated. Real, and not controlled for.<br><br><strong>One category carries driver 2.</strong> <code>Release reject</code> is 28.4% of Bravo&rsquo;s tickets and unmapped — <b>ask #1.</b><br><br><strong>Two database MCP servers failed to connect</strong> during the final session, so SQL-shaped claims are marked <em>mechanism verified, volume not re-measured</em>.<br><br><strong>Four corrections already made, three of which removed arguments this brief used to rely on:</strong><br>&mdash; the first version said Bravo had no journey suite; it has 595 tests, frozen. That correction was <em>worse</em> for Bravo.<br>&mdash; <strong>team size was used as evidence against Bravo.</strong> It is the output of the previous decision to consolidate on LORA, so it was circular. Withdrawn.<br>&mdash; <strong>&ldquo;LORA carries 69% of applications across seven product families&rdquo; was false.</strong> One family is live. Withdrawn.<br>&mdash; <strong>Bravo&rsquo;s scope was too narrow.</strong> Three console repositories (763,861 LOC, 829 gating tests) and the <code>LN</code> delivery project were never counted. Test files went 1,457 &rarr; <b>2,286</b>; engineers 7 &rarr; <b>25</b>; the ticket ratio <b>inverted</b>.<br><br><strong>The pattern behind all four:</strong> Bravo was bounded at one repository and LORA at its whole workspace. <b>Every correction that followed moved toward Bravo.</b> The findings that survived all four &mdash; the engine end-of-support exposure, orchestration blindness, the cost ratio, the intervention-rate gap &mdash; are the ones to trust.</div>
+      <div class="note"><h4>Read further</h4><strong><code>compare.md</code></strong> — the 40-row matrix with per-row sources, and this recommendation in full.<br><br><strong><code>compare-architecture.md</code></strong> — BPMN vs GSM+Temporal at the paradigm level, plus the Bravo team&rsquo;s review and the reply to it.<br><br><strong>Five findings documents</strong> — people, testing, observability, cost, delivery. Each carries its own 30/60/90 plan, and each has a slide deck.<br><br><strong><code>ticket-analysis.md</code></strong> — the symmetric reliability measurement across both platforms.<br><br><strong><code>workflow-gap.md</code></strong> — the 5.5% / 94% volume split between Bravo&rsquo;s two generations.</div>
+    </div>
+    <p class="pull">Decision A has a firm answer and costs 18&ndash;33 engineer-days. Decision B is open, and the two measurements that would settle it cost days &mdash; and nobody has taken them.</p>
+    <div class="foot"><span class="src">bravo-analysis/docs &middot; prepared 2026-09-11</span><span>13</span></div>
+  </div>
+</section>

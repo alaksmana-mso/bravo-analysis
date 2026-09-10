@@ -54,15 +54,24 @@ NAV = """
 def _renumber(body):
     """Footer badges follow slide order, so inserting a slide can't desync them."""
     import re
-    n = [0]
+    n = [1]          # the cover slide carries a .cue, not a .foot, so badges start at 02
     def sub(m):
         n[0] += 1
         return '%s<span>%02d</span>' % (m.group(1), n[0])
     return re.sub(r'(<div class="foot">.*?)<span>\d+</span>', sub, body, flags=re.S)
 
 
+def _cue_count(body):
+    """The cover's cue quotes the deck length; splitting a slide must not leave it stale."""
+    import re
+    n = body.count('class="slide')
+    return re.sub(r'(class="cue"[^>]*>.*?)\b\d+ slides',
+                  lambda m: "%s%d slides" % (m.group(1), n), body, count=1, flags=re.S)
+
+
 def build(slug, title, accent_light, accent_dark, body):
     body = _renumber(body)
+    body = _cue_count(body)
     ov = (":root{--ac:%s;--acBg:%s1f;--acBg2:%s0f}\n"
           "@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){"
           "--ac:%s;--acBg:%s24;--acBg2:%s12}}\n"

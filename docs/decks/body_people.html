@@ -5,7 +5,7 @@
     <p class="claim">&ldquo;Developing in Lora is hard, but developing in Bravo is faster and easier because the team now knows what to do.&rdquo;</p>
     <div class="stats stats--4" style="margin-top:6px">
       <div class="stat"><span class="stat__n plain">0</span><span class="stat__l">Issues assigned on the two boards the claim cites</span></div>
-      <div class="stat"><span class="stat__n neg">1.83<small>&times;</small></span><span class="stat__l">LORA&rsquo;s ticket volume over Bravo&rsquo;s, Jan&ndash;Aug</span></div>
+      <div class="stat"><span class="stat__n plain">1.27<small>&times;</small></span><span class="stat__l"><b>Bravo&rsquo;s</b> ticket volume over LORA&rsquo;s, Jan&ndash;Aug &mdash; <b style="color:var(--ac)">inverted</b> from 1.83&times; the other way when the missing <code>LN</code> project was counted</span></div>
       <div class="stat"><span class="stat__n plain">2<small>d</small></span><span class="stat__l">August median cycle time &mdash; on both platforms</span></div>
       <div class="stat"><span class="stat__n">5&rarr;1</span><span class="stat__l">Repositories per change &mdash; the real effect</span></div>
     </div>
@@ -24,11 +24,11 @@
     <h2 class="st">Six claims, graded against the data</h2>
     <div class="vlist">
       <div class="vrow"><p class="cl">The DF4W and DF2W boards show Bravo development moving faster</p><span class="v v--non">Unfalsifiable</span><p class="gi"><code>DF</code> holds 24 issues, 23 of them Epics. <code>D2W</code> holds 22, all Epics. Every one unassigned, none resolved. These are product intake backlogs. Nothing on them can be timed.</p></div>
-      <div class="vrow"><p class="cl">Bravo development is faster</p><span class="v v--ref">Not supported</span><p class="gi">Bravo&rsquo;s real delivery project created &asymp;2,813 issues Jan&ndash;Aug against LORA&rsquo;s &asymp;5,144. August median created&rarr;resolved is <b>2 days on both</b>. In June LORA was <em>faster</em>.</p></div>
+      <div class="vrow"><p class="cl">Bravo development is faster</p><span class="v v--ref">Not supported</span><p class="gi">Bravo&rsquo;s <b>two</b> delivery projects (<code>BLCS</code>&nbsp;+&nbsp;<code>LN</code>) created &asymp;<b>6,518</b> issues Jan&ndash;Aug against LORA&rsquo;s &asymp;5,144 &mdash; <b>Bravo 1.27&times;</b>. That <em>reverses</em> the earlier 1.83&times; LORA finding, which counted only <code>BLCS</code>. But ticket volume measures decomposition as much as output, so it <b>retires the metric</b> rather than supporting the claim. August median created&rarr;resolved is <b>2 days on both</b>; in June LORA was <em>faster</em>.</p></div>
       <div class="vrow"><p class="cl">&hellip;because the team now knows what to do</p><span class="v v--non">Confounded</span><p class="gi">Bravo&rsquo;s team has worked on this codebase since 2022 &mdash; 94 all-time authors, 23 active in 2026. That is tenure on a four-year-old codebase, not a platform being easier to learn.</p></div>
       <div class="vrow"><p class="cl">Developing in Bravo is <em>easier</em></p><span class="v v--sup">Supported</span><p class="gi">One change is fewer artefacts. A Bravo ticket decomposes into <code>[BE]</code>/<code>[FE]</code>/<code>[QA]</code>; the LORA equivalent into five repositories and five deploys. Real, measurable, and the defensible core of the claim.</p></div>
       <div class="vrow"><p class="cl">Bravo has a shallower onboarding curve</p><span class="v v--sup">Half true</span><p class="gi">Supported on skills &mdash; Java/Spring/Camunda are commodity. Unsupported on codebase: a new hire reads a 498k-LOC monolith with product identity in five places. The advantage is spent by week three.</p></div>
-      <div class="vrow"><p class="cl">DF2W is a live Bravo product delivering faster than LORA</p><span class="v v--ref">Refuted</span><p class="gi">DF2W is fully configured in production and has started <b>zero</b> applications in 90 days. DF4W carries <b>5.5%</b> of Bravo&rsquo;s volume. The two cited products are the smallest thing Bravo runs.</p></div>
+      <div class="vrow"><p class="cl">DF2W is a live Bravo product delivering faster than LORA</p><span class="v v--ref">Refuted</span><p class="gi"><b>Corrected 2026-09-10:</b> DF2W is <strong>not live at all</strong> &mdash; it is in <b>UAT with an LOS penetration test running</b>, go-live epics still open. This pack had called it &ldquo;fully configured in production&rdquo;, which reads as released-and-unused; it is pre-release. It has started <b>zero</b> applications in 90 days. DF4W carries <b>5.5%</b> of Bravo&rsquo;s volume. The two cited products are the smallest thing Bravo runs &mdash; and one is not running.</p></div>
     </div>
     <div class="foot"><span class="src">Jira <code>bfifinance.atlassian.net</code>, all three cited boards enumerated in full &middot; bravo-people.md &sect;Verdicts</span><span>02</span></div>
   </div>
@@ -69,19 +69,20 @@
 <section class="slide" data-nav="Where work lives">
   <div class="inner">
     <p class="eyebrow"><b>&sect;2</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Bravo&rsquo;s development work lives in <code style="font-size:.85em">BLCS</code></h2>
-    <p class="lede">The comparison the claim wants has to be made somewhere else. Recent <code>BLCS</code> titles confirm the scope: <em>&ldquo;#CapabilityTrue [4W Scoring] Adjustment Regular RAC 4W&rdquo;</em>, <em>&ldquo;[BE] Prepare Query Change GMB to NMH&rdquo;</em>, <em>&ldquo;[DF2W UW] Sync Surveyor Status Underwriting Return&rdquo;</em>.</p>
+    <h2 class="st">Bravo&rsquo;s development work lives in <code style="font-size:.85em">BLCS</code> <span style="color:var(--ink3)">and</span> <code style="font-size:.85em">LN</code></h2>
+    <p class="lede">The comparison the claim wants has to be made somewhere else &mdash; and there are <strong>two</strong> such places, not one. Recent <code>BLCS</code> titles: <em>&ldquo;[BE] Prepare Query Change GMB to NMH&rdquo;</em>, <em>&ldquo;[DF2W UW] Sync Surveyor Status Underwriting Return&rdquo;</em>. Recent <code>LN</code> titles: <em>&ldquo;[Surveyor] Revamp Filter Assignment Team Head Surveyor&rdquo;</em>, <em>&ldquo;[FE][TechDebt] Operation Route Validation based on Role&rdquo;</em>. <b>Added 2026-09-10 after Team Bravo pointed out <code>LN</code> was missing &mdash; it is the larger of the two.</b></p>
     <div class="tw"><table>
-      <thead><tr><th></th><th>BLCS &mdash; Bravo LOS</th><th>BL &mdash; LORA DP</th></tr></thead>
+      <thead><tr><th></th><th>BLCS &mdash; Bravo LOS</th><th>LN &mdash; Bravo Surveyor &amp; Verificator</th><th>BL &mdash; LORA DP</th></tr></thead>
       <tbody>
-        <tr><td class="k">First issue</td><td><code>BLCS-985</code>, 2023-12-19</td><td><code>BL-3</code>, 2024-11-21</td></tr>
-        <tr><td class="k">Latest at read time</td><td><code>BLCS-4811</code>, 2026-09-09</td><td><code>BL-10138</code>, 2026-09-10</td></tr>
-        <tr><td class="k">Issue types in use</td><td>Epic, Story, Story Bug, Task, Sub-task, Bug</td><td>Epic, Story, Story Bug, Task, Sub-task, Bug</td></tr>
-        <tr><td class="k">Sub-task convention</td><td><code>[BE]</code> <code>[FE]</code> <code>[QA]</code> <code>[DF2W UW]</code></td><td><code>[LSS]</code> <code>[LGS]</code> <code>[LPW]</code> <code>[LTW]</code> <code>[LTS]</code> <code>[LBOFE]</code> <code>[QA]</code> <code>[PR]</code></td></tr>
+        <tr><td class="k">First issue</td><td><code>BLCS-985</code>, 2023-12-19</td><td><code>LN-76</code>, 2024-09-09</td><td><code>BL-3</code>, 2024-11-21</td></tr>
+        <tr><td class="k">Latest at read time</td><td><code>BLCS-4811</code>, 2026-09-09</td><td><b><code>LN-6626</code>, 2026-09-10</b> <span style="color:var(--ink3)">created 14:35, resolved 17:43</span></td><td><code>BL-10138</code>, 2026-09-10</td></tr>
+        <tr><td class="k">Issue types in use</td><td>Epic, Story, Story Bug, Task, Sub-task, Bug</td><td>Epic, Story, Task, Sub-task</td><td>Epic, Story, Story Bug, Task, Sub-task, Bug</td></tr>
+        <tr><td class="k">Sub-task convention</td><td><code>[BE]</code> <code>[FE]</code> <code>[QA]</code> <code>[DF2W UW]</code></td><td><code>[Surveyor]</code> <code>[Operation]</code> <code>[FE]</code> <code>[FE][TechDebt]</code> <code>[Master]</code></td><td><code>[LSS]</code> <code>[LGS]</code> <code>[LPW]</code> <code>[LTW]</code> <code>[LTS]</code> <code>[LBOFE]</code> <code>[QA]</code> <code>[PR]</code></td></tr>
+        <tr><td class="k">Delivers into</td><td><code>bravo-bpm-service</code></td><td><b>the three operator consoles</b> &mdash; 763,861 LOC, 829 tests</td><td>13 LORA repos</td></tr>
       </tbody></table></div>
     <div class="cols b">
       <p class="lede">The taxonomies match, which is what makes the comparison possible &mdash; both projects run the same PMO template. Counting a <code>BLCS</code> ticket against a <code>BL</code> ticket is counting like against like at the <em>process</em> level. It is <strong>not</strong> like against like at the <em>change</em> level, which is where &sect;6 matters.</p>
-      <div class="note"><h4>DF2W work does appear &mdash; in BLCS</h4><code>BLCS-4391</code> &ldquo;[DF2W UW] Code Review - BM Return&rdquo;, plus <code>BLCS-4405</code>, <code>4420</code>, <code>4426</code>. So DF2W <strong>is</strong> being built. It is just not tracked on the DF2W board, and it has not yet taken a single production application.</div>
+      <div class="note"><h4>DF2W work appears in <em>both</em> delivery projects</h4><code>BLCS-4420</code> &ldquo;[DF2W Scoring] Penyesuaian sumber Data Downpayment&rdquo; and <code>BLCS-4426</code> in one; <code>LN-6479</code> &ldquo;[DF2W] E2E Testing&rdquo;, <code>LN-4533</code> &ldquo;[DF2W] [O] Application Tracking&rdquo; in the other. So DF2W <strong>is</strong> being actively built and tested across two squads. It is just not tracked on the DF2W intake board.<br><br><b>Its real status, verified 2026-09-10:</b> UAT branch mapping seeded (<code>INS-6245</code>), go-live worker TAC closed (<code>TDF-4273</code>, 09-09), <b>LOS pen test live</b> (<code>ADI-1312</code>, <code>BLCS-4799</code>), pre-go-live epics open (<code>D2W-5</code>, <code>LN-4573</code>). <strong>Pre-release, not abandoned.</strong></div>
     </div>
     <div class="foot"><span class="src">bravo-people.md &sect;2</span><span>05</span></div>
   </div>
@@ -90,55 +91,34 @@
 <section class="slide" data-nav="Throughput">
   <div class="inner">
     <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Throughput: LORA carries 1.8&times; the ticket volume</h2>
+    <h2 class="st">Throughput: with <code style="font-size:.8em">LN</code> counted, the LORA lead reverses</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:12px">
-        <div class="legend"><span><i class="bA" style="background:var(--ac)"></i>Bravo &middot; BLCS</span><span><i class="bB" style="background:var(--ruleS)"></i>LORA &middot; BL</span></div>
-        <svg class="chart" viewBox="0 0 520 260" role="img" aria-label="Issues created per window: Bravo versus LORA, January to August 2026">
+        <div class="legend"><span><i class="bA" style="background:var(--ac)"></i>Bravo &middot; BLCS</span><span><i style="background:#8CBBDC;display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px"></i>Bravo &middot; <b>LN</b> <span style="color:var(--ink3)">(added 2026-09-10)</span></span><span><i class="bB" style="background:var(--ruleS)"></i>LORA &middot; BL</span></div>
+        <svg class="chart" viewBox="0 0 520 260" role="img" aria-label="Issues created per window: Bravo BLCS and LN against LORA BL, January to August 2026">
           <line class="cl-ax" x1="46" y1="228" x2="512" y2="228"></line>
-          <!-- scale: 1600 max -> 190px -->
+          <!-- scale: 3000 max -> 190px -->
           <g>
-            <text class="cl-lab" x="42" y="42" text-anchor="end">1,600</text><line class="cl-ax" x1="46" y1="38" x2="512" y2="38" stroke-dasharray="2 4"></line>
-            <text class="cl-lab" x="42" y="137" text-anchor="end">800</text><line class="cl-ax" x1="46" y1="133" x2="512" y2="133" stroke-dasharray="2 4"></line>
+            <text class="cl-lab" x="42" y="42" text-anchor="end">3,000</text><line class="cl-ax" x1="46" y1="38" x2="512" y2="38" stroke-dasharray="2 4"></line>
+            <text class="cl-lab" x="42" y="137" text-anchor="end">1,500</text><line class="cl-ax" x1="46" y1="133" x2="512" y2="133" stroke-dasharray="2 4"></line>
             <text class="cl-lab" x="42" y="232" text-anchor="end">0</text>
           </g>
           <g>
-            <rect class="bA" x="56"  y="182.5" width="26" height="45.5"></rect><rect class="bB" x="84"  y="84.6" width="26" height="143.4"></rect>
-            <text class="cl-valA" x="69"  y="176" text-anchor="middle">383</text><text class="cl-val" x="97" y="78" text-anchor="middle">1,207</text>
-            <text class="cl-lab" x="83" y="245" text-anchor="middle">Jan&ndash;Feb</text>
+            <rect class="bA" x="70" y="146.3" width="24" height="81.7"></rect><rect fill="#8CBBDC" x="97" y="150.5" width="24" height="77.5"></rect><rect class="bB" x="124" y="53.4" width="24" height="174.6"></rect><text class="cl-valA" x="82" y="140" text-anchor="middle">1,290</text><text class="cl-val" x="109" y="132" text-anchor="middle">1,223</text><text class="cl-val" x="136" y="47" text-anchor="middle">2,757</text><text class="cl-lab" x="110" y="245" text-anchor="middle">Jan&ndash;Apr</text>
           </g>
           <g>
-            <rect class="bA" x="132" y="120.2" width="26" height="107.8"></rect><rect class="bB" x="160" y="43.9" width="26" height="184.1"></rect>
-            <text class="cl-valA" x="145" y="114" text-anchor="middle">907</text><text class="cl-val" x="173" y="37" text-anchor="middle">1,550</text>
-            <text class="cl-lab" x="159" y="245" text-anchor="middle">Mar&ndash;Apr</text>
+            <rect class="bA" x="225" y="184.2" width="24" height="43.8"></rect><rect fill="#8CBBDC" x="252" y="165.8" width="24" height="62.2"></rect><rect class="bB" x="279" y="158.3" width="24" height="69.7"></rect><text class="cl-valA" x="237" y="178" text-anchor="middle">692</text><text class="cl-val" x="264" y="147" text-anchor="middle">982</text><text class="cl-val" x="291" y="152" text-anchor="middle">1,100</text><text class="cl-lab" x="265" y="245" text-anchor="middle">May&ndash;Jun</text>
           </g>
           <g>
-            <rect class="bA" x="208" y="186.3" width="26" height="41.7"></rect><rect class="bB" x="236" y="166.1" width="26" height="61.9"></rect>
-            <text class="cl-valA" x="221" y="180" text-anchor="middle">351</text><text class="cl-val" x="249" y="160" text-anchor="middle">521</text>
-            <text class="cl-lab" x="235" y="245" text-anchor="middle">May</text>
-          </g>
-          <g>
-            <rect class="bA" x="284" y="187.5" width="26" height="40.5"></rect><rect class="bB" x="312" y="159.2" width="26" height="68.8"></rect>
-            <text class="cl-valA" x="297" y="181" text-anchor="middle">341</text><text class="cl-val" x="325" y="153" text-anchor="middle">579</text>
-            <text class="cl-lab" x="311" y="245" text-anchor="middle">Jun</text>
-          </g>
-          <g>
-            <rect class="bA" x="360" y="184.3" width="26" height="43.7"></rect><rect class="bB" x="388" y="156.3" width="26" height="71.7"></rect>
-            <text class="cl-valA" x="373" y="178" text-anchor="middle">368</text><text class="cl-val" x="401" y="150" text-anchor="middle">604</text>
-            <text class="cl-lab" x="387" y="245" text-anchor="middle">Jul</text>
-          </g>
-          <g>
-            <rect class="bA" x="436" y="173.0" width="26" height="55.0"></rect><rect class="bB" x="464" y="146.9" width="26" height="81.1"></rect>
-            <text class="cl-valA" x="449" y="167" text-anchor="middle">463</text><text class="cl-val" x="477" y="141" text-anchor="middle">683</text>
-            <text class="cl-lab" x="463" y="245" text-anchor="middle">Aug</text>
+            <rect class="bA" x="380" y="175.4" width="24" height="52.6"></rect><rect fill="#8CBBDC" x="407" y="133.0" width="24" height="95.0"></rect><rect class="bB" x="434" y="146.5" width="24" height="81.5"></rect><text class="cl-valA" x="392" y="169" text-anchor="middle">831</text><text class="cl-val" x="419" y="114" text-anchor="middle">1,500</text><text class="cl-val" x="446" y="140" text-anchor="middle">1,287</text><text class="cl-lab" x="420" y="245" text-anchor="middle">Jul&ndash;Aug</text>
           </g>
         </svg>
-        <p class="lede" style="font-size:14px">LORA&rsquo;s lead narrows from <strong>3.2&times;</strong> to <strong>1.5&times;</strong> across the year. Jan&ndash;Aug totals: Bravo <strong>2,813</strong>, LORA <strong>5,144</strong> &mdash; <strong>1.83&times;</strong>.</p>
+        <p class="lede" style="font-size:14px"><b>Corrected 2026-09-10.</b> With Bravo&rsquo;s second delivery project <code>LN</code> counted (<strong>3,705</strong> issues, larger than <code>BLCS</code>), Jan&ndash;Aug totals are Bravo <strong>6,518</strong>, LORA <strong>5,144</strong> &mdash; <strong>Bravo 1.27&times;</strong>, and <strong>1.81&times;</strong> in Jul&ndash;Aug. The previous reading of this slide &mdash; LORA ahead 1.83&times;, its lead narrowing from 3.2&times; to 1.5&times; &mdash; was an artefact of counting one of Bravo&rsquo;s two projects against all of LORA&rsquo;s.</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="note"><h4>Method</h4>Jira issue keys are allocated monotonically per project, so the first key after a month boundary bounds the number created before it. Boundaries read directly: <code>BLCS-1939</code>/<code>BL-4795</code> at 1 Jan through <code>BLCS-4752</code>/<code>BL-9939</code> at 1 Sep.</div>
-        <div class="note note--bad"><h4>Caveat, stated plainly</h4>Key deltas are an <strong>upper bound</strong> &mdash; deleted and moved issues consume keys. <code>D2W</code> shows how real that is: <strong>14 of 36 keys have no issue behind them.</strong> The <em>trend</em> is robust to the error; the absolute ratio is not.</div>
-        <div class="note"><h4>What this does not mean</h4>It does not mean LORA ships 1.8&times; the product change. Ticket count measures <strong>decomposition</strong> at least as much as output &mdash; which is precisely why the raw board comparison the claim invites is not a velocity measurement. See &sect;6.</div>
+        <div class="note"><h4>Method</h4>Jira issue keys are allocated monotonically per project, so the first key after a month boundary bounds the number created before it. Boundaries read directly: <code>BLCS-1939</code>/<code>LN-2843</code>/<code>BL-4795</code> at 1 Jan through <code>BLCS-4752</code>/<code>LN-6548</code>/<code>BL-9939</code> at 1 Sep. <code>LN</code> was read at four boundaries, so windows are pooled two months at a time and the other two projects pooled to match.</div>
+        <div class="note note--ok"><h4>Double-counting tested 2026-09-10 &mdash; the projects do not overlap</h4>If one change were a <code>BLCS</code> back-end story <em>and</em> an <code>LN</code> console story, summing would count it twice. Four tests say it is not: <b>(1)</b> <code>BLCS</code> is <em>Team Scoring &amp; Underwriting</em>, <code>LN</code> is <em>Team Surveyor &amp; Verificator</em> &mdash; split by <b>squad and domain, not tier</b>; <b>(2)</b> <code>LN</code> sub-tasks are <code>[BE]</code> 18 / <code>[FE]</code> 15 / <code>[QA]</code> 7 &mdash; full-stack, not a front-end half; <b>(3)</b> capability prefixes are <b>disjoint</b> (<code>[DF2W Scoring]</code>, <code>[UW 4W]</code> vs <code>[DF2W] [O]</code>, <code>[DF2W] [S]</code>); <b>(4)</b> <b>zero</b> cross-project issue links. <strong>No pair of 80 sampled summaries describes the same change.</strong> So the range collapses to its top end: <b>6,518</b>, <b>Bravo 1.27&times;</b>. Residual inflation is per-sprint QA written once per squad &mdash; a handful of tickets, not a doubling. Key deltas remain an <strong>upper bound</strong> for all three projects (<code>D2W</code> has <b>14 of 36 keys empty</b>).</div>
+        <div class="note"><h4>What this does not mean &mdash; and the caution now cuts Bravo&rsquo;s way</h4>It does not mean Bravo ships 1.27&times; the product change. Ticket count measures <strong>decomposition</strong> at least as much as output. That argument was used to discount LORA&rsquo;s apparent lead; <strong>it must now be used to discount Bravo&rsquo;s.</strong> The right conclusion is that ticket volume cannot settle this in either direction. See &sect;6.</div>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-people.md &sect;3</span><span>06</span></div>
@@ -170,10 +150,12 @@
 
 <section class="slide" data-nav="Team shape">
   <div class="inner">
-    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Team shape: 7 people against 22</h2>
+    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>Withdrawn 2026-09-11</p>
+    <h2 class="st">Team shape is a prior decision, not a platform property</h2>
+    <div class="note note--bad"><h4>This section used to make an argument. It is withdrawn.</h4>Earlier versions read <em>&ldquo;Seven engineers is the whole Bravo LOS delivery capacity&rdquo;</em> and called it <strong>the strongest argument against placing new product families on Bravo.</strong> That inference is wrong. <strong>Bravo&rsquo;s headcount is the output of a previous CTO decision to consolidate engineering onto LORA</strong> &mdash; not a property of Bravo, of BPMN, or of Camunda. The office that would decide where a new product family goes sets the allocation and can reverse it. <strong>Citing the consequence of a decision as evidence about that decision is circular.</strong></div>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="eyebrow">The measurement still stands &mdash; it is the inference that does not</p>
         <div class="tw"><table>
           <thead><tr><th>Distinct assignees, 100 sampled issues</th><th class="n">Bravo BLCS</th><th class="n">LORA BL</th></tr></thead>
           <tbody>
@@ -182,15 +164,16 @@
             <tr><td class="k">August sample</td><td class="n">7</td><td class="n">13</td></tr>
             <tr><td class="k">Unassigned resolved issues</td><td class="n">1</td><td class="n">3</td></tr>
           </tbody></table></div>
-        <div class="note note--bad"><h4>Bravo&rsquo;s Story layer has one owner</h4>In both samples essentially every <code>Story</code> is assigned to a <strong>single account</strong> while sub-tasks distribute across the remaining six &mdash; 9 of 9 long-lived Stories in June, 9 of 11 in August. Whether that account is a product owner, a lead or a de-facto integrator, the effect is the same: <strong>the person who holds the shape of a Bravo change is a bus factor of one.</strong> LORA&rsquo;s Stories spread across a dozen accounts in the same samples.</div>
+        <div class="note note--bad"><h4>And it takes &sect;3 down with it</h4>&sect;3 has now been overtaken twice. It explained LORA&rsquo;s <strong>1.83&times;</strong> as <em>decomposition</em>; headcount was a second explanation pointing the same way; and then the 1.83&times; turned out to be an artefact of the missing <code>LN</code> project, leaving <strong>Bravo ahead at 1.27&times;</strong>. The instruction is unchanged and now applies in Bravo&rsquo;s favour: no per-team velocity claim built on it is a platform measurement. <strong>&sect;6 survives</strong>, because it counts artefacts per <em>change</em> rather than tickets per team.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="stats"><div class="stat"><span class="stat__n neg">7</span><span class="stat__l">Active assignees on a 498k-LOC monolith carrying ~94% of BFI origination volume</span></div></div>
-        <div class="note"><h4>Cross-checked against the codebase</h4><code>bravo-bpm-service</code> has <strong>94 all-time authors</strong> but <strong>23 active in 2026</strong> across the whole service, of which the Scoring-and-Underwriting squad owns this repo. Seven active assignees is a thin shoulder &mdash; and it is the strongest argument in this document <em>against</em> moving new product families onto Bravo. Not because Bravo is slow, but because <strong>there is nobody spare.</strong></div>
-        <div class="note"><h4>How this bears on the claim</h4>&ldquo;The team now knows what to do&rdquo; is true, and it is true <strong>of seven people</strong>. LORA&rsquo;s 22 assignees include people who joined this year and are shipping at the same median cycle time. That is evidence the LORA learning curve is <em>climbable</em> &mdash; not evidence it is absent.</div>
+        <div class="note"><h4>What survives &mdash; platform-neutral</h4>In both samples essentially every <code>Story</code> is assigned to a <strong>single account</strong> while sub-tasks distribute across the rest &mdash; 9 of 9 long-lived Stories in June, 9 of 11 in August. Whoever holds the shape of a Bravo change today is a <strong>bus factor of one</strong>, on a service carrying ~94% of origination. That is a live operational risk needing an owner <strong>whatever is decided about new products</strong> &mdash; and it is an argument for neither platform. Whether LORA&rsquo;s spread survives a re-staffing is unknown.</div>
+        <div class="note note--ok"><h4>And one row gains weight: the hiring pool</h4>If capacity is to be added, the question becomes <em>which platform can BFI actually hire for?</em> Java 17 / Spring Boot / Camunda is a commodity skill set. Go plus a bespoke GSM planner plus Temporal is not &mdash; LORA&rsquo;s own people.md puts it as <em>&ldquo;you can get Java or Golang developers, but they won&rsquo;t be able to immediately read the code.&rdquo;</em><br><br><strong>This is the one staffing-adjacent fact that is not CTO-reversible, because it is a property of the labour market rather than of an allocation decision &mdash; and it favours Bravo.</strong> Bounded in &sect;7: the advantage is front-loaded and largely spent by week three.</div>
       </div>
     </div>
-    <div class="foot"><span class="src">bravo-people.md &sect;5 &middot; stated without naming individuals</span><span>08</span></div>
+    <p class="pull">&ldquo;The team now knows what to do&rdquo; is still confounded &mdash; but by <em>tenure</em>, not by size.
+      <small>Bravo&rsquo;s assignees have been on this codebase for up to four years; LORA&rsquo;s include this year&rsquo;s joiners closing tickets at the same median. Knowing what to do is a property of people and their tenure, <strong>and people can be reallocated.</strong> It is not a property of either platform.</small></p>
+    <div class="foot"><span class="src">bravo-people.md &sect;5 &middot; stated without naming individuals &middot; inference withdrawn 2026-09-11</span><span>08</span></div>
   </div>
 </section>
 
@@ -263,7 +246,7 @@
         <tr><td class="k">What a hire must actually read</td><td>498k LOC main Java; product identity in 5 places; 197 <code>setStatus</code> sites in 73 files; a 10,419-line surveyor assignment service</td><td>~617k LOC Go across 13 repos; 172 activity constructors; 155 preconditions with no generated index</td></tr>
         <tr><td class="k">Concepts with no analogue elsewhere</td><td>BPMN escalation as a return channel; a per-application jsonb activity on/off matrix; five-place product discrimination</td><td>ReadSet/WriteSet planning; determinism constraints; schema-versioned task queues</td></tr>
       </tbody></table></div>
-    <p class="lede">The commodity-skills advantage is real and it is <strong>front-loaded</strong>. It gets a hire to their first compile faster. It does not help with the parts of Bravo that are actually hard, and by the evidence of this pack those are large: an aggregate root with no behaviour, a lifecycle smeared across four status vocabularies, and orchestration untested by 1,453 of 1,457 test files.</p>
+    <p class="lede">The commodity-skills advantage is real and it is <strong>front-loaded</strong>. It gets a hire to their first compile faster. It does not help with the parts of Bravo that are actually hard, and by the evidence of this pack those are large: an aggregate root with no behaviour, a lifecycle smeared across four status vocabularies, and orchestration untested by every one of the 2,286 test files in the estate.</p>
     <p class="pull">Neither platform has a week-1 curriculum. That is the finding both teams share &mdash; and it is cheaper to fix than either architecture.</p>
     <div class="foot"><span class="src">bravo-people.md &sect;7</span><span>11</span></div>
   </div>
@@ -275,7 +258,7 @@
     <h2 class="st">What the claim gets right, and what it does not</h2>
     <div class="vlist">
       <div class="vrow"><p class="cl">&ldquo;Developing in Lora is hard&rdquo;</p><span class="v v--sup">Partly true</span><p class="gi">And <em>specifically</em> true: five repositories, a mandated ordering rule, additive-only schema changes, eight concurrent worker versions. Measured in &sect;6.</p></div>
-      <div class="vrow"><p class="cl">&ldquo;Developing in Bravo is faster&rdquo;</p><span class="v v--ref">Not supported</span><p class="gi">Fewer tickets (1.83&times;), identical August median cycle time, slower June median. <strong>No throughput measure in this document favours Bravo.</strong></p></div>
+      <div class="vrow"><p class="cl">&ldquo;Developing in Bravo is faster&rdquo;</p><span class="v v--ref">Not supported</span><p class="gi">The ticket measure <b>inverted</b> on a scope correction &mdash; LORA 1.83&times; became Bravo 1.27&times; &mdash; which retires it in both directions. What is left is identical August median cycle time and a slower June median. <strong>No <em>reliable</em> throughput measure favours either platform.</strong></p></div>
       <div class="vrow"><p class="cl">&ldquo;&hellip;and easier&rdquo;</p><span class="v v--sup">Supported</span><p class="gi">One repository, one deploy, no cross-service ordering. This is the real effect and it is worth about <strong>3&ndash;5 artefacts per change</strong>.</p></div>
       <div class="vrow"><p class="cl">&ldquo;&hellip;because the team now knows what to do&rdquo;</p><span class="v v--non">Confounded by tenure</span><p class="gi">Bravo&rsquo;s seven active assignees have been on this codebase for up to four years. LORA&rsquo;s twenty-two include this year&rsquo;s joiners closing tickets at the same median. Knowing what to do is a property of the people, and <strong>the seven do not scale.</strong></p></div>
     </div>
@@ -291,7 +274,7 @@
     <div class="recs">
       <div class="rec first"><span class="no">4</span><span class="tx"><b>Name Bravo&rsquo;s bus factor <span class="sz">&middot; S, urgent</span></b>Seven active assignees, with the Story layer held by one account, on the service carrying ~94% of origination. Before any new product family is placed on Bravo, that number has to be a staffing decision someone has made on purpose.</span></div>
       <div class="rec"><span class="no">1</span><span class="tx"><b>Stop citing boards 2099 and 2877 as delivery evidence <span class="sz">&middot; S</span></b>Zero assigned, zero resolved. Either wire DF/D2W epics to their <code>BLCS</code> children so the timeline reflects delivery, or state explicitly that Bravo delivery is tracked in <code>BLCS</code> and compare there.</span></div>
-      <div class="rec"><span class="no">2</span><span class="tx"><b>Measure changes, not tickets <span class="sz">&middot; S&ndash;M</span></b>The 1.83&times; ticket ratio and the 5-repo decomposition point the same direction and cancel. Agree one unit &mdash; merged PRs per product change, or Story-level lead time &mdash; and publish it for both. Until then neither team&rsquo;s velocity claim is checkable.</span></div>
+      <div class="rec"><span class="no">2</span><span class="tx"><b>Measure changes, not tickets <span class="sz">&middot; S&ndash;M</span></b>This just proved itself: the ratio swung from LORA 1.83&times; to Bravo 1.27&times; on the addition of one Jira project, with no code changing. A metric that moves that far on a scope fix is not measuring delivery. Agree one unit &mdash; merged PRs per product change, or Story-level lead time &mdash; and publish it for both. Until then neither team&rsquo;s velocity claim is checkable.</span></div>
       <div class="rec"><span class="no">3</span><span class="tx"><b>Fix the LORA per-change tax directly <span class="sz">&middot; M</span></b>It is the true part of the complaint. <code>BL-9528..9532</code> are mechanical and ordered; a generator that scaffolds schema, handler, activity migration, authorization entry and FE call from one spec turns six tickets into one plus review. LORA&rsquo;s own people.md designs this as &ldquo;Tier 0 &mdash; a script not a prompt&rdquo;. It is not built.</span></div>
       <div class="rec"><span class="no">5</span><span class="tx"><b>Write the week-1 curriculum for both <span class="sz">&middot; S each</span></b>Neither platform has one. LORA has the raw material and the wrong entry point; Bravo has commodity skills and no map of a 498k-LOC monolith.</span></div>
       <div class="rec"><span class="no">6</span><span class="tx"><b>Re-ask the question when DF2W has volume <span class="sz">&middot; M</span></b>DF2W is the cleanest available test of &ldquo;building a new product on Bravo is easy&rdquo;: fully configured, zero applications, 22 unstarted epics. Its actual cost &mdash; first <code>BLCS</code> ticket to first production application &mdash; is the number this debate needs and does not have.</span></div>
@@ -318,7 +301,7 @@
       <div class="ph">
         <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">Agree the unit of comparison</span></div>
         <ul>
-          <li><span class="r">2</span><span><b>Measure changes, not tickets.</b> Agree one unit and publish it for both platforms. <em>EM + LORA squad &middot; 3 d.</em> Done when &ldquo;Bravo shipped 40 product changes last month, LORA 44&rdquo; is a sentence someone can check &mdash; and the 1.83&times; ticket ratio stops being quoted as velocity.</span></li>
+          <li><span class="r">2</span><span><b>Measure changes, not tickets.</b> Agree one unit and publish it for both platforms. <em>EM + LORA squad &middot; 3 d.</em> Done when &ldquo;Bravo shipped 40 product changes last month, LORA 44&rdquo; is a sentence someone can check &mdash; and ticket ratios &mdash; 1.83&times; when they favoured LORA, 1.27&times; when they favoured Bravo &mdash; stop being quoted as velocity.</span></li>
         </ul>
       </div>
       <div class="ph">

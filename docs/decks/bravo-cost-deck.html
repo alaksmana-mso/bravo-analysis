@@ -321,7 +321,11 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 :root{--ac:#3A6338;--acBg:#3A63381f;--acBg2:#3A63380f}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#84B87C;--acBg:#84B87C24;--acBg2:#84B87C12}}
 :root[data-theme="dark"]{--ac:#84B87C;--acBg:#84B87C24;--acBg2:#84B87C12}
-/* print-fit bravo-cost-deck: every slide fits the page box unscaled */
+@media print{
+  /* print-fit bravo-cost-deck: 2 of 13 slides scaled to fit 620px of content; smallest 0.924 */
+  .deck > section.slide:nth-of-type(5) > .inner{flex:none;height:auto;zoom:0.954}
+  .deck > section.slide:nth-of-type(12) > .inner{flex:none;height:auto;zoom:0.924}
+}
 </style>
 <main class="deck" id="deck">
 <section class="slide slide--cover" data-nav="Cover">

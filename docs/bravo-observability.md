@@ -222,6 +222,8 @@ logs("service:prod-ms-bpm checkpefindov2 -status:(warn OR info) -\"ENGINE-16004\
 
 All four production Bravo LOS consoles are RUM-instrumented at `rum_event_processing_state: ALL`. Seven days:
 
+> **Added 2026-09-10 — naming the repositories behind these applications.** The top three rows are `bravo-surveyor-console`, `bravo-operation-console` and `bravo-underwriting-console`, delivered from the **`LN`** Jira project ([board 703](https://bfifinance.atlassian.net/jira/software/c/projects/LN/boards/703)); the fourth is the customer-platform front end. This mapping was missing from the pack, which measured these consoles' *runtime* here while [bravo-testing.md](bravo-testing.md) and [compare-architecture.md](compare-architecture.md) bounded Bravo's *code* at `bravo-bpm-service` — so the same three applications were both measured and uncounted. All three ship `@datadog/browser-rum`, which is what produces the numbers below, and all three run 829 unit tests as a blocking PR gate ([testing §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)). **The finding is unchanged and remains the largest live defect in this document:** the instrumentation was there, the tests gate, and nobody read the errors.
+
 | Console | Sessions | Views | **Errors** | Errors / view |
 |---|---:|---:|---:|---:|
 | **Surveyor Platform Prod** (`2f3ca103…`) | 79,090 | 953,115 | **1,962,909** | **2.06** |
