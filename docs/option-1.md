@@ -104,6 +104,17 @@ The counterweight argues for moving rather than waiting: **Camunda 7 Community E
 
 ---
 
+
+### 4a. The consoles are insulated from this change
+
+**Added 2026-09-10.** Bravo LOS includes three React/TypeScript operator consoles — `bravo-surveyor-console`, `bravo-operation-console`, `bravo-underwriting-console`, **763,861 lines of source and 829 test files** — which this document had not counted ([bravo-people.md §2](bravo-people.md), [bravo-testing.md §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)). They matter to a fork swap in exactly two ways, and both are favourable:
+
+**They are not in scope.** Searched for engine coupling: **zero references to Camunda anywhere in console source.** They call domain verbs behind a `/bpm` prefix — `/v1/head-surveyor/assignment-request/reprocess`, `/v1/operation-assignment/release-assignment`, `PATCH /v1/underwritings/{id}/approval/bm-decision` — and never see a Camunda task id. Operaton and CIB seven keep the `ACT_` schema, the engine API and the Spring REST surface, so **no console line changes and no console redeploy is required by the swap itself.** The 18–33 engineer-day estimate does not need widening.
+
+**They are a regression net the estimate did not credit.** Those 829 tests run as a blocking job on every console PR. They assert the response shapes of the `ms-bpm` endpoints the consoles depend on, which is precisely the surface a cutover could break invisibly. Running the three console suites against a staging instance on the forked engine is a **cheap, existing, high-coverage smoke test of the API boundary** — the closest thing Bravo has to the parity harness this document says it lacks. It does not test the engine's internals; it does test that the application still answers correctly.
+
+**Two caveats.** The three consoles are **three toolchains, not one** — React 17 vs 18, Vite 4 vs 7, Node 18 vs 20, ESLint vs Biome, and three different versions of the shared `@bfi-finance/frontend-ui` ([bravo-delivery.md §2](bravo-delivery.md#2-custom-front-end-easy-per-page-hard-per-system)) — so "run the console suites" is three separate setups to stand up. And console coverage is measured and **not enforced** — thresholds sit at 0% (surveyor, operation) and 1% (underwriting) — so the suites prove *the tests that exist still pass*, not that the boundary is comprehensively covered. Turn the thresholds on before relying on them as a cutover gate ([bravo-testing.md recommendation 15](bravo-testing.md#recommended-actions)).
+
 ## 5. Effort
 
 One engineer, excluding review, deployment soak and any work arising from the open questions in §9.
@@ -207,7 +218,8 @@ Every count below was re-measured against the working tree for this revision and
 | Internal `engine.impl` imports | 4 across 3 files | `Context` and `BpmnExecutionContext` resolve as-is; `CollectionUtil` fixed by §6 item 1 |
 | Cockpit / Tasklist plugin bundles | 7 (~4.9 MB) | Relocated (Operaton) or untouched (CIB seven) |
 | `@MockBean` sites | **308 across 186 files** | Path B only — `@MockBean` → `@MockitoBean` |
-| Total test files | 1,457 | Full regression required |
+| Total test files, `ms-bpm` | 1,457 | Full regression required |
+| Test files in the three operator consoles | **829** (188,389 LOC) | **Untouched by the swap** — zero Camunda references in console source; they call domain verbs behind `/bpm`. They gate every console PR, so they are a **free regression net at the API boundary** ([§4a](#4a-the-consoles-are-insulated-from-this-change)) |
 
 **Despite 687 touched files, the coupling is shallow** — overwhelmingly public API. `engine.delegate` alone accounts for **531 of the main-source imports**, and 813 across main and test together. That is precisely the profile an automated recipe handles well, and it is the same conclusion [option-2.md §3](option-2.md) reached by a different route: only ~2,004 lines out of 497,970 actually touch an engine API.
 
@@ -261,7 +273,7 @@ Standard promotion is SIT → soak → UAT → soak → PROD, with the §7.1 dia
 
 - Five legacy per-product monoliths still carry **~94% of production volume** — NDF2W 248,682, NDF4W 59,909, NDF4W_RO 11,458 process starts per 90 days against the unified spine's 18,809 ([workflow-gap.md §8.1](workflow-gap.md)).
 - Product identity is still a magic number in five places; lifecycle state is still spread across 30 `ApplicationStatus` values plus ~105 other status enums and 197 `setStatus` call sites ([compare.md §3.3](compare.md)).
-- No process metrics, no saga compensation, no per-product visibility, and 4 of 1,457 tests exercise a process.
+- No process metrics, no saga compensation, no per-product visibility, and 4 of `ms-bpm`'s 1,457 tests exercise a process. (Bravo's estate has 2,286 test files across four repositories, but the other 829 are console tests that never reach the engine.)
 - **It does not answer the platform question** — it removes the deadline from it.
 
 ### What is lost or deferred
@@ -281,7 +293,7 @@ Standard promotion is SIT → soak → UAT → soak → PROD, with the §7.1 dia
 | **Schema-log drift** (§7.1) | **High** | Startup failure at cutover if the label is below 7.22 while the columns exist. Strong inference, not yet verified. Diagnose per environment before committing a date |
 | Two engine versions on one `ACT_RU_JOB` | High | The genuinely untested area. Quiesce the job executor; rehearse on a PROD clone |
 | **Choosing a smaller-support project** | Medium–High | Six-month support lines and, for Operaton, no legal entity yet. This is a deliberate choice rather than drift, and will be scrutinised as such |
-| Regression without a test net | Medium–High | 1,457 test files, but only 4 deploy and run a process. The recipe is mechanical and the logic is untouched, which bounds this — but the orchestration layer remains unverified by CI |
+| Regression without a test net | Medium–High | 1,457 `ms-bpm` test files, but only 4 deploy and run a process. **Partly mitigated 2026-09-10:** the three consoles' 829 tests gate every PR and exercise the domain endpoints the engine sits behind, so UI-contract regressions at the boundary would be caught even though the engine itself would not be. The recipe is mechanical and the logic is untouched, which bounds this — but the orchestration layer remains unverified by CI |
 | CIB seven support terms unknown | Medium | Not published; sales-contact only. Blocks the fork decision if the answer to §4's question is "yes" |
 | Cockpit plugin sources missing | Medium | Survives this migration; blocks any future change to the plugin contract |
 | Boot 4.1 unavailable | Low | `spring-cloud` Oakwood pins 4.0.8. A known, dated constraint rather than a surprise |

@@ -145,7 +145,7 @@ Three honest qualifications, without which this section would be advocacy rather
 | **Human-task latches** | 96 user tasks → signals / token-completed activities. The 217k LOC of assignment and approval services stays untouched; only the wait mechanism changes. `taskService.complete()` appears at 48 sites | 3–5 |
 | **Diagram generation and intent-diff loop** | Emit a flowchart from the workflow code in CI and diff it against Product's maintained diagram (§8). Nothing off-the-shelf exists for Temporal Java, but the control flow is explicit in the source, so the generator is a walk of the workflow methods | **0.5–1** |
 | **Operability rebuild** | Replace Camunda Cockpit: incident list, `setVariable` + `setJobRetries` operator actions, the ~25 manual retry/reprocess/revive endpoints. Search attributes, dashboards, alerting. Bravo has **0 custom process metrics** today, so some of this is net-new capability rather than replacement | 2–4 |
-| **Test suite for the orchestration layer** | Essentially net new: **4 of 1,457 test files** deploy and run a process today, and there is no end-to-end walk from start to go-live. Temporal's test framework makes this genuinely achievable, which is a real side benefit | 3–5 |
+| **Test suite for the orchestration layer** | Essentially net new: **4 of `ms-bpm`'s 1,457 test files** deploy and run a process today, and there is no end-to-end walk from start to go-live. Temporal's test framework makes this genuinely achievable, which is a real side benefit | 3–5 |
 | **Dual run, parity diffing, cutover, drain** | See §6 | 4–7 |
 | **Total** | | **31–57** |
 
@@ -159,6 +159,24 @@ Three honest qualifications, without which this section would be advocacy rather
 - **Sequencing.** The Bravo team proposes consolidating the legacy monoliths onto the unified spine *before* porting anything to Temporal. That would remove 78% of the BPMN from this table — and add a migration of its own. [§5](#5-sequencing-consolidate-onto-unified-first) measures the trade.
 
 ---
+
+
+### 4a. The front end: 763k lines that the port does *not* have to touch
+
+**Added 2026-09-10.** This document had priced the port without accounting for Bravo's three operator consoles — `bravo-surveyor-console`, `bravo-operation-console`, `bravo-underwriting-console`, **763,861 lines of source, 829 test files, 4,334 commits in the last 12 months** ([bravo-testing.md §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)). On a naive reading that is a large uncosted exposure for a port that replaces the orchestration engine. **It is not, and the reason is a design decision Bravo got right.**
+
+**The consoles never see the engine.** Verified by search: **zero references to Camunda in console source.** They call domain verbs — `PUT /v1/operation-assignment/release-assignment`, `POST /v1/head-surveyor/assignment-request/reprocess`, `PATCH /v1/underwritings/{id}/approval/bm-decision` — and never a Camunda task id. [compare-architecture.md §3.6](compare-architecture.md) already recorded this as a UI-contract strength; its consequence for *this* option had not been drawn.
+
+**So the port's front-end cost is conditional, not fixed:**
+
+| If the port… | Console cost |
+|---|---|
+| Preserves the existing domain endpoints and their payloads, with Temporal behind them | **≈zero.** No console change; the 829 tests become the boundary regression suite |
+| Changes endpoint shapes, status vocabularies or the 30 `ApplicationStatus` values the consoles render | **Large and previously unpriced** — 763k LOC across three repos and two squads, plus re-testing |
+
+**This is a real argument for the port and a real constraint on how it is done.** The insulation is an asset that a "clean rewrite" would throw away. The recommendation is to make **endpoint-contract preservation an explicit, non-negotiable constraint of the port**, and to run the three console suites against the Temporal-backed service as an acceptance gate. Note the same caveat as elsewhere: console coverage thresholds are 0% and 1%, so the suites must be gated properly before being trusted as an acceptance criterion.
+
+**And it narrows the "no retraining, no rehiring" claim in §3 point 4.** That claim is about `ms-bpm`'s Java engineers. The console squads — **Team Surveyor & Verificator (`LN`) and Team Scoring & Underwriting (`BLCS`)** — are unaffected either way, which strengthens it: the port touches one of Bravo's four repositories and one of its two delivery projects.
 
 ## 5. Sequencing: consolidate onto unified first?
 
@@ -333,7 +351,7 @@ Two conclusions:
 
   The honest caveat: no off-the-shelf generator exists for Temporal Java, so this is a build item — costed at 0.5–1 engineer-month in §4 — and the loop only pays if the diff is actually run in CI and acted on.
 - The Camunda webapp attack surface goes away, and with it the class of exposure in [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md).
-- A testable orchestration layer, for the first time. Temporal's test framework turns "4 of 1,457 tests run a process" into something fixable.
+- A testable orchestration layer, for the first time. Temporal's test framework turns "4 of `ms-bpm`'s 1,457 tests run a process" into something fixable.
 - Native parallelism where Bravo wants it. Bravo has **14 parallel gateways across 53 files and zero in the unified spine** ([compare.md §2](compare-architecture.md)) — sequential-by-default is a modelling habit Temporal does not impose.
 - Bravo's already-good retry policy becomes explicit and enforced rather than spread across 30 XML retry vocabularies.
 
@@ -353,7 +371,7 @@ Two conclusions:
 |---|---|---|
 | **Value depends on Bravo having a long life** | **High** | 31–57 engineer-months is justified over a 5–10 year horizon and is not justified over a 2-year one. This is the risk the platform decision governs: if Bravo is later replaced, the investment is stranded. The partial-port lever in §4 is the hedge |
 | Escalation and link translation | High | 384 control-flow elements with no direct Temporal equivalent, each a design decision. Dominates the estimate spread, and is the part §3 shows is *not* helped by code reuse |
-| Porting without a test net | High | 4 of 1,457 tests exercise a process. Parity has to be established empirically, by shadow running |
+| Porting without a test net | High | 4 of `ms-bpm`'s 1,457 tests exercise a process. Parity has to be established empirically, by shadow running. **The three consoles' 829 PR-gating tests cover the domain-endpoint boundary** and would catch contract drift there — provided the endpoints keep their contracts (see the front-end note in §4) |
 | NDF2W cutover | High | 248,682 starts/90d, the entire 2-wheel retail book, on a newly written engine layer |
 | **The target is new code** | Medium–High | Unlike a migration onto a running platform, every line of the orchestration tier is unproven until it carries traffic (§3.4) |
 | Dual-engine operations for 6–12 months | Medium | Two runbooks, two on-call surfaces, two sets of stuck-loan queries |

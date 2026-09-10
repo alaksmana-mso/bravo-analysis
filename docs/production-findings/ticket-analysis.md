@@ -157,7 +157,24 @@ Application counts per month exist for Jun, Jul and Aug only ([cost.md](../../..
 
 **(a) `Surveyor Platform - Release reject` is Bravo's dominant single failure, and it is accelerating.** 1,542 tickets — **28.4% of Bravo's entire Jan–Aug load**, more than the next three categories combined. It grew **4.8× (65 → 315)** while application volume fell, and normalised against the months where volume is known it still climbs: **2.36 → 2.61 → 4.12 per 1,000 applications** (Jun/Jul/Aug). Nothing else in either platform's data behaves like this.
 
-This is the highest-value open item the export produces, and the analysis pack **cannot currently resolve it**: `bravo-analysis` holds documents only, and no code path named "release reject" has been mapped to a BPMN element or a service endpoint. Whoever owns the Surveyor Platform should be asked what user action raises this category and which activity it corresponds to. Until then it is a large, growing, unexplained failure concentration — and if it maps to a workflow step, it is the strongest per-activity evidence in the pack about either platform.
+This is the highest-value open item the export produces.
+
+> **Narrowed 2026-09-10 — there are now named candidate endpoints.** The earlier version of this paragraph said the pack "cannot currently resolve it" because `bravo-analysis` holds documents only. That was true, but it also missed that **Bravo has console repositories the pack had never opened** ([bravo-people.md §2](../bravo-people.md)). Searching them and `ms-bpm` for "release" and "reject" gives a short, concrete list:
+>
+> | Candidate | Where | Auth role |
+> |---|---|---|
+> | `PUT /release-assignment` — *"Release assignment to global queue"* | `OperationAssignmentController.java:514`, called from `bravo-operation-console` | **`OPERATION_PLATFORM`** |
+> | `PUT /request-go-live/release-assignment` | `OperationAssignmentController.java:226` | `OPERATION_RCO_3`, `OPERATION_CCO_SHARIA` |
+> | `PUT /data-enrichment/release-assignment` | `OperationAssignmentController.java:202` | `OPERATION_RCO_3` |
+> | `PUT /data-enrichment/branch-head/release-assignment` | `OperationAssignmentController.java:214` | `OPERATION_BRANCH_ADMIN_HEAD_LEVEL`, `OPERATION_OPERATION_MANAGER` |
+> | `voidAssignment` — *"…and returned to surveyor"*, `POST /reprocess` — *"…return to head surveyor"* | same controller | `OPERATION_PLATFORM`, `OPERATION_BRANCH_LEVEL` |
+> | `…/assignment-detail/:assignmentId/cancel-reject-notes/:applicationId` (5 role variants) | `bravo-surveyor-console` routes | — |
+>
+> **And a mismatch worth noticing, because it may be why nobody found this.** The OTRS queue is named **"Surveyor Platform"**, but every `release-assignment` endpoint sits in the **Operation** domain — `OPERATION_*` roles, `OperationAssignmentController`, driven from `bravo-operation-console`. The *reject* half (`cancel-reject-notes`) is on the surveyor side. So the category name may span two consoles, or the queue name may simply be loose. Either way, **anyone who searched only the Surveyor Platform would have missed it.**
+>
+> **This does not close the item** — no ticket has been traced to any of these endpoints, and the mapping is still unverified. But the work has gone from *"ask whoever owns the Surveyor Platform"* to *"instrument these six endpoints and join to the OTRS dates"*, and the owning squad is now identifiable: **`LN` — Team Surveyor & Verificator**. Hours, not days.
+
+Until it is mapped it remains a large, growing, unexplained failure concentration — and if it maps to a workflow step, it is the strongest per-activity evidence in the pack about either platform.
 
 **(b) The surveyor-assignment seam is the top intervention driver on both platforms.** This is a convergence finding, and it belongs alongside the five already in [compare.md §4](../compare-architecture.md#4-where-the-two-systems-converge).
 
@@ -194,7 +211,7 @@ This is the highest-value open item the export produces, and the analysis pack *
 | | Effort | Why |
 |---|---|---|
 | Get the billing owner to define `Bravo total app` and `Lora total app` | Days | Every rate in §4 is a verified numerator over an unverified denominator. This is the single largest source of error. |
-| Map `Surveyor Platform - Release reject` to a BPMN element or endpoint | Days | 28.4% of Bravo's ticket load, growing 4.8×, currently unexplained (§5.3a). |
+| Map `Surveyor Platform - Release reject` to a BPMN element or endpoint | **Hours** | 28.4% of Bravo's ticket load, growing 4.8×. **Six named candidate endpoints as of 2026-09-10** — four `release-assignment` handlers in `OperationAssignmentController` plus `voidAssignment`/`reprocess`, and `cancel-reject-notes` routes in `bravo-surveyor-console` (§5.3a). Owning squad: `LN`. Instrument them and join to the OTRS dates. |
 | Count `application_error_tracking` rows and reprocess/revive endpoint hits | Days | Captures the Bravo interventions that never became tickets (§4.3 point 2) and gives a second, independent Bravo numerator — the same cross-check LORA already has. |
 | Ask the service desk what changed in August | Hours | Whether the vanished LORA categories were re-routed, merged or genuinely closed determines if §3's divergence is real. |
 | Re-export with resolution time and reopen count | Days | Ticket *count* weights a password reset the same as a wedged loan. Time-to-resolve would separate them. |

@@ -20,7 +20,7 @@
 | Question | Verdict |
 |---|---|
 | **Can you pick what deploys?** | **Yes — five different ways, which is the problem.** Bravo has no LaunchDarkly either, but it has Spring property flags read *inside BPMN gateway strings* (78 lookups), a six-column database selector, a per-application jsonb activity on/off matrix, Camunda definition versioning, and 31 Java factories. There is no registry, no owner and no expiry. Toggling a gateway flag needs a configuration change and a restart, because it is `environment.getProperty` evaluated at gateway time. |
-| **Is a custom front end on a page hard?** | **No — and that is the trade.** Every Bravo console is an ordinary React app calling domain REST verbs; the UI never sees a Camunda task id. One page is easy. But there are **at least fifteen** separate browser applications in the Bravo orbit, and a change to a shared concept ships in as many of them as touch it. LORA has one back-office front end and a three-layer widget seam. Bravo traded a hard seam for a wide surface. |
+| **Is a custom front end on a page hard?** | **No — and that is the trade.** Every Bravo console is an ordinary React app calling domain REST verbs; the UI never sees a Camunda task id. One page is easy. But there are **at least fifteen** separate browser applications in the Bravo orbit, and a change to a shared concept ships in as many of them as touch it. LORA has one back-office front end and a three-layer widget seam. Bravo traded a hard seam for a wide surface. **Measured 2026-09-10:** 763,861 LOC and 829 tests across three consoles, sharing a design system that has drifted to **three different versions** with React 17 on two and React 18 on the third ([§2](#2-custom-front-end-easy-per-page-hard-per-system)). |
 | **Is pagination solved?** | **Yes, and LORA's account of the problem is confirmed from Bravo's own telemetry.** Bravo built exactly the paging LORA describes: a controller literally named `SurveyorAssignmentFormTabV2Controller`, plus **nine** per-assignment sub-resource endpoints. Together they are the busiest read path in the service. LORA is right not to rebuild it — and Bravo is right that it needed it, because Bravo's surveyor really does open one application, not one task. |
 | **Can master data feed dropdowns?** | **Yes — Bravo has the capability LORA deliberately declined.** LOV tables and three master-data services back the dropdowns directly, which is why renaming an approval role (`BLCS-4683`, NMH→GMB) took one YAML line, one SQL `UPDATE` and zero Java. The cost is the one LORA designed around: values are read live, so a mid-flight master-data edit can change what a form offers after a decision has been taken on the old list. |
 | **Are the front ends healthy?** | **No, and nobody was looking.** Four instrumented consoles produce **2,413,198 errors in 7 days** — 5.8× LORA's back office. **748,686 of them are 404s on the Surveyor Platform**, one endpoint reaching **69% of all sessions**. No monitor can see it because every health check filters on `5*`. |
@@ -76,7 +76,24 @@ LORA's complaint was that a custom widget is three layers — templ emits a cust
 
 That is **at least fifteen browser applications** where LORA has two (back office and customer). Every shared concept — an approval banner, an asset-category field, a status label — is implemented and maintained once per console that shows it. The `BLCS` ticket stream shows the consequence directly: `BLCS-4397` *"Shared summary section config for both surfaces"* and `BLCS-4398` *"Verify section matrix across 5 flows on both surfaces"* are one story spending its effort on keeping two consoles consistent.
 
-**The honest scoring.** Per page, Bravo is clearly easier and LORA's JsForm work is an attempt to reach where Bravo already is. Per system, Bravo pays a coordination tax LORA does not have, and it pays it in exactly the place where its production error volume is concentrated ([§5](#5-what-production-actually-says-about-the-front-ends)).
+**The coordination tax, now measured rather than asserted (added 2026-09-10).** The three LOS consoles were checked out for the first time: **763,861 lines of source across 5,066 files, 829 test files, 4,334 commits in the last 12 months.** They share a design system, `@bfi-finance/frontend-ui` — and it has drifted, along with the platforms underneath it:
+
+| | `bravo-surveyor-console` | `bravo-operation-console` | `bravo-underwriting-console` |
+|---|---|---|---|
+| `@bfi-finance/frontend-ui` | `3.0.155` pinned | **`3.0.138`** pinned — 17 releases behind | `^3.0.158` range |
+| React | `^17.0.2` | **`^18.2.0`** | `^17.0.2` |
+| MUI `@mui/material` | `^5.4.4` | `^5.3.1` | `^5.16.7` |
+| `@testing-library/react` | `^12.1.2` | **`^14.0.0`** | `^12.1.2` |
+| Vite | `7.3.6` | `7.3.6` | **`4.5.0`** |
+| Linter | ESLint | **Biome** | ESLint |
+| CI Node | 20 | 20 | **18** |
+| Owning squad | `LN` | `LN` | `BLCS` |
+
+**Three consoles, three versions of the shared component library, two major versions of React, two major versions of Vite, two linters and two Node versions.** This is the coordination tax made concrete, and it is worse than "implemented once per console": a shared design system *exists*, so the cost was recognised and paid for — and then the consoles diverged anyway. The React 17/18 split is the one to watch, because `@bfi-finance/frontend-ui` must now satisfy both, or one console is using it in a configuration it was not built for.
+
+**It also has a practical consequence elsewhere in the pack.** [option-1.md §4a](option-1.md#4a-the-consoles-are-insulated-from-this-change) proposes running the three console suites as a boundary regression net for an engine cutover. That remains the cheapest net available — but it is **three toolchains, not one**: two React majors, two Vite majors, two Node versions. Budget for that, and expect the underwriting console (Vite 4, Node 18) to be the one that needs attention first.
+
+**The honest scoring.** Per page, Bravo is clearly easier and LORA's JsForm work is an attempt to reach where Bravo already is. Per system, Bravo pays a coordination tax LORA does not have, and it pays it in exactly the place where its production error volume is concentrated ([§5](#5-what-production-actually-says-about-the-front-ends)). The drift table above is the tax's invoice.
 
 ---
 

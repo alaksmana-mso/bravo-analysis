@@ -322,7 +322,8 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#9B98E8;--acBg:#9B98E824;--acBg2:#9B98E812}}
 :root[data-theme="dark"]{--ac:#9B98E8;--acBg:#9B98E824;--acBg2:#9B98E812}
 @media print{
-  /* print-fit bravo-delivery-deck: 1 of 11 slides scaled to fit 620px of content; smallest 0.964 */
+  /* print-fit bravo-delivery-deck: 2 of 11 slides scaled to fit 620px of content; smallest 0.863 */
+  .deck > section.slide:nth-of-type(4) > .inner{flex:none;height:auto;zoom:0.863}
   .deck > section.slide:nth-of-type(8) > .inner{flex:none;height:auto;zoom:0.964}
 }
 </style>
@@ -398,6 +399,18 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
         <div class="note note--bad"><h4>The cost is on the other axis: how many front ends there are</h4>Every shared concept &mdash; an approval banner, an asset-category field, a status label &mdash; is implemented and maintained <strong>once per console that shows it</strong>. The <code>BLCS</code> ticket stream shows the consequence directly: <code>BLCS-4397</code> <em>&ldquo;Shared summary section config for both surfaces&rdquo;</em> and <code>BLCS-4398</code> <em>&ldquo;Verify section matrix across 5 flows on both surfaces&rdquo;</em> are <strong>one story spending its effort on keeping two consoles consistent.</strong></div>
         <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Per page, Bravo is clearly easier. Per <em>system</em>, Bravo pays a coordination tax LORA does not have &mdash;
           <small>and it pays it in exactly the place where its production error volume is concentrated.</small></p>
+        <div class="tw"><table>
+          <thead><tr><th>Measured 2026-09-10</th><th>surveyor-console</th><th>operation-console</th><th>underwriting-console</th></tr></thead>
+          <tbody>
+            <tr><td class="k"><code>@bfi-finance/frontend-ui</code></td><td><code>3.0.155</code></td><td><span class="dn"><code>3.0.138</code></span> &mdash; 17 behind</td><td><code>^3.0.158</code></td></tr>
+            <tr><td class="k">React</td><td><code>^17.0.2</code></td><td><span class="dn"><code>^18.2.0</code></span></td><td><code>^17.0.2</code></td></tr>
+            <tr><td class="k">Vite</td><td><code>7.3.6</code></td><td><code>7.3.6</code></td><td><span class="dn"><code>4.5.0</code></span></td></tr>
+            <tr><td class="k">Linter &middot; CI Node</td><td>ESLint &middot; 20</td><td><span class="dn">Biome</span> &middot; 20</td><td>ESLint &middot; <span class="dn">18</span></td></tr>
+            <tr><td class="k">Source LOC &middot; tests</td><td>306,670 &middot; 286</td><td>207,825 &middot; 102</td><td>249,366 &middot; 441</td></tr>
+            <tr><td class="k">Owning squad</td><td><code>LN</code></td><td><code>LN</code></td><td><code>BLCS</code></td></tr>
+          </tbody>
+          <caption><b>763,861 LOC and 829 tests across three consoles</b> &mdash; sharing a design system that has drifted to three versions, on two major versions of React. The coordination tax is not asserted here; this is its invoice.</caption>
+        </table></div>
       </div>
       <div class="tw"><table>
         <thead><tr><th>Console, Bravo/LOS orbit</th><th>RUM</th></tr></thead>

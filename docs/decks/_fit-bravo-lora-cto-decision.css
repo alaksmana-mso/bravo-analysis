@@ -1,7 +1,7 @@
 @media print{
-  /* print-fit bravo-lora-cto-decision: 4 of 17 slides scaled to fit 620px of content; smallest 0.805 */
+  /* print-fit bravo-lora-cto-decision: 4 of 17 slides scaled to fit 620px of content; smallest 0.744 */
   .deck > section.slide:nth-of-type(6) > .inner{flex:none;height:auto;zoom:0.851}
-  .deck > section.slide:nth-of-type(7) > .inner{flex:none;height:auto;zoom:0.805}
+  .deck > section.slide:nth-of-type(7) > .inner{flex:none;height:auto;zoom:0.744}
   .deck > section.slide:nth-of-type(15) > .inner{flex:none;height:auto;zoom:0.831}
-  .deck > section.slide:nth-of-type(17) > .inner{flex:none;height:auto;zoom:0.807}
+  .deck > section.slide:nth-of-type(17) > .inner{flex:none;height:auto;zoom:0.774}
 }

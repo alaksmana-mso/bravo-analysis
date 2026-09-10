@@ -234,7 +234,7 @@ All four production Bravo LOS consoles are RUM-instrumented at `rum_event_proces
 
 For scale: LORA's back-office front end produces 416,201 errors a week at ≈2.8 per view. Bravo's four consoles produce **5.8× that volume**, at a comparable per-view rate. Neither team was reading RUM.
 
-Top error messages on the Surveyor Platform — the console behind `Surveyor Platform - Release reject`, which is 28.4% of Bravo's entire support-ticket load ([ticket-analysis.md §5.3a](production-findings/ticket-analysis.md)):
+Top error messages on the Surveyor Platform — the `bravo-surveyor-console` repository, the console behind `Surveyor Platform - Release reject`, which is 28.4% of Bravo's entire support-ticket load ([ticket-analysis.md §5.3a](production-findings/ticket-analysis.md)):
 
 | Error | Count / 7 d | Reading |
 |---|---:|---|
@@ -376,6 +376,6 @@ No new observability work is scheduled. Phase 3 is spent on the deploy-safety an
 - [bravo-delivery.md](bravo-delivery.md) — the console layer these errors come from
 - [compare.md](compare.md) — the synthesis and the platform recommendation
 - [compare-architecture.md](compare-architecture.md) §3.6, §3.9 — retry policy and the observability comparison in code terms
-- [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md) — `Surveyor Platform - Release reject`, 28.4% of ticket load, still unexplained
+- [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md) — `Surveyor Platform - Release reject`, 28.4% of ticket load. **Narrowed 2026-09-10 to six named candidate endpoints** (four `release-assignment` handlers in `OperationAssignmentController`, `voidAssignment`, `reprocess`, and `cancel-reject-notes` in `bravo-surveyor-console`), owning squad `LN` — still unmapped, but hours of instrumentation rather than days of searching
 - [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) — why Cockpit is not a safe on-call surface today
 - LORA [observability.md](../../lora-workspace/docs/production-findings/observability.md) — the same investigation on the other platform
