@@ -25,7 +25,7 @@ Neither of these was a decision. Camunda 7 went end-of-life underneath the servi
 
 This matters more here than it would elsewhere: `bravo-bpm-service` is the system of record for loan applications in flight at a regulated lender, and it orchestrates roughly thirty microservices.
 
-**One thing that is not a version problem but shares the blast radius.** [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) records 61 injected remote-code-execution process definitions in the production engine, one confirmed executed, reachable because `SecurityConfig.java:65` makes `/camunda/**` `permitAll()`. That is a configuration defect fixable in days, it must be fixed under **every** option in this pack, and it is the reason an unpatchable engine is not a theoretical concern.
+**One thing that is not a version problem but shares the blast radius.** [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) records 61 injected remote-code-execution process definitions in the production engine, one confirmed executed. **Vector corrected 2026-09-10:** it is *not* the `permitAll()` on `/camunda/**` — the deploy path `/engine-rest/**` requires a credential, so **someone held a valid Keycloak token or the shared `INTERNAL_SERVICE_KEY`**, and that shared secret grants full engine rights because no `ProcessEngineAuthenticationFilter` establishes a Camunda identity on that path. So it is **a credential-compromise problem with a configuration component**, not a configuration defect alone: rotation and per-caller secrets, plus the auth filter, plus the `permitAll` cleanup. It must be fixed under **every** option in this pack, and it is the reason an unpatchable engine is not a theoretical concern.
 
 ---
 

@@ -270,7 +270,7 @@ Domain activities are workers behind a stable interface. Product-specific behavi
 
 ### 10.4 Platform governance: least privilege, migration, and a per-product test matrix
 
-- **Least-privilege engine.** The workflow engine's REST/cockpit surface must be authenticated and network-restricted. (Bravo's `/camunda` was `permitAll`, which is how 61 hostile process definitions were deployed — see `SECURITY-FINDING-camunda-rce.md`. Hardening this is a prerequisite for any of the below, not an optional extra.)
+- **Least-privilege engine.** The workflow engine's REST/cockpit surface must be authenticated and network-restricted. (Bravo's `/camunda` is `permitAll`, though **corrected 2026-09-10 that is not how the 61 hostile process definitions arrived** — the deploy path `/engine-rest/**` required a credential. Both still need closing. 61 hostile process definitions were deployed — see `SECURITY-FINDING-camunda-rce.md`. Hardening this is a prerequisite for any of the below, not an optional extra.)
 - **Explicit versioning and instance migration.** Changing one product must not redeploy the shared graph that four other products are mid-flight on. Product-owned spines give each product its own deployment unit and its own `processDefinitionKey` to migrate.
 - **Per-product observability.** Each product's effective flow is generated on every build and published; the CI pipeline diffs it so a change to a shared child that alters a product's path is visible in review.
 
@@ -289,7 +289,7 @@ Each principle above, versus what production and the code actually show (§8, §
 | C | Domain children shared, no product logic inside | 19 of 68 unified activities branch on `application.isXxx()` (`isDF4W()` ×20) | Product logic hidden in shared beans; grows silently | **High** |
 | D | Fork child only on structural difference | Done once correctly (`…Underwriting_Regular`); everywhere else variation is config no-ops | Pattern known but not applied; the good precedent is the exception | Medium |
 | E | Product out of domain code via stable contracts | Config + Java + gateways + 9 feature flags all carry product (§4) | Four mechanisms to change to alter one product's flow | **High** |
-| F | Least-privilege engine, per-product deployment unit | `/camunda` was `permitAll` (RCE); one deployment unit for all products | Shared blast radius operationally and on the security surface | **High** (security) |
+| F | Least-privilege engine, per-product deployment unit | `/camunda` is `permitAll` (Cockpit exposure) and `/engine-rest` grants full engine rights to any holder of the shared `api-secret` (the actual RCE vector, corrected 2026-09-10); one deployment unit for all products | Shared blast radius operationally and on the security surface | **High** (security) |
 | G | Migrate by strangler | Happening by accident (DF4W on spine, 5.5%), flat, undeliberate | No migration plan; legacy carries ~94% and the whole retail book | Medium |
 | H | Dead/duplicated assets removed | `PREAPPROVAL`/`DF4W`/`DF2W`/`DF2W_Sharia` map keys with no process; `…Scoring_1_Mock_Ro` unreferenced; 145 delegates for 2 legacy products | Cleanup backlog; duplication is how NDF4W/NDF2W drifted | Low–Medium |
 
@@ -316,7 +316,7 @@ flowchart LR
 |---|---|---|
 | Publish effective per-product flow | Generate from `workflow_master_config_detail ⋈ selector_order ⋈ selector_type` overlaid on the BPMN (the §8.4 query + the parse scripts behind this analysis). One diagram per product, in the repo, regenerated on build. | Every live product (NDF2W, NDF4W, RO, DF4W) has a current, owner-readable flow diagram |
 | Freeze new hidden variation | PR check that fails a new `application.isXxx()` in `activity/unified/**` and a new config-gated class lacking a doc entry. | CI blocks both; count of `isXxx()` sites can only go down from 19 |
-| Harden the engine | Authenticate + network-restrict `/camunda`; complete the RCE remediation in `SECURITY-FINDING-camunda-rce.md`. | `/camunda` not `permitAll`; injected defs purged; verified in prod + sharia |
+| Harden the engine | Authenticate + network-restrict `/camunda` **and `/engine-rest`**; rotate `INTERNAL_SERVICE_KEY`; register a `ProcessEngineAuthenticationFilter`; complete the RCE remediation in `SECURITY-FINDING-camunda-rce.md`. | `/camunda` not `permitAll`; injected defs purged; verified in prod + sharia |
 | Decide the target | One-page ADR: product-owned spines + shared domain children + fork-on-structure. Stakeholder sign-off (product owners per §10.2). | ADR merged |
 | Cheap cleanup | Delete `PREAPPROVAL`/`DF4W`/`DF2W`/`DF2W_Sharia` dead `setting.workflow.map` keys (G7); remove `Process_NDF4W_Scoring_1_Mock_Ro` (G8). | Map keys map 1:1 to real processes; no unreferenced deployment |
 

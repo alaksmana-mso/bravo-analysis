@@ -235,6 +235,34 @@ version: v2.93.53
   </div>
 </section>
 
+<section class="slide" data-nav="Intrusion unreported">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;5.1</b><span class="sep">/</span>What we found &mdash; added 2026-09-10</p>
+    <h2 class="st">The sharpest test of the estate: five weeks, and nothing reported</h2>
+    <p class="lede">&sect;5 shows <b>38 monitors matching <code>bpm</code> and zero on the process.</b> There is a concrete test of what that costs. Between <b>2026-05-23 and 2026-06-30</b>, across <b>7 sessions over five weeks</b>, 61 remote-code-execution process definitions were deployed into the production engine &mdash; and on <b>2026-06-11 07:08:51</b> one ran and captured the pod hostname.</p>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Surface that could have reported it</th><th>What it held</th></tr></thead>
+        <tbody>
+          <tr><td class="k">The 38 <code>bpm</code> monitors</td><td><span class="dn">nothing</span> &mdash; none is process-level</td></tr>
+          <tr><td class="k">Dashboards</td><td><span class="dn">nothing</span> &mdash; none mentions <code>bpm</code> or <code>camunda</code></td></tr>
+          <tr><td class="k">APM spans on the engine path</td><td><span class="dn">nothing</span> &mdash; there are none at all</td></tr>
+          <tr><td class="k">Camunda&rsquo;s own <code>act_hi_op_log</code></td><td><span class="dn">zero entries</span> for all 61 deployments</td></tr>
+          <tr><td class="k"><code>start_user_id_</code> on the executed instance</td><td><span class="dn">null</span></td></tr>
+        </tbody>
+        <caption>Found by a person reading the database <b>three months later</b> for an unrelated workflow analysis.</caption>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="pull" style="font-size:clamp(14px,1.45vw,18px)">The finding is not that Bravo was attacked. It is that <strong>the telemetry contributed nothing to detecting a five-week intrusion in the core service</strong>, and the discovery path was accidental.</p>
+        <div class="note note--ok"><h4>And this cuts the other way too</h4>The engine&rsquo;s history tables are <b>what made the forensics possible</b>. <code>act_re_procdef</code>, <code>act_re_deployment</code>, <code>act_ge_bytearray</code> and <code>act_hi_varinst</code> preserved the payloads, timestamps, session structure <b>and the captured command output</b> &mdash; three months on, with no APM and no monitoring. That is the durable-substrate thesis working: <b>poor at alerting, unusually good at reconstruction.</b> Do not replace the substrate; put a monitor in front of it.</div>
+        <div class="note"><h4>Two monitors close this, and they are the cheapest here</h4>One on new <code>act_re_deployment</code> rows whose <code>name_</code> is outside the deployment convention; one on process starts whose <code>proc_def_key_</code> is outside the known key set. Single SQL predicates over tables that already exist. <b>Either would have fired on 2026-05-23.</b></div>
+        <p class="lede" style="font-size:13px;color:var(--ink3)"><b>Not</b> an argument that LORA would have caught it &mdash; Temporal Cloud is a different deployment model and no equivalent test exists there. This is Bravo&rsquo;s monitoring against Bravo&rsquo;s own risk surface.</p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">SECURITY-FINDING-camunda-rce.md &middot; bravo-observability.md &sect;5.1</span><span>10</span></div>
+  </div>
+</section>
+
 <section class="slide" data-nav="404 storm">
   <div class="inner">
     <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>The largest live defect in the pack</p>

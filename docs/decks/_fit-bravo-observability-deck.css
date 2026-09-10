@@ -1,5 +1,5 @@
 @media print{
-  /* print-fit bravo-observability-deck: 2 of 14 slides scaled to fit 620px of content; smallest 0.939 */
-  .deck > section.slide:nth-of-type(10) > .inner{flex:none;height:auto;zoom:0.939}
-  .deck > section.slide:nth-of-type(12) > .inner{flex:none;height:auto;zoom:0.992}
+  /* print-fit bravo-observability-deck: 2 of 15 slides scaled to fit 620px of content; smallest 0.939 */
+  .deck > section.slide:nth-of-type(11) > .inner{flex:none;height:auto;zoom:0.939}
+  .deck > section.slide:nth-of-type(13) > .inner{flex:none;height:auto;zoom:0.992}
 }

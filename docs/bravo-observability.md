@@ -10,7 +10,7 @@
 | | |
 |---|---|
 | **1. The problem** | [Verdicts](#verdicts) |
-| **2. What we found** | [Stuck loans at fleet scale](#1-all-loans-stuck-in-survey--answerable-in-sql-invisible-in-telemetry) · **[The orchestration layer emits no spans](#2-the-orchestration-layer-emits-no-spans-at-all)** · [Logs are not thin — they are unjoinable](#3-logs-are-not-thin-they-are-unjoinable) · [Upstream attribution works](#4-upstream-attribution-works--and-this-inverts-the-lora-finding) · [38 monitors, none on the process](#5-38-monitors-none-of-them-on-the-process) · **[The 404 storm nobody is watching](#6-the-404-storm-nobody-is-watching)** |
+| **2. What we found** | [Stuck loans at fleet scale](#1-all-loans-stuck-in-survey--answerable-in-sql-invisible-in-telemetry) · **[The orchestration layer emits no spans](#2-the-orchestration-layer-emits-no-spans-at-all)** · [Logs are not thin — they are unjoinable](#3-logs-are-not-thin-they-are-unjoinable) · [Upstream attribution works](#4-upstream-attribution-works--and-this-inverts-the-lora-finding) · [38 monitors, none on the process](#5-38-monitors-none-of-them-on-the-process) · **[A five-week intrusion nothing reported](#51-the-sharpest-test-of-the-monitoring-estate-a-five-week-intrusion-that-nothing-reported)** · **[The 404 storm nobody is watching](#6-the-404-storm-nobody-is-watching)** |
 | **3. What to do** | [The durable-substrate thesis](#7-the-durable-substrate-thesis-inverted) · [Recommended actions](#recommended-actions) · [Plan: 30/60/90](#plan-30-60-90-days) · [What changes when this is done](#what-changes-when-this-is-done) |
 
 ---
@@ -26,6 +26,7 @@
 | Upstream BFI services are unreliable | **Refuted, with the same shape as LORA's finding.** 20,802 outbound errors in 7 days and **not one 5xx in the top 20 rows**. Every attributable upstream failure is a 4xx: `401` from IAM (8,533), `404` from repeat-order (5,070), `400` from scheduling (3,508). These are contract and auth defects, not outages. |
 | Bravo has no proper monitoring | **Refuted on count, confirmed on subject.** **38 monitors** match `bpm`. Every one watches a container, a JVM, an HTTP surface or a queue. **Zero watch a process instance, a Camunda incident, the job-executor backlog, or `application_error_tracking`.** Eight are in `Alert` right now; six read `No Data` and cannot fire. |
 | Logs are the only durable substrate | **Refuted, and inverted.** Bravo's durable substrate is **PostgreSQL** — 238 entities, `application_status_log` written by a database trigger, reprocess generations chained as rows. Logs are the *least* durable layer here, and Camunda's own runtime history is the one that expires. This is the opposite of LORA, where the document plus Temporal history is durable and the logs last ~7 days. |
+| Bravo's monitoring would surface a security event in the engine | **Refuted, and tested by a real one.** 61 RCE process definitions were deployed across 7 sessions over five weeks and one executed; the 38 `bpm` monitors, the dashboards, the APM spans and Camunda's own `act_hi_op_log` reported **nothing**. A person found it three months later reading the database for an unrelated analysis ([§5.1](#51-the-sharpest-test-of-the-monitoring-estate-a-five-week-intrusion-that-nothing-reported)). The engine's history tables *did* preserve the full forensic trail — poor at alerting, unusually good at reconstruction. |
 | Bravo's front ends are unmonitored | **Refuted — and this is the largest live defect in the document.** All four LOS consoles are RUM-instrumented at `ALL`. The Surveyor Platform emits **1,962,909 errors in 7 days**, of which **748,686 are HTTP 404s**, and the top one hits **54,350 of 79,090 sessions**. No alert can see it, because every success-rate monitor filters on `5*`. |
 
 **The through-line:** Bravo's problem is not that the data is missing. Most of it is there, and in two places it is better than LORA's. The problem is that **every alert Bravo owns is scoped to the container and the 5xx**, so a system that fails by 4xx and by parking a process cannot trigger one.
@@ -218,6 +219,32 @@ logs("service:prod-ms-bpm checkpefindov2 -status:(warn OR info) -\"ENGINE-16004\
 
 ---
 
+## 5.1 The sharpest test of the monitoring estate: a five-week intrusion that nothing reported
+
+**Added 2026-09-10.** §5 shows 38 monitors matching `bpm` and **zero on the process**. There is a concrete test of what that costs, and it is not hypothetical.
+
+Between **2026-05-23 and 2026-06-30**, across **7 distinct sessions over five weeks**, 61 remote-code-execution process definitions were deployed into the production engine, and on **2026-06-11 07:08:51** one of them ran and captured the pod hostname ([SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md)).
+
+| Surface that could have reported it | What it held |
+|---|---|
+| The 38 `bpm` monitors | **Nothing** — none is process-level; a new process definition or an anomalous process start is not something any of them can express |
+| Dashboards | **Nothing** — no dashboard in the org mentions `bpm` or `camunda` ([§5](#5-38-monitors-none-of-them-on-the-process)) |
+| APM spans on the engine path | **Nothing** — there are none at all ([§2](#2-the-orchestration-layer-emits-no-spans-at-all)) |
+| Camunda's own operation log, `act_hi_op_log` | **Zero entries** for any of the 61 deployments |
+| `start_user_id_` on the executed instance | **Null** |
+
+**It was found by a person reading the database three months later for an unrelated workflow analysis.** That is the finding: not that Bravo was attacked, but that **the platform's telemetry contributed nothing to detecting a five-week intrusion in its core service**, and the discovery path was accidental.
+
+**Two qualifications, both important.**
+
+First, **this is not an argument that LORA would have caught it** — LORA's engine is Temporal Cloud with a different deployment model, and no equivalent test exists there. It is an argument about Bravo's monitoring estate against Bravo's own risk surface.
+
+Second, and this cuts the other way: **the engine's history tables are exactly what made the forensics possible.** `act_re_procdef`, `act_re_deployment`, `act_ge_bytearray` and `act_hi_varinst` preserved the payloads, the timestamps, the session structure and **the captured command output** — three months after the fact, with no APM and no monitoring. That is the [§7 durable-substrate thesis](#7-the-durable-substrate-thesis-inverted) working: a relational engine that writes everything down is poor at *alerting* and unusually good at *reconstruction*. The recommendation is not to replace the substrate; it is to put a monitor in front of it.
+
+**What to add — cheap, and it closes this specific gap.** A monitor on new rows in `act_re_deployment` whose `name_` does not match the application's deployment convention, and one on process starts whose `proc_def_key_` is outside the known key set. Both are single SQL predicates over tables that are already there, and either one would have fired on 2026-05-23 instead of nothing firing for five weeks. Written up as [recommended action 11](#recommended-actions).
+
+---
+
 ## 6. The 404 storm nobody is watching
 
 All four production Bravo LOS consoles are RUM-instrumented at `rum_event_processing_state: ALL`. Seven days:
@@ -312,6 +339,8 @@ Ordered by value over effort. Items 1 and 2 are the ones that would have caught 
 9. **Write down the stuck-loan SQL (S).** Bravo's real advantage — fleet questions are `WHERE` clauses — is unusable at 02:00 because nobody has saved the query. A notebook with "applications by stage and age", plus a monitor on the count over threshold, converts a capability into an operation.
 10. **Read RUM in the weekly review (S).** Four consoles, 2.4M errors a week, instrumented all along, never consulted. Set a per-console error-per-view SLO; today the Surveyor Platform is at 2.06 and nobody could tell if it regressed.
 
+11. **Add the two engine-integrity monitors (S — and they are the cheapest monitors in this document).** A monitor on new `act_re_deployment` rows whose `name_` falls outside the application's deployment convention, and one on process starts whose `proc_def_key_` is outside the known key set. Both are single SQL predicates over tables that already exist and are already populated. **Either one would have fired on 2026-05-23**, when 61 RCE process definitions began arriving, instead of nothing firing for five weeks and the intrusion being found by accident three months later ([§5.1](#51-the-sharpest-test-of-the-monitoring-estate-a-five-week-intrusion-that-nothing-reported)). This is the one recommendation here that is a security control as much as an observability one, and it does not depend on the RCE remediation landing first.
+
 **Do not create these alerts without an owner and a runbook entry.** The evidence in [§5](#5-38-monitors-none-of-them-on-the-process) is that Bravo already has 38 monitors, 8 permanently firing, 6 that cannot fire, and one that had its most useful error class filtered out. Adding a ninth red light to the same chat room reproduces the problem this document is describing.
 
 ---
@@ -347,6 +376,7 @@ The one exception is recommendation 3: it is created in phase 1 **with its runbo
 | **Alert runbook table** — severity, runbook entry and owner for every signal, retrofitted to the surviving old monitors | precondition | Platform/SRE | 2 d | No alert exists without an owner. This gates the next row |
 | **Per-endpoint 4xx monitors** — 404 on the four surveyor endpoints, 401 from IAM, 400 on scheduling | 2 | Platform/SRE | 3 d | Bravo's actual failure mode is alertable for the first time |
 | **RUM in the weekly review**, with a per-console error-per-view SLO | 10 | Platform/SRE + EM | 2 d | 2.4M errors a week across four consoles stops being unread. A regression is caught by a number |
+| **The two engine-integrity monitors** — unknown `act_re_deployment` names, and process starts outside the known key set | 11 | Platform/SRE + Security | 1 d | A hostile or accidental deployment into the production engine raises an alert the same day, instead of being found by accident three months later |
 
 ### Days 61–90 — consolidate
 
@@ -366,6 +396,7 @@ No new observability work is scheduled. Phase 3 is spent on the deploy-safety an
 | Job-executor spans | The 90% of Bravo's work that is the process becomes visible in APM, with per-activity latency and a `CARDINALITY(trace_id)` test that separates a broad defect from a loop. |
 | Saved stuck-loan query | Bravo's genuine architectural advantage — SQL over relational state — becomes something the on-call rota uses, not something the architecture merely permits. |
 | RUM in the weekly review | A surveyor console regression is caught by a number instead of by 315 `Release reject` tickets a month. |
+| Engine-integrity monitors live | A definition arriving in the production engine that nobody shipped is an alert on the day it lands. The 2026-05-23 intrusion would have been a page, not an archaeology exercise. |
 | Monitors triaged | The alert channel means something again, which is the precondition for every other item on this list. |
 
 ---

@@ -330,7 +330,7 @@ What the current design already gets right and must be kept: orchestrators hold 
 | Shared domain children, no product logic inside | 19 of 68 unified activities branch on `application.isXxx()` | Product logic hidden inside shared beans |
 | Fork only on structural difference | Done once (`…Underwriting_Regular`); elsewhere variation is config no-ops | Right pattern known, not applied |
 | Product out of domain code | Product lives in config + Java + gateways + 9 feature flags at once | Four places to touch to change one product |
-| Least-privilege, per-product deployment | `/camunda` was `permitAll` (RCE); one deployment unit for all | Shared operational and security blast radius |
+| Least-privilege, per-product deployment | `/camunda` is `permitAll` (Cockpit); `/engine-rest` grants full engine rights to any holder of the shared `api-secret` — the actual RCE vector (corrected 2026-09-10); one deployment unit for all | Shared operational and security blast radius |
 | Strangler migration | Happening by accident: DF4W runs the shared spine at 5.5%, flat, undeliberate (per workflow-gap.md §8) | Legacy monoliths still carry ~94% of volume and the whole retail book, unmigrated |
 
 The building blocks are right — orchestrator/worker split, shared children, one correct fork — but product variation lives in three places the model cannot show, so no product has a readable, owned, independently-deployable spine, and the legacy `NDF4W`/`NDF2W` monoliths (§4, §5) that carry most volume were never migrated.

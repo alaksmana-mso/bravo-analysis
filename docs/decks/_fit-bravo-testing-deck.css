@@ -1,7 +1,7 @@
 @media print{
-  /* print-fit bravo-testing-deck: 4 of 24 slides scaled to fit 620px of content; smallest 0.788 */
+  /* print-fit bravo-testing-deck: 4 of 24 slides scaled to fit 620px of content; smallest 0.78 */
   .deck > section.slide:nth-of-type(12) > .inner{flex:none;height:auto;zoom:0.788}
   .deck > section.slide:nth-of-type(15) > .inner{flex:none;height:auto;zoom:0.967}
-  .deck > section.slide:nth-of-type(21) > .inner{flex:none;height:auto;zoom:0.943}
+  .deck > section.slide:nth-of-type(21) > .inner{flex:none;height:auto;zoom:0.78}
   .deck > section.slide:nth-of-type(23) > .inner{flex:none;height:auto;zoom:0.838}
 }

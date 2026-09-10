@@ -193,7 +193,7 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 
 | | Bravo | LORA |
 |---|---|---|
-| Engine UI | Camunda Cockpit/Tasklist/Admin at `/camunda/**`, `permitAll()` at the Spring Security layer (engine authorization + Keycloak is the only gate) | Temporal UI (flooded), custom "Oh My LORA" diff inspector |
+| Engine UI | Camunda Cockpit/Tasklist/Admin at `/camunda/**`, `permitAll()` at the Spring Security layer — Camunda's own login plus `authorization.enabled: true` is the only gate. **The REST API is separate and materially weaker:** `/engine-rest/**` requires a Spring credential but establishes **no Camunda identity**, so engine authorization is **inert** there and any holder of the shared `api-secret` has full engine rights ([SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md)) | Temporal UI (flooded), custom "Oh My LORA" diff inspector |
 | "Which loans are stuck at survey?" | SQL over `surveyor_assignment.assignment_status` or Cockpit incident list; `ApplicationErrorTracking` table | Not a Temporal Visibility query (0 search attributes); works via Datadog APM spans by activity name and error type |
 | Metrics | Micrometer/Prometheus on, but 0 custom process metrics (9 `@Timed` on outbound clients); no metric for incidents, stuck processes or per-activity duration | OTel spans per activity attempt with workflow id; 5 dashboards, 12+ monitors; bookkeeping is 63.5% of activity executions so business signal is diluted |
 | Tracing | Jaeger dependency present, `NoopTracer` unless `JAEGER_ENABLE_TRACE=true`; Feign `loggerLevel: full` globally (PEFINDO/SLIK/Dukcapil/CONFINS bodies in JSON logs) | ~195k spans/day carrying a customer NIK in clear text (adjacent service) |
@@ -491,5 +491,5 @@ Not the subject of this comparison, but found while reading and worth a ticket e
 | Several listeners swallow exceptions with `log.error(e.getMessage())` and no requeue | `connector/agreement/AgreementGoLiveResultListener.java:37-39`; `connector/confins/ConfinsStatusListener.java:70-74` |
 | `PT4M` retry cycles with no `Rn` repeat prefix | `ndf2w.bpmn:1711,2208`; `ndf4w.bpmn:1735`; `ndf4w-scoring-1.bpmn:200`; `unified-pefindo-check.bpmn:22` |
 | Job executor left at starter defaults (pool 3) under 260 `asyncAfter` checkpoints and 5-minute Feign read timeouts | absence of `camunda.bpm.job-execution.*` in all `application*.yaml`; `application.yaml:353-359` |
-| Camunda web app `permitAll()` at the Spring Security layer; Feign `loggerLevel: full` globally | `config/SecurityConfig.java:65-66`; `application.yaml:359` |
+| Camunda web app `permitAll()` at the Spring Security layer — real, but **not** the RCE vector (corrected 2026-09-10; CE Cockpit cannot deploy). The vector is `/engine-rest/**` with the shared `api-secret` and no `ProcessEngineAuthenticationFilter`; Feign `loggerLevel: full` globally | `config/SecurityConfig.java:65-66`; `config/InternalAuthenticationFilter.java`; `application.yaml:1489`, `:359` |
 | `makefile` passes `-Dspring-boot.run.profiles`, which surefire ignores; no JaCoCo `check` goal | `makefile:10-33`; `pom.xml:871-890` |
