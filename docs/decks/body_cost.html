@@ -1,0 +1,351 @@
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:22px">
+    <p class="cover-kicker">Bravo production findings &middot; 04 of 05 &middot; Cost</p>
+    <h1>Where Bravo&rsquo;s<br>money actually goes</h1>
+    <p class="claim">What does Bravo cost on a like-for-like basis with LORA? What drives it? Which levers are real, how much are they worth, and when are they available?</p>
+    <div class="stats stats--4" style="margin-top:6px">
+      <div class="stat"><span class="stat__n pos">Rp&thinsp;58<small>M</small></span><span class="stat__l">The LOS orchestration tier &mdash; against LORA&rsquo;s Rp&thinsp;431M</span></div>
+      <div class="stat"><span class="stat__n neg">Rp&thinsp;140.5<small>M</small></span><span class="stat__l">Cloud Logging &mdash; 2.4&times; the whole orchestration tier</span></div>
+      <div class="stat"><span class="stat__n neg">Rp&thinsp;573.5<small>M</small></span><span class="stat__l">Non-production &mdash; 31% of all Bravo spend, never examined</span></div>
+      <div class="stat"><span class="stat__n plain">4.5<small>%</small></span><span class="stat__l">Share of its own project that the workflow engine represents</span></div>
+    </div>
+    <div class="meta">
+      <span><b>Audience</b> &nbsp;Platform, finance, the CTO office sizing the migration</span>
+      <span><b>Sources</b> &nbsp;GCP billing via <code>bfi-finops-dashboard</code> &middot; complete month of August 2026</span>
+      <span><b>Read</b> &nbsp;2026-09-10</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> Arrow keys or scroll &middot; 13 slides</p>
+</section>
+
+<section class="slide" data-nav="Verdicts">
+  <div class="inner">
+    <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts</p>
+    <h2 class="st">Six claims, graded against an independent billing pull</h2>
+    <div class="vlist">
+      <div class="vrow"><p class="cl">Bravo is expensive</p><span class="v v--ref">Not as an orchestration tier</span><p class="gi"><strong>It is the cheaper one.</strong> <code>ms-bpm</code> pods plus its Cloud SQL instance is <b>&asymp;Rp58M/month in production</b> against LORA&rsquo;s <b>&asymp;Rp431M all-in</b> &mdash; roughly <b>7&times; cheaper</b> in absolute terms and <b>4&ndash;5&times; cheaper per application</b>. This document does not overturn that; it confirms it with an independent pull.</p></div>
+      <div class="vrow"><p class="cl">Retiring Bravo saves &asymp;Rp1.6B/month</p><span class="v v--non">Withdrawn</span><p class="gi">And re-confirmed as withdrawn. The Bravo GCP projects bill <b>Rp1.874B</b> in August, but the remainder beyond the LOS tier is the <strong>shared BFI data plane</strong> &mdash; ~26 <code>ms-*</code> services that <em>LORA itself calls</em>. The LOS lever is <b>&asymp;Rp58M prod, &asymp;Rp70&ndash;100M with non-prod</b>: 8&ndash;14&times; the entire Temporal Actions programme, not 227&times;.</p></div>
+      <div class="vrow"><p class="cl">Bravo&rsquo;s cost is dominated by the workflow engine</p><span class="v v--ref">No</span><p class="gi">The engine tier is <b>4.5% of its own production project</b>. Cloud SQL (Rp450.7M) and Compute Engine (Rp394.4M) are 65% of <code>bravo-project-331802</code>, and neither is mostly BPM.</p></div>
+      <div class="vrow"><p class="cl">Bravo&rsquo;s unit economics are improving as it drains</p><span class="v v--ref">Refuted</span><p class="gi">Volume fell <b>35%</b> (117,996 &rarr; 76,446 applications) between July and August while ticket load <b>rose 82%</b> over eight months. Fixed platform cost over falling volume means cost per application is <strong>inflating</strong>, for reasons unrelated to architecture.</p></div>
+      <div class="vrow"><p class="cl">The cost work worth doing is on the engine</p><span class="v v--ref">Refuted &mdash; three larger levers</span><p class="gi">Cloud Logging at <b>Rp140.5M/month</b> &mdash; 2.4&times; the whole orchestration tier &mdash; sits behind a globally enabled <code>loggerLevel: full</code> and an error stream that is 47% stack-trace frames. The Maps API stack is <b>Rp64.0M/month</b>. Non-production is <b>Rp573.5M</b>.</p></div>
+      <div class="vrow"><p class="cl">Bravo&rsquo;s cost is a reason to keep it</p><span class="v v--sup">Partly &mdash; and the strongest argument on its side</span><p class="gi">But the tier that would retire is small (&asymp;Rp58M) and the platform it would retire <em>to</em> costs more per application today. <strong>The cost case for migration is that LORA&rsquo;s marginal cost is near zero and one platform goes away</strong> &mdash; not that Bravo is expensive.</p></div>
+    </div>
+    <p class="pull">Bravo&rsquo;s LOS orchestration is genuinely cheap, and almost none of Bravo&rsquo;s bill is orchestration.
+      <small>The money is in a database, a log pipeline and a non-production estate &mdash; and <em>two of those three are misconfiguration rather than workload.</em></small></p>
+    <div class="foot"><span class="src">bravo-cost.md &sect;Verdicts &middot; all figures GCP net cost in IDR</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="No engine invoice">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;1</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Bravo has no metered orchestration invoice</h2>
+    <p class="lede">There is no Actions counter, no per-workflow storage line, nothing analogous to Temporal Cloud. Camunda 7 is an <strong>embedded library</strong> inside a Spring Boot service, so every cost it creates lands somewhere else on the GCP bill.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Where the engine&rsquo;s cost shows up</th><th>Line</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Process state, history, and all 238 business entities</td><td><b>Cloud SQL</b> &mdash; <code>prod-postgres-bpm-d2bpm</code></td><td>History level <code>full</code>, <code>historyTimeToLive: P90D</code>. <code>act_hi_actinst</code> carries ~50M rows per 90-day window</td></tr>
+        <tr><td class="k">Job-executor threads running all 483 service tasks</td><td><b>Compute Engine</b> &mdash; <code>ms-bpm</code> pods on <code>prod-bravo-cluster</code></td><td>Job executor left at the Spring Boot starter default &mdash; core pool 3</td></tr>
+        <tr><td class="k">Every log line the engine and its controllers emit</td><td><b>Cloud Logging</b></td><td>1,116,135 lines/week from <code>prod-ms-bpm</code> alone</td></tr>
+        <tr><td class="k">Outbound calls to 25 upstreams</td><td>those services&rsquo; own bills</td><td>&mdash;</td></tr>
+      </tbody></table></div>
+    <div class="note"><h4>The comparison this makes possible &mdash; and the trap in it</h4>Because the engine is embedded, &ldquo;the cost of Bravo&rsquo;s orchestration&rdquo; is not separable from &ldquo;the cost of Bravo&rsquo;s human-task application&rdquo;: <strong>they are the same deployment.</strong> <code>ms-bpm</code> contains the BPMN engine <em>and</em> the ~217k LOC of surveyor, operation, underwriting and approval services &mdash; 44% of the codebase. So the &asymp;Rp58M tier is <strong>orchestration plus all human-task handling</strong>, which is the correct like-for-like against LORA&rsquo;s &asymp;Rp431M (workers + gateway + task service + schema service + Temporal + ArangoDB). <strong>Both sides include the human-task layer. That is what makes the ratio meaningful.</strong></div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;1</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="August measured">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;2</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">August 2026, measured</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="tw"><table>
+          <thead><tr><th>Project</th><th class="n">August 2026</th></tr></thead>
+          <tbody>
+            <tr><td class="k"><code>bravo-project-331802</code> &mdash; production</td><td class="n"><b>Rp 1,300,270,632</b></td></tr>
+            <tr><td class="k"><code>bravo-project-nonprod</code></td><td class="n"><b>Rp 573,504,402</b></td></tr>
+            <tr><td class="k"><code>bravo-project-shared-services</code></td><td class="n">Rp 13,568,891</td></tr>
+            <tr><td class="k"><code>bravo-project-collection</code></td><td class="n">Rp 181,361</td></tr>
+            <tr class="tot"><td>Bravo total</td><td class="n">Rp 1,887,525,286</td></tr>
+            <tr><td class="k" style="color:var(--ink3)"><em>BFI GCP estate, all 34 projects</em></td><td class="n" style="color:var(--ink3)"><em>Rp 3,708,544,980</em></td></tr>
+          </tbody>
+        </table></div>
+        <div class="note note--bad"><h4>Bravo is 50.9% of BFI&rsquo;s entire GCP bill</h4>That number is arresting and it is the one most likely to be misread, so state it precisely: it is the bill for the platform that hosts most of BFI&rsquo;s origination <em>and</em> the ~26 shared <code>ms-*</code> data-plane services that <strong>both platforms</strong> depend on. <strong>It is not the price of the workflow engine.</strong></div>
+        <div class="note"><h4>Two groupings worth naming, because neither appears as a line</h4><strong>Google Maps platform &mdash; Rp 63,979,414/month</strong> (Geocoding + Places + Maps + Places New). Larger than the entire LOS orchestration tier.<br><br><strong>AI and OCR &mdash; Rp 56,357,315/month</strong> (Vertex AI + Vision + Gemini).</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">Service breakdown, production project</p>
+        <svg class="chart" viewBox="0 0 500 330" role="img" aria-label="August 2026 cost by service, Bravo production project">
+          <!-- scale: 460M -> 300px ; x0=138 -->
+          <g><rect class="bB" x="138" y="6" width="294" height="18"></rect><text class="cl-lab" x="132" y="19" text-anchor="end">Cloud SQL</text><text class="cl-val" x="438" y="19">450.7M &middot; 34.7%</text></g>
+          <g><rect class="bB" x="138" y="30" width="257" height="18"></rect><text class="cl-lab" x="132" y="43" text-anchor="end">Compute Engine</text><text class="cl-val" x="401" y="43">394.4M &middot; 30.3%</text></g>
+          <g><rect class="bBad" x="138" y="54" width="92" height="18"></rect><text class="cl-lab" x="132" y="67" text-anchor="end">Cloud Logging</text><text class="cl-val" x="236" y="67">140.5M &middot; 10.8%</text></g>
+          <g><rect class="bB" x="138" y="78" width="56" height="18"></rect><text class="cl-lab" x="132" y="91" text-anchor="end">Cloud Storage</text><text class="cl-val" x="200" y="91">86.5M</text></g>
+          <g><rect class="bB" x="138" y="102" width="34" height="18"></rect><text class="cl-lab" x="132" y="115" text-anchor="end">Networking</text><text class="cl-val" x="178" y="115">51.9M</text></g>
+          <g><rect class="bB" x="138" y="126" width="33" height="18"></rect><text class="cl-lab" x="132" y="139" text-anchor="end">Memorystore Redis</text><text class="cl-val" x="177" y="139">51.0M</text></g>
+          <g><rect class="bB" x="138" y="150" width="33" height="18"></rect><text class="cl-lab" x="132" y="163" text-anchor="end">Vertex AI</text><text class="cl-val" x="177" y="163">50.4M</text></g>
+          <g><rect class="bA" x="138" y="174" width="20" height="18"></rect><text class="cl-lab" x="132" y="187" text-anchor="end">Geocoding API</text><text class="cl-valA" x="164" y="187">30.8M</text></g>
+          <g><rect class="bA" x="138" y="198" width="11" height="18"></rect><text class="cl-lab" x="132" y="211" text-anchor="end">Places API</text><text class="cl-valA" x="155" y="211">16.3M</text></g>
+          <g><rect class="bA" x="138" y="222" width="6" height="18"></rect><text class="cl-lab" x="132" y="235" text-anchor="end">Maps API</text><text class="cl-valA" x="150" y="235">8.7M</text></g>
+          <g><rect class="bA" x="138" y="246" width="5" height="18"></rect><text class="cl-lab" x="132" y="259" text-anchor="end">Places API (New)</text><text class="cl-valA" x="149" y="259">8.2M</text></g>
+          <g><rect class="bB" x="138" y="270" width="7" height="18"></rect><text class="cl-lab" x="132" y="283" text-anchor="end">Vision + Gemini</text><text class="cl-val" x="151" y="283">6.0M</text></g>
+          <g><rect class="bB" x="138" y="294" width="4" height="18"></rect><text class="cl-lab" x="132" y="307" text-anchor="end">Cloud Run + GKE + 10 more</text><text class="cl-val" x="148" y="307">5.0M</text></g>
+          <line class="cl-ax" x1="138" y1="318" x2="438" y2="318"></line>
+          <text class="cl-lab" x="138" y="330">Rp 0</text><text class="cl-lab" x="438" y="330" text-anchor="end">Rp 460M</text>
+        </svg>
+        <div class="legend"><span><i style="background:var(--bad)"></i>Substantially defect</span><span><i style="background:var(--ac)"></i>Maps platform</span><span><i style="background:var(--ruleS)"></i>Workload</span></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;2 &middot; per-project and per-service totals, complete month, read 2026-09-10</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The tier">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">The orchestration tier: &asymp;Rp58M</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Component</th><th class="n">August 2026, prod</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><code>prod-postgres-bpm-d2bpm</code> &mdash; vCPU + RAM</td><td class="n"><b>Rp 40,930,777</b></td><td>measured today, 30 daily line items</td></tr>
+          <tr><td class="k">&hellip; storage, backup and remaining SKUs</td><td class="n">&asymp; Rp 11,800,000</td><td>balance to the instance total</td></tr>
+          <tr class="tot"><td>Cloud SQL instance, total</td><td class="n">&asymp; Rp 52,700,000</td><td>corroborated</td></tr>
+          <tr><td class="k"><code>ms-bpm</code> pods, production</td><td class="n">&asymp; Rp 5,300,000</td><td>compare-architecture.md &sect;8.4</td></tr>
+          <tr class="tot"><td><b>Production LOS tier</b></td><td class="n"><b>&asymp; Rp 58,000,000</b></td><td>&mdash;</td></tr>
+          <tr><td class="k"><code>ms-bpm</code> pods, SIT + UAT</td><td class="n">&asymp; Rp 12,100,000</td><td>&mdash;</td></tr>
+          <tr class="tot"><td>With non-prod pods</td><td class="n">&asymp; Rp 70,100,000</td><td>SIT/UAT/Sharia <em>databases</em> not separately pulled; true figure is higher</td></tr>
+        </tbody>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note note--ok"><h4>The corroboration matters</h4>The Rp52.7M instance figure was previously derived once; an independent line-item pull today puts <strong>vCPU + RAM alone at Rp40.93M across 30 days</strong>, which is consistent and <strong>rules out an order-of-magnitude error</strong>. The BPM instance is 11.7% of the production project&rsquo;s Cloud SQL bill &mdash; a significant database, but one of many.</div>
+        <div class="stats"><div class="stat"><span class="stat__n plain">4.5<small>%</small></span><span class="stat__l">The tier&rsquo;s share of its own production project &mdash; and 3.1% of Bravo&rsquo;s total GCP spend</span></div></div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Whatever else is true, the workflow engine is <em>not</em> where Bravo&rsquo;s money goes.</p>
+      </div>
+    </div>
+    <p class="eyebrow">Against LORA, like for like</p>
+    <div class="tw"><table>
+      <thead><tr><th></th><th>Bravo LOS tier</th><th>LORA tier</th></tr></thead>
+      <tbody>
+        <tr><td class="k">What is in it</td><td><code>ms-bpm</code> pods (Camunda + all human-task services) + <code>prod-postgres-bpm-d2bpm</code></td><td>LPW/LTW workers, gateway, task service, schema service, Temporal Cloud contract, ArangoDB licence + GKE</td></tr>
+        <tr><td class="k">Monthly, production</td><td><b>&asymp; Rp 58M</b></td><td><b>&asymp; Rp 431M</b></td></tr>
+        <tr><td class="k">Applications, Aug 2026</td><td>76,446 (billing sheet) to &asymp;113k (engine meter)</td><td>171,479 (billing sheet) to &asymp;135k (Temporal meter)</td></tr>
+        <tr class="tot"><td>Per application</td><td class="k"><b>&asymp; Rp 510&ndash;760</b></td><td><b>&asymp; Rp 2,500&ndash;3,200</b></td></tr>
+        <tr><td class="k">Cost shape</td><td>~variable with pods, ~fixed on the database</td><td>~86% fixed: contracts and over-provisioned capacity</td></tr>
+      </tbody></table></div>
+    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">The denominators are the weakest part of both columns.</strong> The billing sheet&rsquo;s platform totals go 109.5k &rarr; 237.5k &rarr; 247.9k in two months, which nothing else supports, and the likeliest reading is that a LORA-originated application is <em>counted again</em> in Bravo when it books at go-live. If that is right, Bravo&rsquo;s denominator is inflated and its true per-application cost is higher than Rp510&ndash;760 &mdash; but not by enough to close a 4&ndash;5&times; gap.</p>
+    <div class="foot"><span class="src">bravo-cost.md &sect;3 &middot; ticket-analysis.md &sect;4.3</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Unit cost">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;4</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Unit cost, and the direction it is moving</h2>
+    <div class="tw"><table>
+      <thead><tr><th></th><th class="n">Jun 2026</th><th class="n">Jul 2026</th><th class="n">Aug 2026</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Bravo applications</td><td class="n">106,722</td><td class="n">117,996</td><td class="n"><b>76,446</b></td><td><span class="dn">&minus;35% in one month</span></td></tr>
+        <tr><td class="k">Bravo support tickets (stable categories)</td><td class="n">705</td><td class="n">644</td><td class="n">751</td><td><span class="dn">+82% since January</span></td></tr>
+        <tr><td class="k">Bravo stuck-application rate</td><td class="n">0.364%</td><td class="n">0.348%</td><td class="n"><b>0.699%</b></td><td><span class="dn">worsening</span></td></tr>
+        <tr><td class="k">LOS tier cost</td><td class="n" colspan="3" style="text-align:center">~flat &mdash; one deployment, one database</td><td>flat</td></tr>
+      </tbody></table></div>
+    <div class="cols">
+      <div class="note note--bad"><h4>Cost per application is rising with no engineering cause</h4>Bravo&rsquo;s platform cost is essentially <strong>fixed</strong> and its volume is falling <strong>by design</strong>. Cost per application therefore rises for every application migrated away. Meanwhile the <em>ops</em> cost per application is rising faster: the stuck-application rate <strong>doubled</strong> between July and August on a shrinking book.</div>
+      <div class="note"><h4>Held loosely: the residual-hard-cases confound</h4>A draining platform keeps the products, branches and edge cases migrated last. That is a real confound and <strong>it is not controlled for.</strong> It is also consistent with a fixed-flowchart architecture under continuing product change.</div>
+      <div class="note note--bad"><h4>Not a floor to plan against</h4>At <strong>40k applications a month</strong> the same &asymp;Rp58M is <strong>&asymp;Rp1,450 each</strong>, and the gap to LORA <em>halves</em> without either team doing anything.</div>
+    </div>
+    <p class="pull">LORA&rsquo;s direction is the opposite, and this is the load-bearing fact for the migration case.
+      <small>LORA&rsquo;s cost is ~86% fixed, so it absorbed <strong>+23% Temporal-metered volume for +3% spend</strong> between June and August. Its marginal cost per additional application is <em>near zero.</em> Bravo&rsquo;s is not zero &mdash; it is pods and database &mdash; but it is small.</small></p>
+    <div class="foot"><span class="src">bravo-cost.md &sect;4</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Drivers ranked">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Cost drivers ranked &mdash; and three that are defects</h2>
+    <div class="tw"><table>
+      <thead><tr><th class="n">#</th><th>Driver</th><th class="n">Monthly</th><th>Nature</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td class="k">Cloud SQL, whole production project</td><td class="n">Rp 450.7M</td><td>workload &mdash; the BPM instance is Rp52.7M of it</td></tr>
+        <tr><td class="n">2</td><td class="k">Compute Engine, whole production project</td><td class="n">Rp 394.4M</td><td>workload</td></tr>
+        <tr><td class="n">3</td><td class="k"><b>Cloud Logging</b></td><td class="n"><span class="dn">Rp 140.5M</span></td><td><b>substantially defect</b></td></tr>
+        <tr><td class="n">4</td><td class="k">Cloud Storage</td><td class="n">Rp 86.5M</td><td>workload</td></tr>
+        <tr><td class="n">5</td><td class="k"><b>Non-production estate</b> (<code>bravo-project-nonprod</code>)</td><td class="n"><span class="dn">Rp 573.5M</span></td><td><b>31% of all Bravo spend &mdash; governance</b></td></tr>
+        <tr><td class="n">6</td><td class="k"><b>Google Maps platform</b></td><td class="n"><span class="dn">Rp 64.0M</span></td><td><b>workload, but see the geolocation defect</b></td></tr>
+        <tr><td class="n">7</td><td class="k">Redis (Memorystore)</td><td class="n">Rp 51.0M</td><td>workload &mdash; also the NIK-keyed cache flagged for PII</td></tr>
+        <tr><td class="n">8</td><td class="k">Vertex AI + Vision + Gemini</td><td class="n">Rp 56.4M</td><td>workload</td></tr>
+      </tbody></table></div>
+    <div class="note"><h4>The 404 storm has a cost tail</h4><code>/bpm/v1/partnership-configuration/feature-configuration</code> returns 404 <strong>266,767 times a week</strong> and <code>PartnershipConfigurationController.getByApplicationId</code> is the <strong>single busiest handler in the service</strong> (73,056 spans in 48 hours). Every one of those is a servlet request, a JPA <code>repository.operation</code> against <code>prod-postgres-bpm-d2bpm</code>, and at least one log line. It is a small slice of a large database bill &mdash; but it is a slice being spent <em>to produce an error</em>, on two-thirds of surveyor sessions.</div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;5</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Defect 1: Logging">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>Defect 1</p>
+    <h2 class="st">Cloud Logging at Rp140.5M is 2.4&times; the orchestration tier</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="lede"><code>prod-ms-bpm</code> alone emits <strong>1,116,135 log lines a week</strong>, of which <strong>525,181 (47%) are ERROR</strong>. Two configuration choices explain most of that, and both are recorded in the code.</p>
+        <div class="note note--bad"><h4><code>loggerLevel: full</code> is set globally on Feign</h4>&hellip;so <strong>every one of the 113 clients logs complete request and response bodies</strong>. That is PEFINDO, SLIK, Dukcapil and CONFINS payloads going into Cloud Logging as JSON &mdash; <em>a cost line and a data-protection exposure in the same breath.</em></div>
+        <div class="note note--bad"><h4>Stack traces are logged one frame per line</h4>The top error &ldquo;patterns&rdquo; in the log stream are literally <code>at org.springframework.&hellip;</code> (874/week) and <code>at java.base/&hellip;</code>. <strong>One exception becomes dozens of billable lines.</strong> And one Camunda job failure produces <em>two</em> lines at <em>two</em> severities. Add <strong>38,198 <code>ENGINE-09004</code> parse warnings a week</strong> &mdash; pods re-parsing all 53 model files on every boot.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <svg class="chart" viewBox="0 0 460 160" role="img" aria-label="Cloud Logging monthly cost compared with the LOS orchestration tier">
+          <g><rect class="bBad" x="4" y="14" width="336" height="34"></rect>
+            <text class="cl-lab" x="4" y="8">Cloud Logging, monthly</text>
+            <text class="cl-val" x="332" y="36" text-anchor="end" fill="var(--paper)">Rp 140.5M</text></g>
+          <g><rect class="bA" x="4" y="72" width="139" height="34"></rect>
+            <text class="cl-lab" x="4" y="66">LOS orchestration tier &mdash; what the migration retires</text>
+            <text class="cl-valA" x="151" y="94">Rp 58.0M</text></g>
+          <g><rect class="bOk" x="4" y="122" width="134" height="20"></rect>
+            <text class="cl-lab" x="4" y="118">Conservative 40% logging cut</text>
+            <text class="cl-val" x="146" y="137">Rp 56M recovered</text></g>
+          <line class="cl-ax" x1="4" y1="152" x2="340" y2="152"></line>
+          <text class="cl-lab" x="4" y="160">Rp 0</text><text class="cl-lab" x="340" y="160" text-anchor="end">Rp 140M</text>
+        </svg>
+        <p class="pull">This is the largest single addressable line in Bravo&rsquo;s bill, it is <em>larger than the thing the migration would retire</em>, and the fix is configuration.
+          <small>Even a conservative 40% reduction is &asymp;Rp56M/month &mdash; <strong>the whole LOS orchestration tier, recovered without migrating anything.</strong></small></p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;5 Defect 1 &middot; compare-architecture.md Appendix C &middot; bravo-testing.md &sect;4</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Defects 2 and 3">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>Defects 2 and 3</p>
+    <h2 class="st">Rp64M of Maps against failed geolocation &mdash; and 31% of spend nobody has opened</h2>
+    <div class="cols">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="eyebrow"><b>Defect 2</b> &middot; Rp64.0M of Maps against 20,690 geolocation failures a week</p>
+        <p class="lede" style="font-size:14.5px">The Geocoding, Places and Maps APIs are <strong>surveyor-platform costs</strong>: a field surveyor&rsquo;s device resolving addresses and capturing position. Meanwhile RUM on the Surveyor Platform records <code>Error getting location: "[GeolocationPositionError]"</code> <strong>10,365 times</strong> and <code>Unable to get current position</code> <strong>10,325 times</strong> in seven days.</p>
+        <div class="note note--bad"><h4>Not claimed as causal</h4>These two facts have not been connected before, and a browser geolocation failure and a server-side Maps call are <em>different layers</em>. But <strong>Rp64M/month is being spent on location services on a console where location capture fails ~20,700 times a week</strong>, and nobody has checked whether the failed attempts are also <em>billed</em> attempts. That is a day of work with a real number attached.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="eyebrow"><b>Defect 3</b> &middot; Non-production is 31% of Bravo&rsquo;s spend</p>
+        <div class="stats"><div class="stat"><span class="stat__n neg">0.44</span><span class="stat__l">Non-prod to prod ratio &mdash; Rp573.5M against Rp1,300.3M</span></div></div>
+        <p class="lede" style="font-size:14.5px">For comparison, roughly half of LORA&rsquo;s task-service and ArangoDB GKE lines are SIT/UAT &mdash; but LORA&rsquo;s non-prod sits inside a much smaller total.</p>
+        <div class="note note--bad"><h4>Never examined</h4><strong>Nothing in this analysis establishes what is running in <code>bravo-project-nonprod</code> or whether it should be.</strong> At this size it is the <em>second-largest lever available</em> and it has never been looked at.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;5 Defects 2&ndash;3 &middot; bravo-observability.md &sect;6</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Levers">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>What to do</p>
+    <h2 class="st">What the levers are worth</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Lever</th><th class="n">Worth / month</th><th>Available</th><th>Confidence</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Cut Cloud Logging</b> &mdash; disable global Feign body logging, log exceptions as one event, stop re-parsing warnings</td><td class="n"><span class="hi">Rp 50&ndash;90M</span></td><td><b>now</b></td><td><span class="up">high</span> &mdash; configuration only</td></tr>
+        <tr><td class="k"><b>Review <code>bravo-project-nonprod</code></b></td><td class="n">unknown, up to <b>Rp 573.5M</b></td><td><b>now</b></td><td><span class="dn">low</span> &mdash; never examined</td></tr>
+        <tr><td class="k"><b>Audit the Maps spend against failed geolocation</b></td><td class="n">up to <b>Rp 64.0M</b></td><td><b>now</b></td><td><span class="dn">low</span> &mdash; needs a day of work first</td></tr>
+        <tr><td class="k">Shorten Camunda history TTL from 90 d, or drop history level from <code>full</code></td><td class="n">part of Rp 52.7M</td><td>now, with a data-retention decision</td><td>medium &mdash; it is the audit trail after <code>application_status_log</code></td></tr>
+        <tr><td class="k">Fix the <code>feature-configuration</code> 404</td><td class="n">small</td><td>now</td><td><span class="up">high</span> &mdash; removes 266,767 wasted DB round trips/week</td></tr>
+        <tr class="tot"><td><b>Retire the Bravo LOS tier</b> (the migration)</td><td class="n"><b>Rp 58M prod, Rp 70&ndash;100M with non-prod</b></td><td>when the migration finishes</td><td><span class="up">high</span></td></tr>
+        <tr><td class="k" style="color:var(--ink3)"><em>For scale: the entire LORA Temporal Actions programme</em></td><td class="n" style="color:var(--ink3)"><em>Rp 7.2M</em></td><td style="color:var(--ink3)"><em>now</em></td><td style="color:var(--ink3)"><em>high</em></td></tr>
+      </tbody></table></div>
+    <p class="lede">Two conclusions follow, and they are uncomfortable together.</p>
+    <div class="cols">
+      <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">The migration is still the single largest <em>structural</em> lever &mdash; and it is not the largest lever available <em>this quarter.</em>
+        <small>Cloud Logging is bigger, available now, and depends on nothing. <strong>A team that fixed logging configuration alone would save more in September than retiring the entire Bravo LOS tier will save when the migration completes.</strong></small></p>
+      <div class="note note--bad"><h4>And retiring Bravo does not make LORA&rsquo;s tier cheaper</h4>LORA&rsquo;s &asymp;Rp431M is 86% fixed, and three of its four cost levers are <strong>time-locked</strong>: ~31% of node cost sits on a 3-year N2 CPU commitment; the Temporal commitment is renegotiable at <strong>~March 2027</strong>; and the five idle worker versions cannot retire while ~half of LORA&rsquo;s loans never reach a terminal state &mdash; a reliability defect presenting as a cost line. <strong>The migration&rsquo;s cost case is <em>one platform instead of two, at near-zero marginal cost per application</em> &mdash; not <em>the cheaper platform wins.</em></strong></div>
+    </div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;6</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Recommendations">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
+    <h2 class="st">Eight actions</h2>
+    <div class="recs">
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Cut the Cloud Logging bill <span class="sz">&middot; S, do this first &mdash; Rp50&ndash;90M/month</span></b>Turn off Feign <code>loggerLevel: full</code> globally and enable it per-client only where needed &mdash; this also removes upstream request bodies containing customer data from Cloud Logging. Log exceptions as a single structured event rather than one line per stack frame. Stop <code>ENGINE-09004</code> recurring by fixing the models. <b>The largest, fastest, lowest-risk saving in the document.</b></span></div>
+      <div class="rec first"><span class="no">2</span><span class="tx"><b>Open <code>bravo-project-nonprod</code> <span class="sz">&middot; S to look &mdash; up to Rp573.5M/month</span></b>31% of Bravo&rsquo;s spend has never been examined in this pack. Produce a service-level breakdown and a list of what is running and why. <b>Even a 20% reduction outbids the migration lever.</b></span></div>
+      <div class="rec"><span class="no">3</span><span class="tx"><b>Check whether failed geolocation attempts are billed <span class="sz">&middot; S &mdash; up to Rp64.0M/month</span></b>Rp64M of Maps APIs on a console with 20,690 geolocation failures a week. Establish whether the two are related before deciding anything.</span></div>
+      <div class="rec"><span class="no">4</span><span class="tx"><b>Decide the Camunda history question explicitly <span class="sz">&middot; S&ndash;M</span></b>History level <code>full</code> with <code>P90D</code> on Cloud SQL is a real cost, and after day 91 the only remaining record of what happened to a loan is the trigger-written <code>application_status_log</code>. Either shorten the TTL and accept that, or keep it and stop calling it a cost problem &mdash; but <b>make it a decision rather than a default.</b></span></div>
+      <div class="rec"><span class="no">5</span><span class="tx"><b>Fix the <code>feature-configuration</code> 404 <span class="sz">&middot; S</span></b>266,767 wasted round trips a week through the busiest handler in the service. Small money, real load, and a live defect regardless.</span></div>
+      <div class="rec"><span class="no">6</span><span class="tx"><b>Get the billing owner to define the application counts <span class="sz">&middot; Days</span></b><b>The single largest source of error in the whole pack.</b> Every per-application figure here is a verified numerator over a disputed denominator. The <code>Bravo total app</code> and <code>Lora total app</code> columns need definitions &mdash; specifically on whether a LORA-originated application is counted again in Bravo at go-live.</span></div>
+      <div class="rec"><span class="no">7</span><span class="tx"><b>Publish the LOS tier as a standing line <span class="sz">&middot; S</span></b>&asymp;Rp58M is the number that matters for the migration decision, and it currently has to be reassembled by hand from line items each time. A saved FinOps view makes the migration&rsquo;s value trackable month to month.</span></div>
+      <div class="rec"><span class="no">8</span><span class="tx"><b>Do not quote Rp1.6B as the migration saving <span class="sz">&middot; S, documentation</span></b>The Bravo estate is Rp1.887B and most of it is the shared data plane LORA depends on and which does not retire. The figure is <b>Rp58M prod, Rp70&ndash;100M with non-prod</b>. That claim was already withdrawn once; it should not come back.</span></div>
+    </div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;Recommended actions</span><span>11</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="30/60/90">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Plan</p>
+    <h2 class="st">30, 60, 90 days</h2>
+    <p class="lede">Eight recommendations, phased. Most of this is <strong>FinOps and Platform time, not Squad S&amp;U engineering</strong> &mdash; which matters, because the largest saving here is configuration, not migration.</p>
+    <div class="cols">
+      <div class="note note--bad"><h4>Sequencing rule</h4><strong>Money that is configuration comes before money that is migration.</strong> Cloud Logging at <strong>Rp140.5M/month is 2.4&times; the entire &asymp;Rp58M tier the migration would retire</strong>, and it is a config change available now. It starts in week 1. <strong>The migration lever is not in this plan at all</strong> &mdash; it lands when the migration finishes, and nothing here accelerates it.</div>
+      <div class="note"><h4>Shared with other documents</h4>Recommendation 5 is also <strong>bravo-observability.md rec 1</strong> and <strong>bravo-delivery.md rec 1</strong>; recommendation 3 pairs with <strong>bravo-delivery.md rec 2</strong>. Phased identically &mdash; do them once.</div>
+    </div>
+    <div class="phases">
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">Start the largest saving, fix the denominators</span></div>
+        <ul>
+          <li><span class="r">1</span><span><b>Turn off global Feign <code>loggerLevel: full</code></b>; re-enable per client only where genuinely needed. <em>S&amp;U + Platform &middot; 3 d.</em> <b>Largest single saving in the pack.</b> Upstream request bodies stop entering Cloud Logging &mdash; a cost line and a data-protection exposure closed together. Drop visible on the September bill.</span></li>
+          <li><span class="r">6</span><span><b>Define <code>Bravo total app</code> and <code>Lora total app</code></b> &mdash; specifically whether a LORA-originated application is recounted in Bravo at go-live. <em>FinOps + billing owner &middot; 2 d.</em></span></li>
+          <li><span class="r">5</span><span><b>Fix the <code>feature-configuration</code> 404.</b> <em>S&amp;U &middot; 2 d</em> (investigation is in the observability plan).</span></li>
+          <li><span class="r">7</span><span><b>Publish the LOS tier as a standing FinOps view.</b> <em>FinOps &middot; 1 d.</em> &asymp;Rp58M becomes a tracked chart.</span></li>
+          <li><span class="r">2</span><span><b>First look at <code>bravo-project-nonprod</code></b> &mdash; service-level breakdown of Rp573.5M/month. <em>FinOps + Platform &middot; 2 d.</em></span></li>
+          <li><span class="r">8</span><span><b>Correct the Rp1.6B figure</b> wherever it survives in slides, decks and briefing notes. <em>EM &middot; 0.5 d.</em></span></li>
+        </ul>
+      </div>
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">Finish the cut, answer the open questions</span></div>
+        <ul>
+          <li><span class="r">1</span><span><b>Log exceptions as one structured event</b>, not one line per stack frame; stop <code>ENGINE-09004</code> recurring by fixing the models. <em>S&amp;U &middot; 3 d.</em> Completes the <b>Rp50&ndash;90M/month</b> saving; ERROR share falls from 47% and the log stream becomes countable.</span></li>
+          <li><span class="r">2</span><span><b><code>bravo-project-nonprod</code> reduction plan.</b> <em>FinOps + Platform &middot; 3 d.</em> A decommissioning plan, or a written rationale for Rp573.5M/month.</span></li>
+          <li><span class="r">3</span><span><b>Audit Maps spend against failed geolocation.</b> <em>FinOps + S&amp;U &middot; 2 d.</em> Either a defect is fixed and money returns, or the spend is justified and stops being an open question.</span></li>
+          <li><span class="r">4</span><span><b>Decide the Camunda history question.</b> <em>S&amp;U + Compliance &middot; 2 d.</em> A recorded decision rather than a default.</span></li>
+        </ul>
+      </div>
+      <div class="ph ph--last">
+        <div class="ph__h"><span class="ph__d">Days 61&ndash;90</span><span class="ph__t">Verify the savings landed</span></div>
+        <ul>
+          <li><span class="r">&#10003;</span><span>No new cost work. <b>Phase 3 is verification, because a saving that is not measured on a subsequent invoice is a plan, not a saving.</b></span></li>
+          <li><span class="r">1</span><span>September and October <b>Cloud Logging</b> against the August baseline of Rp140.5M &mdash; target Rp50&ndash;90M/month reduction.</span></li>
+          <li><span class="r">7</span><span>The <b>LOS tier standing view</b> across three months &mdash; confirm &asymp;Rp58M and its trend as volume drains.</span></li>
+          <li><span class="r">6</span><span><b>Per-application cost recomputed</b> on the agreed denominators &mdash; the first non-provisional unit cost in the pack.</span></li>
+        </ul>
+      </div>
+      <div class="ph ph--last">
+        <div class="ph__h"><span class="ph__d">Deferred</span><span class="ph__t">With triggers</span></div>
+        <ul>
+          <li><span class="r">4</span><span><b>Camunda history implementation.</b> A data-retention change needing compliance sign-off, not an engineering task. <em>Trigger: after the phase-2 decision.</em></span></li>
+          <li><span class="r">2</span><span><b><code>bravo-project-nonprod</code> execution.</b> Phase 2 produces the plan; execution depends on what it finds. <em>Trigger: after the phase-2 plan.</em></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-cost.md &sect;Plan: 30, 60, 90 days</span><span>12</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What changes">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Outcome</p>
+    <h2 class="st">What changes when this is done</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Recommendation</th><th>Example when done</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Logging configuration fixed</td><td>Rp50&ndash;90M/month recovered &mdash; more than the migration lever &mdash; and PEFINDO/SLIK/Dukcapil/CONFINS request bodies stop landing in Cloud Logging.</td></tr>
+        <tr><td class="k">Non-prod examined</td><td>The second-largest number in Bravo&rsquo;s bill has an owner and a rationale, or a decommissioning plan.</td></tr>
+        <tr><td class="k">Maps spend explained</td><td>Either a defect is fixed and Rp-tens-of-millions come back, or the spend is justified and stops being an open question.</td></tr>
+        <tr><td class="k">History decision made</td><td>&ldquo;What happened to this loan on day 120&rdquo; has a documented answer instead of an accidental one.</td></tr>
+        <tr><td class="k">Application counts defined</td><td>Every rate in this pack &mdash; cost per application, intervention rate, zero-intervention completion &mdash; stops being provisional.</td></tr>
+        <tr><td class="k">LOS tier tracked</td><td>The migration&rsquo;s financial value is a chart, not an argument.</td></tr>
+        <tr><td class="k">Rp1.6B retired from the vocabulary</td><td>Nobody plans against a saving that was withdrawn in September 2026.</td></tr>
+      </tbody></table></div>
+    <p class="pull">The cheapest thing on this list is worth more than the migration, and it is a configuration change.</p>
+    <div class="foot"><span class="src">bravo-cost.md &middot; related: bravo-delivery.md, bravo-observability.md &sect;3 &sect;6, bravo-testing.md &sect;4, compare-architecture.md &sect;8.4, ticket-analysis.md &sect;4.3</span><span>13</span></div>
+  </div>
+</section>

@@ -11,7 +11,8 @@
 |---|---|
 | **1. The problem** | [Verdicts](#verdicts) |
 | **2. What we found** | [Inventory](#1-inventory-1457-test-files-4-of-which-run-a-process) · **[Where the business logic actually is](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it)** · **[NDF4W vs NDF2W](#3-no-test-can-say-this-change-hits-ndf2w--and-one-bridge-makes-it-worse)** · [Validation happens in production](#4-validation-happens-in-production-38198-times-a-week) · [The health assumption](#5-not-5xx--healthy) · [The nightly run that does not exist](#6-the-nightly-e2e-that-does-not-exist) |
-| **3. What to do** | [Recommended actions](#recommended-actions) · [Plan: 30/60/90](#plan-30-60-90-days) · [What changes when this is done](#what-changes-when-this-is-done) |
+| **3. The strategy** | **[Layers L0–L8](#7-a-test-strategy-for-bravo--layers-l0l8)** · [Where the boundary is](#71-where-bravos-test-boundary-is) · [The nine layers](#72-the-nine-layers) · [Regression T1–T12](#73-the-regression-suite-t1t12) · [Negative N0–N12](#74-the-negative-suite-n0n12) · [The budget](#75-the-budget-400-cases-must-not-mean-400-process-runs) |
+| **4. What to do** | [Recommended actions](#recommended-actions) · [Plan: 30/60/90](#plan-30-60-90-days) · [What changes when this is done](#what-changes-when-this-is-done) |
 
 ---
 
@@ -200,6 +201,131 @@ That is the finding. It is not that Bravo's nightly run is red — it is that th
 
 ---
 
+## 7. A test strategy for Bravo — layers L0–L8
+
+Sections 1–6 are a diagnosis. This section is the architecture, because the diagnosis on its own has a failure mode: nine recommendations with no ladder to hang them on become nine tickets that each get argued separately. LORA's [lora-super-test](../../lora-workspace/docs/production-findings/testing/lora-super-test.html) does have a ladder — five `_`-prefixed layers (`_whitebox`, `_canary`, `_contract`, `_widgets`, `_utility`), a four-row cost budget, and a Zephyr tag per case — and its own account of *why*: full-SIT E2E "tested their uptime, not our code". Bravo has no equivalent structure at all. What follows is the Bravo version, derived from Bravo's own decision surface rather than copied from LORA's.
+
+**Two design rules, both taken from LORA and both still true here.**
+
+1. **Test only what you control; own the answers at the boundary.** LORA's boundary is one gateway envelope. Bravo's is different, and §7.1 works out where it actually sits.
+2. **A change must fail in the cheapest layer that can see it.** LORA states this as a rule of thumb; for Bravo it is the whole point, because Bravo's expensive layer — a Camunda process test — is the *only* layer that exists for orchestration today, and it exists four times.
+
+### 7.1 Where Bravo's test boundary is
+
+| | LORA | Bravo |
+|---|---|---|
+| Upstream call shape | one envelope, `POST /proxy/inner/request-v1`, naming its schema | **113 typed `@FeignClient` interfaces**, one per upstream |
+| Interception point | one mock matching on `api_data_schema` answers as ~300 upstreams | 113 stub sets — **wider**, but each is a typed Java interface |
+| Stub drift caught by | `check:stubs` against the live LSS schema registry | **the compiler.** Bravo has no schema registry ([§4](#4-validation-happens-in-production-38198-times-a-week)) — but a stub built from the Feign DTO *cannot* drift without failing the build |
+| Fail-on-demand today | per-run, a spec steers one answer with a 2-line delta | **not possible.** `bravo-mock-service` (Mockoon, `*.mock.bravo.bfi.co.id`) is static and shared — the same weakness LORA names when it explains why it built its own |
+
+**The finding in that table is the last two rows, and they run in opposite directions.** Bravo's boundary is wider than LORA's and needs no schema registry to stay honest, because 113 typed interfaces are checked by `javac` where LORA's 300 JSON envelopes need a bespoke `check:stubs` script. That is a real, unearned advantage. But Bravo has **no way to make an upstream fail on demand**, and §7.3 is the list of things that costs.
+
+### 7.2 The nine layers
+
+Ordered by cost. Each row states what only that layer can catch — a layer that catches nothing a cheaper one sees does not belong on the ladder.
+
+| Layer | What it owns | What **only** it can catch | Cost | Today |
+|---|---|---|---|---|
+| **L0** · model lint | All 53 BPMN + 3 DMN parsed at build, no Spring context | `ENGINE-09004` (38,198/wk in production); the **5 bare `PT4M`** retry cycles among 186 declarations; the **4 YAML process keys that are not deployed processes**; the **56 `callActivity` with no `calledElementBinding`**; orphans among 70 error definitions and 190 escalations | **seconds** | **none** |
+| **L1** · config-table validation | The six-column selector, the `productId → key` YAML map, the per-application jsonb matrix, 1,350 Flyway migrations | Every `productId` resolves to a deployed process; every activity named in a jsonb matrix exists among the **274 distinct bean names**; no `WorkflowMasterConfig` row points at nothing | **seconds** | **none** |
+| **L2** · Java unit | The 776 Mockito tests that exist. `BaseUnderwritingApprovalServiceImpl` (4,604 lines), the 50 `customErrorHandle` bodies | Ordinary Java defects. **This layer is fine** — it is the one Bravo already has | ms | **776 files** |
+| **L3** · gateway-expression eval | Every `conditionExpression` string, evaluated through `ExpressionManager` against a variable map — **no process started** | Which branch a given variable set takes, across **137 exclusive gateways in `ndf4w.bpmn` alone** and ≈1.3 conditions per service task. **This is the layer that turns Bravo's routing from data back into code** | **ms** | **none** |
+| **L4** · delegate contract | Each of the **276 `JavaDelegate`** classes against stubbed Feign clients | What an activity writes to process variables; which `customErrorHandle` fires on last attempt — including the anti-fraud `BYPASS` credit decision | **ms** | partial, inside L2 |
+| **L5** · process fragment | One sub-process deployed and driven with `camunda-bpm-assert` — unified underwriting alone, unified KYC alone | Retry exhaustion, incident creation, escalation across one boundary, the forced-termination path | **~1 s** | **4 files** |
+| **L6** · product-matrix journey | One process test per generation × product, start → go-live, upstreams stubbed | **"Does this change reach NDF2W?"** — the question [§3](#3-no-test-can-say-this-change-hits-ndf2w--and-one-bridge-makes-it-worse) says nothing answers. And the `ndf2w.bpmn` → unified-underwriting bridge | **~10 s** | **none** |
+| **L7** · console contract + widget | Snapshot the response shape of the **9+ `FormTab` sub-resources** each console pane depends on; one live test per shared component | A console change that 404s a pane; the shape drift behind `Cannot read properties of null` (6,445/wk) | **~2 s** | **none** |
+| **L8** · production canary | A Synthetics multi-step API test that creates a real application; the per-console RUM error-per-view SLO | That origination works *right now*, on real infrastructure, with real upstreams | **minutes, scheduled** | **8 DNS/SSL checks** |
+
+**Six of the nine layers do not exist.** L2 is healthy and L5 exists four times. The two layers that would have caught the most — **L0 and L3, both of which run in milliseconds** — are the two Bravo has never built, and between them they cover every finding in [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it): the XML, the YAML and the config rows that Mockito cannot reach are all reachable *without the engine*.
+
+**The routing rule, as a table.** When something breaks, this is the layer that should have caught it.
+
+| Symptom | Cheapest layer that can see it |
+|---|---|
+| A gateway has no default flow | **L0** |
+| A retry cycle does not repeat | **L0** |
+| A new product has no deployed process | **L1** |
+| A jsonb matrix names an activity that no longer exists | **L1** |
+| An approval-ladder rule is wrong | **L2** |
+| **A change reroutes one product and not another** | **L3** |
+| An activity writes the wrong variable | **L4** |
+| An upstream failure does not create an incident | **L5** |
+| **A unified edit changes an in-flight NDF2W path** | **L6** |
+| A console pane 404s | **L7** |
+| Origination is broken in production | **L8** |
+
+Read that column against the "Today" column above: **eight of eleven symptoms have no layer at all**, and the two marked in bold are the two with the largest production exposure in this document.
+
+### 7.3 The regression suite, T1–T12
+
+A regression test exists because something happened. Every case below is anchored to evidence in this pack, and the layer column says where it belongs — not one of them needs a browser.
+
+| # | Regression | Because | Layer |
+|---|---|---|---|
+| **T1** | `Gateway_X_KYC_Verified` has an explicit default flow | The engine is **guessing** it in production, on the KYC path, across two deployed versions | L0 |
+| **T2** | An NDF2W instance enters a **pinned** underwriting definition version | `ndf2w.bpmn` bridges into unified underwriting; 56 call activities are unpinned; **248,685 applications / 90 d** | L6 |
+| **T3** | Every `failedJobRetryTimeCycle` is a valid `Rn/PTn` | 186 declarations, 30 distinct values, **5 bare `PT4M`** that do not repeat | L0 |
+| **T4** | Anti-fraud degrades to `BYPASS` **only** on the last attempt | A credit-policy decision reached by an exception handler, verified by nothing | L4 + L5 |
+| **T5** | `feature-configuration` returns its documented status | 266,767 404s/wk across **69% of surveyor sessions**, on the busiest handler in the service | L7 |
+| **T6** | Every key in the `productId → process` map is a deployed process | The map contains **four that are not** | L1 |
+| **T7** | The approval ladder resolves after a role rename | `BLCS-4683` renamed NMH→GMB; `BLCS-4811` is reversing it | L1 + L2 |
+| **T8** | The IAM token is refreshed before `/permission/assigned` | **8,533 `401`s/wk at 1.07 per trace** — a broad auth defect, not a retry loop | L4 |
+| **T9** | Adding a product touches all five discrimination mechanisms **consistently** | Product 15 (DF2W Sharia) touched all five, behind flags, untested | L1 + L3 |
+| **T10** | Position capture succeeds, or degrades explicitly | ~20,700 geolocation failures/wk on a field-staff console | L7 |
+| **T11** | The `FormTab` v2 pane set matches its snapshot | 9+ sub-resources; **four are the top sources of the 404 storm** | L7 |
+| **T12** | Every monitor's `service:` tag matches a registered service | Four Sharia monitors filter `prod-sharia-bpm` against `prod-sharia-bpm-sharia` and **cannot fire** | L0 (lint the monitor definitions) |
+
+### 7.4 The negative suite, N0–N12
+
+**This is the largest single gap, and it is the one thing on the ladder Bravo cannot build without new infrastructure.** LORA can make any upstream fail per run with a two-line delta. Bravo cannot make an upstream fail at all: `bravo-mock-service` is static and shared, so *"ask anti-fraud to reject"* is not a thing a Bravo test can do. That is why 50 `customErrorHandle` implementations, 70 error definitions and 190 escalations are entirely unexercised.
+
+| # | Force this | Assert | Layer |
+|---|---|---|---|
+| **N0** | Upstream returns 5xx | retries per `failedJobRetryTimeCycle`, then an incident is created and the loan parks | L5 |
+| **N1** | Upstream returns `401` | the token is refreshed and the call retried — not counted as a terminal failure | L4 |
+| **N2** | Upstream returns `404` | treated as "absent", not as an error — the live repeat-order case, 5,070/wk | L4 |
+| **N3** | Upstream returns `400` | a contract violation is terminal and named, not retried 186 times | L4 |
+| **N4** | Upstream never answers | the **300 s global `readTimeout`** is not the effective timeout for a job-executor thread | L4 |
+| **N5** | Retries exhaust | the correct one of **50** `customErrorHandle` implementations fires | L4 + L5 |
+| **N6** | Anti-fraud fails 3× | degrade to `BYPASS` — and **it is recorded as a credit decision**, not a log line | L5 |
+| **N7** | Upstream returns a well-formed payload with a wrong-typed field | rejected at the client, not written to the aggregate | L4 |
+| **N8** | The jsonb matrix disables a **mandatory** activity | the process refuses to start, rather than skipping a required check | L1 + L5 |
+| **N9** | A child sub-process throws | escalation reaches the parent through one of the 190 escalation paths | L5 |
+| **N10** | A loan is force-terminated mid-flight | status and `application_status_log` are consistent; no orphan job | L5 |
+| **N11** | The same application starts twice | idempotent — one process instance, `RetryLog` unambiguous | L4 |
+| **N12** | Two approvers decide concurrently | one wins; the ladder does not skip a tier | L2 |
+
+**N0–N12 need one piece of infrastructure**, and it is the same piece LORA built: a **per-run stub layer in front of the 113 Feign clients** where a test steers one answer and everything else comes from a shared baseline. Bravo's version is cheaper than LORA's, for the reason in §7.1 — the stubs are generated from typed interfaces, so there is no schema registry to keep in sync and no `check:stubs` script to write.
+
+### 7.5 The budget: 400 cases must not mean 400 process runs
+
+LORA's arithmetic applies unchanged: 400 cases × a 2-minute walk is 13 hours, and a suite nobody can run in a sprint is a suite nobody runs. The same 400 cases distributed down the ladder:
+
+| Layer band | Cases | Each | When | Wall clock |
+|---|---:|---:|---|---:|
+| L0 + L1 — lint and config | ~60 | ~20 ms | **every build** | **~2 s** |
+| L2 + L3 + L4 — Java, expressions, delegates | ~1,100 | ~5 ms | every build | ~15 s |
+| L5 — process fragments | ~60 | ~1 s | every build | ~1 min |
+| L6 — product-matrix journeys | **5** | ~10 s | every merge | ~1 min |
+| L7 — console contracts | ~40 | ~2 s | every merge | ~1.5 min |
+| L8 — canary | 1 | ~3 min | hourly | — |
+| | | | **per-merge total** | **≈4 min** |
+
+Five L6 journeys is the whole product matrix: NDF2W, NDF4W, RO, unified DF4W, DF2W. **Five tests would cover the paradigm's happy path across 100% of production volume**, against the zero that cover it today — and they are the *expensive* layer, deliberately kept to five, because L0–L4 catch everything that does not need the engine.
+
+### 7.6 Three rules that keep it from rotting
+
+Taken from LORA's review criteria, which reject exactly three things in a spec diff. Bravo's equivalents:
+
+1. **No hand-written expectation lists.** LORA derives its 24-stage activity plan from real traces because hand-written lists "were proven wrong twice". Bravo's equivalent is the activity set per product: **derive it from `act_hi_actinst`, never type it.** This depends on the job-executor spans in [bravo-observability.md](bravo-observability.md) rec 8 — without them, a derived Bravo expectation has no source.
+2. **No selectors or field paths in a test.** Bravo's version: no `productId == 1L` literal in a test. A test asks the config layer which product it is, so a test cannot encode the sixth discrimination mechanism.
+3. **No stub copied into a case.** Name a baseline bundle, state only the delta. This is what makes N0–N12 two lines each instead of a fixture per case.
+
+**And one rule that is Bravo's alone:** a snapshot is never auto-recorded. LORA states the reason precisely — if the first passing run records the baseline, "that day's form — bugs included — would silently become the truth". For Bravo the same trap is larger, because L0 would otherwise record 38,198 parse warnings a week as the approved state of the models.
+
+---
+
 ## Recommended actions
 
 Ordered by what would have caught something. Items 1–3 are days of work each.
@@ -213,12 +339,32 @@ Ordered by what would have caught something. Items 1–3 are days of work each.
 7. **Turn on a coverage gate, and correct the `makefile` (S).** JaCoCo `check` with a floor at the current level, ratcheting. Fix `-Dspring-boot.run.profiles`, which surefire ignores — the tests are not running under the profile the build claims.
 8. **Add one Synthetics multi-step API test for the origination journey (S–M).** Not a replacement for a process test; a canary. Today the only continuous evidence that Bravo works is a support-ticket queue.
 9. **Send CI events to Datadog (S).** Zero pipeline events exist for either platform, so no one can answer "is the build getting slower, flakier, redder". This is a configuration change and it benefits both teams.
+10. **Build the per-run stub layer in front of the 113 Feign clients (M — this unblocks N0–N12).** Today no Bravo test can make an upstream fail, so 50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths are unexercised. `bravo-mock-service` (Mockoon) does not solve it: it is static and shared, which is precisely why LORA built its own interceptor rather than use it. Bravo's version is the cheaper one to build — stubs generate from typed Feign interfaces, so there is no schema registry to sync and no `check:stubs` script to write ([§7.1](#71-where-bravos-test-boundary-is)).
+11. **Derive expectations, never type them (S, and it is a policy not a task).** LORA derives its activity plan from real traces because hand-written lists were proven wrong twice. Bravo's equivalent is the per-product activity set, derived from `act_hi_actinst` — which needs the job-executor spans in [bravo-observability.md](bravo-observability.md) recommendation 8 first. Until then, an L6 journey's expected activity set has no trustworthy source, and that is the one dependency this document has on another.
+
+### Where each recommendation lands on the ladder
+
+| Rec | Layer | Note |
+|---|---|---|
+| 2 — fail the build on `ENGINE-09004` | **L0** | Also delivers T1, T3, T12 in the same test harness |
+| 7 — coverage gate, `makefile` fix | **L2** | Gates the layer that is already healthy |
+| 6 — product blast radius in the diff | **L1 + L3** | Falls out of L1 and L3 almost for free once they exist — the reachable `productId` set *is* the L3 evaluation |
+| 5 — retry and degrade policies | **L0** (validity) **+ L4/L5** (behaviour) | Part 1 is L0 and costs 4 days; part 2 needs L5 *and* rec 10 |
+| 1 — pin `calledElementBinding` | **L0** (detect) **→ L6** (prove) | L0 finds all 56 in seconds; only L6 proves the fix |
+| 4 — end-to-end process test per generation | **L6** | Five journeys, not two — the full product matrix |
+| 3 — 4xx in the health gate | **L7** | With T5, T10, T11 |
+| 8 — Synthetics origination canary | **L8** | — |
+| 9 — CI events to Datadog | — | Infrastructure for all of it: today no layer's runtime is measurable |
+| **10 — per-run stub layer** | **enables L4, L5** | The whole of N0–N12 |
+| **11 — derive, don't type** | **policy for L6** | Blocked on observability rec 8 |
+
+**The ordering this implies is different from the list above, and better.** Recommendation 2 is written as "fail the build on `ENGINE-09004`" — but the harness it needs *is* L0, and once L0 exists it also delivers T1, T3, T12 and the detection half of recommendation 1, in the same few days. **L0 and L1 are the cheapest work in this document and they close the largest number of findings.** They should be first, ahead of the item currently marked highest-value.
 
 ---
 
 ## Plan: 30, 60, 90 days
 
-Nine recommendations, phased against ~25 person-days a month of Squad S&U time (the allocation set by [bravo-people.md](bravo-people.md) recommendation 4).
+Eleven recommendations, phased against ~25 person-days a month of Squad S&U time (the allocation set by [bravo-people.md](bravo-people.md) recommendation 4). **The phases are the ladder in [§7.2](#72-the-nine-layers), built cheapest-first** — L0 and L1 in month 1, L3 and L4 in month 2, L5 and L6 in month 3. That ordering is not a preference: L6 is the only layer that can prove the `calledElementBinding` fix, and L0 is the only layer that can find all 56 call sites in seconds.
 
 **Sequencing rule for this document: investigate before touching anything that reaches in-flight loans.** Recommendation 1 is the highest-value item here and the most dangerous to rush — unpinned `callActivity` binding affects **248,685 NDF2W applications per 90 days**. It is therefore read-only in month 1, a decision in month 2, and a change in month 3. Nothing else in this plan alters in-flight behaviour at all.
 
@@ -230,6 +376,8 @@ Nine recommendations, phased against ~25 person-days a month of Squad S&U time (
 |---|---|---|---|---|
 | **`calledElementBinding` investigation — read-only.** Enumerate all 56 `callActivity` elements; map which children an NDF2W instance reaches; quantify the exposure of the `ndf2w.bpmn` → unified-underwriting bridge | 1 | S&U | 5 d | A written exposure note. **No code change this phase** |
 | **Send CI pipeline events to Datadog** | 9 | Platform | 2 d | Zero pipeline events becomes a build-health number, for both platforms |
+| **Build L0 — model lint.** All 53 BPMN + 3 DMN parsed at build with `camunda-bpm-assert`, already in the pom. Delivers rec 2, plus **T1** (the KYC gateway the engine is guessing), **T3** (the 5 bare `PT4M` cycles), **T12** (monitor tag mismatch) and the *detection* half of rec 1 (all 56 unpinned call activities) | 2, 5, 1 | S&U | 4 d | 38,198 production parse warnings a week become a red build that runs in **seconds**. The cheapest layer in the document, and the one that closes the most findings |
+| **Build L1 — config-table validation.** Every `productId` resolves to a deployed process; every activity in a jsonb matrix exists among the 274 bean names; no orphan `WorkflowMasterConfig` rows | 6 | S&U | 3 d | The **four YAML keys that are not deployed processes** fail the build. **T6**, **T7** and **T9** land here |
 
 ### Days 31–60 — put the gates in
 
@@ -240,12 +388,14 @@ Nine recommendations, phased against ~25 person-days a month of Squad S&U time (
 | **Coverage gate + `makefile` fix.** JaCoCo `check` at the current floor, ratcheting; correct `-Dspring-boot.run.profiles`, which surefire ignores | 7 | S&U | 2 d | Coverage cannot fall, and tests run under the profile the build claims |
 | **Synthetics multi-step API test for origination** — a canary, not a replacement for a process test | 8 | QA | 3 d | Something other than the support-ticket queue notices that origination broke |
 | **`calledElementBinding` decision** — pin, or accept in-flight child migration deliberately, with a migration plan | 1 | S&U + EM | 2 d | A recorded decision. Implementation next phase |
+| **Build L3 — gateway-expression evaluation.** Every `conditionExpression` evaluated through `ExpressionManager` against a variable map, no process started | 6 | S&U | 5 d | **Bravo's routing stops being data and becomes code.** 137 exclusive gateways in `ndf4w.bpmn` alone are testable in milliseconds. This plus L1 *is* rec 6 — the reachable `productId` set falls out of it |
+| **Build the per-run stub layer** in front of the 113 Feign clients — generated from the typed interfaces, one baseline bundle plus a per-test delta | 10 | S&U | 6 d | An upstream can be made to fail on demand for the first time. **Unblocks all of N0–N12** |
 
 ### Days 61–90 — prove the journey, then make the change
 
 | Item | Rec | Owner | Effort | Done when |
 |---|---|---|---|---|
-| **Two end-to-end process tests** — one NDF2W instance, one unified DF4W, start to go-live with upstreams stubbed, asserting terminal status and the executed activity set | 4 | S&U + QA | 10 d | "Can a loan still get from submission to go-live?" is answered every build, per generation. This is also the harness the next two items need |
+| **Build L5 + L6 — the five product-matrix journeys.** NDF2W, NDF4W, RO, unified DF4W, DF2W, each start to go-live with upstreams stubbed on the phase-2 stub layer, asserting terminal status and the executed activity set. Expectations **derived** from `act_hi_actinst`, never typed | 4, 11 | S&U + QA | 12 d | "Can a loan still get from submission to go-live?" is answered every build, **for 100% of production volume** instead of 0%. **T2** lands here, and this is the harness the next two items need |
 | **Implement the binding decision** — pin `calledElementBinding` on all 56 call activities, with the migration plan agreed in phase 2 | 1 | S&U | 10 d | A unified sub-process redeploy can no longer silently change the path of in-flight NDF2W loans |
 | **Retry-policy validation (part 1).** Assert every `failedJobRetryTimeCycle` is a valid `Rn/PTn` — the five bare `PT4M` cycles are a latent defect | 5 | S&U | 4 d | No service task carries a retry policy that does not do what its author intended |
 
@@ -253,7 +403,8 @@ Nine recommendations, phased against ~25 person-days a month of Squad S&U time (
 
 | Deferred | Rec | Why | Trigger |
 |---|---|---|---|
-| **Degrade-path tests (part 2)** — drive an activity to last attempt, assert which `customErrorHandle` fires; the anti-fraud `BYPASS` is a credit-policy decision reached by an exception handler | 5 | Needs the process-test harness built above | After the E2E process tests land |
+| **The negative suite, N0–N12** — force each upstream failure mode and assert the degrade decision; the anti-fraud `BYPASS` (**N6**) is a credit-policy decision reached by an exception handler | 5, 10 | Needs both the phase-2 stub layer and the phase-3 L5 harness. Roughly 2 days per case once both exist | After the L6 journeys land |
+| **L7 — console contracts.** Snapshot the 9+ `FormTab` sub-resource response shapes; one live test per shared component. **T5**, **T10**, **T11** | 3 | The 4xx health gate in phase 2 detects these; L7 is what *prevents* them. Depends on the console inventory in [bravo-delivery.md](bravo-delivery.md) rec 7 | After that inventory |
 | **Product blast radius in the diff** — tag tests by product; emit reachable `productId`s per PR | 6 | 8 days, and much cheaper once job-executor tracing ([bravo-observability.md](bravo-observability.md) rec 8) and the flag registry ([bravo-delivery.md](bravo-delivery.md) rec 5) exist | Q2 week 1 |
 
 ---
@@ -269,6 +420,10 @@ Nine recommendations, phased against ~25 person-days a month of Squad S&U time (
 | Retry and degrade tested | Nobody discovers by incident that anti-fraud has been bypassing after three failures, or that five retry cycles never repeat. |
 | Product blast radius in the diff | A reviewer sees "this PR reaches NDF2W, NDF4W and RO" on the PR itself, and the five discrimination mechanisms stop being tribal knowledge. |
 | CI events flowing | Build health becomes a number for both platforms instead of an impression. |
+| **L0 + L1 exist** | A gateway with no default flow, a retry cycle that never repeats, a product with no deployed process, and a jsonb matrix naming a deleted activity all fail the build **in seconds** — instead of in a production log stream nobody reads. |
+| **L3 exists** | "Which products does this diff reroute?" is answered by evaluating the gateway conditions, not by a reviewer who happens to know all five discrimination mechanisms. |
+| **The stub layer exists** | A test can say *"this run's anti-fraud rejects"*. 50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths stop being unexercised. |
+| **The ladder has a routing rule** | A form change fails in L7 in two seconds, not in a 10-second journey three layers from the cause — and the per-merge suite still finishes in about four minutes. |
 
 ---
 
@@ -281,3 +436,4 @@ Nine recommendations, phased against ~25 person-days a month of Squad S&U time (
 - [compare-architecture.md](compare-architecture.md) §3.10, §3.11 — the test inventory and in-flight versioning in code terms
 - [workflow-gap.md](workflow-gap.md) §8 — the 5.5% / 94% volume split between the two generations
 - LORA [testing.md](../../lora-workspace/docs/production-findings/testing.md) — the same questions asked of the other platform
+- LORA [lora-super-test](../../lora-workspace/docs/production-findings/testing/lora-super-test.html) — **the strategy [§7](#7-a-test-strategy-for-bravo--layers-l0l8) is derived from**: five `_`-prefixed layers, the mock interceptor, derived expectations, and the test-volume budget

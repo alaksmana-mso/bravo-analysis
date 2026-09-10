@@ -1,0 +1,869 @@
+<title>What CI Covers</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ============================================================
+   Bravo production-findings deck system
+   Shared across the five decks; only --ac* tokens differ.
+   ============================================================ */
+
+:root{
+  --paper:#F1F3F6; --panel:#FFFFFF; --panel2:#E7ECF2; --panel3:#DDE3EB;
+  --ink:#161B23; --ink2:#434D5B; --ink3:#6D7686;
+  --rule:#D1D8E1; --ruleS:#AFBAC7;
+  --ok:#2C6B4C; --bad:#A5372A; --warn:#8E6410; --neu:#5A6472;
+  --okBg:#2C6B4C1a; --badBg:#A5372A1a; --warnBg:#8E64101f; --neuBg:#5A64721a;
+  --ac:#8A6318; --acBg:#8A63181f; --acBg2:#8A63180f;
+  --shadow:0 1px 2px #161b2310, 0 8px 24px -12px #161b2320;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11151B; --panel:#181E26; --panel2:#202834; --panel3:#28313E;
+    --ink:#E7ECF3; --ink2:#ADB8C6; --ink3:#7C8695;
+    --rule:#293240; --ruleS:#3A4553;
+    --ok:#71C096; --bad:#E68B79; --warn:#D9AA4C; --neu:#939DAB;
+    --okBg:#71C09622; --badBg:#E68B7922; --warnBg:#D9AA4C22; --neuBg:#939DAB1c;
+    --ac:#D7A84E; --acBg:#D7A84E24; --acBg2:#D7A84E12;
+    --shadow:0 1px 2px #0006, 0 10px 30px -14px #0008;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11151B; --panel:#181E26; --panel2:#202834; --panel3:#28313E;
+  --ink:#E7ECF3; --ink2:#ADB8C6; --ink3:#7C8695;
+  --rule:#293240; --ruleS:#3A4553;
+  --ok:#71C096; --bad:#E68B79; --warn:#D9AA4C; --neu:#939DAB;
+  --okBg:#71C09622; --badBg:#E68B7922; --warnBg:#D9AA4C22; --neuBg:#939DAB1c;
+  --ac:#D7A84E; --acBg:#D7A84E24; --acBg2:#D7A84E12;
+  --shadow:0 1px 2px #0006, 0 10px 30px -14px #0008;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;margin:0;text-wrap:balance}
+p{margin:0}
+
+/* ---------- deck shell ---------- */
+.deck{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scroll-behavior:smooth;scrollbar-width:none}
+.deck::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion:reduce){.deck{scroll-behavior:auto}}
+
+.slide{
+  min-height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;flex-direction:column;
+  padding:clamp(26px,4vw,58px) clamp(22px,4.4vw,64px) clamp(48px,5vw,64px);
+  border-bottom:1px solid var(--rule);position:relative;
+}
+.inner{width:100%;max-width:1160px;margin:0 auto;display:flex;flex-direction:column;flex:1;gap:clamp(16px,2vw,26px)}
+
+/* ---------- slide head ---------- */
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:500;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+}
+.eyebrow b{color:var(--ac);font-weight:600}
+.eyebrow .sep{color:var(--ruleS)}
+h2.st{font-size:clamp(23px,3.1vw,38px);font-weight:700;letter-spacing:-.016em;line-height:1.1;margin-top:6px}
+.lede{font-size:clamp(15px,1.3vw,18.5px);line-height:1.55;color:var(--ink2);max-width:70ch}
+.lede em{color:var(--ink);font-style:italic}
+.lede strong{color:var(--ink);font-weight:600}
+
+/* ---------- cover ---------- */
+.slide--cover{justify-content:center;background:
+  radial-gradient(120% 90% at 88% 8%,var(--acBg2),transparent 60%),var(--paper)}
+.cover-kicker{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ac);font-weight:600;
+}
+h1{font-size:clamp(32px,5.4vw,64px);font-weight:800;letter-spacing:-.028em;line-height:1.02}
+h1 .thin{font-weight:500;color:var(--ink2);letter-spacing:-.02em}
+.claim{
+  font-size:clamp(15px,1.5vw,20px);line-height:1.5;font-style:italic;color:var(--ink2);
+  border-left:3px solid var(--ac);padding:2px 0 2px 18px;max-width:64ch;
+}
+.meta{
+  display:flex;flex-wrap:wrap;gap:6px 26px;font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px;letter-spacing:.05em;color:var(--ink3);padding-top:4px;
+  border-top:1px solid var(--rule);margin-top:4px;
+}
+.meta span b{color:var(--ink2);font-weight:500}
+
+/* ---------- headline stats ---------- */
+.stats{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.stats--4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat{background:var(--panel);padding:16px 18px 15px;display:flex;flex-direction:column;gap:4px}
+.stat__n{
+  font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(24px,3.3vw,42px);
+  line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ac);
+}
+.stat__n.neg{color:var(--bad)} .stat__n.pos{color:var(--ok)} .stat__n.plain{color:var(--ink)}
+.stat__n small{font-size:.5em;font-weight:600;letter-spacing:0;color:var(--ink2)}
+.stat__l{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink3);
+}
+
+/* ---------- verdict list ---------- */
+.vlist{display:flex;flex-direction:column;border-top:1px solid var(--ruleS)}
+.vrow{
+  display:grid;grid-template-columns:minmax(0,1.05fr) 132px minmax(0,1.25fr);
+  gap:14px 18px;padding:13px 2px;border-bottom:1px solid var(--rule);align-items:start;
+}
+.vrow .cl{font-size:15px;line-height:1.4;color:var(--ink);font-weight:600}
+.vrow .gi{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.vrow .gi code,.vrow .cl code{font-size:.88em}
+@media (max-width:820px){
+  .vrow{grid-template-columns:1fr;gap:7px}
+  .vrow .v{justify-self:start}
+}
+.v{
+  display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 9px 4px;border-radius:2px;white-space:nowrap;line-height:1.2;
+}
+.v::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.v--ref{color:var(--ok);background:var(--okBg)}
+.v--con{color:var(--bad);background:var(--badBg)}
+.v--sup{color:var(--warn);background:var(--warnBg)}
+.v--non{color:var(--neu);background:var(--neuBg)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+thead th{
+  text-align:left;font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);padding:10px 14px;border-bottom:2px solid var(--ac);white-space:nowrap;background:var(--panel);
+}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--rule);color:var(--ink2);vertical-align:top;line-height:1.45}
+tbody tr:nth-child(even) td{background:var(--acBg2)}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td.k{color:var(--ink);font-weight:500}
+tbody tr.tot td{background:var(--panel2);color:var(--ink);font-weight:600;border-top:1px solid var(--ruleS)}
+td b,td strong{color:var(--ink);font-weight:600}
+td .hi{color:var(--ac);font-weight:600}
+td .dn{color:var(--bad);font-weight:600}
+td .up{color:var(--ok);font-weight:600}
+caption{caption-side:bottom;text-align:left;padding:9px 14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink3);line-height:1.5;letter-spacing:.03em}
+
+/* ---------- code ---------- */
+pre{
+  margin:0;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.65;
+  background:var(--panel2);border-left:3px solid var(--ac);border-radius:0 3px 3px 0;
+  padding:14px 16px;overflow-x:auto;color:var(--ink2);
+}
+pre b{color:var(--ink);font-weight:600}
+pre .c{color:var(--ink3)}
+pre .a{color:var(--ac)}
+code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em .34em;border-radius:2px;font-size:.9em;color:var(--ink)}
+
+/* ---------- pull quote ---------- */
+.pull{
+  font-family:Archivo,sans-serif;font-weight:600;font-size:clamp(17px,2.05vw,25px);line-height:1.3;
+  letter-spacing:-.014em;color:var(--ink);border-left:4px solid var(--ac);
+  padding:4px 0 4px 20px;max-width:56ch;
+}
+.pull em{color:var(--ac);font-style:normal}
+.pull small{display:block;font-family:"Source Serif 4",serif;font-weight:400;font-size:15px;
+  line-height:1.5;color:var(--ink2);letter-spacing:0;margin-top:12px;max-width:62ch}
+
+/* ---------- two column ---------- */
+.cols{display:grid;gap:clamp(16px,2.2vw,32px);grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+.cols.b{grid-template-columns:1.15fr .85fr}
+@media (max-width:860px){.cols.b{grid-template-columns:1fr}}
+
+/* ---------- note / box ---------- */
+.note{
+  font-size:13.5px;line-height:1.55;color:var(--ink2);background:var(--panel);
+  border:1px solid var(--rule);border-radius:3px;padding:14px 16px;
+}
+.note h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ac);margin-bottom:7px;font-weight:600}
+.note strong{color:var(--ink);font-weight:600}
+.note--bad{border-left:3px solid var(--bad)} .note--bad h4{color:var(--bad)}
+.note--ok{border-left:3px solid var(--ok)} .note--ok h4{color:var(--ok)}
+
+/* ---------- numbered recommendations ---------- */
+.recs{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.rec{background:var(--panel);padding:13px 15px;display:flex;gap:12px;align-items:flex-start}
+.rec .no{
+  font-family:Archivo,sans-serif;font-weight:800;font-size:16px;color:var(--ac);
+  font-variant-numeric:tabular-nums;line-height:1.3;flex:none;min-width:18px;
+}
+.rec .tx{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.rec .tx b{color:var(--ink);font-weight:600;display:block;margin-bottom:2px;font-family:Archivo,sans-serif;font-size:13.5px;letter-spacing:-.005em}
+.rec .sz{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase}
+.rec.first{background:var(--acBg)}
+
+/* ---------- phases ---------- */
+.phases{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.ph{background:var(--panel);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.ph__h{display:flex;flex-direction:column;gap:3px;padding-bottom:9px;border-bottom:2px solid var(--ac)}
+.ph__d{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ph__t{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.ph ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.ph li{font-size:13px;line-height:1.48;color:var(--ink2);display:flex;gap:9px}
+.ph li .r{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;color:var(--ac);
+  background:var(--acBg);padding:2px 5px;border-radius:2px;flex:none;height:fit-content;letter-spacing:.04em;margin-top:1px}
+.ph li b{color:var(--ink);font-weight:600}
+.ph--last .ph__h{border-bottom-color:var(--ruleS)}
+
+/* ---------- charts ---------- */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.cl-lab{fill:var(--ink3);font-size:10px;letter-spacing:.05em}
+.cl-val{fill:var(--ink);font-size:10.5px;font-weight:600}
+.cl-valA{fill:var(--ac);font-size:10.5px;font-weight:600}
+.cl-ax{stroke:var(--rule);stroke-width:1}
+.bA{fill:var(--ac)} .bB{fill:var(--ruleS)} .bBad{fill:var(--bad)} .bOk{fill:var(--ok)}
+.legend{display:flex;gap:18px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border-radius:1px}
+
+/* ---------- foot ---------- */
+.foot{
+  margin-top:auto;padding-top:14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.06em;color:var(--ink3);display:flex;justify-content:space-between;gap:16px;
+  border-top:1px solid var(--rule);
+}
+.foot .src{max-width:78%;line-height:1.5}
+
+/* ---------- nav ---------- */
+.rail{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:20}
+.rail button{
+  width:9px;height:9px;padding:0;border:1px solid var(--ruleS);border-radius:50%;
+  background:transparent;cursor:pointer;transition:background .15s,border-color .15s,transform .15s;
+}
+.rail button[aria-current="true"]{background:var(--ac);border-color:var(--ac);transform:scale(1.35)}
+.rail button:hover{border-color:var(--ac)}
+.rail button:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+.hud{
+  position:fixed;left:14px;bottom:12px;z-index:20;font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.12em;color:var(--ink3);background:var(--paper);
+  padding:4px 8px;border:1px solid var(--rule);border-radius:2px;
+}
+.hud b{color:var(--ac);font-weight:600}
+.cue{
+  position:absolute;left:clamp(22px,4.4vw,64px);bottom:20px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;
+}
+.cue{bottom:50px}
+.cue span{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.cue span{animation:none}}
+@media (max-width:700px){.rail{display:none}}
+
+@media print{
+  .rail,.hud,.cue{display:none}
+  .deck{height:auto;overflow:visible}
+  .slide{min-height:0;page-break-after:always;border:0}
+}
+
+:root{--ac:#116363;--acBg:#1163631f;--acBg2:#1163630f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#5FBDBB;--acBg:#5FBDBB24;--acBg2:#5FBDBB12}}
+:root[data-theme="dark"]{--ac:#5FBDBB;--acBg:#5FBDBB24;--acBg2:#5FBDBB12}
+</style>
+<main class="deck" id="deck">
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:22px">
+    <p class="cover-kicker">Bravo production findings &middot; 02 of 05 &middot; Testing</p>
+    <h1>What CI covers &mdash;<br>and why nothing says<br><span class="thin">&ldquo;this change hits NDF2W&rdquo;</span></h1>
+    <p class="claim">Business logic cannot be unit-tested effectively. Tests and CI cannot say whether a change affects NDF4W underwriting or NDF2W. Validation is applied only after the service is already serving traffic. &ldquo;Still running&rdquo; is treated as &ldquo;healthy&rdquo;. And the role of a nightly end-to-end run in proving the contract.</p>
+    <div class="stats stats--4" style="margin-top:6px">
+      <div class="stat"><span class="stat__n plain">1,457</span><span class="stat__l">Test files &mdash; <b style="color:var(--ac)">4</b> of which run a Camunda process</span></div>
+      <div class="stat"><span class="stat__n neg">248,685</span><span class="stat__l">NDF2W applications reachable by a &ldquo;new generation&rdquo; edit</span></div>
+      <div class="stat"><span class="stat__n neg">38,198</span><span class="stat__l">Model-parse warnings emitted in production, per week</span></div>
+      <div class="stat"><span class="stat__n">6 <small>of 9</small></span><span class="stat__l">Test layers that do not exist &mdash; including both that run in milliseconds</span></div>
+    </div>
+    <div class="meta">
+      <span><b>Audience</b> &nbsp;Engineering, QA, release managers &mdash; Squad LOS and Squad S&amp;U</span>
+      <span><b>Sources</b> &nbsp;<code>bravo-bpm-service</code> v2.93.43 &middot; Datadog us5</span>
+      <span><b>Read</b> &nbsp;2026-09-10</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> Arrow keys or scroll &middot; 19 slides</p>
+</section>
+
+<section class="slide" data-nav="Verdicts">
+  <div class="inner">
+    <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts</p>
+    <h2 class="st">Seven claims, graded against the build and against production</h2>
+    <div class="vlist">
+      <div class="vrow"><p class="cl">Business logic cannot be unit-tested effectively</p><span class="v v--con">True</span><p class="gi">And for a <em>sharper</em> reason than in LORA. 776 of 1,457 files are pure Mockito, and Mockito can reach Java. But Bravo&rsquo;s routing logic is not Java &mdash; it is <code>conditionExpression</code> strings in 53 BPMN files, a six-column DB selector, and a per-application jsonb matrix. <strong>Those three are data, and no unit test executes any of them.</strong></p></div>
+      <div class="vrow"><p class="cl">CI cannot distinguish an NDF4W-underwriting change from an NDF2W one</p><span class="v v--con">True, and worse</span><p class="gi">Product identity is expressed in <strong>five places at once</strong>. And <code>ndf2w.bpmn</code> bridges into the <em>unified</em> underwriting sub-process, so a change to unified underwriting reaches NDF2W &mdash; <b>248,685 applications over 90 days</b> &mdash; with nothing in the build saying so.</p></div>
+      <div class="vrow"><p class="cl">Validation is applied only after the service is serving traffic</p><span class="v v--con">Confirmed</span><p class="gi">All 53 BPMN and 3 DMN files auto-deploy and parse at Spring Boot startup. The engine emitted <b>38,198 <code>ENGINE-09004</code> warnings in production in 7 days</b>, naming real modelling defects in real files. There is no parse or lint gate before that.</p></div>
+      <div class="vrow"><p class="cl">&ldquo;Still running&rdquo; is treated as &ldquo;healthy&rdquo;</p><span class="v v--con">Confirmed, in Bravo&rsquo;s form</span><p class="gi"><strong>&ldquo;Not 5xx&rdquo; is treated as healthy.</strong> Every success-rate monitor filters <code>http.status_code:5*</code>. A 404 storm of 748,686 a week across 69% of surveyor sessions is, by that definition, a healthy service.</p></div>
+      <div class="vrow"><p class="cl">A nightly end-to-end run proves the contract</p><span class="v v--ref">No such run</span><p class="gi">The org has <b>8 Synthetics tests, all DNS and SSL checks</b>, and <b>zero CI pipeline events</b> for any repository. LORA&rsquo;s nightly partner-E2E is mostly red &mdash; but it exists, asserts a terminal condition, and can therefore be fixed.</p></div>
+      <div class="vrow"><p class="cl">The 1,457-file suite is a safety net for the orchestration</p><span class="v v--ref">No</span><p class="gi"><b>Four</b> test files deploy and run a Camunda process, one against a production BPMN. There is no test of retry exhaustion, incident creation, escalation across a <code>callActivity</code>, or the forced-termination path.</p></div>
+      <div class="vrow"><p class="cl">Coverage is gated</p><span class="v v--ref">No gate exists</span><p class="gi"><code>pom.xml</code> configures JaCoCo <code>report</code> and no <code>check</code>; there is no threshold. The <code>makefile</code> passes <code>-Dspring-boot.run.profiles</code>, which surefire ignores &mdash; <strong>the tests are not running under the profile the build claims.</strong></p></div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;Verdicts</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Through-line">
+  <div class="inner" style="justify-content:center">
+    <p class="eyebrow"><b>The through-line</b></p>
+    <p class="pull">Bravo&rsquo;s suite tests the Java it can reach and does not touch the XML, the configuration tables or the engine &mdash; which is where the loan&rsquo;s behaviour is decided.
+      <small>The result is a build that can be <em>green</em> for a change that alters the routing of 94% of production volume.</small></p>
+    <div class="cols" style="margin-top:10px">
+      <div class="note note--ok"><h4>A structural difference in Bravo&rsquo;s favour</h4>LORA has 608 test files across 13 repositories with <strong>four repos at zero</strong> and <code>lora-process-sdk</code> carrying no <code>.github/workflows/</code> at all. Bravo has one repository, one build, and everything in it runs. Bravo&rsquo;s problem is coverage of the right thing; LORA&rsquo;s is that some repositories are not covered at all. <strong>Bravo&rsquo;s is the better problem to have.</strong></div>
+      <div class="note"><h4>The tell</h4><code>camunda-bpm-assert</code>, <code>camunda-bpm-process-test-coverage</code> and <code>camunda-bpm-mockito</code> are all in <code>pom.xml</code> and all effectively unused. <strong>Somebody knew this was the right way to test a BPMN system, added the dependencies, and the practice never took hold</strong> &mdash; the same shape as LORA&rsquo;s <code>lora-super-test</code>, which has 150 scenario tests and no CI runner.</div>
+    </div>
+    <p class="lede" style="font-size:14px;color:var(--ink3)"><strong style="color:var(--ink2)">Sections 1&ndash;6 diagnose. &sect;7 is the architecture</strong> &mdash; nine cost-ordered layers <b>L0&ndash;L8</b>, a regression suite <b>T1&ndash;T12</b> and a negative suite <b>N0&ndash;N12</b>, with a routing rule that says which layer should have caught what.</p>
+    <div class="foot"><span class="src">bravo-testing.md &sect;Verdicts, &sect;1</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Inventory">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;1</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">1,457 test files, 4 of which run a process</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Surface</th><th class="n">Count</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Test files, <code>src/test/java</code></td><td class="n">1,457</td></tr>
+          <tr><td class="k">Pure Mockito unit tests</td><td class="n">776</td></tr>
+          <tr><td class="k">Tests that <b>deploy and execute a Camunda process</b></td><td class="n"><span class="hi">4</span></td></tr>
+          <tr><td class="k">H2 &ldquo;parse tests&rdquo; asserting BPMN structure</td><td class="n">a handful</td></tr>
+          <tr><td class="k">End-to-end walks, application start to go-live</td><td class="n"><span class="dn">0</span></td></tr>
+          <tr><td class="k">Tests of retry exhaustion, incident creation, cross-<code>callActivity</code> escalation, forced termination</td><td class="n"><span class="dn">0</span></td></tr>
+          <tr><td class="k">Coverage threshold</td><td class="n"><span class="dn">none</span></td></tr>
+        </tbody>
+        <caption>One of the four Camunda-executing tests runs against a production BPMN, <code>unified-anti-fraud-engine.bpmn</code>. JaCoCo is configured for <code>report</code> only &mdash; no <code>check</code> goal, no floor.</caption>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="stats"><div class="stat"><span class="stat__n neg">0.27<small>%</small></span><span class="stat__l">Of test files exercise the orchestration engine &mdash; and the engine is what decides what happens to a loan</span></div></div>
+        <p class="lede">The suite is large, well-maintained and conventional. <strong>Nothing in it is bad.</strong> The problem is what it is pointed at.</p>
+        <div class="note"><h4>Where that leaves the safety net</h4>1,453 of 1,457 files test Java that surrounds the process. The four that start a process do not cover the legacy-to-unified bridge, the retry policies, or the degrade decisions &mdash; and nothing else does either.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src"><code>bravo-bpm-service</code> v2.93.43 &middot; <code>src/test/java</code>, <code>pom.xml</code>, <code>makefile</code> &middot; bravo-testing.md &sect;1</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Where logic lives">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;2</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Where the business logic actually is &mdash; and why Mockito cannot reach it</h2>
+    <p class="lede">In LORA this complaint was graded <em>overstated</em>, because LORA&rsquo;s rules live in Go preconditions that <code>PreConditionIsMet(nil, data)</code> can execute directly &mdash; 97 test files already do. In Bravo the complaint holds, and the reason is that a large part of the decision surface is <strong>not in Java at all</strong>.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Where a routing decision lives</th><th>Form</th><th>Can a unit test execute it?</th></tr></thead>
+      <tbody>
+        <tr><td class="k">BPMN gateway conditions &mdash; 137 exclusive gateways in <code>ndf4w.bpmn</code> alone</td><td>JUEL strings inside XML</td><td><span class="dn">No</span> &mdash; only by deploying the process and running it. 4 test files do this</td></tr>
+        <tr><td class="k">Which activities run for this application</td><td><code>WorkflowProductConfig</code> &rarr; <code>WorkflowMasterConfig</code> &rarr; per-application jsonb matrix</td><td><span class="dn">No</span> &mdash; it is rows in PostgreSQL, shipped as Flyway data migrations</td></tr>
+        <tr><td class="k">The skip gate itself</td><td><code>BaseActivity.execute()</code> reads the matrix and runs or no-ops</td><td>Yes in principle &mdash; the <em>matrix content</em> is still data</td></tr>
+        <tr><td class="k">Which BPMN process starts for a product</td><td>YAML map <code>productId &rarr; key</code>, <code>application.yaml:1364</code>, with a Java override for RO</td><td>Partly &mdash; and the map contains <strong>four keys that are not deployed processes</strong></td></tr>
+        <tr><td class="k">Approval chain rules</td><td><code>BaseUnderwritingApprovalServiceImpl</code>, 4,604 lines, behind feature flags</td><td><span class="up">Yes</span> &mdash; genuinely Java and genuinely testable</td></tr>
+        <tr><td class="k">Terminal vs transient error, and the degrade decision</td><td>50 <code>customErrorHandle</code> implementations invoked on the <b>last</b> retry</td><td>Yes for the handler; <span class="dn">no</span> for &ldquo;does the engine actually reach the last attempt&rdquo;</td></tr>
+      </tbody></table></div>
+    <p class="pull">Bravo&rsquo;s Java is testable and largely tested. Bravo&rsquo;s <em>decisions</em> are in XML, YAML and database rows &mdash; and none of those is executed by any test in the build.</p>
+    <div class="note note--bad"><h4>The expensive consequence</h4>The <code>customErrorHandle</code> framework contains at least one <strong>credit-policy</strong> decision: bypassing anti-fraud after three failed attempts keeps the pipeline moving. Whether that path is ever reached depends on <code>failedJobRetryTimeCycle</code> &mdash; a string attribute on a BPMN element, <strong>186 declarations, 30 distinct values, including 5 <code>PT4M</code> cycles with no repeat count that do not do what their author intended</strong>. No test asserts that any activity&rsquo;s retry policy is what the modeller meant, and the one that degrades anti-fraud is the one where being wrong is a credit-risk event rather than an outage.</div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;2 &middot; compare-architecture.md Appendix C</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Five places">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>Reason one</p>
+    <h2 class="st">Product identity is in five places</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Mechanism</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Numeric literals</td><td><code>Application.isNDF4W() { return productId == 1L; }</code> &mdash; <b>18</b> such predicates</td></tr>
+          <tr><td class="k">YAML process-key map</td><td><code>application.yaml:1364</code>, plus an RO override in <code>ApplicationServiceImpl.java:752-762</code></td></tr>
+          <tr><td class="k">Six-column DB selector</td><td><code>WorkflowProductConfig</code> &rarr; <code>WorkflowMasterConfig</code> &rarr; per-application jsonb matrix</td></tr>
+          <tr><td class="k">Java factories</td><td><b>31</b> of them</td></tr>
+          <tr><td class="k">Gateway string expressions</td><td>inside all <b>53</b> BPMN files</td></tr>
+        </tbody>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="lede">A change to any one of these can alter the behaviour of one product, several, or all. Adding DF2W Sharia (product 15) touched <strong>all five</strong>, behind per-product feature flags.</p>
+        <div class="note note--bad"><h4>Nothing maps a diff to its products</h4>There is no artefact in the build &mdash; no test name, no tag, no coverage report dimension &mdash; that maps a diff to the set of products it affects. <strong>A reviewer&rsquo;s only tool is knowing all five mechanisms.</strong></div>
+        <div class="note"><h4>LORA&rsquo;s answer is structural, not tested</h4>Product families have separate document schemas, separate workers and separate task queues, so a change to <code>&hellip;/ndf2w</code> cannot reach NDF4W <em>by construction</em>. LORA still cannot tell you <em>which</em> product a shared-planner change affects &mdash; that is its own True verdict &mdash; but it has fewer ways to get it wrong.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;3</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The bridge">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>Reason two &mdash; the largest production exposure in the pack</p>
+    <h2 class="st">The legacy-to-unified bridge</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="lede"><code>ndf2w.bpmn</code> calls into the <strong>unified underwriting sub-process</strong>. And <strong>no <code>callActivity</code> in the codebase sets <code>camunda:calledElementBinding</code></strong>, so every child resolves to the <em>latest deployed version at call time</em>.</p>
+        <p class="eyebrow">Put those two facts together with the production volume split</p>
+        <svg class="chart" viewBox="0 0 520 190" role="img" aria-label="Applications over 90 days by BPMN generation">
+          <g>
+            <rect class="bBad" x="150" y="10" width="352" height="26"></rect>
+            <text class="cl-lab" x="144" y="28" text-anchor="end">NDF2W legacy</text>
+            <text class="cl-val" x="496" y="28" text-anchor="end" fill="var(--paper)">248,685 &middot; 73%</text>
+          </g>
+          <g>
+            <rect class="bB" x="150" y="52" width="102" height="26"></rect>
+            <text class="cl-lab" x="144" y="70" text-anchor="end">NDF4W + RO legacy</text>
+            <text class="cl-val" x="262" y="70">71,995 &middot; 21%</text>
+          </g>
+          <g>
+            <rect class="bA" x="150" y="94" width="27" height="26"></rect>
+            <text class="cl-lab" x="144" y="112" text-anchor="end">Unified spine &mdash; DF4W</text>
+            <text class="cl-valA" x="187" y="112">18,806 &middot; 5.5%</text>
+          </g>
+          <g>
+            <rect x="150" y="136" width="2" height="26" fill="var(--ruleS)"></rect>
+            <text class="cl-lab" x="144" y="154" text-anchor="end">DF2W &mdash; fully configured</text>
+            <text class="cl-val" x="162" y="154">0 &middot; 0%</text>
+          </g>
+          <line class="cl-ax" x1="150" y1="172" x2="502" y2="172"></line>
+          <text class="cl-lab" x="150" y="186">0</text><text class="cl-lab" x="502" y="186" text-anchor="end">250,000 applications &middot; 90 days to 2026-09-09</text>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">A change to <em>unified-underwriting-*.bpmn</em> &mdash; the &ldquo;new&rdquo;, 5.5%-of-volume generation &mdash; is picked up by in-flight NDF2W loans at their next call activity.
+          <small>That is <strong>73% of BFI&rsquo;s origination volume</strong>, reached through a file whose name says it belongs to the other generation, with no migration plan, no version pin and no test.</small></p>
+        <div class="note note--bad"><h4>Nothing covers this path</h4>The four Camunda-executing test files do not cover it. Neither does anything else. <strong>This is the most consequential untested edge in either platform, and it is invisible in the diff.</strong></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;3 &middot; workflow-gap.md &sect;8 &middot; 56 call activities, none version-pinned</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Validation in prod">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;4</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Validation happens in production, 38,198 times a week</h2>
+    <p class="lede">The LORA complaint was that validation is &ldquo;only JSON Schema, applied after the worker is already serving traffic&rdquo;. Bravo has no schema registry at all, so the equivalent question is: <em>when is a process model checked?</em> <strong>At pod startup, in production.</strong> Spring Boot auto-deploys every BPMN and DMN resource on the classpath &mdash; there is no <code>deployment-resource-pattern</code> narrowing it &mdash; and the engine parses and versions each changed definition as it boots. <strong>That parse is the validation.</strong></p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">A representative line, captured live</p>
+        <pre>status:  <span class="a">warn</span>
+version: v2.93.53
+message: <b>ENGINE-09004 Warnings during parsing:</b>
+  * Exclusive Gateway <b>'Gateway_X_KYC_Verified'</b> has
+    outgoing sequence flow 'Flow_Condition_KYC_Verified'
+    <b>without condition which is not the default flow.</b>
+    We assume it to be the default flow, but it is bad
+    modeling practice, better set the default flow in
+    your gateway.
+  | resource <b>unified-kyc-check.bpmn</b>
+<span class="c">@activityName: KYC Check
+@processDefinitionId: 544e3ea0-ab85-11f1-ba59-16deca89b476</span></pre>
+        <p class="lede" style="font-size:13.5px">Read that carefully. The engine is telling the team, <em>in production</em>, that a gateway on the <strong>KYC path</strong> has an unconditional outgoing flow that Camunda is <em>guessing</em> is the default. That is a routing decision being resolved by an engine assumption rather than by the model. The warning names the file. It has been repeating for at least two deployed versions.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="tw"><table>
+          <thead><tr><th>Deployed version</th><th class="n"><code>ENGINE-09004</code> warnings</th></tr></thead>
+          <tbody>
+            <tr><td class="k">v2.92.45</td><td class="n">24,513</td></tr>
+            <tr><td class="k">v2.93.53</td><td class="n">13,685</td></tr>
+            <tr class="tot"><td>Total, 7 days</td><td class="n">38,198</td></tr>
+          </tbody>
+          <caption>Measured on <code>env:prod service:prod-ms-bpm</code>, 7 days to 2026-09-10.</caption>
+        </table></div>
+        <div class="note"><h4>1 &middot; Validated after deployment, not before</h4>Every one of these warnings is available at <strong>build time</strong> &mdash; <code>camunda-bpm-assert</code> and a parse test would surface them in seconds &mdash; and none is a build failure today.</div>
+        <div class="note"><h4>2 &middot; The count is a boot-frequency artefact</h4>&hellip;and that is also informative. 38,198 in a week across two versions means <strong>pods are restarting often</strong> and re-parsing all 53 files each time. The <em>distinct</em> warning set is small; the volume tells you about pod churn.</div>
+        <div class="note note--bad"><h4>3 &middot; Nothing consumes them</h4>No monitor matches <code>ENGINE-09004</code>. The warnings land in the same stream as the 525,181 error lines a week and are invisible.</div>
+      </div>
+    </div>
+    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">The honest comparison.</strong> LORA&rsquo;s <code>docFieldCheck</code> panics the <em>worker at startup</em> if a schema path is missing &mdash; which is late, but is at least fatal and per-deployment. Bravo&rsquo;s equivalent check emits a warning, assumes a default, and serves traffic.</p>
+    <div class="foot"><span class="src">bravo-testing.md &sect;4</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Not 5xx = healthy">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">&ldquo;Not 5xx&rdquo; = healthy</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note note--ok"><h4>Bravo does not have LORA&rsquo;s failure class</h4>About half of LORA&rsquo;s loans never reach a terminal status while producing zero errors and zero failed attempts &mdash; every signal reads healthy. Bravo&rsquo;s BPMN checkpoints <strong>fail fast into an incident and park</strong>, so a wedged Bravo loan becomes a visible ticket rather than an invisible running workflow. That is a real advantage, and it is why Bravo&rsquo;s stuck-application rate is <em>measurable</em> at &asymp;0.44% while LORA&rsquo;s silent half went unnoticed for months.</div>
+        <p class="eyebrow">Bravo&rsquo;s version of the same mistake is one layer up</p>
+        <pre>(hits{service:prod-ms-bpm}
+ - hits{service:prod-ms-bpm, <b>http.status_code:5*</b>})
+  / hits{service:prod-ms-bpm} &lt; 99</pre>
+        <p class="lede" style="font-size:13.5px">Every health signal Bravo owns is defined as the <strong>absence of a 5xx</strong>.</p>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Reality</th><th>What the health model reports</th></tr></thead>
+        <tbody>
+          <tr><td class="k">748,686 HTTP 404s a week on the Surveyor Platform &mdash; 266,767 from one endpoint hitting <b>54,350 of 79,090 sessions</b></td><td><span class="up">healthy</span></td></tr>
+          <tr><td class="k">8,533 <code>401 Unauthorized</code> from the IAM permission endpoint, ~1,200/day, 1.07 errors per trace &mdash; a broad auth defect</td><td><span class="up">healthy</span></td></tr>
+          <tr><td class="k">20,802 outbound errors a week, <b>none of them 5xx</b></td><td><span class="up">healthy</span></td></tr>
+          <tr><td class="k">~4,750 activity-level engine failures a day, <code>One Obligor Check</code> at 5,583 in 48 hours</td><td><span class="up">healthy</span> &mdash; nothing reads <code>@activityName</code></td></tr>
+          <tr><td class="k">Eight monitors permanently in <code>Alert</code>; six that cannot fire</td><td>&mdash;</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <p class="pull">Bravo&rsquo;s release gate is <em>it deployed and it is not returning 500.</em>
+      <small>That is the same category of statement as <em>the workflow is still Running</em>, and it is wrong for the same reason: it defines health as the absence of the one failure mode the system does not have.</small></p>
+    <div class="foot"><span class="src">bravo-testing.md &sect;5 &middot; evidence and queries in bravo-observability.md &sect;4&ndash;6</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="No nightly E2E">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">The nightly E2E that does not exist</h2>
+    <p class="lede">The role a nightly run plays for LORA is to prove the Digital Partnership contract: 11 partner journeys through DP &rarr; LORA, with a terminal assertion &mdash; the agreement number comes back on DP tracking status. LORA&rsquo;s own testing.md grades that run harshly: <strong>59 of 83 web cases have never passed in 31 nightly runs</strong>, and the API run fails the same 199 cases every night. But the run <em>exists</em>, asserts, and is fixable.</p>
+    <p class="eyebrow"><b>Bravo has no equivalent, and this was checked three ways</b></p>
+    <div class="tw"><table>
+      <thead><tr><th>Surface</th><th>What is there</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Datadog <b>Synthetics</b></td><td><b>8 tests in the entire org</b>: 4 DNS checks (<code>bfi.co.id</code>, <code>bfidigital.id</code>, the two Bravo microservice domains) and 4 SSL certificate checks (<code>microservices.prod.bravo.bfi.co.id</code>, the Sharia equivalent, <code>e-self.bfi.co.id</code>, <code>sso.bfi.co.id</code>). <span class="dn">Zero browser tests. Zero multi-step API tests. Nothing that creates an application.</span></td></tr>
+        <tr><td class="k">Datadog <b>CI Visibility</b></td><td><b><span class="dn">Zero pipeline events for any repository</span></b> in 30 days &mdash; Bravo or LORA. No build, test or deploy telemetry reaches this org at all.</td></tr>
+        <tr><td class="k">Repository</td><td>4 test files execute a Camunda process; no start-to-go-live walk exists</td></tr>
+      </tbody></table></div>
+    <div class="cols b">
+      <p class="pull" style="font-size:clamp(16px,1.7vw,21px)">So the continuous evidence that a Bravo loan can still be originated end to end is: <em>the production ticket queue.</em>
+        <small><code>Surveyor Platform - Release reject</code> at 315 tickets in August, growing <strong>4.8&times;</strong> since January, is the regression detector.</small></p>
+      <div class="note"><h4>One caveat in Bravo&rsquo;s favour</h4>Bravo&rsquo;s volume is its own smoke test: <strong>76,446 applications in August</strong> means a total break in the main path is visible within minutes through the ticket queue and the latency monitors. <strong>That works for outages.</strong> It does not work for the failure Bravo actually has &mdash; a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls.</div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;6 &middot; Datadog us5 Synthetics and CI Visibility inventories, 2026-09-10</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Strategy: the ladder">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7</b><span class="sep">/</span>The strategy</p>
+    <h2 class="st">Sections 1&ndash;6 are a diagnosis. This is the architecture.</h2>
+    <p class="lede">The diagnosis on its own has a failure mode: <strong>nine recommendations with no ladder to hang them on become nine tickets that each get argued separately.</strong> LORA&rsquo;s <em>lora-super-test</em> does have a ladder &mdash; five <code>_</code>-prefixed layers (<code>_whitebox</code>, <code>_canary</code>, <code>_contract</code>, <code>_widgets</code>, <code>_utility</code>), a four-row cost budget, and a Zephyr tag per case &mdash; and its own account of <em>why</em>: full-SIT E2E <em>&ldquo;tested their uptime, not our code&rdquo;</em>. <strong>Bravo has no equivalent structure at all.</strong> What follows is derived from Bravo&rsquo;s own decision surface rather than copied from LORA&rsquo;s.</p>
+    <div class="cols">
+      <div class="note"><h4>Design rule 1 &mdash; from LORA, still true here</h4><strong>Test only what you control; own the answers at the boundary.</strong> LORA&rsquo;s boundary is one gateway envelope. Bravo&rsquo;s is different, and it sits somewhere better and somewhere worse.</div>
+      <div class="note"><h4>Design rule 2 &mdash; the whole point for Bravo</h4><strong>A change must fail in the cheapest layer that can see it.</strong> LORA states this as a rule of thumb. For Bravo it is load-bearing, because Bravo&rsquo;s <em>expensive</em> layer &mdash; a Camunda process test &mdash; is the only layer that exists for orchestration today, and <strong>it exists four times.</strong></div>
+    </div>
+    <p class="eyebrow">Where Bravo&rsquo;s test boundary actually is</p>
+    <div class="tw"><table>
+      <thead><tr><th></th><th>LORA</th><th>Bravo</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Upstream call shape</td><td>one envelope, <code>POST /proxy/inner/request-v1</code>, naming its schema</td><td><b>113 typed <code>@FeignClient</code> interfaces</b>, one per upstream</td></tr>
+        <tr><td class="k">Interception point</td><td>one mock matching on <code>api_data_schema</code> answers as ~300 upstreams</td><td>113 stub sets &mdash; <b>wider</b>, but each is a typed Java interface</td></tr>
+        <tr><td class="k">Stub drift caught by</td><td><code>check:stubs</code> against the live LSS schema registry</td><td><span class="up"><b>the compiler.</b></span> Bravo has no schema registry &mdash; but a stub built from the Feign DTO <em>cannot</em> drift without failing the build</td></tr>
+        <tr><td class="k">Fail-on-demand today</td><td><span class="up">per-run &mdash; a spec steers one answer with a 2-line delta</span></td><td><span class="dn"><b>not possible.</b></span> <code>bravo-mock-service</code> (Mockoon, <code>*.mock.bravo.bfi.co.id</code>) is static and shared &mdash; the same weakness LORA names when explaining why it built its own</td></tr>
+      </tbody></table></div>
+    <p class="pull">The finding is the last two rows, and they run in <em>opposite</em> directions.
+      <small>Bravo&rsquo;s boundary needs no schema registry to stay honest, because 113 typed interfaces are checked by <code>javac</code> where LORA&rsquo;s 300 JSON envelopes need a bespoke script. <strong>That is a real, unearned advantage.</strong> But Bravo has <em>no way to make an upstream fail on demand</em> &mdash; and the negative suite is the list of what that costs.</small></p>
+    <div class="foot"><span class="src">bravo-testing.md &sect;7, &sect;7.1 &middot; derived from lora-super-test slides 02&ndash;05, 08</span><span>11</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The nine layers">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7.2</b><span class="sep">/</span>The strategy</p>
+    <h2 class="st">The nine layers, ordered by cost</h2>
+    <p class="lede">Each row states what <strong>only</strong> that layer can catch &mdash; a layer that catches nothing a cheaper one sees does not belong on the ladder.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Layer</th><th>What it owns</th><th>What <b>only</b> it can catch</th><th class="n">Cost</th><th class="n">Today</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>L0</b> &middot; model lint</td><td>All 53 BPMN + 3 DMN parsed at build, no Spring context</td><td><code>ENGINE-09004</code> (38,198/wk in production); the <b>5 bare <code>PT4M</code></b> retry cycles among 186 declarations; the <b>4 YAML process keys that are not deployed processes</b>; the <b>56 <code>callActivity</code> with no <code>calledElementBinding</code></b>; orphans among 70 error definitions and 190 escalations</td><td class="n"><b>seconds</b></td><td class="n"><span class="dn">none</span></td></tr>
+        <tr><td class="k"><b>L1</b> &middot; config-table validation</td><td>The six-column selector, the <code>productId &rarr; key</code> YAML map, the per-application jsonb matrix, 1,350 Flyway migrations</td><td>Every <code>productId</code> resolves to a deployed process; every activity named in a jsonb matrix exists among the <b>274 distinct bean names</b>; no <code>WorkflowMasterConfig</code> row points at nothing</td><td class="n"><b>seconds</b></td><td class="n"><span class="dn">none</span></td></tr>
+        <tr><td class="k"><b>L2</b> &middot; Java unit</td><td>The 776 Mockito tests that exist. <code>BaseUnderwritingApprovalServiceImpl</code> (4,604 lines), the 50 <code>customErrorHandle</code> bodies</td><td>Ordinary Java defects. <b>This layer is fine</b> &mdash; it is the one Bravo already has</td><td class="n">ms</td><td class="n"><span class="up">776 files</span></td></tr>
+        <tr><td class="k"><b>L3</b> &middot; gateway-expression eval</td><td>Every <code>conditionExpression</code> string, evaluated through <code>ExpressionManager</code> against a variable map &mdash; <b>no process started</b></td><td>Which branch a given variable set takes, across <b>137 exclusive gateways in <code>ndf4w.bpmn</code> alone</b> and &asymp;1.3 conditions per service task. <b>The layer that turns Bravo&rsquo;s routing from data back into code</b></td><td class="n"><b>ms</b></td><td class="n"><span class="dn">none</span></td></tr>
+        <tr><td class="k"><b>L4</b> &middot; delegate contract</td><td>Each of the <b>276 <code>JavaDelegate</code></b> classes against stubbed Feign clients</td><td>What an activity writes to process variables; which <code>customErrorHandle</code> fires on last attempt &mdash; including the anti-fraud <code>BYPASS</code> credit decision</td><td class="n"><b>ms</b></td><td class="n">partial, in L2</td></tr>
+        <tr><td class="k"><b>L5</b> &middot; process fragment</td><td>One sub-process deployed and driven with <code>camunda-bpm-assert</code> &mdash; unified underwriting alone, unified KYC alone</td><td>Retry exhaustion, incident creation, escalation across one boundary, the forced-termination path</td><td class="n">~1 s</td><td class="n"><span class="hi">4 files</span></td></tr>
+        <tr><td class="k"><b>L6</b> &middot; product-matrix journey</td><td>One process test per generation &times; product, start &rarr; go-live, upstreams stubbed</td><td><b>&ldquo;Does this change reach NDF2W?&rdquo;</b> &mdash; the question &sect;3 says nothing answers. And the <code>ndf2w.bpmn</code> &rarr; unified-underwriting bridge</td><td class="n">~10 s</td><td class="n"><span class="dn">none</span></td></tr>
+        <tr><td class="k"><b>L7</b> &middot; console contract + widget</td><td>Snapshot the response shape of the <b>9+ <code>FormTab</code> sub-resources</b> each console pane depends on; one live test per shared component</td><td>A console change that 404s a pane; the shape drift behind <code>Cannot read properties of null</code> (6,445/wk)</td><td class="n">~2 s</td><td class="n"><span class="dn">none</span></td></tr>
+        <tr><td class="k"><b>L8</b> &middot; production canary</td><td>A Synthetics multi-step API test that creates a real application; the per-console RUM error-per-view SLO</td><td>That origination works <em>right now</em>, on real infrastructure, with real upstreams</td><td class="n">minutes</td><td class="n"><span class="hi">8 DNS/SSL</span></td></tr>
+      </tbody></table></div>
+    <p class="pull">Six of the nine layers do not exist &mdash; and the two that would have caught the most both run in <em>milliseconds.</em>
+      <small>L0 and L3 are the two Bravo has never built, and between them they cover every finding in &sect;2: the XML, the YAML and the config rows that Mockito cannot reach are all reachable <strong>without the engine.</strong></small></p>
+    <div class="foot"><span class="src">bravo-testing.md &sect;7.2</span><span>12</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Routing rule">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7.2</b><span class="sep">/</span>The strategy</p>
+    <h2 class="st">The routing rule: when something breaks, which layer should have caught it</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Symptom</th><th class="n">Cheapest layer that can see it</th><th class="n">Exists</th></tr></thead>
+        <tbody>
+          <tr><td class="k">A gateway has no default flow</td><td class="n"><b>L0</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">A retry cycle does not repeat</td><td class="n"><b>L0</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">A new product has no deployed process</td><td class="n"><b>L1</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">A jsonb matrix names an activity that no longer exists</td><td class="n"><b>L1</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">An approval-ladder rule is wrong</td><td class="n"><b>L2</b></td><td class="n"><span class="up">yes</span></td></tr>
+          <tr><td class="k"><b>A change reroutes one product and not another</b></td><td class="n"><b>L3</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">An activity writes the wrong variable</td><td class="n"><b>L4</b></td><td class="n">partial</td></tr>
+          <tr><td class="k">An upstream failure does not create an incident</td><td class="n"><b>L5</b></td><td class="n"><span class="hi">4 files</span></td></tr>
+          <tr><td class="k"><b>A unified edit changes an in-flight NDF2W path</b></td><td class="n"><b>L6</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">A console pane 404s</td><td class="n"><b>L7</b></td><td class="n"><span class="dn">no</span></td></tr>
+          <tr><td class="k">Origination is broken in production</td><td class="n"><b>L8</b></td><td class="n"><span class="hi">DNS only</span></td></tr>
+        </tbody>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="stats"><div class="stat"><span class="stat__n neg">8 <small>of 11</small></span><span class="stat__l">Symptoms have no layer at all &mdash; and the two in bold carry the largest production exposure in this document</span></div></div>
+        <p class="eyebrow">The ordering this implies is different from the recommendation list &mdash; and better</p>
+        <div class="note note--ok"><h4>L0 and L1 should be first</h4>Recommendation 2 is written as &ldquo;fail the build on <code>ENGINE-09004</code>&rdquo; &mdash; but the harness it needs <em>is</em> L0, and once L0 exists it <strong>also</strong> delivers T1, T3, T12 and the detection half of recommendation 1, in the same few days. <strong>L0 and L1 are the cheapest work in this document and they close the largest number of findings.</strong> They belong ahead of the item currently marked highest-value.</div>
+        <div class="note"><h4>The rule of thumb, restated for Bravo</h4>A form change fails in <b>L7</b> in two seconds. A routing change fails in <b>L3</b> in milliseconds. Only a real flow break should ever cost an <b>L6</b> journey &mdash; which is why there are exactly <strong>five</strong> of those.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;7.2 &middot; lora-super-test slide 05, &ldquo;the cheapest layer that can see it&rdquo;</span><span>13</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Regression T1-T12">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7.3</b><span class="sep">/</span>The strategy</p>
+    <h2 class="st">The regression suite, T1&ndash;T12</h2>
+    <p class="lede">A regression test exists <em>because something happened.</em> Every case below is anchored to evidence in this pack, and the layer column says where it belongs &mdash; <strong>not one of them needs a browser.</strong></p>
+    <div class="tw"><table>
+      <thead><tr><th class="n">#</th><th>Regression</th><th>Because</th><th class="n">Layer</th></tr></thead>
+      <tbody>
+        <tr><td class="n"><b>T1</b></td><td class="k"><code>Gateway_X_KYC_Verified</code> has an explicit default flow</td><td>The engine is <b>guessing</b> it in production, on the KYC path, across two deployed versions</td><td class="n">L0</td></tr>
+        <tr><td class="n"><b>T2</b></td><td class="k">An NDF2W instance enters a <b>pinned</b> underwriting definition version</td><td><code>ndf2w.bpmn</code> bridges into unified underwriting; 56 call activities unpinned; <b>248,685 applications / 90 d</b></td><td class="n">L6</td></tr>
+        <tr><td class="n"><b>T3</b></td><td class="k">Every <code>failedJobRetryTimeCycle</code> is a valid <code>Rn/PTn</code></td><td>186 declarations, 30 distinct values, <b>5 bare <code>PT4M</code></b> that do not repeat</td><td class="n">L0</td></tr>
+        <tr><td class="n"><b>T4</b></td><td class="k">Anti-fraud degrades to <code>BYPASS</code> <b>only</b> on the last attempt</td><td>A credit-policy decision reached by an exception handler, verified by nothing</td><td class="n">L4 + L5</td></tr>
+        <tr><td class="n"><b>T5</b></td><td class="k"><code>feature-configuration</code> returns its documented status</td><td>266,767 404s/wk across <b>69% of surveyor sessions</b>, on the busiest handler in the service</td><td class="n">L7</td></tr>
+        <tr><td class="n"><b>T6</b></td><td class="k">Every key in the <code>productId &rarr; process</code> map is a deployed process</td><td>The map contains <b>four that are not</b></td><td class="n">L1</td></tr>
+        <tr><td class="n"><b>T7</b></td><td class="k">The approval ladder resolves after a role rename</td><td><code>BLCS-4683</code> renamed NMH&rarr;GMB; <code>BLCS-4811</code> is reversing it</td><td class="n">L1 + L2</td></tr>
+        <tr><td class="n"><b>T8</b></td><td class="k">The IAM token is refreshed before <code>/permission/assigned</code></td><td><b>8,533 <code>401</code>s/wk at 1.07 per trace</b> &mdash; a broad auth defect, not a retry loop</td><td class="n">L4</td></tr>
+        <tr><td class="n"><b>T9</b></td><td class="k">Adding a product touches all five discrimination mechanisms <b>consistently</b></td><td>Product 15 (DF2W Sharia) touched all five, behind flags, untested</td><td class="n">L1 + L3</td></tr>
+        <tr><td class="n"><b>T10</b></td><td class="k">Position capture succeeds, or degrades explicitly</td><td>~20,700 geolocation failures/wk on a field-staff console</td><td class="n">L7</td></tr>
+        <tr><td class="n"><b>T11</b></td><td class="k">The <code>FormTab</code> v2 pane set matches its snapshot</td><td>9+ sub-resources; <b>four are the top sources of the 404 storm</b></td><td class="n">L7</td></tr>
+        <tr><td class="n"><b>T12</b></td><td class="k">Every monitor&rsquo;s <code>service:</code> tag matches a registered service</td><td>Four Sharia monitors filter <code>prod-sharia-bpm</code> against <code>prod-sharia-bpm-sharia</code> and <b>cannot fire</b></td><td class="n">L0</td></tr>
+      </tbody>
+      <caption>Eight of the twelve land in L0, L1 or L7 &mdash; layers that run in seconds. Only <b>T2</b> needs the expensive layer.</caption>
+    </table></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;7.3</span><span>14</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Negative N0-N12">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7.4</b><span class="sep">/</span>The strategy &mdash; the largest single gap</p>
+    <h2 class="st">The negative suite, N0&ndash;N12</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th class="n">#</th><th>Force this</th><th>Assert</th><th class="n">Layer</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><b>N0</b></td><td class="k">Upstream returns 5xx</td><td>retries per <code>failedJobRetryTimeCycle</code>, then an incident is created and the loan parks</td><td class="n">L5</td></tr>
+          <tr><td class="n"><b>N1</b></td><td class="k">Upstream returns <code>401</code></td><td>the token is refreshed and the call retried &mdash; not counted as a terminal failure</td><td class="n">L4</td></tr>
+          <tr><td class="n"><b>N2</b></td><td class="k">Upstream returns <code>404</code></td><td>treated as &ldquo;absent&rdquo;, not as an error &mdash; the live repeat-order case, 5,070/wk</td><td class="n">L4</td></tr>
+          <tr><td class="n"><b>N3</b></td><td class="k">Upstream returns <code>400</code></td><td>a contract violation is terminal and named, not retried 186 times</td><td class="n">L4</td></tr>
+          <tr><td class="n"><b>N4</b></td><td class="k">Upstream never answers</td><td>the <b>300 s global <code>readTimeout</code></b> is not the effective timeout for a job-executor thread</td><td class="n">L4</td></tr>
+          <tr><td class="n"><b>N5</b></td><td class="k">Retries exhaust</td><td>the correct one of <b>50</b> <code>customErrorHandle</code> implementations fires</td><td class="n">L4 + L5</td></tr>
+          <tr><td class="n"><b>N6</b></td><td class="k">Anti-fraud fails 3&times;</td><td>degrade to <code>BYPASS</code> &mdash; and <b>it is recorded as a credit decision</b>, not a log line</td><td class="n">L5</td></tr>
+          <tr><td class="n"><b>N7</b></td><td class="k">Well-formed payload, wrong-typed field</td><td>rejected at the client, not written to the aggregate</td><td class="n">L4</td></tr>
+          <tr><td class="n"><b>N8</b></td><td class="k">The jsonb matrix disables a <b>mandatory</b> activity</td><td>the process refuses to start, rather than skipping a required check</td><td class="n">L1 + L5</td></tr>
+          <tr><td class="n"><b>N9</b></td><td class="k">A child sub-process throws</td><td>escalation reaches the parent through one of the 190 escalation paths</td><td class="n">L5</td></tr>
+          <tr><td class="n"><b>N10</b></td><td class="k">A loan is force-terminated mid-flight</td><td>status and <code>application_status_log</code> are consistent; no orphan job</td><td class="n">L5</td></tr>
+          <tr><td class="n"><b>N11</b></td><td class="k">The same application starts twice</td><td>idempotent &mdash; one process instance, <code>RetryLog</code> unambiguous</td><td class="n">L4</td></tr>
+          <tr><td class="n"><b>N12</b></td><td class="k">Two approvers decide concurrently</td><td>one wins; the ladder does not skip a tier</td><td class="n">L2</td></tr>
+        </tbody>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="pull" style="font-size:clamp(15px,1.55vw,20px)">Bravo cannot make an upstream fail <em>at all.</em>
+          <small>LORA can make any upstream fail per run with a two-line delta. <code>bravo-mock-service</code> is static and shared, so <em>&ldquo;ask anti-fraud to reject&rdquo;</em> is not a thing a Bravo test can do. <strong>That is why 50 <code>customErrorHandle</code> implementations, 70 error definitions and 190 escalations are entirely unexercised.</strong></small></p>
+        <div class="note note--ok"><h4>And Bravo&rsquo;s version is the cheaper one to build</h4>N0&ndash;N12 need one piece of infrastructure &mdash; the same piece LORA built: a <strong>per-run stub layer in front of the 113 Feign clients</strong>, where a test steers one answer and everything else comes from a shared baseline. Bravo&rsquo;s stubs generate from <em>typed interfaces</em>, so there is <strong>no schema registry to keep in sync and no <code>check:stubs</code> script to write.</strong></div>
+        <pre><span class="c">// the shape a Bravo negative case should have</span>
+stubs.baseline(<b>NDF2W_SCORING_1</b>);
+stubs.<b>antiFraud</b>().failsWith(<span class="a">503</span>).times(<span class="a">3</span>);
+<span class="c">// then assert the degrade, not the log line:</span>
+assertThat(application)
+  .hasCreditDecision(<b>BYPASS</b>)
+  .recordedBy(<span class="a">"customErrorHandle"</span>);</pre>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;7.4 &middot; recommendation 10</span><span>15</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Budget">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7.5&ndash;7.6</b><span class="sep">/</span>The strategy</p>
+    <h2 class="st">400 cases must not mean 400 process runs</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="lede">LORA&rsquo;s arithmetic applies unchanged: <strong>400 cases &times; a 2-minute walk is 13 hours</strong>, and a suite nobody can run in a sprint is a suite nobody runs. The same 400 cases distributed down the ladder:</p>
+        <div class="tw"><table>
+          <thead><tr><th>Layer band</th><th class="n">Cases</th><th class="n">Each</th><th>When</th><th class="n">Wall clock</th></tr></thead>
+          <tbody>
+            <tr><td class="k">L0 + L1 &mdash; lint and config</td><td class="n">~60</td><td class="n">~20 ms</td><td><b>every build</b></td><td class="n"><b>~2 s</b></td></tr>
+            <tr><td class="k">L2 + L3 + L4 &mdash; Java, expressions, delegates</td><td class="n">~1,100</td><td class="n">~5 ms</td><td>every build</td><td class="n">~15 s</td></tr>
+            <tr><td class="k">L5 &mdash; process fragments</td><td class="n">~60</td><td class="n">~1 s</td><td>every build</td><td class="n">~1 min</td></tr>
+            <tr><td class="k">L6 &mdash; product-matrix journeys</td><td class="n"><b>5</b></td><td class="n">~10 s</td><td>every merge</td><td class="n">~1 min</td></tr>
+            <tr><td class="k">L7 &mdash; console contracts</td><td class="n">~40</td><td class="n">~2 s</td><td>every merge</td><td class="n">~1.5 min</td></tr>
+            <tr><td class="k">L8 &mdash; canary</td><td class="n">1</td><td class="n">~3 min</td><td>hourly</td><td class="n">&mdash;</td></tr>
+            <tr class="tot"><td colspan="4">Per-merge total</td><td class="n">&asymp; 4 min</td></tr>
+          </tbody>
+        </table></div>
+        <p class="pull" style="font-size:clamp(15px,1.55vw,20px)">Five L6 journeys is the whole product matrix: NDF2W, NDF4W, RO, unified DF4W, DF2W.
+          <small><strong>Five tests would cover the paradigm&rsquo;s happy path across 100% of production volume</strong>, against the zero that cover it today &mdash; and they are the <em>expensive</em> layer, deliberately kept to five, because L0&ndash;L4 catch everything that does not need the engine.</small></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="eyebrow">&sect;7.6 &middot; Three rules that keep it from rotting</p>
+        <div class="note"><h4>1 &middot; No hand-written expectation lists</h4>LORA derives its 24-stage activity plan from real traces because hand-written lists <em>&ldquo;were proven wrong twice&rdquo;</em>. Bravo&rsquo;s equivalent is the per-product activity set: <strong>derive it from <code>act_hi_actinst</code>, never type it.</strong> This depends on the job-executor spans in bravo-observability.md rec 8 &mdash; <strong>without them, a derived Bravo expectation has no source.</strong> That is the one dependency this document has on another.</div>
+        <div class="note"><h4>2 &middot; No selectors or field paths in a test</h4>Bravo&rsquo;s version: <strong>no <code>productId == 1L</code> literal in a test.</strong> A test asks the config layer which product it is &mdash; so a test cannot become the sixth discrimination mechanism.</div>
+        <div class="note"><h4>3 &middot; No stub copied into a case</h4>Name a baseline bundle, state only the delta. This is what makes N0&ndash;N12 two lines each instead of a fixture per case.</div>
+        <div class="note note--bad"><h4>And one rule that is Bravo&rsquo;s alone</h4><strong>A snapshot is never auto-recorded.</strong> LORA states the reason precisely &mdash; if the first passing run records the baseline, <em>&ldquo;that day&rsquo;s form &mdash; bugs included &mdash; would silently become the truth&rdquo;</em>. For Bravo the trap is larger, because <strong>L0 would otherwise record 38,198 parse warnings a week as the approved state of the models.</strong></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;7.5&ndash;7.6 &middot; lora-super-test slides 06, 13, 19, 21</span><span>16</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Recommendations">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
+    <h2 class="st">Eleven actions &mdash; and where each lands on the ladder</h2>
+    <div class="recs">
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Pin <code>calledElementBinding</code>, or write the one test that proves the bridge <span class="sz">&middot; S&ndash;M, highest value</span></b>56 call activities, none version-pinned, and <code>ndf2w.bpmn</code> calls into unified underwriting. Either pin the binding so a unified edit cannot reach 73% of volume mid-flight, or add a process test that starts an NDF2W instance and asserts which underwriting version it enters. Today neither exists.</span></div>
+      <div class="rec"><span class="no">2</span><span class="tx"><b>Fail the build on <code>ENGINE-09004</code> <span class="sz">&middot; S</span></b>The warnings are already produced &mdash; simply in the wrong place. A parse test over all 53 files with <code>camunda-bpm-assert</code>, already in the pom, turns 38,198 production warnings a week into a red build. Start with the KYC gateway the engine is currently guessing about.</span></div>
+      <div class="rec"><span class="no">3</span><span class="tx"><b>Add a 4xx clause to the release health gate <span class="sz">&middot; S</span></b>&ldquo;Not 5xx&rdquo; is not health. At minimum, per-resource 404 and 401 rates on the four surveyor endpoints and the IAM permission call.</span></div>
+      <div class="rec"><span class="no">4</span><span class="tx"><b>Build one end-to-end process test per generation <span class="sz">&middot; M</span></b>Two tests: an NDF2W instance and a unified DF4W instance, each walked start to go-live with upstreams stubbed, asserting terminal status and the activity set executed. Two tests would cover the paradigm&rsquo;s entire happy path, currently covered by none.</span></div>
+      <div class="rec"><span class="no">5</span><span class="tx"><b>Test the retry and degrade policies <span class="sz">&middot; M</span></b>Assert <code>failedJobRetryTimeCycle</code> is a valid <code>Rn/PTn</code> on every service task &mdash; the 5 bare <code>PT4M</code> cycles are a latent defect &mdash; and drive an activity to last-attempt to assert which <code>customErrorHandle</code> fires. The anti-fraud <code>BYPASS</code> is a credit-policy decision reached by an exception handler and nothing verifies when.</span></div>
+      <div class="rec"><span class="no">6</span><span class="tx"><b>Make the product blast radius visible in the diff <span class="sz">&middot; M</span></b>Tag every test with the products it covers and emit, per PR, the set of <code>productId</code>s reachable from the changed BPMN files, config rows and factories. A reviewer should not have to know five discrimination mechanisms to know whether a change reaches NDF2W.</span></div>
+      <div class="rec"><span class="no">7</span><span class="tx"><b>Turn on a coverage gate, and correct the <code>makefile</code> <span class="sz">&middot; S</span></b>JaCoCo <code>check</code> with a floor at the current level, ratcheting. Fix <code>-Dspring-boot.run.profiles</code>, which surefire ignores.</span></div>
+      <div class="rec"><span class="no">8</span><span class="tx"><b>Add one Synthetics multi-step API test for the origination journey <span class="sz">&middot; S&ndash;M</span></b>Not a replacement for a process test &mdash; a canary. Today the only continuous evidence that Bravo works is a support-ticket queue.</span></div>
+      <div class="rec"><span class="no">9</span><span class="tx"><b>Send CI events to Datadog <span class="sz">&middot; S</span></b>Zero pipeline events exist for either platform, so no one can answer &ldquo;is the build getting slower, flakier, redder&rdquo;. A configuration change that benefits both teams.</span></div>
+      <div class="rec first"><span class="no">10</span><span class="tx"><b>Build the per-run stub layer in front of the 113 Feign clients <span class="sz">&middot; M &mdash; unblocks N0&ndash;N12</span></b>Today no Bravo test can make an upstream fail, so <b>50 <code>customErrorHandle</code> implementations, 70 error definitions and 190 escalation paths are unexercised</b>. <code>bravo-mock-service</code> (Mockoon) does not solve it &mdash; it is static and shared, precisely why LORA built its own. Bravo&rsquo;s version is cheaper: stubs generate from typed Feign interfaces, so there is no schema registry to sync.</span></div>
+      <div class="rec"><span class="no">11</span><span class="tx"><b>Derive expectations, never type them <span class="sz">&middot; S &mdash; a policy, not a task</span></b>LORA derives its activity plan from real traces because hand-written lists were proven wrong twice. Bravo&rsquo;s equivalent is the per-product activity set, derived from <code>act_hi_actinst</code> &mdash; which needs the job-executor spans in bravo-observability.md rec 8 first. <b>Until then an L6 journey&rsquo;s expected activity set has no trustworthy source</b>, and that is the one dependency this document has on another.</span></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th class="n">Rec</th><th class="n">Layer</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="n">2</td><td class="n"><b>L0</b></td><td>Also delivers <b>T1</b>, <b>T3</b>, <b>T12</b> in the same test harness</td></tr>
+        <tr><td class="n">7</td><td class="n"><b>L2</b></td><td>Gates the layer that is already healthy</td></tr>
+        <tr><td class="n">6</td><td class="n"><b>L1 + L3</b></td><td>Falls out of L1 and L3 almost for free once they exist &mdash; the reachable <code>productId</code> set <em>is</em> the L3 evaluation</td></tr>
+        <tr><td class="n">5</td><td class="n"><b>L0</b> then <b>L4/L5</b></td><td>Part 1 is L0 and costs 4 days; part 2 needs L5 <em>and</em> rec 10</td></tr>
+        <tr><td class="n">1</td><td class="n"><b>L0</b> &rarr; <b>L6</b></td><td>L0 finds all 56 in seconds; <b>only L6 proves the fix</b></td></tr>
+        <tr><td class="n">4</td><td class="n"><b>L6</b></td><td><b>Five</b> journeys, not two &mdash; the full product matrix</td></tr>
+        <tr><td class="n">3</td><td class="n"><b>L7</b></td><td>With <b>T5</b>, <b>T10</b>, <b>T11</b></td></tr>
+        <tr><td class="n">8</td><td class="n"><b>L8</b></td><td>&mdash;</td></tr>
+        <tr><td class="n">9</td><td class="n">&mdash;</td><td>Infrastructure for all of it: today <b>no layer&rsquo;s runtime is measurable</b></td></tr>
+        <tr><td class="n"><b>10</b></td><td class="n">enables <b>L4, L5</b></td><td>The whole of <b>N0&ndash;N12</b></td></tr>
+        <tr><td class="n"><b>11</b></td><td class="n">policy for <b>L6</b></td><td>Blocked on observability rec 8</td></tr>
+      </tbody></table></div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;Recommended actions &middot; <b>the ordering the ladder implies is different from the list, and better: L0 and L1 are the cheapest work here and close the most findings</b></span><span>17</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="30/60/90">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Plan</p>
+    <h2 class="st">30, 60, 90 days</h2>
+    <p class="lede">Eleven recommendations, phased against <strong>~25 person-days a month</strong> of Squad S&amp;U time &mdash; the allocation set by bravo-people.md recommendation 4. <strong>The phases are the ladder, built cheapest-first</strong> &mdash; L0 and L1 in month 1, L3 and L4 in month 2, L5 and L6 in month 3. That ordering is not a preference: <em>L6 is the only layer that can prove the <code>calledElementBinding</code> fix, and L0 is the only layer that can find all 56 call sites in seconds.</em></p>
+    <div class="cols">
+      <div class="note note--bad"><h4>Sequencing rule</h4><strong>Investigate before touching anything that reaches in-flight loans.</strong> Recommendation 1 is the highest-value item here and the most dangerous to rush &mdash; unpinned <code>callActivity</code> binding affects <strong>248,685 NDF2W applications per 90 days</strong>. It is therefore read-only in month 1, a decision in month 2, and a change in month 3. Nothing else in this plan alters in-flight behaviour at all.</div>
+      <div class="note"><h4>Shared with other documents</h4>Recommendation 1 is also <strong>bravo-delivery.md rec 6</strong>; recommendation 3 is also <strong>bravo-observability.md rec 2</strong>. Both are phased identically in all documents &mdash; do them once.</div>
+    </div>
+    <div class="phases">
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">Look, and start reporting</span></div>
+        <ul>
+          <li><span class="r">1</span><span><b><code>calledElementBinding</code> investigation &mdash; read-only.</b> Enumerate all 56 <code>callActivity</code> elements; map which children an NDF2W instance reaches; quantify the bridge exposure. <em>S&amp;U &middot; 5 d.</em> A written exposure note. <b>No code change this phase.</b></span></li>
+          <li><span class="r">9</span><span><b>Send CI pipeline events to Datadog.</b> <em>Platform &middot; 2 d.</em> Zero pipeline events becomes a build-health number, for both platforms.</span></li>
+          <li><span class="r">L0</span><span><b>Build L0 &mdash; model lint.</b> All 53 BPMN + 3 DMN parsed at build with <code>camunda-bpm-assert</code>, already in the pom. <em>S&amp;U &middot; 4 d.</em> Delivers rec 2 plus <b>T1</b>, <b>T3</b>, <b>T12</b> and the <em>detection</em> half of rec 1. <b>38,198 production parse warnings a week become a red build that runs in seconds.</b></span></li>
+          <li><span class="r">L1</span><span><b>Build L1 &mdash; config-table validation.</b> <em>S&amp;U &middot; 3 d.</em> The <b>four YAML keys that are not deployed processes</b> fail the build. <b>T6</b>, <b>T7</b>, <b>T9</b> land here.</span></li>
+        </ul>
+      </div>
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">Put the gates in</span></div>
+        <ul>
+          <li><span class="r">2</span><span><b>Fail the build on <code>ENGINE-09004</code></b>, and fix the KYC gateway whose default flow the engine is guessing. <em>S&amp;U &middot; 4 d.</em></span></li>
+          <li><span class="r">3</span><span><b>Add the 4xx clause to the release health gate.</b> <em>Platform/SRE &middot; 3 d.</em> A release that 404s two-thirds of sessions fails the gate.</span></li>
+          <li><span class="r">7</span><span><b>Coverage gate + <code>makefile</code> fix.</b> <em>S&amp;U &middot; 2 d.</em></span></li>
+          <li><span class="r">8</span><span><b>Synthetics multi-step API test for origination.</b> <em>QA &middot; 3 d.</em></span></li>
+          <li><span class="r">1</span><span><b><code>calledElementBinding</code> decision</b> &mdash; pin, or accept in-flight child migration deliberately, with a migration plan. <em>S&amp;U + EM &middot; 2 d.</em></span></li>
+          <li><span class="r">L3</span><span><b>Build L3 &mdash; gateway-expression evaluation.</b> Every <code>conditionExpression</code> evaluated through <code>ExpressionManager</code>, no process started. <em>S&amp;U &middot; 5 d.</em> <b>Bravo&rsquo;s routing stops being data and becomes code</b> &mdash; and this plus L1 <em>is</em> rec 6.</span></li>
+          <li><span class="r">10</span><span><b>Build the per-run stub layer</b> in front of the 113 Feign clients. <em>S&amp;U &middot; 6 d.</em> An upstream can be made to fail on demand for the first time. <b>Unblocks all of N0&ndash;N12.</b></span></li>
+        </ul>
+      </div>
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 61&ndash;90</span><span class="ph__t">Prove the journey, then make the change</span></div>
+        <ul>
+          <li><span class="r">L6</span><span><b>Build L5 + L6 &mdash; the five product-matrix journeys.</b> NDF2W, NDF4W, RO, unified DF4W, DF2W, each start to go-live on the phase-2 stub layer. Expectations <b>derived</b> from <code>act_hi_actinst</code>, never typed. <em>S&amp;U + QA &middot; 12 d.</em> The journey question is answered <b>for 100% of production volume</b> instead of 0%. <b>T2</b> lands here.</span></li>
+          <li><span class="r">1</span><span><b>Implement the binding decision</b> &mdash; pin all 56 call activities, with the phase-2 migration plan. <em>S&amp;U &middot; 10 d.</em></span></li>
+          <li><span class="r">5</span><span><b>Retry-policy validation, part 1.</b> Assert every <code>failedJobRetryTimeCycle</code> is a valid <code>Rn/PTn</code>. <em>S&amp;U &middot; 4 d.</em></span></li>
+        </ul>
+      </div>
+      <div class="ph ph--last">
+        <div class="ph__h"><span class="ph__d">Deferred</span><span class="ph__t">With triggers</span></div>
+        <ul>
+          <li><span class="r">N</span><span><b>The negative suite, N0&ndash;N12.</b> Force each upstream failure mode and assert the degrade decision; <b>N6</b> &mdash; the anti-fraud <code>BYPASS</code> &mdash; is a credit-policy decision reached by an exception handler. Needs <em>both</em> the phase-2 stub layer and the phase-3 L5 harness; ~2 days per case once both exist. <em>Trigger: after the L6 journeys land.</em></span></li>
+          <li><span class="r">L7</span><span><b>L7 &mdash; console contracts.</b> Snapshot the 9+ <code>FormTab</code> sub-resource shapes; one live test per shared component. <b>T5</b>, <b>T10</b>, <b>T11</b>. The phase-2 4xx gate <em>detects</em> these; L7 is what <em>prevents</em> them. <em>Trigger: after the console inventory in bravo-delivery.md rec 7.</em></span></li>
+          <li><span class="r">6</span><span><b>Product blast radius in the diff.</b> 8 days, and much cheaper once job-executor tracing and the flag registry exist. <em>Trigger: Q2 week 1.</em></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;Plan: 30, 60, 90 days</span><span>18</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What changes">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Outcome</p>
+    <h2 class="st">What changes when this is done</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Recommendation</th><th>Example when done</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><code>calledElementBinding</code> pinned</td><td>A change to unified underwriting cannot silently alter the path of 248,685 in-flight NDF2W applications. Migration becomes a decision instead of a side effect.</td></tr>
+        <tr><td class="k"><code>ENGINE-09004</code> fails the build</td><td>The KYC gateway that Camunda is currently guessing the default flow for is fixed in a PR, not discovered in a log stream nobody reads.</td></tr>
+        <tr><td class="k">4xx in the health gate</td><td>A release that starts 404-ing on two-thirds of surveyor sessions is caught at deploy, not by a rising ticket category.</td></tr>
+        <tr><td class="k">Two end-to-end process tests</td><td>&ldquo;Can a loan still get from submission to go-live?&rdquo; has an automated answer for both generations, every build.</td></tr>
+        <tr><td class="k">Retry and degrade tested</td><td>Nobody discovers by incident that anti-fraud has been bypassing after three failures, or that five retry cycles never repeat.</td></tr>
+        <tr><td class="k">Product blast radius in the diff</td><td>A reviewer sees &ldquo;this PR reaches NDF2W, NDF4W and RO&rdquo; on the PR itself, and the five discrimination mechanisms stop being tribal knowledge.</td></tr>
+        <tr><td class="k">CI events flowing</td><td>Build health becomes a number for both platforms instead of an impression.</td></tr>
+        <tr><td class="k"><b>L0 + L1 exist</b></td><td>A gateway with no default flow, a retry cycle that never repeats, a product with no deployed process, and a jsonb matrix naming a deleted activity all fail the build <b>in seconds</b> &mdash; instead of in a production log stream nobody reads.</td></tr>
+        <tr><td class="k"><b>L3 exists</b></td><td>&ldquo;Which products does this diff reroute?&rdquo; is answered by evaluating the gateway conditions, not by a reviewer who happens to know all five discrimination mechanisms.</td></tr>
+        <tr><td class="k"><b>The stub layer exists</b></td><td>A test can say <em>&ldquo;this run&rsquo;s anti-fraud rejects&rdquo;</em>. 50 <code>customErrorHandle</code> implementations, 70 error definitions and 190 escalation paths stop being unexercised.</td></tr>
+        <tr><td class="k"><b>The ladder has a routing rule</b></td><td>A form change fails in L7 in two seconds, not in a 10-second journey three layers from the cause &mdash; and the per-merge suite still finishes in about <b>four minutes</b>.</td></tr>
+      </tbody></table></div>
+    <p class="pull">Today the build can be green for a change that reroutes 94% of production volume. Two tests and one attribute close that.</p>
+    <div class="foot"><span class="src">bravo-testing.md &middot; related: bravo-observability.md, bravo-delivery.md, compare-architecture.md &sect;3.10&ndash;3.11, workflow-gap.md &sect;8</span><span>19</span></div>
+  </div>
+</section>
+
+</main>
+
+<div class="rail" id="rail" role="tablist" aria-label="Slides"></div>
+<div class="hud" id="hud" aria-live="off"><b>01</b> / 01</div>
+<script>
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var rail=document.getElementById('rail'), hud=document.getElementById('hud');
+  var pad=function(n){return String(n).padStart(2,'0')};
+  slides.forEach(function(s,i){
+    s.id='s'+(i+1);
+    var b=document.createElement('button');
+    b.type='button';
+    b.setAttribute('aria-label','Slide '+(i+1)+(s.dataset.nav?': '+s.dataset.nav:''));
+    b.addEventListener('click',function(){go(i)});
+    rail.appendChild(b);
+  });
+  var dots=[].slice.call(rail.children), cur=0;
+  function paint(i){
+    cur=i;
+    dots.forEach(function(d,j){d.setAttribute('aria-current',j===i?'true':'false')});
+    hud.innerHTML='<b>'+pad(i+1)+'</b> / '+pad(slides.length);
+  }
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    slides[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+    paint(i);
+  }
+  paint(0);
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting) paint(slides.indexOf(e.target)); });
+    },{root:deck,threshold:0.55});
+    slides.forEach(function(s){io.observe(s)});
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k==='ArrowDown'||k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(cur+1)}
+    else if(k==='ArrowUp'||k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(cur-1)}
+    else if(k==='Home'){e.preventDefault();go(0)}
+    else if(k==='End'){e.preventDefault();go(slides.length-1)}
+  });
+})();
+</script>

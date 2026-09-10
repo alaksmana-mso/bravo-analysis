@@ -1,0 +1,705 @@
+<title>What Bravo Can See</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ============================================================
+   Bravo production-findings deck system
+   Shared across the five decks; only --ac* tokens differ.
+   ============================================================ */
+
+:root{
+  --paper:#F1F3F6; --panel:#FFFFFF; --panel2:#E7ECF2; --panel3:#DDE3EB;
+  --ink:#161B23; --ink2:#434D5B; --ink3:#6D7686;
+  --rule:#D1D8E1; --ruleS:#AFBAC7;
+  --ok:#2C6B4C; --bad:#A5372A; --warn:#8E6410; --neu:#5A6472;
+  --okBg:#2C6B4C1a; --badBg:#A5372A1a; --warnBg:#8E64101f; --neuBg:#5A64721a;
+  --ac:#8A6318; --acBg:#8A63181f; --acBg2:#8A63180f;
+  --shadow:0 1px 2px #161b2310, 0 8px 24px -12px #161b2320;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11151B; --panel:#181E26; --panel2:#202834; --panel3:#28313E;
+    --ink:#E7ECF3; --ink2:#ADB8C6; --ink3:#7C8695;
+    --rule:#293240; --ruleS:#3A4553;
+    --ok:#71C096; --bad:#E68B79; --warn:#D9AA4C; --neu:#939DAB;
+    --okBg:#71C09622; --badBg:#E68B7922; --warnBg:#D9AA4C22; --neuBg:#939DAB1c;
+    --ac:#D7A84E; --acBg:#D7A84E24; --acBg2:#D7A84E12;
+    --shadow:0 1px 2px #0006, 0 10px 30px -14px #0008;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11151B; --panel:#181E26; --panel2:#202834; --panel3:#28313E;
+  --ink:#E7ECF3; --ink2:#ADB8C6; --ink3:#7C8695;
+  --rule:#293240; --ruleS:#3A4553;
+  --ok:#71C096; --bad:#E68B79; --warn:#D9AA4C; --neu:#939DAB;
+  --okBg:#71C09622; --badBg:#E68B7922; --warnBg:#D9AA4C22; --neuBg:#939DAB1c;
+  --ac:#D7A84E; --acBg:#D7A84E24; --acBg2:#D7A84E12;
+  --shadow:0 1px 2px #0006, 0 10px 30px -14px #0008;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;margin:0;text-wrap:balance}
+p{margin:0}
+
+/* ---------- deck shell ---------- */
+.deck{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scroll-behavior:smooth;scrollbar-width:none}
+.deck::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion:reduce){.deck{scroll-behavior:auto}}
+
+.slide{
+  min-height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;flex-direction:column;
+  padding:clamp(26px,4vw,58px) clamp(22px,4.4vw,64px) clamp(48px,5vw,64px);
+  border-bottom:1px solid var(--rule);position:relative;
+}
+.inner{width:100%;max-width:1160px;margin:0 auto;display:flex;flex-direction:column;flex:1;gap:clamp(16px,2vw,26px)}
+
+/* ---------- slide head ---------- */
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:500;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+}
+.eyebrow b{color:var(--ac);font-weight:600}
+.eyebrow .sep{color:var(--ruleS)}
+h2.st{font-size:clamp(23px,3.1vw,38px);font-weight:700;letter-spacing:-.016em;line-height:1.1;margin-top:6px}
+.lede{font-size:clamp(15px,1.3vw,18.5px);line-height:1.55;color:var(--ink2);max-width:70ch}
+.lede em{color:var(--ink);font-style:italic}
+.lede strong{color:var(--ink);font-weight:600}
+
+/* ---------- cover ---------- */
+.slide--cover{justify-content:center;background:
+  radial-gradient(120% 90% at 88% 8%,var(--acBg2),transparent 60%),var(--paper)}
+.cover-kicker{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ac);font-weight:600;
+}
+h1{font-size:clamp(32px,5.4vw,64px);font-weight:800;letter-spacing:-.028em;line-height:1.02}
+h1 .thin{font-weight:500;color:var(--ink2);letter-spacing:-.02em}
+.claim{
+  font-size:clamp(15px,1.5vw,20px);line-height:1.5;font-style:italic;color:var(--ink2);
+  border-left:3px solid var(--ac);padding:2px 0 2px 18px;max-width:64ch;
+}
+.meta{
+  display:flex;flex-wrap:wrap;gap:6px 26px;font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px;letter-spacing:.05em;color:var(--ink3);padding-top:4px;
+  border-top:1px solid var(--rule);margin-top:4px;
+}
+.meta span b{color:var(--ink2);font-weight:500}
+
+/* ---------- headline stats ---------- */
+.stats{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.stats--4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat{background:var(--panel);padding:16px 18px 15px;display:flex;flex-direction:column;gap:4px}
+.stat__n{
+  font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(24px,3.3vw,42px);
+  line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ac);
+}
+.stat__n.neg{color:var(--bad)} .stat__n.pos{color:var(--ok)} .stat__n.plain{color:var(--ink)}
+.stat__n small{font-size:.5em;font-weight:600;letter-spacing:0;color:var(--ink2)}
+.stat__l{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink3);
+}
+
+/* ---------- verdict list ---------- */
+.vlist{display:flex;flex-direction:column;border-top:1px solid var(--ruleS)}
+.vrow{
+  display:grid;grid-template-columns:minmax(0,1.05fr) 132px minmax(0,1.25fr);
+  gap:14px 18px;padding:13px 2px;border-bottom:1px solid var(--rule);align-items:start;
+}
+.vrow .cl{font-size:15px;line-height:1.4;color:var(--ink);font-weight:600}
+.vrow .gi{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.vrow .gi code,.vrow .cl code{font-size:.88em}
+@media (max-width:820px){
+  .vrow{grid-template-columns:1fr;gap:7px}
+  .vrow .v{justify-self:start}
+}
+.v{
+  display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 9px 4px;border-radius:2px;white-space:nowrap;line-height:1.2;
+}
+.v::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.v--ref{color:var(--ok);background:var(--okBg)}
+.v--con{color:var(--bad);background:var(--badBg)}
+.v--sup{color:var(--warn);background:var(--warnBg)}
+.v--non{color:var(--neu);background:var(--neuBg)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+thead th{
+  text-align:left;font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);padding:10px 14px;border-bottom:2px solid var(--ac);white-space:nowrap;background:var(--panel);
+}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--rule);color:var(--ink2);vertical-align:top;line-height:1.45}
+tbody tr:nth-child(even) td{background:var(--acBg2)}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td.k{color:var(--ink);font-weight:500}
+tbody tr.tot td{background:var(--panel2);color:var(--ink);font-weight:600;border-top:1px solid var(--ruleS)}
+td b,td strong{color:var(--ink);font-weight:600}
+td .hi{color:var(--ac);font-weight:600}
+td .dn{color:var(--bad);font-weight:600}
+td .up{color:var(--ok);font-weight:600}
+caption{caption-side:bottom;text-align:left;padding:9px 14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink3);line-height:1.5;letter-spacing:.03em}
+
+/* ---------- code ---------- */
+pre{
+  margin:0;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.65;
+  background:var(--panel2);border-left:3px solid var(--ac);border-radius:0 3px 3px 0;
+  padding:14px 16px;overflow-x:auto;color:var(--ink2);
+}
+pre b{color:var(--ink);font-weight:600}
+pre .c{color:var(--ink3)}
+pre .a{color:var(--ac)}
+code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em .34em;border-radius:2px;font-size:.9em;color:var(--ink)}
+
+/* ---------- pull quote ---------- */
+.pull{
+  font-family:Archivo,sans-serif;font-weight:600;font-size:clamp(17px,2.05vw,25px);line-height:1.3;
+  letter-spacing:-.014em;color:var(--ink);border-left:4px solid var(--ac);
+  padding:4px 0 4px 20px;max-width:56ch;
+}
+.pull em{color:var(--ac);font-style:normal}
+.pull small{display:block;font-family:"Source Serif 4",serif;font-weight:400;font-size:15px;
+  line-height:1.5;color:var(--ink2);letter-spacing:0;margin-top:12px;max-width:62ch}
+
+/* ---------- two column ---------- */
+.cols{display:grid;gap:clamp(16px,2.2vw,32px);grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+.cols.b{grid-template-columns:1.15fr .85fr}
+@media (max-width:860px){.cols.b{grid-template-columns:1fr}}
+
+/* ---------- note / box ---------- */
+.note{
+  font-size:13.5px;line-height:1.55;color:var(--ink2);background:var(--panel);
+  border:1px solid var(--rule);border-radius:3px;padding:14px 16px;
+}
+.note h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ac);margin-bottom:7px;font-weight:600}
+.note strong{color:var(--ink);font-weight:600}
+.note--bad{border-left:3px solid var(--bad)} .note--bad h4{color:var(--bad)}
+.note--ok{border-left:3px solid var(--ok)} .note--ok h4{color:var(--ok)}
+
+/* ---------- numbered recommendations ---------- */
+.recs{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.rec{background:var(--panel);padding:13px 15px;display:flex;gap:12px;align-items:flex-start}
+.rec .no{
+  font-family:Archivo,sans-serif;font-weight:800;font-size:16px;color:var(--ac);
+  font-variant-numeric:tabular-nums;line-height:1.3;flex:none;min-width:18px;
+}
+.rec .tx{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.rec .tx b{color:var(--ink);font-weight:600;display:block;margin-bottom:2px;font-family:Archivo,sans-serif;font-size:13.5px;letter-spacing:-.005em}
+.rec .sz{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase}
+.rec.first{background:var(--acBg)}
+
+/* ---------- phases ---------- */
+.phases{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.ph{background:var(--panel);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.ph__h{display:flex;flex-direction:column;gap:3px;padding-bottom:9px;border-bottom:2px solid var(--ac)}
+.ph__d{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ph__t{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.ph ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.ph li{font-size:13px;line-height:1.48;color:var(--ink2);display:flex;gap:9px}
+.ph li .r{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;color:var(--ac);
+  background:var(--acBg);padding:2px 5px;border-radius:2px;flex:none;height:fit-content;letter-spacing:.04em;margin-top:1px}
+.ph li b{color:var(--ink);font-weight:600}
+.ph--last .ph__h{border-bottom-color:var(--ruleS)}
+
+/* ---------- charts ---------- */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.cl-lab{fill:var(--ink3);font-size:10px;letter-spacing:.05em}
+.cl-val{fill:var(--ink);font-size:10.5px;font-weight:600}
+.cl-valA{fill:var(--ac);font-size:10.5px;font-weight:600}
+.cl-ax{stroke:var(--rule);stroke-width:1}
+.bA{fill:var(--ac)} .bB{fill:var(--ruleS)} .bBad{fill:var(--bad)} .bOk{fill:var(--ok)}
+.legend{display:flex;gap:18px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border-radius:1px}
+
+/* ---------- foot ---------- */
+.foot{
+  margin-top:auto;padding-top:14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.06em;color:var(--ink3);display:flex;justify-content:space-between;gap:16px;
+  border-top:1px solid var(--rule);
+}
+.foot .src{max-width:78%;line-height:1.5}
+
+/* ---------- nav ---------- */
+.rail{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:20}
+.rail button{
+  width:9px;height:9px;padding:0;border:1px solid var(--ruleS);border-radius:50%;
+  background:transparent;cursor:pointer;transition:background .15s,border-color .15s,transform .15s;
+}
+.rail button[aria-current="true"]{background:var(--ac);border-color:var(--ac);transform:scale(1.35)}
+.rail button:hover{border-color:var(--ac)}
+.rail button:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+.hud{
+  position:fixed;left:14px;bottom:12px;z-index:20;font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.12em;color:var(--ink3);background:var(--paper);
+  padding:4px 8px;border:1px solid var(--rule);border-radius:2px;
+}
+.hud b{color:var(--ac);font-weight:600}
+.cue{
+  position:absolute;left:clamp(22px,4.4vw,64px);bottom:20px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;
+}
+.cue{bottom:50px}
+.cue span{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.cue span{animation:none}}
+@media (max-width:700px){.rail{display:none}}
+
+@media print{
+  .rail,.hud,.cue{display:none}
+  .deck{height:auto;overflow:visible}
+  .slide{min-height:0;page-break-after:always;border:0}
+}
+
+:root{--ac:#9A4526;--acBg:#9A45261f;--acBg2:#9A45260f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#E0855E;--acBg:#E0855E24;--acBg2:#E0855E12}}
+:root[data-theme="dark"]{--ac:#E0855E;--acBg:#E0855E24;--acBg2:#E0855E12}
+</style>
+<main class="deck" id="deck">
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:22px">
+    <p class="cover-kicker">Bravo production findings &middot; 03 of 05 &middot; Observability</p>
+    <h1>What Bravo<br>can actually see</h1>
+    <p class="claim">Can Bravo query &ldquo;all loans stuck in survey&rdquo;? Are activity logs thin and untagged? Can Bravo tell which upstream is failing, or only that upstreams are unreliable? Is there proper monitoring? And is the log the only durable substrate?</p>
+    <div class="stats stats--4" style="margin-top:6px">
+      <div class="stat"><span class="stat__n plain">0</span><span class="stat__l">Camunda spans &mdash; the orchestration layer emits none</span></div>
+      <div class="stat"><span class="stat__n neg">266,767</span><span class="stat__l">404s a week from one endpoint, across 69% of surveyor sessions</span></div>
+      <div class="stat"><span class="stat__n plain">38</span><span class="stat__l">Monitors match <code>bpm</code>. <b style="color:var(--ac)">Zero</b> watch a process</span></div>
+      <div class="stat"><span class="stat__n neg">2.41<small>M</small></span><span class="stat__l">Front-end errors in 7 days, instrumented all along, never read</span></div>
+    </div>
+    <div class="meta">
+      <span><b>Audience</b> &nbsp;Production, on-call, Squad LOS, Squad S&amp;U</span>
+      <span><b>Sources</b> &nbsp;Datadog us5 &mdash; APM, logs, monitors, RUM</span>
+      <span><b>Read</b> &nbsp;2026-09-10</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> Arrow keys or scroll &middot; 14 slides</p>
+</section>
+
+<section class="slide" data-nav="Verdicts I">
+  <div class="inner">
+    <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts, 1 of 2</p>
+    <h2 class="st">Most of the stated premises were refuted &mdash; in both directions</h2>
+    <div class="vlist">
+      <div class="vrow"><p class="cl">Bravo can query &ldquo;all loans stuck in survey&rdquo;</p><span class="v v--sup">True in SQL only</span><p class="gi">False everywhere an on-call engineer looks. <code>surveyor_assignment.assignment_status</code> is a <code>WHERE</code> clause, and that is a genuine Bravo advantage over LORA. But <strong>no dashboard, monitor, SLO or APM view expresses it</strong>, the Camunda runtime tables purge at <b>90 days</b>, and <code>Application.lastStage</code> is <code>@Transient</code> &mdash; the current stage is not persisted at all. The capability exists; the practice does not.</p></div>
+      <div class="vrow"><p class="cl">&hellip;therefore stuck loans cannot be grouped at fleet scale</p><span class="v v--ref">Refuted</span><p class="gi">By a different route than expected. Camunda&rsquo;s engine log lines carry <code>@activityName</code>, <code>@activityId</code> and <code>@processDefinitionId</code>, so failures <strong>can</strong> be ranked per BPMN activity today: <code>One Obligor Check</code> 5,583 errors in 48 hours, <code>PD Model Check NTB</code> 1,394. <strong>Nobody was doing it.</strong></p></div>
+      <div class="vrow"><p class="cl">Activity logs are thin / untagged</p><span class="v v--ref">Refuted for the engine</span><p class="gi">Confirmed for everything else &mdash; and <strong>the real defect is different</strong>. The ~5% of lines from the Camunda job executor are richly tagged, including the process definition <em>version</em>. The other ~95% are Spring stack traces with no process context. And <strong>no log line carries the application or lead id</strong>, so you can group failures by activity but cannot join a failure to a loan. LORA&rsquo;s <code>@WorkflowID</code> <em>is</em> the loan id.</p></div>
+      <div class="vrow"><p class="cl">We can tell which upstream is failing</p><span class="v v--ref">True, and better than LORA</span><p class="gi">25 upstreams resolve cleanly from <code>okhttp.request</code> spans by <code>@peer.hostname</code>, with status codes. One Feign client per upstream means <strong>attribution is structural</strong>. LORA puts ~300 proxies behind one route and cannot do this at all without an unreleased PR.</p></div>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;Verdicts &middot; the <code>bravo-bpm-db</code> MCP servers failed to connect during this session, so every SQL-shaped claim is marked <em>mechanism verified, volume not re-measured today</em></span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Verdicts II">
+  <div class="inner">
+    <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts, 2 of 2</p>
+    <h2 class="st">And the thesis itself is upside down</h2>
+    <div class="vlist">
+      <div class="vrow"><p class="cl">Upstream BFI services are unreliable</p><span class="v v--ref">Refuted</span><p class="gi">20,802 outbound errors in 7 days and <strong>not one 5xx in the top 20 rows</strong>. Every attributable upstream failure is a 4xx: <code>401</code> from IAM (8,533), <code>404</code> from repeat-order (5,070), <code>400</code> from scheduling (3,508). <strong>These are contract and auth defects, not outages.</strong></p></div>
+      <div class="vrow"><p class="cl">Bravo has no proper monitoring</p><span class="v v--sup">Refuted on count, confirmed on subject</span><p class="gi"><b>38 monitors</b> match <code>bpm</code>. Every one watches a container, a JVM, an HTTP surface or a queue. <strong>Zero watch a process instance, a Camunda incident, the job-executor backlog, or <code>application_error_tracking</code>.</strong> Eight are in <code>Alert</code> right now; six read <code>No Data</code> and cannot fire.</p></div>
+      <div class="vrow"><p class="cl">Logs are the only durable substrate</p><span class="v v--ref">Refuted, and inverted</span><p class="gi">Bravo&rsquo;s durable substrate is <strong>PostgreSQL</strong> &mdash; 238 entities, <code>application_status_log</code> written by a database trigger, reprocess generations chained as rows. Logs are the <em>least</em> durable layer here, and Camunda&rsquo;s own runtime history is the one that expires. <strong>This is the opposite of LORA.</strong></p></div>
+      <div class="vrow"><p class="cl">Bravo&rsquo;s front ends are unmonitored</p><span class="v v--con">Refuted &mdash; and the largest live defect here</span><p class="gi">All four LOS consoles are RUM-instrumented at <code>ALL</code>. The Surveyor Platform emits <b>1,962,909 errors in 7 days</b>, of which <b>748,686 are HTTP 404s</b>, and the top one hits <b>54,350 of 79,090 sessions</b>. <strong>No alert can see it, because every success-rate monitor filters on <code>5*</code>.</strong></p></div>
+    </div>
+    <p class="pull">Bravo&rsquo;s problem is not that the data is missing. Most of it is there, and in two places it is better than LORA&rsquo;s.
+      <small>The problem is that <em>every alert Bravo owns is scoped to the container and the 5xx</em> &mdash; so a system that fails by 4xx and by parking a process cannot trigger one.</small></p>
+    <div class="foot"><span class="src">bravo-observability.md &sect;Verdicts</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Stuck loans">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;1</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">&ldquo;All loans stuck in survey&rdquo; &mdash; answerable in SQL, invisible in telemetry</h2>
+    <p class="lede">This is the question LORA cannot answer in Temporal at all &mdash; zero search attributes, zero query handlers. Bravo can, and the reason is architectural: business state is a <strong>relational aggregate</strong>, so <em>&ldquo;which applications are sitting in surveyor assignment and for how long&rdquo;</em> is a <code>WHERE</code> clause over <code>surveyor_assignment.assignment_status</code> (25 values) joined to <code>application</code>. <strong>That advantage is real and this document does not diminish it.</strong> Three things bound it.</p>
+    <div class="cols">
+      <div class="note note--bad"><h4>The stage is not persisted</h4><code>Application.lastStage</code> is <code>@Transient</code>; the current position in the flow is recovered from Camunda&rsquo;s runtime tables. So the SQL answer is <em>&ldquo;stuck in this assignment status&rdquo;</em>, not <em>&ldquo;stuck at this BPMN step&rdquo;</em> &mdash; and those differ whenever the step is one the assignment tables do not model.</div>
+      <div class="note note--bad"><h4>Camunda&rsquo;s history purges at 90 days</h4><code>historyTimeToLive: P90D</code>, history level <code>full</code>. <code>act_hi_actinst</code> carries roughly <strong>50M rows per 90-day window</strong>. After the window, only the trigger-written <code>application_status_log</code> can say what happened &mdash; which is a status ladder, not a step trace.</div>
+      <div class="note note--bad"><h4>Nobody has written the query down</h4>No dashboard widget, no saved query, no monitor and no SLO in the Datadog org expresses &ldquo;applications stuck at stage X for more than N hours&rdquo;. The fleet question is answerable by someone who opens a psql session and knows the schema. <strong>It is not answerable by whoever is on call at 02:00.</strong></div>
+    </div>
+    <p class="pull">Grouping stuck loans at fleet scale <em>does</em> work today, and nobody was doing it.
+      <small>That is the part of this finding that was simply wrong &mdash; see the next two sections.</small></p>
+    <div class="foot"><span class="src">bravo-observability.md &sect;1 &middot; compare-architecture.md &sect;3.2 &middot; workflow-gap.md &sect;8&ndash;9</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="No spans">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;2</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">The orchestration layer emits no spans at all</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th><code>operation_name</code></th><th class="n">spans / 7 d</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr><td class="k">repository.operation</td><td class="n">1,412,356</td><td>JPA/Hibernate</td></tr>
+          <tr><td class="k">spring.handler</td><td class="n">990,256</td><td>REST controllers</td></tr>
+          <tr><td class="k">okhttp.request</td><td class="n">335,731</td><td>outbound calls to upstreams</td></tr>
+          <tr><td class="k">servlet.request</td><td class="n">335,010</td><td>inbound HTTP</td></tr>
+          <tr><td class="k">http.request</td><td class="n">84,743</td><td>client, other</td></tr>
+          <tr><td class="k">scheduled.call</td><td class="n">1,193</td><td><code>@Scheduled</code> / ShedLock jobs</td></tr>
+          <tr><td class="k">jakarta_rs.request</td><td class="n">75</td><td>&mdash;</td></tr>
+          <tr class="tot"><td>Camunda spans of any kind</td><td class="n">0</td><td>no process instance, no service task, no <code>JavaDelegate</code>, no job execution</td></tr>
+        </tbody>
+        <caption>Seven operation names cover every span <code>prod-ms-bpm</code> produced in 7 days. Grouping <code>spring.handler</code> by resource confirms it &mdash; the top twenty are all controllers and not one is an <code>*Activity</code> bean.</caption>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note"><h4>This is structural, not a sampling oversight</h4>All <strong>483 service tasks</strong> bind via <code>camunda:delegateExpression</code> and run inside job-executor threads. Those threads are <strong>not started by an HTTP request</strong>, so the Java agent has no trace to attach to, and nothing in the codebase opens one.</div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">The 90% of Bravo&rsquo;s work that is <em>the loan moving through the flow</em> produces no trace.
+          <small>APM sees the consoles talking to the database and the engine talking to upstreams. It does not see the process.</small></p>
+        <div class="note note--bad"><h4>The contrast with LORA runs the other way</h4>LORA&rsquo;s Temporal SDK OTel interceptor emits <strong>one span per activity attempt</strong>, carrying <code>@temporalWorkflowID</code> (= the loan id), <code>resource_name</code> (= the activity), <code>@error.type</code> and the attempt number. That is how LORA found <strong>47 wedged loans in a 7-day window with no code change</strong>. Bravo has no equivalent span &mdash; and if it had a wedged-process class it could not be found this way.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;2 &middot; <code>env:prod service:prod-ms-bpm</code>, 7 days</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Logs unjoinable">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Logs are not thin. They are unjoinable.</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="stats stats--4">
+          <div class="stat"><span class="stat__n plain">545,179</span><span class="stat__l"><code>info</code> lines / 7 d</span></div>
+          <div class="stat"><span class="stat__n neg">525,181</span><span class="stat__l"><code>error</code> lines / 7 d</span></div>
+          <div class="stat"><span class="stat__n plain">45,775</span><span class="stat__l"><code>warn</code> lines / 7 d</span></div>
+          <div class="stat"><span class="stat__n plain">1.12<small>M</small></span><span class="stat__l">total lines / 7 d</span></div>
+        </div>
+        <p class="lede"><strong>47% of this service&rsquo;s log volume is ERROR.</strong> That number is not a reliability measurement; it is a <em>formatting artefact</em>, and both halves of that matter. Clustering the error stream gives 124 patterns, and the largest are individual Java stack-trace frames logged as separate lines &mdash; <code>at &lt;pkg&gt;.&lt;class&gt;.&lt;method&gt;</code> &times;1,571, <code>at org.springframework.&hellip;</code> &times;874, <code>at java.base/&hellip;</code> &times;66. A single exception produces dozens of ERROR lines. Worse, <strong>one Camunda job failure produces two lines at two severities</strong> &mdash; <code>ENGINE-14006</code> at <code>warn</code>, then <code>ENGINE-16004</code> at <code>error</code>, for the same failure.</p>
+        <div class="note note--bad"><h4>The consequence</h4>The error stream <strong>cannot be counted</strong>, and every log-based monitor built on it inherits that.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">But the engine lines are richly tagged</p>
+        <pre>message: <b>ENGINE-16004</b> Exception while closing command
+  context: Error while invoking Ali Cloud for PD Model
+  Check Response
+status:  <span class="a">error</span>
+version: v2.93.53
+<b>@activityId</b>:          Activity_PD_Model_Check_NTB
+<b>@activityName</b>:        PD Model Check NTB
+<b>@processDefinitionId</b>: <span class="a">NDF2W:127</span>:542b74c3-ab85-11f1&hellip;
+<b>@processInstanceId</b>:   5b477587-acd4-11f1-be7a-5a673f41&hellip;</pre>
+        <div class="note note--ok"><h4>A genuinely better version dimension</h4><code>@processDefinitionId</code> carries <strong>the process key and its deployed version</strong> (<code>NDF2W:127</code>) &mdash; better than LORA&rsquo;s task-queue proxy. The Camunda job executor writes MDC context on its own lines.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;3 &middot; <code>env:prod service:prod-ms-bpm</code>, 7 days</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Per-activity failure">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>The table this pack said Bravo did not have</p>
+    <h2 class="st">Per-activity failure ranking. It took one query.</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>BPMN activity</th><th>status</th><th class="n">lines / 2 d</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><b>One Obligor Check</b></td><td>error</td><td class="n"><span class="dn">5,583</span></td></tr>
+          <tr><td class="k">PD Model Check NTB</td><td>error</td><td class="n">1,394</td></tr>
+          <tr><td class="k">KYC Check</td><td>warn</td><td class="n">1,377</td></tr>
+          <tr><td class="k">Publish User Information (Register Keycloak)</td><td>error</td><td class="n">789</td></tr>
+          <tr><td class="k">PD Model Check NTB</td><td>warn</td><td class="n">740</td></tr>
+          <tr><td class="k">Pilot Branch Check</td><td>warn</td><td class="n">597</td></tr>
+          <tr><td class="k">One Obligor</td><td>error</td><td class="n">434</td></tr>
+          <tr><td class="k">Retrive Pefindo Spouse Profile Activity</td><td>error</td><td class="n">326</td></tr>
+          <tr><td class="k">Request Go Live</td><td>error</td><td class="n">252</td></tr>
+          <tr><td class="k">Retrive Pefindo Profile Activity</td><td>error</td><td class="n">244</td></tr>
+          <tr><td class="k">Get Agreement Number</td><td>error</td><td class="n">150</td></tr>
+        </tbody>
+        <caption>Grouped by <code>@activityName</code>, <code>env:prod</code>, 48 hours. ~4,750 activity-level failures a day, concentrated in one check.</caption>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">The claim &ldquo;activity logs are thin&rdquo; is refuted. The claim &ldquo;nobody is looking&rdquo; is not.</p>
+        <p class="eyebrow">Two real defects the tagging does have</p>
+        <div class="note note--bad"><h4>Only ~5% of lines carry process context</h4>17,333 lines in 48 hours match <code>@processInstanceId:*</code>, against ~319,000 total. Everything from the REST layer &mdash; the consoles, the operator endpoints, every stack trace &mdash; has no process context at all.</div>
+        <div class="note note--bad"><h4>No log line carries the application or lead id</h4><code>@applicationId</code> was probed and is <strong>absent</strong> from the engine MDC. Bravo can tell you <em>One Obligor Check is failing 2,800 times a day</em>. It cannot tell you <em>which 400 customers are affected</em> without leaving Datadog &mdash; and it cannot tell you whether those are 2,800 loans failing once or forty loans failing seventy times, because the <code>CARDINALITY(trace_id)</code> test has no analogue here. There are no traces on the engine path.</div>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Question</th><th>Bravo</th><th>LORA</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Which activity fails most?</td><td><span class="up">yes</span> &mdash; <code>@activityName</code></td><td><span class="up">yes</span> &mdash; <code>@ActivityType</code></td></tr>
+        <tr><td class="k">On which process version?</td><td><span class="up">yes</span> &mdash; <code>@processDefinitionId</code></td><td>partly &mdash; <code>@TaskQueue</code></td></tr>
+        <tr><td class="k">Which loan is this failure on?</td><td><span class="dn">no</span> &mdash; a Camunda UUID; resolving it needs a database lookup against <code>application.process_id</code>, and only inside the 90-day window</td><td><span class="up">yes</span> &mdash; <code>@WorkflowID</code> <em>is</em> the application UUID</td></tr>
+        <tr><td class="k">How many times has this attempt been retried?</td><td><span class="dn">no</span> &mdash; no attempt counter on the line</td><td><span class="up">yes</span> &mdash; <code>@Attempt</code></td></tr>
+      </tbody></table></div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;3</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Upstreams">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;4</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">Upstream attribution works &mdash; and this inverts the LORA finding</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="lede">Outbound calls carry <code>@peer.hostname</code> per Feign/OkHttp client, <strong>one client per upstream</strong>. 25 hosts resolve cleanly, led by <code>prod-ms-user-iam</code> (86,066 spans / 7 d), <code>prod-ms-employee</code> (64,725), <code>prod-ms-product</code> (31,463), <code>prod-ms-onboarding</code> (29,200) and <code>prod-ms-master</code> (27,954), down to <code>prod-ms-backoffice</code> at 32.</p>
+        <div class="note note--ok"><h4>This is the view LORA does not have</h4>LORA&rsquo;s gateway routes ~300 inner proxies through one endpoint (<code>POST /proxy/inner/request-v1</code>), so <strong>21,128 errors a week report as the same resource</strong> &mdash; and the fix, PR 1246, is merged but not in any release tag. Bravo gets per-upstream attribution structurally, from having <strong>113 typed Feign clients instead of one generic proxy</strong>. Give the point to Bravo.</div>
+        <p class="eyebrow">The errors are entirely 4xx</p>
+        <div class="tw"><table>
+          <thead><tr><th>Upstream</th><th class="n">status</th><th class="n">errors / 7 d</th><th class="n">traces</th></tr></thead>
+          <tbody>
+            <tr><td class="k">prod-ms-user-iam</td><td class="n"><span class="dn">401</span></td><td class="n"><b>8,533</b></td><td class="n">7,964</td></tr>
+            <tr><td class="k">prod-ms-repeat-order</td><td class="n">404</td><td class="n">5,070</td><td class="n">3,934</td></tr>
+            <tr><td class="k">prod-ms-scheduling</td><td class="n">400</td><td class="n">3,508</td><td class="n">3,081</td></tr>
+            <tr><td class="k">prod-ms-agreement</td><td class="n">400</td><td class="n">926</td><td class="n">449</td></tr>
+            <tr><td class="k">private.prod.bfi.co.id</td><td class="n">400</td><td class="n">671</td><td class="n">500</td></tr>
+            <tr><td class="k">gateway.bfi.co.id</td><td class="n">422</td><td class="n">609</td><td class="n">610</td></tr>
+            <tr><td class="k">prod-ms-kyc-proxy</td><td class="n">400</td><td class="n">580</td><td class="n">474</td></tr>
+            <tr><td class="k">prod-keycloak-headless</td><td class="n">404</td><td class="n">287</td><td class="n">240</td></tr>
+          </tbody>
+          <caption>&hellip;12 more rows, all 4xx, down to 4 spans. <b>Not one 5xx appears in the top twenty.</b> Roughly 20,800 outbound errors a week, all client-side.</caption>
+        </table></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note note--bad"><h4>&ldquo;Upstream BFI services are unreliable&rdquo; is not what the data says</h4>It says <strong>Bravo asks upstreams for things they will not give it.</strong> <code>401</code> from the IAM permission endpoint at ~1,200/day is an auth or token-lifetime defect <em>in Bravo</em>, confirmed by the log stream (<code>FeignException$Unauthorized &hellip; [GET] /permission/assigned &hellip; "code":"INVALID_KEY"</code> alongside <code>TokenExpiredException</code> &times;176). <code>404</code> from repeat-order at ~720/day is a lookup for something that does not exist.</div>
+        <div class="note"><h4>The span:trace ratios say fleet-wide, not retry loops</h4>IAM is 8,533 errors across 7,964 traces &mdash; <strong>1.07:1</strong>, i.e. every affected request fails once. LORA&rsquo;s equivalent table had rows at <strong>10,442 spans in 2 traces</strong>.</div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Bravo&rsquo;s failure mode is <em>many loans failing once.</em> LORA&rsquo;s was <em>two loans failing ten thousand times.</em>
+          <small>Both are worth fixing and they need completely different fixes: Bravo&rsquo;s is a defect affecting a broad population; LORA&rsquo;s was a retry policy. This is the clearest single illustration in the pack of what &ldquo;bounded retry&rdquo; buys and costs.</small></p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;4 &middot; <code>okhttp.request</code>, 7 days</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="38 monitors">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>What we found</p>
+    <h2 class="st">38 monitors, none of them on the process</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Category</th><th class="n">Count</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Container / pod / JVM resource</td><td class="n">11</td><td>POD &amp; container CPU and memory &times;8, <code>jvm.heap_memory</code>, <code>OutOfMemoryError: Metaspace</code>, faulty-deployment events</td></tr>
+          <tr><td class="k">HTTP surface</td><td class="n">11</td><td>success rate, error rate &times;2, p90/average latency, Apdex, throughput anomaly, <code>Latency Get &gt; 500ms</code></td></tr>
+          <tr><td class="k">RabbitMQ failed-declare</td><td class="n">6</td><td>one per environment: dev, sit, uat, prod, and three Sharia variants</td></tr>
+          <tr><td class="k">SLO error budget</td><td class="n">3</td><td>7 d, 30 d, 90 d &mdash; all on the same SLO id</td></tr>
+          <tr><td class="k">Business / upstream log alerts</td><td class="n">5</td><td>Check Pefindo Error, Negativelist, <code>BranchAPIClient</code> error, CNV success rate, Palav callback</td></tr>
+          <tr><td class="k">Test / scratch</td><td class="n">1</td><td><code>TEST- succes rate bpm</code></td></tr>
+          <tr class="tot"><td><b>Process-level</b></td><td class="n"><b>0</b></td><td>&mdash;</td></tr>
+        </tbody>
+        <caption>Nothing watches a Camunda incident, a stuck process instance, the job-executor backlog, <code>application_error_tracking</code> row growth, or a per-activity failure rate &mdash; even though &sect;3 shows the last of those is one query away.</caption>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <p class="eyebrow">Three pathologies, each with an exact LORA counterpart</p>
+        <div class="note note--bad"><h4>Eight monitors are in <code>Alert</code> right now</h4>POD CPU and Memory for Squad S&amp;U; both latency monitors; all three SLO error-budget monitors; and the scratch <code>TEST-</code> monitor. <strong>A monitor that has been red long enough to be normal is not a monitor.</strong> LORA found the same thing &mdash; a wedged-loan alert firing continuously into a chat room since January.</div>
+        <div class="note note--bad"><h4>Six monitors read <code>No Data</code> and cannot fire</h4>All four <code>prod-sharia-bpm</code> resource monitors filter <code>service:prod-sharia-bpm</code> while the service is registered as <strong><code>prod-sharia-bpm-sharia</code></strong>, plus two formula monitors that have never evaluated. This is precisely LORA&rsquo;s eight never-evaluated worker monitors, <em>tag mismatch and all</em>.</div>
+        <div class="note note--bad"><h4>The one business monitor filters out the engine&rsquo;s own error class</h4><pre style="border-left-color:var(--bad);margin-top:8px;font-size:11.5px">logs("service:prod-ms-bpm checkpefindov2
+  -status:(warn OR info) <b>-\"ENGINE-16004\"</b>")
+  .rollup("count").by("service").last("5m") &gt; 1</pre><p style="margin-top:8px"><code>ENGINE-16004</code> is the line that carries <code>@activityName</code> and the actual failure reason. It has been excluded, presumably because it was noisy. <strong>The noise was the signal.</strong> LORA&rsquo;s zombie monitor excluded its own worst failure class for the same reason. Two teams, two platforms, the same reflex.</p></div>
+      </div>
+    </div>
+    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Dashboards.</strong> No dashboard in the org mentions <code>bpm</code> or <code>camunda</code>. Bravo LOS is covered by nine cloned <code>LOS Weekly Report Latency</code> dashboards and two success-rate views &mdash; all per-service latency and 5xx. The process view is Camunda Cockpit, which is <code>permitAll()</code> at the Spring Security layer and is not part of any on-call flow recorded here.</p>
+    <div class="foot"><span class="src">bravo-observability.md &sect;5 &middot; full monitor inventory matching <code>bpm</code></span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="404 storm">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>The largest live defect in the pack</p>
+    <h2 class="st">The 404 storm nobody is watching</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="tw"><table>
+          <thead><tr><th>Console</th><th class="n">Sessions</th><th class="n">Views</th><th class="n">Errors</th><th class="n">Err/view</th></tr></thead>
+          <tbody>
+            <tr><td class="k"><b>Surveyor Platform Prod</b></td><td class="n">79,090</td><td class="n">953,115</td><td class="n"><span class="dn">1,962,909</span></td><td class="n"><b>2.06</b></td></tr>
+            <tr><td class="k">Operation Platform Prod</td><td class="n">17,135</td><td class="n">96,707</td><td class="n">287,646</td><td class="n"><span class="dn">2.97</span></td></tr>
+            <tr><td class="k">Underwriting Platform Prod</td><td class="n">15,628</td><td class="n">205,666</td><td class="n">124,422</td><td class="n">0.60</td></tr>
+            <tr><td class="k">Customer Platform DF</td><td class="n">2,594</td><td class="n">31,412</td><td class="n">38,221</td><td class="n">1.22</td></tr>
+            <tr class="tot"><td>Total, 7 days</td><td class="n">114,447</td><td class="n">1,286,900</td><td class="n">2,413,198</td><td class="n">1.88</td></tr>
+          </tbody>
+          <caption>All four consoles instrumented at <code>rum_event_processing_state: ALL</code>. For scale: LORA&rsquo;s back office produces 416,201 errors a week at &asymp;2.8/view. Bravo&rsquo;s four consoles produce <b>5.8&times;</b> that volume, at a comparable per-view rate. <b>Neither team was reading RUM.</b></caption>
+        </table></div>
+        <p class="eyebrow">The 404s are four endpoints, and they hit most sessions</p>
+        <div class="tw"><table>
+          <thead><tr><th>Endpoint</th><th class="n">404s / 7 d</th><th class="n">sessions</th></tr></thead>
+          <tbody>
+            <tr><td class="k">/bpm/v1/partnership-configuration/<b>feature-configuration</b></td><td class="n"><span class="dn">266,767</span></td><td class="n"><b>54,350</b></td></tr>
+            <tr><td class="k">/bpm/v2/surveyor-assignment-form-tab/assignment/{id}</td><td class="n">157,623</td><td class="n">37,359</td></tr>
+            <tr><td class="k">/bpm/v1/application-document-tracking</td><td class="n">154,097</td><td class="n">45,916</td></tr>
+            <tr><td class="k">/bpm/v1/surveyor-assignment-manual-kyc/scoring/assignment/{id}</td><td class="n">143,180</td><td class="n">31,565</td></tr>
+            <tr><td class="k">/surveyor/assignment-detail/{id}</td><td class="n">21,125</td><td class="n">14,754</td></tr>
+            <tr><td class="k">/surveyor/assignment</td><td class="n">14,565</td><td class="n">11,287</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="stats"><div class="stat"><span class="stat__n neg">69<small>%</small></span><span class="stat__l">Of surveyor sessions &mdash; 54,350 of 79,090 &mdash; get a 404 from <code>feature-configuration</code></span></div></div>
+        <p class="lede" style="font-size:14px">That is not a retry loop and not an edge case; <strong>it is the modal experience of using the Surveyor Platform.</strong> And the endpoint is the busiest one in the service: <code>PartnershipConfigurationController.getByApplicationId</code> is the top <code>spring.handler</code> resource at <strong>73,056 spans in 48 hours</strong>.</p>
+        <p class="eyebrow">Why no alert fired</p>
+        <pre style="border-left-color:var(--bad)">(hits{service:prod-ms-bpm}
+ - hits{service:prod-ms-bpm, <b>http.status_code:5*</b>})
+  / hits{service:prod-ms-bpm} &lt; 99</pre>
+        <p class="lede" style="font-size:14px"><strong>A 404 is a success by that definition.</strong> Bravo&rsquo;s health model is &ldquo;not 5xx = healthy&rdquo; &mdash; the same category of assumption as treating a running workflow as a well workflow, and wrong in the same way: the system&rsquo;s dominant failure mode is invisible to the thing meant to detect failure.</p>
+        <div class="note note--bad"><h4>What this document cannot say</h4>Whether these 404s are <strong>benign</strong> (an optional configuration probed on every page, 404 meaning &ldquo;no override&rdquo;) or a <strong>defect</strong> is not determinable from telemetry. It has to be read off the controller. But at 266,767 a week across two-thirds of sessions, on the console that generates 28% of Bravo&rsquo;s support tickets, <strong>somebody has to look</strong> &mdash; and the geolocation failures on the same console (20,690/week) are the kind of thing that stops a survey being submitted at all.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;6 &middot; RUM, 7 days to 2026-09-10</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Durable substrate">
+  <div class="inner">
+    <p class="eyebrow"><b>&sect;7</b><span class="sep">/</span>The thesis, inverted</p>
+    <h2 class="st">The durable-substrate thesis, inverted</h2>
+    <p class="lede">The thesis offered was <em>&ldquo;logs currently serve as the only durable substrate.&rdquo;</em> For Bravo that is not merely wrong, <strong>it is upside down.</strong></p>
+    <div class="tw"><table>
+      <thead><tr><th>Layer</th><th>Bravo</th><th>LORA</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Business state</td><td><span class="up">PostgreSQL, 238 entities, 271 tables, indefinite</span></td><td>ArangoDB document + Temporal history</td></tr>
+        <tr><td class="k">Status history</td><td><span class="up"><code>application_status_log</code>, written by a database trigger &mdash; durable</span></td><td>append-only field version chain in the document</td></tr>
+        <tr><td class="k">Prior attempts</td><td><span class="up">chained <code>Application</code> rows via <code>prevApplication</code>/<code>currentIndex</code> &mdash; every reprocess generation is a durable, queryable row</span></td><td>rewind invalidates fields; the prior generation is reconstructed from Temporal history</td></tr>
+        <tr><td class="k">Step-level trace</td><td><span class="dn">Camunda <code>act_hi_*</code>, purged at 90 days</span></td><td>Temporal event history, 30-day retention on closed workflows</td></tr>
+        <tr><td class="k">Spans</td><td><span class="dn">none for the orchestration layer</span></td><td>30 days, one per activity attempt</td></tr>
+        <tr><td class="k">Logs</td><td><span class="dn">~1.1M lines/week, 47% ERROR, no loan id</span></td><td>~7 days, but carry <code>@WorkflowID</code> and <code>@Attempt</code></td></tr>
+      </tbody></table></div>
+    <div class="cols b">
+      <div class="note note--ok"><h4>Bravo&rsquo;s durable substrate is the database</h4>&mdash; and it is <strong>the best one either platform has</strong> for answering &ldquo;what happened to this loan&rdquo;. Every reprocess generation is a row. Nothing has to be replayed. This is the advantage the relational aggregate genuinely delivers, and it is why the pack credits Bravo&rsquo;s crude &ldquo;new row per generation&rdquo; over LORA&rsquo;s more principled rollback.</div>
+      <p class="pull">Bravo&rsquo;s business facts are durable and its <em>process</em> facts are not.
+        <small>At day 91 you can still say what status a loan reached and when. You cannot say which activity failed, how often, or why. LORA is the mirror image: the loan document and its version chain are durable, but the fleet-level <em>business</em> question &mdash; &ldquo;all loans stuck in survey&rdquo; &mdash; cannot be asked at all.</small></p>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;7 &middot; compare-architecture.md &sect;3.7</span><span>11</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Recommendations">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
+    <h2 class="st">Ten actions, ordered by value over effort</h2>
+    <div class="recs">
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Look at the <code>feature-configuration</code> 404 <span class="sz">&middot; S, do this first</span></b>266,767 a week across 69% of surveyor sessions, on the busiest endpoint in the service, on the console generating 28% of Bravo&rsquo;s tickets. Read the controller; decide whether 404 is the intended &ldquo;no override&rdquo; response and if so stop the client treating it as an error. If not, this is a live production defect invisible because nothing alerts below 5xx.</span></div>
+      <div class="rec first"><span class="no">2</span><span class="tx"><b>Add a 4xx clause to the success-rate monitors <span class="sz">&middot; S</span></b>Every <code>prod-ms-bpm</code> health monitor is <code>5*</code>-only. Add per-resource 4xx monitors &mdash; at minimum <code>401</code> from IAM (8,533/week), <code>404</code> on the four surveyor endpoints, <code>400</code> on scheduling. <b>Bravo does not fail with 5xx; it fails with 4xx.</b></span></div>
+      <div class="rec"><span class="no">3</span><span class="tx"><b>Build the per-activity failure monitor that already works <span class="sz">&middot; S</span></b><code>@activityName</code> grouping is live and untouched. A monitor grouped by <code>@activityName, @processDefinitionId</code> is a five-minute change and would today read <code>One Obligor Check</code> at ~2,800/day. Give it an owner and a runbook entry <em>before</em> creating it.</span></div>
+      <div class="rec"><span class="no">4</span><span class="tx"><b>Un-exclude <code>ENGINE-16004</code> from the Pefindo monitor <span class="sz">&middot; S</span></b>It is the line carrying the activity name and the failure reason. If the monitor is too noisy without the exclusion, the fix is a threshold or a per-activity group-by &mdash; not suppressing the informative half of the signal.</span></div>
+      <div class="rec"><span class="no">5</span><span class="tx"><b>Put the application id into the engine MDC <span class="sz">&middot; S&ndash;M</span></b>One MDC key on the job-executor path turns per-activity ranking into per-loan triage and closes the biggest gap in &sect;3. <code>application.process_id</code> already links the two; the log line just needs the business key on it.</span></div>
+      <div class="rec"><span class="no">6</span><span class="tx"><b>Fix the six <code>No Data</code> monitors <span class="sz">&middot; S</span></b>Four Sharia monitors filter <code>service:prod-sharia-bpm</code> against a service registered as <code>prod-sharia-bpm-sharia</code>. Retag or delete. Two formula monitors have never evaluated.</span></div>
+      <div class="rec"><span class="no">7</span><span class="tx"><b>Triage the eight monitors in <code>Alert</code> <span class="sz">&middot; S</span></b>Either the thresholds are wrong or the service is degraded; both need an answer. <b>A permanently red monitor trains people to ignore the channel.</b></span></div>
+      <div class="rec"><span class="no">8</span><span class="tx"><b>Trace the job executor <span class="sz">&middot; M</span></b>A <code>@WithSpan</code> on <code>BaseActivity.execute()</code>, or the Camunda OTel plugin, gives one span per service task with process key, version, activity and instance. <b>The single change that would make Bravo&rsquo;s orchestration visible in APM at all</b> &mdash; and it also delivers per-activity latency, which no metric currently reports.</span></div>
+      <div class="rec"><span class="no">9</span><span class="tx"><b>Write down the stuck-loan SQL <span class="sz">&middot; S</span></b>Bravo&rsquo;s real advantage &mdash; fleet questions are <code>WHERE</code> clauses &mdash; is unusable at 02:00 because nobody saved the query. A notebook plus a monitor on the count converts a capability into an operation.</span></div>
+      <div class="rec"><span class="no">10</span><span class="tx"><b>Read RUM in the weekly review <span class="sz">&middot; S</span></b>Four consoles, 2.4M errors a week, instrumented all along, never consulted. Set a per-console error-per-view SLO; today the Surveyor Platform is at 2.06 and nobody could tell if it regressed.</span></div>
+    </div>
+    <div class="note note--bad"><h4>Do not create these alerts without an owner and a runbook entry</h4>&sect;5 shows Bravo already has 38 monitors, 8 permanently firing, 6 that cannot fire, and one that had its most useful error class filtered out. <strong>Adding a ninth red light to the same chat room reproduces the problem this document is describing.</strong></div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;Recommended actions</span><span>12</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="30/60/90">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Plan</p>
+    <h2 class="st">30, 60, 90 days</h2>
+    <p class="lede">Ten recommendations plus the runbook precondition, phased against <strong>~10 person-days a month</strong> of Platform/SRE time and a slice of Squad S&amp;U.</p>
+    <div class="cols">
+      <div class="note note--bad"><h4>Sequencing rule</h4><strong>Repair the alert channel before adding anything to it.</strong> So recommendations 6 and 7 land in the first 30 days and recommendation 2 does <em>not</em> &mdash; even though it is the more valuable signal. It arrives in month 2, after the channel is worth alerting into and after the runbook table exists. The one exception is recommendation 3: created in phase 1 <strong>with its runbook entry and owner attached</strong>, because it needs no new plumbing and is the first process-level monitor Bravo will ever have.</div>
+      <div class="note"><h4>Shared with other documents</h4>Recommendation 1 is also <strong>bravo-delivery.md rec 1</strong> and <strong>bravo-cost.md rec 5</strong>; recommendation 2 is also <strong>bravo-testing.md rec 3</strong>; recommendation 10 pairs with <strong>bravo-delivery.md rec 3</strong>. Phased identically everywhere &mdash; do them once.</div>
+    </div>
+    <div class="phases">
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">One live defect, and a working alert channel</span></div>
+        <ul>
+          <li><span class="r">1</span><span><b>Investigate the <code>feature-configuration</code> 404.</b> <em>S&amp;U &middot; 2 d.</em> A written answer &mdash; 266,767/week across 69% of sessions is explained.</span></li>
+          <li><span class="r">1</span><span><b>Fix it</b> &mdash; resolve the lookup, or stop the client raising 404 as an error. <em>S&amp;U &middot; 3 d.</em> Surveyor error volume falls measurably in RUM.</span></li>
+          <li><span class="r">7</span><span><b>Triage the eight monitors in <code>Alert</code>.</b> <em>Platform/SRE &middot; 2 d.</em> Each fixed, re-thresholded or deleted. <b>Zero permanently-red monitors.</b></span></li>
+          <li><span class="r">6</span><span><b>Fix the six <code>No Data</code> monitors.</b> <em>Platform/SRE &middot; 1 d.</em></span></li>
+          <li><span class="r">4</span><span><b>Un-exclude <code>ENGINE-16004</code></b> from the Pefindo monitor. <em>Platform/SRE &middot; 0.5 d.</em></span></li>
+          <li><span class="r">3</span><span><b>Build the per-activity failure monitor</b> &mdash; with owner and runbook entry. <em>Platform/SRE &middot; 1 d.</em> <b>Bravo&rsquo;s first process-level alert.</b></span></li>
+          <li><span class="r">5</span><span><b>Put the application id into the engine MDC.</b> <em>S&amp;U &middot; 3 d.</em> Unblocks per-loan triage and makes recs 2 and 8 far more useful.</span></li>
+          <li><span class="r">9</span><span><b>Write down the stuck-loan SQL</b> as a saved notebook. <em>S&amp;U &middot; 2 d.</em></span></li>
+        </ul>
+      </div>
+      <div class="ph">
+        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">See the orchestration, then alert on it</span></div>
+        <ul>
+          <li><span class="r">8</span><span><b>Trace the job executor.</b> <em>S&amp;U &middot; 8 d.</em> One span per service task. The 90% of Bravo&rsquo;s work that is the process becomes visible in APM, with per-activity latency and a <code>CARDINALITY(trace_id)</code> loop test.</span></li>
+          <li><span class="r">&mdash;</span><span><b>Alert runbook table</b> &mdash; severity, runbook entry and owner for every signal, retrofitted to the surviving old monitors. <em>Platform/SRE &middot; 2 d.</em> <b>This gates the next row.</b></span></li>
+          <li><span class="r">2</span><span><b>Per-endpoint 4xx monitors.</b> <em>Platform/SRE &middot; 3 d.</em> Bravo&rsquo;s actual failure mode is alertable for the first time.</span></li>
+          <li><span class="r">10</span><span><b>RUM in the weekly review</b>, with a per-console error-per-view SLO. <em>Platform/SRE + EM &middot; 2 d.</em></span></li>
+        </ul>
+      </div>
+      <div class="ph ph--last">
+        <div class="ph__h"><span class="ph__d">Days 61&ndash;90</span><span class="ph__t">Consolidate &mdash; no new work</span></div>
+        <ul>
+          <li><span class="r">&mdash;</span><span>Phase 3 is spent on the deploy-safety and test items in <b>bravo-testing.md</b>, which consume this document&rsquo;s output: the job-executor spans from rec 8 are what make the two end-to-end process tests <em>diagnosable</em> when they fail.</span></li>
+          <li><span class="r">&#10003;</span><span><b>What to check at day 90:</b> that the monitors created in phases 1 and 2 have fired, been acted on, and are <b>still un-muted</b>. The failure mode this document describes is not missing tooling &mdash; it is a firing alert with no owner. Ninety days is long enough to tell whether that changed.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span class="src">bravo-observability.md &sect;Plan: 30, 60, 90 days</span><span>13</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What changes">
+  <div class="inner">
+    <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Outcome</p>
+    <h2 class="st">What changes when this is done</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Recommendation</th><th>Example when done</th></tr></thead>
+      <tbody>
+        <tr><td class="k">4xx in the health model</td><td>A 404 storm on the busiest endpoint pages someone in five minutes instead of running for months at 266k/week.</td></tr>
+        <tr><td class="k">Per-activity monitor</td><td>&ldquo;One Obligor Check is failing 2,800 times a day&rdquo; is a number on a dashboard, not a query someone happened to run.</td></tr>
+        <tr><td class="k">Application id in the MDC</td><td>On-call goes from a loan number to its activity failures in one Datadog query, the way LORA on-call already can.</td></tr>
+        <tr><td class="k">Job-executor spans</td><td>The 90% of Bravo&rsquo;s work that is the process becomes visible in APM, with per-activity latency and a <code>CARDINALITY(trace_id)</code> test that separates a broad defect from a loop.</td></tr>
+        <tr><td class="k">Saved stuck-loan query</td><td>Bravo&rsquo;s genuine architectural advantage &mdash; SQL over relational state &mdash; becomes something the on-call rota uses, not something the architecture merely permits.</td></tr>
+        <tr><td class="k">RUM in the weekly review</td><td>A surveyor console regression is caught by a number instead of by 315 <code>Release reject</code> tickets a month.</td></tr>
+        <tr><td class="k">Monitors triaged</td><td>The alert channel means something again &mdash; which is the precondition for every other item on this list.</td></tr>
+      </tbody></table></div>
+    <p class="pull">Most of the data is already there. What is missing is an alert that is not scoped to the container and the 5xx.</p>
+    <div class="foot"><span class="src">bravo-observability.md &middot; related: bravo-testing.md, bravo-delivery.md, ticket-analysis.md, SECURITY-FINDING-camunda-rce.md</span><span>14</span></div>
+  </div>
+</section>
+
+</main>
+
+<div class="rail" id="rail" role="tablist" aria-label="Slides"></div>
+<div class="hud" id="hud" aria-live="off"><b>01</b> / 01</div>
+<script>
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var rail=document.getElementById('rail'), hud=document.getElementById('hud');
+  var pad=function(n){return String(n).padStart(2,'0')};
+  slides.forEach(function(s,i){
+    s.id='s'+(i+1);
+    var b=document.createElement('button');
+    b.type='button';
+    b.setAttribute('aria-label','Slide '+(i+1)+(s.dataset.nav?': '+s.dataset.nav:''));
+    b.addEventListener('click',function(){go(i)});
+    rail.appendChild(b);
+  });
+  var dots=[].slice.call(rail.children), cur=0;
+  function paint(i){
+    cur=i;
+    dots.forEach(function(d,j){d.setAttribute('aria-current',j===i?'true':'false')});
+    hud.innerHTML='<b>'+pad(i+1)+'</b> / '+pad(slides.length);
+  }
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    slides[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+    paint(i);
+  }
+  paint(0);
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting) paint(slides.indexOf(e.target)); });
+    },{root:deck,threshold:0.55});
+    slides.forEach(function(s){io.observe(s)});
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k==='ArrowDown'||k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(cur+1)}
+    else if(k==='ArrowUp'||k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(cur-1)}
+    else if(k==='Home'){e.preventDefault();go(0)}
+    else if(k==='End'){e.preventDefault();go(slides.length-1)}
+  });
+})();
+</script>
