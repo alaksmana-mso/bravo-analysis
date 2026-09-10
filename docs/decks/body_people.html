@@ -129,21 +129,23 @@
   <div class="inner">
     <p class="eyebrow"><b>&sect;4</b><span class="sep">/</span>What we found</p>
     <h2 class="st">Cycle time: no durable advantage either way</h2>
-    <p class="lede">Created &rarr; <code>resolutiondate</code> in calendar days, for every resolved issue created in a matched window. Two windows, four samples, <code>n&nbsp;=&nbsp;50</code> each, taken six months apart to avoid reading a single sprint.</p>
+    <p class="lede">Created &rarr; <code>resolutiondate</code> in calendar days, for every resolved issue created in a matched window. Two windows, <b>six</b> samples, <code>n&nbsp;=&nbsp;50</code> each, taken six months apart to avoid reading a single sprint. <b>&sect;4 sampled <code>BLCS</code> and <code>BL</code> only until 2026-09-10 &mdash; <code>LN</code> was added to &sect;3 and &sect;5 but not here. Now measured; the finding gets stronger.</b></p>
     <div class="tw"><table>
       <thead><tr><th>Sample</th><th>Window</th><th class="n">n</th><th class="n">Median</th><th class="n">Mean</th><th>P90-ish tail</th></tr></thead>
       <tbody>
         <tr><td class="k">Bravo BLCS</td><td>2026-06-01 &rarr; 06-08</td><td class="n">50</td><td class="n"><span class="dn">9 d</span></td><td class="n">22.3 d</td><td>60&ndash;98 d (9 issues)</td></tr>
+        <tr><td class="k">Bravo <b>LN</b></td><td>2026-06-01 &rarr; 06-02</td><td class="n">50</td><td class="n"><span class="dn">68 d</span></td><td class="n">63.4 d</td><td>40&ndash;101 d (<b>45 issues</b>) &mdash; a backlog load, not a cadence</td></tr>
         <tr><td class="k">LORA BL</td><td>2026-06-02 &rarr; 06-03</td><td class="n">50</td><td class="n"><b>2 d</b></td><td class="n">18.5 d</td><td>43&ndash;90 d (13 issues)</td></tr>
         <tr><td class="k">Bravo BLCS</td><td>2026-08-11 &rarr; 08-18</td><td class="n">50</td><td class="n"><b>2 d</b></td><td class="n">3.9 d</td><td>10&ndash;15 d (8 issues)</td></tr>
+        <tr><td class="k">Bravo <b>LN</b></td><td>2026-08-11 &rarr; 08-18</td><td class="n">50</td><td class="n"><b>1 d</b></td><td class="n">2.4 d</td><td>8&ndash;10 d (9 issues)</td></tr>
         <tr><td class="k">LORA BL</td><td>2026-08-11 &rarr; 08-12</td><td class="n">50</td><td class="n"><b>2 d</b></td><td class="n">5.3 d</td><td>14&ndash;29 d (9 issues)</td></tr>
       </tbody></table></div>
     <div class="cols">
-      <div class="note"><h4>1 &middot; The medians converge at 2 days</h4>In August the two platforms are <strong>indistinguishable</strong> on the middle of the distribution. Whatever difficulty LORA imposes, it does not show up in how long a typical ticket takes to close.</div>
-      <div class="note note--bad"><h4>2 &middot; June&rsquo;s gap runs the wrong way</h4>Bravo 9 d against LORA 2 d &mdash; and the cause is visible: nine <code>BLCS</code> Stories created 2026-06-01 all resolved together on 07-17, 07-31 and 08-14. <strong>Batch-closed on release.</strong> That measures release cadence, not effort.</div>
+      <div class="note"><h4>1 &middot; The medians converge at 1&ndash;2 days</h4>In August all three projects are <strong>indistinguishable</strong> &mdash; <code>LN</code> 1 d, <code>BLCS</code> 2 d, <code>BL</code> 2 d &mdash; and <code>LN</code>, Bravo&rsquo;s <em>larger</em> project, has the lowest median <em>and</em> mean. Whatever difficulty LORA imposes does not show up here; and adding Bravo&rsquo;s missing project opens no gap in Bravo&rsquo;s favour either.</div>
+      <div class="note note--bad"><h4>2 &middot; Both June figures are backlog loads, not cadences</h4><code>LN</code>&rsquo;s 68 d comes from <strong>45 of 50 issues created in a 37-minute window</strong> on 2026-06-01 21:19&ndash;21:56 &mdash; the <code>[DF2W] [O]</code>/<code>[S]</code> stories. That interval measures how long the <b>DF2W programme</b> took, not ticket turnaround; the 5 organically-created issues in that sample have a median of <b>0 d</b>. <code>BLCS</code>&rsquo;s 9 d is the same artefact: nine Stories created 2026-06-01, batch-closed on release. <b>Both Bravo projects loaded DF2W backlog that day</b> &mdash; the programme kickoff, seen twice.</div>
       <div class="note"><h4>3 &middot; Same bimodal shape on both</h4>A mass of sub-3-day sub-tasks and a tail of Stories that close on release. That is <strong>one delivery process running on two platforms</strong> &mdash; exactly what &sect;2 predicted.</div>
     </div>
-    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Limits.</strong> Each sample covers one to six working days &mdash; a snapshot of two release cadences, not a distribution over the year. Windows differ in calendar length because <code>BL</code> creates ~1.8&times; the tickets, so 50 issues span fewer days. Both samples exclude unresolved issues, truncating the tail equally on both sides.</p>
+    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Limits.</strong> Each sample covers one to six working days &mdash; a snapshot of two release cadences, not a distribution over the year. Windows differ in calendar length because the projects create tickets at different rates &mdash; <code>LN</code> fastest of the three. <b>The June <code>LN</code> sample is a backlog load and is not a cadence at all; the August windows are the comparable ones.</b> All samples exclude unresolved issues, truncating the tail equally.</p>
     <div class="foot"><span class="src">bravo-people.md &sect;4</span><span>07</span></div>
   </div>
 </section>
