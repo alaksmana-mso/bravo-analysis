@@ -159,7 +159,7 @@ Application counts per month exist for Jun, Jul and Aug only ([cost.md](../../..
 
 This is the highest-value open item the export produces, and the analysis pack **cannot currently resolve it**: `bravo-analysis` holds documents only, and no code path named "release reject" has been mapped to a BPMN element or a service endpoint. Whoever owns the Surveyor Platform should be asked what user action raises this category and which activity it corresponds to. Until then it is a large, growing, unexplained failure concentration — and if it maps to a workflow step, it is the strongest per-activity evidence in the pack about either platform.
 
-**(b) The surveyor-assignment seam is the top intervention driver on both platforms.** This is a convergence finding, and it belongs alongside the five already in [compare.md §4](../compare.md#4-where-the-two-systems-converge).
+**(b) The surveyor-assignment seam is the top intervention driver on both platforms.** This is a convergence finding, and it belongs alongside the five already in [compare.md §4](../compare-architecture.md#4-where-the-two-systems-converge).
 
 | | Bravo | LORA |
 |---|---|---|
@@ -177,7 +177,7 @@ This is the highest-value open item the export produces, and the analysis pack *
 
 | Claim as it stood | Status now |
 |---|---|
-| "We do not have Bravo's manual-intervention rate, incident counts or per-activity failure data" ([compare.md](../compare.md) scope caveats) | **Withdrawn.** All three now exist for Jan–Sep 2026. |
+| "We do not have Bravo's manual-intervention rate, incident counts or per-activity failure data" ([compare.md](../compare-architecture.md) scope caveats) | **Withdrawn.** All three now exist for Jan–Sep 2026. |
 | §3.6 *Measured consequence* — Bravo: "Not measured" | **Replaced.** ≈0.44% Jun–Aug, 2,514 stuck-application tickets Jan–Aug. |
 | §3.7 *Production cost* — Bravo: "Not measured" | **Replaced.** 413 rescoring/reprocess tickets Jan–Aug, against LORA's 705 rewind rows. |
 | §5 "Bravo did better at bounded, classified failure… no zombie loans by construction" | **Qualified, not withdrawn.** Both halves of the pack's picture survive: Bravo has no zombie-loan class, *and* it generates 3.5× LORA's rate of applications needing a human. Bounded failure is not the same as infrequent failure — it converts an invisible wedge into a visible ticket. That is a better operational posture and it is what the ticket queue is counting. |

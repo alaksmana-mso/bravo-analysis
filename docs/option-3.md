@@ -20,7 +20,7 @@
 | Product families served | 4 live root workflows | 7 families, 13 repos |
 | Paradigm | Imperative BPMN on Camunda | Data-centric GSM planner on Temporal |
 
-Source: [compare.md §3.12](compare.md), [LORA cost findings](../../lora-workspace/docs/production-findings/cost.md).
+Source: [compare.md §3.12](compare-architecture.md), [LORA cost findings](../../lora-workspace/docs/production-findings/cost.md).
 
 **Two caveats on the volume figures, both from the LORA cost document itself.** The application counts in the billing sheet are the least-verified numbers in the pack — an application originated in LORA is plausibly counted again in Bravo when it is booked at go-live — and Bravo's engine meter reports ~120k process starts/month against the sheet's 76,446. The split is directionally clear and numerically soft. It should not be the sole basis for a platform decision, and the billing owner should be asked to define both columns before it is.
 
@@ -47,7 +47,7 @@ Beyond the workflows, three Bravo capability blocks need a LORA home:
 
 1. **Human work** — 217k LOC, 43.6% of the service. `SurveyorAssignmentServiceImpl` (10,419 lines), `OperationAssignmentServiceImpl` (8,177), `BaseUnderwritingApprovalServiceImpl` (4,604), plus the data-driven approver ladder in `underwriting_job_level_lov_detail`. LORA has counterparts (`lora-task-service` 89k LOC, `survey.go` 5,473 lines / 125 transitions, `underwriting.go` 3,041 / 72) but coverage parity per product and risk tier is unproven.
 2. **Operator surfaces** — `ApplicationErrorTracking` console, ~25 retry/reprocess/revive/cancel endpoints, Camunda Cockpit, and `bravo-underwriting-console`.
-3. **Durable reprocess generations** — Bravo's `prevApplication`/`currentIndex` chain keeps every attempt as a queryable row. LORA rewinds and re-originates, which loses that history ([compare.md §3.7](compare.md), §6 lesson 3).
+3. **Durable reprocess generations** — Bravo's `prevApplication`/`currentIndex` chain keeps every attempt as a queryable row. LORA rewinds and re-originates, which loses that history ([compare.md §3.7](compare-architecture.md), §6 lesson 3).
 
 ---
 
@@ -70,7 +70,7 @@ LORA's own investigation ([people.md](../../lora-workspace/docs/production-findi
 
 **The honest reading.** Three of the four complaints are about missing artefacts — a generated readiness index, a week-1 curriculum, ADRs — and are addressable with weeks of work, not by changing paradigm. The fourth, team ownership, is a genuine property of a shared-document design and does not go away. So the paradigm objection is **real but mostly remediable**, and the remediation is cheap relative to the migration. It should be priced into Option 3 explicitly (it is, in the effort table below) rather than treated as either a blocker or a grumble.
 
-**The counter-consideration that should not be lost.** [compare.md §3.4](compare.md) rates GSM's central claim as validated: adding an automated check in LORA is a new Constructor with ReadSet/WriteSet and a precondition — no orchestration edit — verified at 172 activities with only 3 hard precursors. In Bravo the same change touches a `JavaDelegate`, a BPMN file, a gateway, a retry choice, a `WorkflowConstants` key and a configuration table. That is the capability being bought, and it is the thing the paradigm objection is the price of. Whether that trade is worth making is a judgement about which cost the organisation would rather carry — and it is properly the CTO's, not this document's.
+**The counter-consideration that should not be lost.** [compare.md §3.4](compare-architecture.md) rates GSM's central claim as validated: adding an automated check in LORA is a new Constructor with ReadSet/WriteSet and a precondition — no orchestration edit — verified at 172 activities with only 3 hard precursors. In Bravo the same change touches a `JavaDelegate`, a BPMN file, a gateway, a retry choice, a `WorkflowConstants` key and a configuration table. That is the capability being bought, and it is the thing the paradigm objection is the price of. Whether that trade is worth making is a judgement about which cost the organisation would rather carry — and it is properly the CTO's, not this document's.
 
 ---
 
@@ -85,7 +85,7 @@ The lowest-confidence estimate in this pack, because LORA's per-product coverage
 | **Human-task parity** | Surveyor assignment and coverage/level eligibility, operation assignment, the underwriting approval ladder and its feature-flagged chain rules, document submission. The largest single block and the one with the least reuse | **6–12** |
 | **Paradigm-cost remediation** (§3) | Finish `depchain-generator` and run it in CI to produce the status × activity × product index per product family; a week-1 curriculum and ADRs; resolve the team-ownership seam. Small, and it de-risks everything downstream | **1–2** |
 | **LORA reliability remediation — a hard prerequisite** | See §6. Bounded retries and a terminal-error class, the `SetTermination` defect (about **half of all loans never reach a terminal state**), an operator surface for wedged loans, per-family APM (6 of 7 families have no production APM presence), and a green nightly | **4–8** |
-| **Parallel run, parity diffing, tier-by-tier cutover, drain** | Same pattern as §4 of the legacy→unified plan, at higher stakes: NDF2W alone is 248,682 instances per quarter | **6–10** |
+| **Parallel run, parity diffing, tier-by-tier cutover, drain** | Same pattern as §4 of the legacy→unified plan, at higher stakes: NDF2W alone is 248,682 instances per quarter. Includes a terminal sweep for the parked-instance tail (§8) | **6–10** |
 | **Bravo decommission** | Retire `ms-bpm` and `prod-postgres-bpm-d2bpm`, the SIT/UAT/Sharia copies, the console, and the dead `setting.workflow.map` entries. Resolve data retention: Camunda history is purged at 90 days but the relational record is the system of record for booked loans | 2–3 |
 | **Total** | | **30–57** |
 
@@ -108,7 +108,7 @@ flowchart TB
   S4 --> S5["5. NDF4W (60k/90d) by risk tier"]:::s
   S5 --> S6["6. NDF2W (248.7k/90d) LAST, by tier"]:::s
   S6 --> S7["7. Sharia (separate engine)"]:::s
-  S7 --> S8["8. Drain in-flight Camunda instances"]:::s
+  S7 --> S8["8. Drain in-flight Camunda instances<br/>plus a terminal sweep for the parked tail"]:::s
   S8 --> S9["9. Decommission ms-bpm + its Cloud SQL"]:::s
 ```
 
@@ -135,7 +135,7 @@ LORA's own production findings are the strongest argument for sequencing Option 
 
 **One counterweight, added 2026-09-10.** Every row above is a LORA defect, and the table reads as a list of reasons to hesitate. The OTRS export supplies the missing comparison: on the only symmetric measurement in the pack, **LORA is the more reliable platform per application today** — ≈99.87% of applications complete with no support ticket against Bravo's ≈99.56%, and LORA's ticket load fell a third over eight months while Bravo's rose 82% against falling volume ([ticket-analysis.md](production-findings/ticket-analysis.md)). Both figures rest on the billing sheet's disputed application counts, Bravo's excludes silent operator-console recoveries, and the gap turns on one unexplained Bravo category — so this is a correction to the framing, not a licence to skip the gates below. But the reliability prerequisite is about *specific defect classes that would compound at 3× volume*, not about LORA being the shakier system.
 
-None of these is an argument against Option 3 in principle. All are arguments for treating "green nightly, bounded retries, terminal statuses, wedge console, readiness index" as the entry gate to each cutover wave — and for reading the current defect rate as a statement about LORA's *maturity*, not about GSM or Temporal. Bravo's equivalents (§7 of [compare.md](compare.md)) took four years to reach their current state.
+None of these is an argument against Option 3 in principle. All are arguments for treating "green nightly, bounded retries, terminal statuses, wedge console, readiness index" as the entry gate to each cutover wave — and for reading the current defect rate as a statement about LORA's *maturity*, not about GSM or Temporal. Bravo's equivalents (§7 of [compare.md](compare-architecture.md)) took four years to reach their current state.
 
 ---
 
@@ -148,7 +148,7 @@ None of these is an argument against Option 3 in principle. All are arguments fo
 | Second platform's staffing and on-call | Retires. Not in any GCP line, and plausibly the largest saving |
 | Cloud Logging on the Bravo estate | Partially retires. `ms-bpm` logs full Feign request bodies (`loggerLevel: full`) into a Rp140.5M/month prod logging line |
 
-**What does not retire, and this correction matters.** The earlier claim that retiring Bravo saves ≈Rp1.6B/month was withdrawn in [compare.md §3.12](compare.md). Most of the Bravo estate — Cloud SQL Rp584M, the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances, Memorystore, Keycloak — is the shared BFI data plane that **LORA's 301 gateway proxies also call**. It stays. Only the LOS tier retires.
+**What does not retire, and this correction matters.** The earlier claim that retiring Bravo saves ≈Rp1.6B/month was withdrawn in [compare.md §3.12](compare-architecture.md). Most of the Bravo estate — Cloud SQL Rp584M, the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances, Memorystore, Keycloak — is the shared BFI data plane that **LORA's 301 gateway proxies also call**. It stays. Only the LOS tier retires.
 
 **And on a like-for-like tier LORA is currently the more expensive platform**: ≈Rp2,500–3,200 per application against Bravo's ≈Rp510–760. Option 3 is not justified by unit cost. Its financial case is *not running two loan origination systems* plus LORA's near-zero marginal cost as volume grows, and it strengthens materially if LORA's own right-sizing is done — retiring the five idle worker versions is worth ≈Rp63M/month, more than the entire Bravo LOS tier.
 
@@ -158,13 +158,14 @@ None of these is an argument against Option 3 in principle. All are arguments fo
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| **Bravo must stay running and secure throughout** | **High** | 15–24 months on an unpatched engine with a proven RCE path is not survivable without the bridge in [option-1.md](option-1.md). This is true of Option 2 as well, and of any decision that is not taken quickly |
+| **Bravo must stay running and secure throughout** | **Medium** *(was High)* | 15–24 months on an unpatched engine with a proven RCE path is not survivable on its own — but since the fork correction, [option-1.md](option-1.md) closes this for **18–33 engineer-days** with no licence, landing Bravo on a supported engine and Spring Boot for the duration. This risk is now cheaply mitigated rather than structural |
+| **Camunda cannot be retired by waiting** | Medium–High | **96 `userTask` elements across 26 of the 53 BPMN files** mean in-flight instances park on human action indefinitely ([Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf)). A residue will never complete on its own, so the final decommission needs an explicit force-complete/cancel sweep, and the two-platform period lasts until that sweep runs |
 | Coverage gap is unmeasured | High | The gap inventory is the first workstream and gates the rest of the estimate |
 | Moving 94% of the book onto a platform with a measured wedge rate | High | §6 remediation as an entry gate per wave |
 | Silent parity failure | High | The config-skip trap: an unconfigured activity no-ops rather than failing. Shadow-run diffing on decisions, statuses, assignments and documents; a "fail loud on missing config" guard |
 | **Paradigm adoption cost across the organisation** | Medium–High | §3. Mostly remediable with a generated readiness index, a week-1 curriculum and ADRs — but unremediated today, and the team-ownership seam is structural |
 | NDF2W volume shock | High | Last, by risk tier, with the legacy path kept warm for rollback |
-| Loss of relational fleet queries and reprocess generations | Medium | Decide deliberately what replaces them — [compare.md §6](compare.md) lesson 3 |
+| Loss of relational fleet queries and reprocess generations | Medium | Decide deliberately what replaces them — [compare.md §6](compare-architecture.md) lesson 3 |
 | Sharia runs in its own engine | Medium | Scope separately; it was not in the 90-day sample |
 | Single-vendor concentration | Low–Medium | All BFI origination would depend on Temporal Cloud and ArangoDB contracts |
 
@@ -176,7 +177,7 @@ It is the right answer when BFI intends to run **one** loan origination system, 
 
 The honest qualifications, stated so they are not discovered later:
 
-- It does **not** answer the end-of-support finding by itself. Fifteen to twenty-four months of Bravo runtime still has to be made safe — see [option-1.md](option-1.md).
+- It does **not** answer the end-of-support finding by itself. Fifteen to twenty-four months of Bravo runtime still has to be made safe — but that is now cheap: [option-1.md](option-1.md) Path B lands a supported engine and Spring Boot in 18–33 engineer-days with no licence, so the bridge is a small line item rather than a strategic constraint.
 - It should **not** start with the retail book. It should start with a gap inventory, the paradigm remediation and the reliability work, and prove itself on DF4W.
 - Its cost case is "stop running two platforms", not "LORA is cheaper per loan". On a like-for-like tier it is not, today.
 - The paradigm objection is real. It is mostly remediable and the remediation is cheap — but it has not been done, and a migration decision that assumes it away will meet it at full strength during cutover.
@@ -188,7 +189,7 @@ The honest qualifications, stated so they are not discovered later:
 - [Current LORA challenges in Production](../../lora-workspace/docs/production-findings/Current%20LORA%20challenges%20in%20Production.md) — the paradigm and training complaints, verbatim
 - [people.md](../../lora-workspace/docs/production-findings/people.md) — LORA's own verdicts on those complaints
 - [workflow-gap.md §8](workflow-gap.md) — production volumes by root definition and product, per-product configuration, human-task queues
-- [compare.md](compare.md) — like-for-like cost tiers, capability comparison, what each platform did better
+- [compare.md](compare-architecture.md) — like-for-like cost tiers, capability comparison, what each platform did better
 - [bravo-unified-legacy-to-unified.md](bravo-unified-legacy-to-unified.md) — the migration method and its risks, at a smaller scale
 - [LORA production findings](../../lora-workspace/docs/production-findings/) — reliability, cost, testing, delivery
 - `squads/Scoring and Underwriting/bravo-bpm-service` at `2d5d856` — code counts

@@ -14,9 +14,11 @@
 
 Three facts make it more than a thought experiment.
 
+**One thing this option does not avoid.** The Spring Boot 3.5 → 4 upgrade is owed under Option 2 as well: only the engine leaves, and the service stays on Spring Boot. The [Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf) measures that half at **12–20 engineer-days** (308 `@MockBean` sites across 186 files, Hibernate 6→7, ShedLock 4.42→7.9, removing the dangerous `spring-framework-bom` pin). It is not in the §4 table below, and it should be added to any Option 2 plan. What Option 2 *does* buy is that the upgrade stops being gated by a workflow-engine vendor's artifact roadmap.
+
 **BFI already runs Temporal Cloud.** The contract is **Rp1,679,950,003/year ≈ Rp139,995,834/month**, bought as a prepaid commitment through the GCP Marketplace in **March 2026** ([LORA cost findings](../../lora-workspace/docs/production-findings/cost.md)). No new platform to buy, no new vendor to onboard, and an in-house team that has run Temporal in production for a year.
 
-**The paradigm decides only a fraction of Bravo's code.** [compare.md §7](compare.md) puts it plainly: the orchestration paradigm shaped roughly 6% of Bravo (the `activity/` package, 31,677 LOC). §3 below measures the engine coupling directly and finds it is far smaller even than that. The bulk of the service — 217k LOC of human-task code, 113 Feign clients, 238 JPA entities, 271 tables, 1,350 Flyway migrations — is engine-agnostic and **does not have to move**.
+**The paradigm decides only a fraction of Bravo's code.** [compare.md §7](compare-architecture.md) puts it plainly: the orchestration paradigm shaped roughly 6% of Bravo (the `activity/` package, 31,677 LOC). §3 below measures the engine coupling directly and finds it is far smaller even than that. The bulk of the service — 217k LOC of human-task code, 113 Feign clients, 238 JPA entities, 271 tables, 1,350 Flyway migrations — is engine-agnostic and **does not have to move**.
 
 **It is the option that does not ask anyone to change how they think.** Temporal workflow-as-code is imperative: "do A, then B, then if X do C". That is the same mental model as the BPMN it replaces, and the same model the LORA production challenges record engineers reaching for — *"Human tendency is to think in terms of Workflow (e.g: Underwriting will start after Survey) rather than remembering if asset list fields and customer address are filled then start Survey"* ([Current LORA challenges in Production](../../lora-workspace/docs/production-findings/Current%20LORA%20challenges%20in%20Production.md)). Option 2 changes the runtime without changing the paradigm, and the Temporal Java SDK means it does not change the language either.
 
@@ -60,7 +62,7 @@ The engine-coupled surface, counted from the checkout at `2d5d856`:
 | `failedJobRetryTimeCycle` declarations | **186, 30 distinct values** | `RetryOptions` per activity | **Low — see below** |
 | `BaseActivity` config-skip gate | 55 gated activity classes, per-application jsonb matrix | Preserve as-is: it is plain Java reading `ApplicationWorkflowConfig`, and works identically inside an Activity | Low |
 
-**Bravo is unusually well-prepared for the retry translation.** [compare.md §3.6](compare.md) found that Bravo already has the retry *policy* LORA never wrote: bounded attempts, `R0/PT0M` fail-fast checkpoints, `BpmnError` separating business outcomes from transient faults, a degrade-on-last-attempt framework (`OutboundAutoErrorHandlerEngineServiceImpl`, 62 call sites, 50 `customErrorHandle` implementations), and an operator queue (`ApplicationErrorTracking`). Every one of those maps onto a Temporal primitive — `MaximumAttempts`, `NonRetryableErrorTypes`, `ScheduleToCloseTimeout`.
+**Bravo is unusually well-prepared for the retry translation.** [compare.md §3.6](compare-architecture.md) found that Bravo already has the retry *policy* LORA never wrote: bounded attempts, `R0/PT0M` fail-fast checkpoints, `BpmnError` separating business outcomes from transient faults, a degrade-on-last-attempt framework (`OutboundAutoErrorHandlerEngineServiceImpl`, 62 call sites, 50 `customErrorHandle` implementations), and an operator queue (`ApplicationErrorTracking`). Every one of those maps onto a Temporal primitive — `MaximumAttempts`, `NonRetryableErrorTypes`, `ScheduleToCloseTimeout`.
 
 **The two genuinely hard translations are escalation and link events**, 384 elements between them. These are not steps; they are control-flow idioms with no Temporal equivalent, and each one is a small design decision. This is the line item that separates a 31-month estimate from a 57-month one.
 
@@ -127,7 +129,7 @@ Three honest qualifications, without which this section would be advocacy rather
 
 - **Reuse share does not translate linearly into effort.** The parts of the Temporal port that are expensive — the 190 escalation and 194 link events, 384 control-flow elements with no Temporal equivalent — are precisely the parts that are *not* reused. Being able to keep 99.6% of the lines does not make the remaining work small; it makes it *bounded and locatable*, which is a different virtue.
 - **Bravo-on-Temporal's target does not exist yet.** Every line of the new orchestration tier is written from scratch and has never run. A port to LORA moves onto a system already carrying production volume, where much of the target is proven. So "safer" cuts both ways: Option 2 reuses more *source*, Option 3 reuses more *proven target*. Option 2 trades target risk for source risk, and source risk is the one Bravo's team is equipped to manage.
-- **The migration mechanics are equally hard either way.** Both need dual running, shadow diffing, tier-by-tier cutover and a 3–6 month drain of in-flight Camunda instances; both must put NDF2W last. Nothing in §3.1 makes that half easier.
+- **The migration mechanics are equally hard either way.** Both need dual running, shadow diffing, tier-by-tier cutover and a long drain of in-flight Camunda instances; both must put NDF2W last; and both inherit the parked-instance tail described in §6, because 96 user tasks across 26 BPMN files mean a residue never completes on its own. Nothing in §3.1 makes that half easier.
 
 **Conclusion.** The claim holds, with its emphasis corrected. Porting Camunda → Temporal is **substantially safer and organisationally cheaper** than porting Camunda → LORA, because the engine contact is 0.4% of the code, the data model does not move, and parity can be argued element by element rather than demonstrated path by path. It is **not** dramatically less work: the totals in §4 (31–57 engineer-months) and in [option-3.md](option-3.md) (30–57) land in the same range, because the reuse advantage is offset by having to build a target from nothing. **The reuse buys predictability, reversibility and zero retraining — not fewer engineer-months.** For a change to a system originating ~120k loan applications a month, predictability and reversibility are arguably the more valuable currency, and that is the honest case for Option 2.
 
@@ -285,7 +287,7 @@ flowchart TB
 ```
 
 - **Both engines run in production simultaneously** for the whole drain. Two orchestration tiers, two operator surfaces, two on-call runbooks.
-- **Drain length is set by loan lifetime, not by the port.** Survey tasks average 55–131 hours open ([workflow-gap.md §8.6](workflow-gap.md)) and Camunda history is retained 90 days. Realistic drain: **3–6 months** after the last cutover.
+- **Drain length is set by loan lifetime, not by the port — and a clean drain may never complete.** Survey tasks average 55–131 hours open ([workflow-gap.md §8.6](workflow-gap.md)), so the bulk clears in **3–6 months** after the last cutover. But the [Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf) establishes that **96 `userTask` elements across 26 of the 53 BPMN files mean instances park on human action indefinitely**. A tail of instances will sit on a user task nobody ever completes, so Camunda cannot be switched off by waiting alone. Budget an explicit terminal sweep — force-complete, cancel or migrate the residue — as part of the cutover, not as an afterthought.
 - **NDF2W is the risk.** 248,682 process starts per 90 days and the highest-volume human queue in the estate. It should be last, and it is 73% of the book.
 - **Parity must be proven, not assumed.** A missing configuration row silently drops a credit or compliance check rather than failing — the same trap flagged for the legacy-to-unified migration ([bravo-unified-legacy-to-unified.md §4](bravo-unified-legacy-to-unified.md)). The mitigating advantage from §3.3 is that both engines write the same tables, so the diff is a SQL comparison rather than a cross-model reconciliation.
 
@@ -309,7 +311,7 @@ Two conclusions:
 1. **The marginal Temporal cost of putting Bravo on the existing contract is single-digit millions of rupiah per month** — a rounding error against the Rp140M/month already committed. Whether Bravo's volume fits *inside* the current allocation must be checked against the contract, and the commitment renews around **March 2027** — a natural point to re-scope it.
 2. **Bravo's own infrastructure line would fall slightly.** The Camunda `act_hi_*` tables at `full` history with 90-day retention are a material slice of the Rp52.7M/month Cloud SQL bill; removing the engine removes them. The `ms-bpm` pods and the business database stay.
 
-**Net run-rate: roughly neutral, plausibly a small saving,** and with no licence to buy — which compares favourably with Option 1's quote-only Camunda EE and Tanzu contracts. Option 2's cost is entirely one-off engineering.
+**Net run-rate: roughly neutral, plausibly a small saving,** and with no licence to buy. Option 2's cost is entirely one-off engineering — though so is Option 1's, since the community forks are Apache 2.0 and need no licence either.
 
 ---
 
@@ -326,13 +328,13 @@ Two conclusions:
   This is strictly better than what Bravo has now, for three reasons.
 
   1. **Today there is no check at all.** The BPMN file is simultaneously the intent and the implementation, so it cannot disagree with itself and nothing ever verifies that what was built is what Product asked for. Splitting them into a maintained intent diagram and a generated as-built diagram creates a comparison that did not previously exist.
-  2. **Today's diagram is already an incomplete picture of behaviour.** Product routing sits in gateway string comparisons and Spring property lookups, in the `WorkflowSelectorActivity` configuration tables and in a per-application jsonb on/off matrix; lifecycle truth is spread over 197 `setStatus` sites, 53 of which write `Application.status` directly ([compare.md §3.1, §3.3, §3.4](compare.md)). [workflow-gap.md](workflow-gap.md) records the consequence plainly: **no per-product diagram exists**, and the effective per-product flow had to be recovered by querying the production database. A generated diagram can render the config-resolved path *per product*, which the hand-drawn BPMN has never been able to show.
+  2. **Today's diagram is already an incomplete picture of behaviour.** Product routing sits in gateway string comparisons and Spring property lookups, in the `WorkflowSelectorActivity` configuration tables and in a per-application jsonb on/off matrix; lifecycle truth is spread over 197 `setStatus` sites, 53 of which write `Application.status` directly ([compare.md §3.1, §3.3, §3.4](compare-architecture.md)). [workflow-gap.md](workflow-gap.md) records the consequence plainly: **no per-product diagram exists**, and the effective per-product flow had to be recovered by querying the production database. A generated diagram can render the config-resolved path *per product*, which the hand-drawn BPMN has never been able to show.
   3. **Imperative workflow code is directly diagrammable.** The control flow *is* the sequence of statements and branches in the source, so the generator is a walk of the workflow methods rather than an inference. A data-readiness model has the opposite property: the order is never written down and has to be reconstructed by dependency analysis.
 
   The honest caveat: no off-the-shelf generator exists for Temporal Java, so this is a build item — costed at 0.5–1 engineer-month in §4 — and the loop only pays if the diff is actually run in CI and acted on.
 - The Camunda webapp attack surface goes away, and with it the class of exposure in [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md).
 - A testable orchestration layer, for the first time. Temporal's test framework turns "4 of 1,457 tests run a process" into something fixable.
-- Native parallelism where Bravo wants it. Bravo has **14 parallel gateways across 53 files and zero in the unified spine** ([compare.md §2](compare.md)) — sequential-by-default is a modelling habit Temporal does not impose.
+- Native parallelism where Bravo wants it. Bravo has **14 parallel gateways across 53 files and zero in the unified spine** ([compare.md §2](compare-architecture.md)) — sequential-by-default is a modelling habit Temporal does not impose.
 - Bravo's already-good retry policy becomes explicit and enforced rather than spread across 30 XML retry vocabularies.
 
 **Lost**
@@ -341,7 +343,7 @@ Two conclusions:
 - **Camunda Modeler as an authoring tool.** Analysts who currently open the BPMN directly would move to a Confluence-hosted diagram plus the generated as-built view. The information survives the change; the specific tool does not.
 - **Cheap version coexistence.** Camunda versions definitions for free; Temporal needs versioning discipline (`GetVersion` / worker versioning) and deterministic replay constraints.
 
-**Not addressed:** every architectural finding in [compare.md](compare.md) and [workflow-gap.md](workflow-gap.md) survives the port unchanged — five monoliths carrying 94% of volume, product identity as a magic number in five places, 30 `ApplicationStatus` values plus ~105 other status enums, 197 `setStatus` sites, no saga compensation. A faithful port faithfully ports the problems. If those findings are what the organisation most wants fixed, Option 2 does not fix them; it makes them cheaper to keep.
+**Not addressed:** every architectural finding in [compare.md](compare-architecture.md) and [workflow-gap.md](workflow-gap.md) survives the port unchanged — five monoliths carrying 94% of volume, product identity as a magic number in five places, 30 `ApplicationStatus` values plus ~105 other status enums, 197 `setStatus` sites, no saga compensation. A faithful port faithfully ports the problems. If those findings are what the organisation most wants fixed, Option 2 does not fix them; it makes them cheaper to keep.
 
 ---
 
@@ -366,7 +368,7 @@ Two conclusions:
 
 Option 2 is the right answer when **two conditions hold together**: Bravo is expected to run for a long time, and the organisation wants to keep the imperative workflow paradigm rather than adopt a data-centric one. It is the only option that satisfies both.
 
-Against **Option 1C**, its nearest competitor on that reading, it costs roughly 2–3× more up front but removes the vendor dependency permanently instead of renting time on a feature-frozen product, needs no licence, and leaves behind a testable orchestration layer. If the answer to "will Bravo still be here in 2030?" is yes, Option 2 is very likely better value than paying Camunda through 2030 and re-opening the question in 2027.
+Against **Option 1**, its nearest competitor on that reading, the comparison has moved sharply against Option 2 since the fork correction. Option 1 Path B now lands a supported engine and a supported Spring Boot in **18–33 engineer-days with no licence** ([option-1.md](option-1.md)), against Option 2's 31–57 engineer-months — roughly 20–40× the cost. Option 2's remaining distinct value is narrower than it was, and worth stating precisely: it removes the workflow-engine dependency *altogether*, whereas the fork route changes stewards and inherits a six-month support line and a concentrated maintainer base. It also leaves behind a testable orchestration layer, native parallelism, and no Cockpit-plugin dead end. Whether that is worth 20–40× is the judgement — and on a 5–10 year horizon with a core engine, it is not obviously wrong, but it is no longer the easy call it looked like when Option 1 meant buying two licences.
 
 Against **Option 3**, the totals are close (31–57 against 30–57 engineer-months) but the risk profiles are not. §3 is the case: 0.4% engine contact against a full language-and-data-model change, no data migration, parity arguable element by element, rollback onto the same database, and no retraining. What Option 2 does *not* buy is any of the architectural improvement — it changes the engine and preserves the architecture exactly.
 
@@ -381,7 +383,7 @@ It also composes with [§5](#5-sequencing-consolidate-onto-unified-first) rather
 ## Sources
 
 - `squads/Scoring and Underwriting/bravo-bpm-service` at `2d5d856` — all code counts, including the §3 coupling measurement (`grep` over `src/main/java`: 351 files importing `org.camunda`, 2,004 engine-API lines, 497,970 LOC total)
-- [compare.md](compare.md) — engine-coupled inventory, retry policy, testing, cost tier, where product and lifecycle logic actually live
+- [compare.md](compare-architecture.md) — engine-coupled inventory, retry policy, testing, cost tier, where product and lifecycle logic actually live
 - [workflow-gap.md §8](workflow-gap.md) — production volumes by root definition, human-task queues, the absence of a per-product diagram
 - [bravo-unified-legacy-to-unified.md](bravo-unified-legacy-to-unified.md) — migration method and the config-skip parity trap
 - [LORA Temporal cost findings](../../lora-workspace/docs/production-findings/cost.md) — contract Rp1,679,950,003/year, prepaid via GCP Marketplace March 2026; ~$50/M Actions; 118.8 Actions/loan of which 62% notify bookkeeping
