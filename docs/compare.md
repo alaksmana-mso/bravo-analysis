@@ -9,7 +9,7 @@
 **Scope caveats, read first.**
 
 - LORA's production-findings pack measured LORA in production (Temporal Cloud billing, Datadog). For Bravo we have code, git history and the GCP bill as recorded by the LORA cost document. We do **not** have Bravo's manual-intervention rate, incident counts or per-activity failure data. Where LORA has a measured number and Bravo has only a code-level mechanism, the table says so.
-- "Bravo" in the LORA cost figures means the whole Bravo estate (Cloud SQL, ~50 upstream services, non-prod projects), not `bravo-bpm-service` alone.
+- "Bravo" in the LORA cost figures means the whole Bravo estate (Cloud SQL, ~50 upstream services, non-prod projects), not `bravo-bpm-service` alone. On 2026-09-09 the Bravo team objected that this makes the cost comparison unfair because LORA itself calls most of that estate; the objection was checked and upheld, and §3.12 and §8.5 now carry a like-for-like orchestration-tier comparison in which Bravo's tier is the cheaper one.
 - Bravo is being drained into LORA (applications fell from ~118k to ~76k per month between July and August 2026), so its unit economics are inflating for reasons unrelated to architecture.
 
 ---
@@ -28,7 +28,7 @@
 | External integrations | 113 `@FeignClient` interfaces, 2 RabbitMQ brokers, 14 listeners, 7 publishers | 301 proxies behind one gateway route, 25 RabbitMQ subscribers, NATS |
 | Age and churn | First commit 2022-01-26; 39,668 commits; 94 authors all-time, 23 active in 2026; 5,479 release tags | Production since 2026; 8 concurrent worker versions (`v0-16` to `v0-22`) |
 | Volume (Aug 2026, per LORA cost doc) | 76,446 applications (31%) | 171,479 applications (69%) |
-| Platform cost (Aug 2026, per LORA cost doc) | ≈Rp1,625–1,677M/month whole estate; ≈Rp21,256–21,900 per application (inflating as volume drains) | ≈Rp402–437M/month all-in incl. Temporal and ArangoDB contracts; ≈Rp1,150–1,350 per application on GCP, ≈Rp2,347–2,546 all-in |
+| Orchestration-tier cost (Aug 2026, FinOps API) | `ms-bpm` pods + its Cloud SQL: **≈Rp58M/month prod** (≈Rp70M with SIT/UAT pods); ≈Rp510–760 per application. The ≈Rp1.65B "Bravo estate" figure is mostly the shared data plane LORA also calls | **≈Rp431M/month all-in** (GKE Rp187M, Temporal Rp140M, ArangoDB licence Rp65M + GKE Rp39M); ≈Rp2,500–3,200 per application |
 
 ---
 
@@ -212,17 +212,22 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 
 ### 3.12 Cost and scale
 
-Numbers from the LORA cost document (GCP billing export + FinOps API, August 2026), reproduced with its caveats.
+Numbers from the LORA cost document (GCP billing export + FinOps API, August 2026) and from a like-for-like pull of the Bravo orchestration tier made on 2026-09-09 after the Bravo team's objection (§8.5). All figures are GCP net cost in IDR for the complete month of August 2026.
 
-| | Bravo estate | LORA |
+**Like-for-like: orchestration tier against orchestration tier.**
+
+| | Bravo LOS tier | LORA tier |
 |---|---|---|
-| Applications, Aug 2026 | 76,446 | 171,479 |
-| Monthly platform cost | ≈Rp1,677M (Cloud SQL alone Rp584M; Cloud Logging Rp201M; `bravo-project-nonprod` Rp573M) | ≈Rp402M all-in (GKE Rp163–197M + Temporal ≈Rp140M/12-month contract + ArangoDB) |
-| Per application | ≈Rp21,900 (was Rp13,889 in July; inflating as volume drains) | ≈Rp2,347 all-in; ≈Rp1,150–1,350 GCP only |
-| Cost shape | Fixed; flat while volume fell 35% | Fixed; 43× volume increase for 3% less spend Jun→Jul; 44 pods request 448 GB and use 15.5% |
-| Engine-specific cost | Camunda `full` history in PostgreSQL, `P90D` retention, nightly one-hour cleanup window | Temporal ≈$0.051/loan; mean 126 Actions/loan, P95 191; 63.5% of activity executions are notify + checkpoint |
+| What is in the tier | `ms-bpm` pods (Camunda + all human-task services) and its Cloud SQL instance `prod-postgres-bpm-d2bpm` | LPW/LTW workers, gateway, task service, schema service (GKE `squad:lora`), Temporal Cloud contract, ArangoDB licence and GKE |
+| Monthly cost, prod | **≈Rp58M** (pods Rp5.3M + Cloud SQL Rp52.7M) | **≈Rp431M** (GKE Rp187.2M + Temporal Rp140.0M + ArangoDB licence Rp65.4M + ArangoDB GKE Rp38.9M; roughly half of task-service and ArangoDB GKE is SIT/UAT) |
+| Non-prod copies | pods Rp12.1M; SIT/UAT/Sharia databases not pulled | inside the figures above |
+| Applications, Aug 2026 | 76,446 (billing sheet) to ≈113k (engine meter: 338,858 process starts in 90 days) | 171,479 (billing sheet) to ≈135k (Temporal meter) |
+| **Per application** | **≈Rp510–760** | **≈Rp2,500–3,200** |
+| Not attributable to either | Memorystore Redis (Rp51M), in-cluster RabbitMQ, Keycloak, Cloud Logging (Rp140.5M prod), console hosting, and the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances that **both** platforms call | same |
 
-**Assessment.** The unit-cost gap is real but is mostly Cloud SQL, logging and a non-prod project, not the BPMN engine. The LORA cost document itself says the Temporal Actions programme is worth ~Rp7M/month against ~Rp1,625M/month for retiring Bravo, so the architecture comparison should not be read as a cost argument. What the comparison does support: a relational, full-history, single-database LOS at this volume is expensive to keep, and Camunda's `ACT_HI_*` growth on Cloud SQL is part of that bill.
+**The estate view the LORA cost document started from**, kept for reference: the two Bravo GCP projects bill ≈Rp1.87B/month, of which LORA's labels are ≈Rp226M and the remainder ≈Rp1.65B; Cloud SQL is Rp584M, Cloud Logging Rp201M, `bravo-project-nonprod` Rp573M. That remainder is not "Bravo LOS"; it is the shared BFI data plane plus non-prod, and LORA's 300 gateway proxies depend on it (§8.5).
+
+**Assessment.** On the only fair basis, LORA's orchestration tier costs about 7× Bravo's in absolute terms and 4–5× per application. The reasons are not the paradigm: a fixed Temporal commitment, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five are idle. Three of those four are **time-locked rather than merely wasteful**, which bounds how fast the gap can close: about **31% of LORA's node cost sits on a `Commitment v1: N2 Cpu in Jakarta for 3 Year` SKU**, so right-sizing requests releases the on-demand slice immediately and the committed slice only when that commitment is re-planned; the Temporal commitment was bought through the GCP Marketplace in **March 2026**, so it is renegotiable at **~March 2027** and not before; and the five idle worker versions cannot be retired at all while **~half of all loans never reach a terminal state** (a licence-plate reservation renews itself, so the workflow never ends and keeps its version pinned). The idle fleet is therefore a reliability defect presenting as a cost line. Bravo's tier is one deployment and one database, and that database alone costs more than LORA's ArangoDB compute. The migration still pays, because LORA's marginal cost per application is near zero and the Bravo LOS tier (≈Rp58–100M/month plus a second platform to staff) goes away, but the earlier claim that retiring Bravo saves ≈Rp1.6B/month is withdrawn: the data plane stays because LORA needs it. Two Bravo-specific costs remain worth noting: Camunda `full` history and 90-day retention on Cloud SQL are part of that Rp52.7M, and `ms-bpm` logs full request bodies into a Cloud Logging line that is not attributable but is large.
 
 ### 3.13 People and cognition
 
@@ -257,6 +262,7 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 - **Durable reprocess generations.** `prevApplication`/`currentIndex` keeps every attempt as a row.
 - **Commodity skills and readable order.** The happy path is eight boxes in one file.
 - **Cheap version coexistence.** Camunda versions definitions; no extra pods.
+- **Orchestration-tier cost.** ≈Rp58M/month for pods plus database against LORA's ≈Rp431M all-in, ≈Rp510–760 per application against ≈Rp2,500–3,200 (§3.12, §8.5).
 
 **LORA (hybrid GSM + Temporal) did better at:**
 
@@ -265,7 +271,7 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 - **Parallelism for free.** ReadSet/WriteSet locking runs independent checks concurrently; Bravo has 5 parallel gateways in 53 files.
 - **Principled rework for computed fields.** Rollback by dependency, not by resetting columns.
 - **Product isolation at the data layer.** Separate documents and queues; Bravo has one job executor for everything.
-- **Unit economics.** ≈Rp2,300 vs ≈Rp21,900 per application, with the caveat that most of the gap is Cloud SQL and logging, not the engine.
+- **Marginal cost.** Near-zero cost per additional application once the fixed footprint is paid; volume moved from Bravo to LORA adds almost nothing to LORA's bill. (The earlier bullet claiming ≈Rp2,300 vs ≈Rp21,900 per application is withdrawn; like-for-like, Bravo's orchestration tier is the cheaper one, §3.12.)
 - **Observability of the automated pipeline.** Spans per activity attempt; Bravo has no process metrics.
 
 ---
@@ -350,9 +356,33 @@ The document model does not automatically fix this either. LORA's status field i
 
 **What changed in the document.** §2 row 3 keeps the "partly refuted" verdict, now credits the relational aggregate explicitly, and names the anemic-aggregate point as the residual criticism. §1 and §3.2 give the field count as a range with both counting rules.
 
-### 8.4 Net effect on the verdict
+### 8.4 "LORA is just orchestration; comparing its cost with the whole Bravo estate is unfair"
 
-None of the three responses moves the §7 conclusion, and two of them sharpen it. The "flowchart explosion" and "sequential" findings are true of Bravo and are consequences of how Bravo was modelled, not laws of BPMN; the Bravo team's own remedies (thin spine, parallel gateways, an aggregate that owns its invariants) are the right ones and are, respectively, 5.5% deployed, not started, and not enforced. The pure-workflow approach *could* have avoided most of what §2 rows 1 and 2 describe, and did not. That is itself evidence about how the two paradigms behave under real delivery pressure, which is the only condition under which either will ever run.
+**The argument is upheld, with one factual correction.** The LORA cost document compared LORA's all-in platform bill (≈Rp431M) with the "Bravo remainder" of the two GCP projects (≈Rp1.65B) and concluded LORA was 13–16× cheaper per application and that retiring Bravo was worth ≈Rp1.6B/month. Checking what LORA calls shows why that is not like-for-like: `lora-gateway-service` has 40 client packages behind ~300 proxy handlers, 26 of them Bravo platform services (agreement, master data, branch, customer/CIF, product, calculation, asset pricing, collateral, document, e-doc, document hub, doc renderer, agent, scheduling, notification, backoffice, partnership, insurance, KYC proxy, KYC sign, CNV, integration, rule engine, portfolio management, payment), plus the same Apigee scoring chain `bravo-bpm-service` uses with byte-identical paths (StrategyOne, one-obligor, AliCloud models, anti-fraud, BFI Connect). Production spans confirm it: `prod-ms-master` alone takes 620k LORA calls a week. The Bravo estate is mostly a shared data plane, and it does not retire when the Bravo LOS does.
+
+**The factual correction.** LORA does not call `ms-bpm`, and it does not call any Bravo surveyor, operation, underwriting or approval service: zero references to `bpm` in any LORA repo, `ms-bpm` absent from the production upstream table, and the surveyor, operation and CA hosts appear only in BPM's own CORS allow-list. Those functions live inside `ms-bpm` and its consoles, and LORA re-implements them in `lora-partnership-task-ndf`, `lora-task-service` and `lora-backoffice-fe`. So the examples in the objection are wrong, and the principle is right.
+
+**The like-for-like number.** Pulling only Bravo's orchestration tier from the FinOps API for August 2026: `ms-bpm` pods Rp5.3M in prod (Rp12.1M more in SIT/UAT) and the `prod-postgres-bpm-d2bpm` Cloud SQL instance Rp52.7M, so ≈Rp58M prod against LORA's ≈Rp431M all-in. Per application, ≈Rp510–760 against ≈Rp2,500–3,200. LORA's orchestration costs roughly 7× more in absolute terms and 4–5× more per application, for reasons the LORA documents already list: fixed Temporal and ArangoDB contracts, 15.5% utilisation of 448 GB of requests, and five idle worker versions.
+
+**What changed in the documents.** LORA's `cost.md` gained a section "Orchestration against orchestration", its verdict table and recommendations were amended, the production-findings README rows were rewritten, and §1, §3.12 and §5 of this document now carry the tier-level figures. The 227× "retire Bravo" lever is re-sized to 8–14× (≈Rp58–100M/month). The slide decks derived from `cost.md` (CTO, developer and holistic-health decks) were regenerated with the tier-level figures the same day.
+
+**What still stands.** LORA's cost is flat with volume, so finishing the migration still costs nothing at the margin and removes one platform. Temporal is still ≈5 cents per loan. And the comparison says nothing about the paradigm: the gap is provisioning and contracts, not GSM versus BPMN.
+
+**How much of the gap is actually reachable, and when.** "A right-sized LORA could close it substantially" is true but slower than it sounds, and the levers are smaller than the one they are being compared against:
+
+| Lever | Worth | Available |
+|---|---|---|
+| Retire the Bravo **LOS** tier | ≈Rp58M/month prod, ≈Rp70–100M with non-prod | when the migration finishes |
+| Retire the five idle worker versions | share of 448 GB at 15.5% utilisation | **blocked** until abandoned loans terminate |
+| Right-size pod requests | the on-demand 69% of node cost | now; the committed 31% only at CUD re-plan |
+| Re-size the Temporal commitment | commit is ~52% larger than needed | **~March 2027** renewal |
+| The whole Temporal Actions programme | **≈Rp7.2M/month** (~1.7% of LORA's bill) | now |
+
+So the single largest cost action available to either team is still finishing the migration — but it is **8–14×** the Temporal work, not 227×, and LORA's own tier does not become cheaper than Bravo's by doing it. The Actions programme is worth doing for the renewal negotiation, not for this month's invoice.
+
+### 8.5 Net effect on the verdict
+
+None of the four responses moves the §7 conclusion on architecture, and two of them sharpen it. The fourth reverses a cost claim that was never part of the architectural verdict but was being quoted alongside it: on a like-for-like tier, Bravo's orchestration is the cheaper one today. The "flowchart explosion" and "sequential" findings are true of Bravo and are consequences of how Bravo was modelled, not laws of BPMN; the Bravo team's own remedies (thin spine, parallel gateways, an aggregate that owns its invariants) are the right ones and are, respectively, 5.5% deployed, not started, and not enforced. The pure-workflow approach *could* have avoided most of what §2 rows 1 and 2 describe, and did not. That is itself evidence about how the two paradigms behave under real delivery pressure, which is the only condition under which either will ever run.
 
 ---
 
