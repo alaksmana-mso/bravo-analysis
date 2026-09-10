@@ -1,6 +1,6 @@
 # Bravo BPM workflow analysis
 
-Every BPMN process (drawn individually in section 10) in `bravo-bpm-service` (`src/main/resources/bpmn`, 53 files, 53 executable processes, plus 3 DMN tables), how they call each other, and two structural questions: are human tasks separated from domain (system) tasks in child workflows, and are workflows separated by product?
+Every BPMN process (drawn individually in section 13) in `bravo-bpm-service` (`src/main/resources/bpmn`, 53 files, 53 executable processes, plus 3 DMN tables), how they call each other, and two structural questions: are human tasks separated from domain (system) tasks in child workflows, and are workflows separated by product?
 
 The copies under `squads/Scoring and Underwriting` and `squads/Survey and Verification` have identical BPMN file lists. Counts below were parsed from the XML on 2026-09-08.
 
@@ -305,7 +305,49 @@ Counts parsed from the BPMN XML. Role: root means started from Java via `startPr
 | Unsecured | `unsecured-pre-mvp` | unsecured-pre-mvp-full-flow.bpmn | root (Java) | system only | 0 | 0 | 11 | 1 | 1 | 2 |
 | Pre-approval | `preApprovalScoring` | pre-approval-scoring.bpmn | root (Java) | system only | 0 | 0 | 4 | 3 | 0 | 0 |
 
-## 10. Every process, drawn
+## 10. Best practice: the recommended workflow architecture
+
+Sections 1–9 describe what exists. This section states the target shape; §11 measures the distance to it; §12 gives the plan. The deep, evidence-backed version — with the production numbers behind every claim — is in [workflow-gap.md](workflow-gap.md) §10–§12; this is the standalone summary.
+
+Four principles govern multi-product process orchestration on a Camunda-style engine:
+
+1. **The model is the source of truth.** A loan's real path must be readable from the BPMN alone. *Structural* variation (which steps, what order, which humans) belongs in the model as gateways or different sub-processes; *data* variation (thresholds, branch/risk toggles) belongs in configuration. Bravo currently inverts this: structure is expressed as `is_active` config rows that make modelled tasks silently no-op (§7), so the diagram shows steps that do not run.
+
+2. **Product-owned spines, domain-owned shared children.** One thin executable spine per product (30–40 nodes, no domain logic — just the ordered stages and which child each calls), and domain children (`check`, `initial_scoring`, `survey`, `underwriting`, `operation`) shared across products with **no product `if/else` inside**. Fork a child only where the *structure* genuinely differs. Bravo already has the correct precedent — `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-family fork called from the shared underwriting orchestrator (§5, §3) — it is simply not applied consistently. Camunda's expression-valued `calledElement` makes per-product dispatch cheap and gateway-free.
+
+3. **Product stays out of domain code.** A shared activity does its job the same way for everyone; product choice lives in the spine (which child it calls), never in `application.isDF4W()` inside a shared bean.
+
+4. **Platform governance.** Least-privilege engine surface (authenticated, network-restricted `/camunda`), a per-product deployment unit so changing one product does not redeploy the graph four others are mid-flight on, and per-product effective-flow diagrams generated in CI. Migrate by strangler — new volume product-by-product — never big-bang.
+
+What the current design already gets right and must be kept: orchestrators hold zero user tasks (§3, §8); domain steps largely exist once rather than per-product; escalation/cancellation/rejection are centralised as boundary events.
+
+## 11. The gap from Bravo today to that target
+
+| Best-practice principle | Bravo today (evidence in this doc) | Gap |
+|---|---|---|
+| Model is the source of truth | 55 activity classes gated by config no-ops; the effective path needs a 5-table join to reconstruct (§7) | Diagram is not the truth; structure hidden in data |
+| Thin product-owned spine per product | One shared spine for all; product chosen by 3 gateways + a selector variable (§2, §7) | No product owns a readable spine; one graph carries five products' blast radius |
+| Shared domain children, no product logic inside | 19 of 68 unified activities branch on `application.isXxx()` | Product logic hidden inside shared beans |
+| Fork only on structural difference | Done once (`…Underwriting_Regular`); elsewhere variation is config no-ops | Right pattern known, not applied |
+| Product out of domain code | Product lives in config + Java + gateways + 9 feature flags at once | Four places to touch to change one product |
+| Least-privilege, per-product deployment | `/camunda` was `permitAll` (RCE); one deployment unit for all | Shared operational and security blast radius |
+| Strangler migration | Happening by accident: DF4W runs the shared spine at 5.5%, flat, undeliberate (per workflow-gap.md §8) | Legacy monoliths still carry ~94% of volume and the whole retail book, unmigrated |
+
+The building blocks are right — orchestrator/worker split, shared children, one correct fork — but product variation lives in three places the model cannot show, so no product has a readable, owned, independently-deployable spine, and the legacy `NDF4W`/`NDF2W` monoliths (§4, §5) that carry most volume were never migrated.
+
+## 12. Plan: 30 / 60 / 90 days (summary)
+
+Full action/exit-criteria tables and programme metrics are in [workflow-gap.md](workflow-gap.md) §12. Milestones:
+
+| Horizon | Theme | Key deliverables | Exit metric |
+|---|---|---|---|
+| **0–30d** | See it, stop the bleeding | Publish a generated effective-flow diagram per live product; CI lint blocking any new `isXxx()` / new no-op-gated class; harden `/camunda` (RCE); sign off the target ADR; delete dead `setting.workflow.map` keys and the unreferenced `…Scoring_1_Mock_Ro` | Every live product has an owner-readable flow; `isXxx()` count can only fall from 19 |
+| **30–60d** | Prove on DF4W | Build an explicit `spine_df4w` (DF4W is already the only live spine product); remove its 3 product gateways and DF4W `isXxx()` arms; convert its KYC/RAC config no-ops into real model choices; per-product diagram diffed in CI | DF4W runs a thin owned spine with zero product gateways and zero phantom no-op tasks |
+| **60–90d** | Migrate the big one | Stand up `spine_ndf2w` (248k loans/quarter) on the shared children, forking only on real structural difference; strangler-route new NDF2W volume; de-duplicate the worst 2W/4W delegate pairs; write the NDF4W/RO/Sharia decommission plan | ≥25% of new NDF2W starts on the spine at parity; distinct-delegate count falling from 145 |
+
+Out of scope for 90 days: rewriting domain logic, the separate Sharia deployment, and the LORA/Temporal track (see `compare.md`). This plan changes only the *shape* of the Bravo workflows — moving product variation out of hiding and onto owned, readable spines.
+
+## 13. Every process, drawn
 
 Top-level flow of each process as deployed. Embedded subprocesses are collapsed into one box (▣) with their task count; boundary events are dashed arrows from the activity they are attached to; call activities (⇢) show the `calledElement` key. Amber stadium = user task, slate box = service or rule task, red = error/escalation end.
 

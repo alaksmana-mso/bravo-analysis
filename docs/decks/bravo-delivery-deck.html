@@ -255,15 +255,73 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 @media (prefers-reduced-motion:reduce){.cue span{animation:none}}
 @media (max-width:700px){.rail{display:none}}
 
+/* ---------- print / PDF: one slide per landscape page ---------- */
 @media print{
-  .rail,.hud,.cue{display:none}
-  .deck{height:auto;overflow:visible}
-  .slide{min-height:0;page-break-after:always;border:0}
+  @page{size:330mm 186mm;margin:0}                 /* 16:9 landscape slide */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rail,.hud,.cue{display:none!important}
+  .deck{height:auto!important;overflow:visible!important;scroll-snap-type:none}
+  .slide{
+    /* fill the page box exactly: 186mm page - 3mm slack for print rounding */
+    height:183mm;min-height:183mm;overflow:hidden;border-bottom:0;
+    padding:11mm 14mm 8mm;
+    break-after:page;page-break-after:always;
+  }
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  /* pin the layouts: no width query may collapse them in print */
+  .cols{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .cols.b{grid-template-columns:1.15fr .85fr}
+  .stats--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .recs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .phases{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .chart{max-height:none}
+  .slide--cover{background:var(--paper)}
+  .inner{max-width:none;gap:10px}
+
+  /* tighten the type scale so a dense slide still fits one page */
+  h1{font-size:42px}
+  h2.st{font-size:25px;margin-top:4px}
+  .lede{font-size:12.5px;max-width:none}
+  .claim{font-size:14px}
+  .pull{font-size:16.5px;max-width:none}
+  .pull small{font-size:12px;margin-top:8px;max-width:none}
+  .eyebrow{font-size:9.5px}
+  .cover-kicker{font-size:10px}
+  .meta{font-size:9.5px}
+  .stat{padding:11px 13px}
+  .stat__n{font-size:28px}
+  .stat__l{font-size:9px}
+  .vrow{padding:8px 2px;grid-template-columns:minmax(0,1.05fr) 120px minmax(0,1.25fr)}
+  .vrow .cl{font-size:12px}
+  .vrow .gi{font-size:10.5px}
+  .v{font-size:9px;padding:4px 7px 3px}
+  .note{font-size:10.5px;padding:10px 12px}
+  .note h4{font-size:9px;margin-bottom:5px}
+  pre{font-size:9.5px;padding:10px 12px;line-height:1.5;white-space:pre-wrap}
+  .rec{padding:9px 11px;gap:9px}
+  .rec .tx{font-size:10.5px}
+  .rec .tx b{font-size:11px}
+  .rec .no{font-size:14px}
+  .ph{padding:11px 12px 12px;gap:8px}
+  .ph li{font-size:10px}
+  .ph__d{font-size:13px}
+  .foot{font-size:8.5px;padding-top:9px}
+
+  /* tables: no inner scroller in print, and never split a row */
+  .tw{overflow:visible;border-radius:0}
+  table{font-size:9.5px}
+  thead th{font-size:8.5px;padding:6px 9px}
+  tbody td{padding:5px 9px;line-height:1.4}
+  tr{break-inside:avoid;page-break-inside:avoid}
+  caption{font-size:8.5px;padding:6px 9px}
+  .legend{font-size:9px}
+  .chart text{font-size:9px}
 }
 
 :root{--ac:#464494;--acBg:#4644941f;--acBg2:#4644940f}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#9B98E8;--acBg:#9B98E824;--acBg2:#9B98E812}}
 :root[data-theme="dark"]{--ac:#9B98E8;--acBg:#9B98E824;--acBg2:#9B98E812}
+/* print-fit bravo-delivery-deck: every slide fits the page box unscaled */
 </style>
 <main class="deck" id="deck">
 <section class="slide slide--cover" data-nav="Cover">

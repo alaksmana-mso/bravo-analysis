@@ -240,3 +240,110 @@ Full SQL is in `workflow-analysis.md` and in this file's git history; only Q4 wa
 ### Found while querying, recorded separately
 
 While running Q2/Q3 I found 61 injected remote-code-execution process definitions in the BPM Camunda engine, one confirmed to have executed inside the production pod. That is a security exposure, not a workflow matter; it is written up in `SECURITY-FINDING-camunda-rce.md`. The Sharia engine was checked and is clean.
+
+## 10. Best practice: the recommended strategy
+
+The target is not a preference; it is the settled shape for multi-product process orchestration on an engine like Camunda 7. Four principles, each with the industry pattern it comes from and what it means concretely for Bravo.
+
+### 10.1 The model is the source of truth; data only parameterises it
+
+The effective path a loan takes must be derivable **from the process model alone**. Two kinds of variation must be told apart and placed differently:
+
+- **Structural variation** — which steps run, in what order, and which humans act — belongs *in the model*: a gateway, or a different sub-process. It is versioned, diffable, and shown on a diagram.
+- **Data variation** — a threshold, a branch/risk toggle, a rate — belongs *in configuration*. It changes often and does not change the shape of the journey.
+
+The failure mode Bravo is in is that structural variation ("DF4W runs Address Verification, NDF2W does not") is expressed as **data** — a `workflow_master_config_detail.is_active` row that makes a modelled task silently no-op. That inverts the rule: the model shows a step that does not run, and the truth lives in five join tables. Best practice: a step that does not run for a product is **not on that product's model**.
+
+### 10.2 Product-owned spines, domain-owned shared children (orchestrator / worker)
+
+This is the Camunda "one process per business-relevant journey, reusable sub-processes for shared capability" pattern, and the DDD bounded-context split applied to process:
+
+- **One thin executable spine per product** (`spine_ndf4w`, `spine_ndf2w`, …): 30–40 nodes, no domain logic, its only job is to name the ordered stages and call the right child for each. This is the artifact a product owner reads and signs.
+- **Domain children shared by default** (`check`, `initial_scoring`, `survey`, `underwriting`, `operation`), each owned by the domain that understands it, with **no product `if/else` inside**.
+- **Fork a child only on structural difference.** Bravo already has the correct precedent: `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-family underwriting fork called from the shared underwriting orchestrator. That is the pattern; it is simply not applied consistently.
+
+Camunda 7 makes this cheap: a call activity's `calledElement` can be an expression, so a spine dispatches to `survey` for most products and `survey_sharia` for one, with no gateway and no flag.
+
+### 10.3 Keep product out of the domain code (stable service contracts)
+
+Domain activities are workers behind a stable interface. Product-specific behaviour is chosen by the spine (which child it calls) or by explicit configuration passed in, **never** by `application.isDF4W()` inside a shared bean. A shared `KYCCheckActivity` should do KYC the same way for everyone; if DF4W needs an extra check, that is a different step on the DF4W spine, not a hidden branch in the shared one.
+
+### 10.4 Platform governance: least privilege, migration, and a per-product test matrix
+
+- **Least-privilege engine.** The workflow engine's REST/cockpit surface must be authenticated and network-restricted. (Bravo's `/camunda` was `permitAll`, which is how 61 hostile process definitions were deployed — see `SECURITY-FINDING-camunda-rce.md`. Hardening this is a prerequisite for any of the below, not an optional extra.)
+- **Explicit versioning and instance migration.** Changing one product must not redeploy the shared graph that four other products are mid-flight on. Product-owned spines give each product its own deployment unit and its own `processDefinitionKey` to migrate.
+- **Per-product observability.** Each product's effective flow is generated on every build and published; the CI pipeline diffs it so a change to a shared child that alters a product's path is visible in review.
+
+### 10.5 Migrate by strangler, never big-bang
+
+Stand the new shape up beside the old, route new volume product-by-product, and retire each monolith only once its replacement carries production traffic cleanly. Bravo has already, accidentally, proven this is safe: the unified spine has run **DF4W** in production for months at 5.5% of volume (§8.2). That is a working strangler beachhead — the strategy is to make it deliberate.
+
+## 11. The gap from current Bravo to best practice
+
+Each principle above, versus what production and the code actually show (§8, §3–§4). Severity is the risk of leaving it as-is.
+
+| # | Best-practice principle (§10) | Current Bravo state | Gap | Severity |
+|---|---|---|---|---|
+| A | Model is source of truth; structure in model, data in config | Structure encoded as `is_active` no-op rows; 55 classes gated; measured phantom tasks completing <50 ms (§8.3) | Effective path not derivable from model; needs a 5-table join | **High** |
+| B | Thin product-owned spine per product | One shared spine for all; product chosen by 3 gateways + selector variable | No product owns a readable spine; one graph, five products' blast radius (§4) | **High** |
+| C | Domain children shared, no product logic inside | 19 of 68 unified activities branch on `application.isXxx()` (`isDF4W()` ×20) | Product logic hidden in shared beans; grows silently | **High** |
+| D | Fork child only on structural difference | Done once correctly (`…Underwriting_Regular`); everywhere else variation is config no-ops | Pattern known but not applied; the good precedent is the exception | Medium |
+| E | Product out of domain code via stable contracts | Config + Java + gateways + 9 feature flags all carry product (§4) | Four mechanisms to change to alter one product's flow | **High** |
+| F | Least-privilege engine, per-product deployment unit | `/camunda` was `permitAll` (RCE); one deployment unit for all products | Shared blast radius operationally and on the security surface | **High** (security) |
+| G | Migrate by strangler | Happening by accident (DF4W on spine, 5.5%), flat, undeliberate | No migration plan; legacy carries ~94% and the whole retail book | Medium |
+| H | Dead/duplicated assets removed | `PREAPPROVAL`/`DF4W`/`DF2W`/`DF2W_Sharia` map keys with no process; `…Scoring_1_Mock_Ro` unreferenced; 145 delegates for 2 legacy products | Cleanup backlog; duplication is how NDF4W/NDF2W drifted | Low–Medium |
+
+**The one-sentence gap.** Bravo has the right *building blocks* — an orchestrator/worker split, shared domain children, and one correct fork — but expresses product variation in three places the model cannot show (config no-ops, Java `isXxx()`, feature flags), so no product has a readable, owned, independently-deployable spine, and the legacy monoliths that still carry 94% of volume were never migrated at all.
+
+## 12. Plan: 30 / 60 / 90 days
+
+Sequenced by risk and payoff. Phase 1 buys visibility and stops the bleeding without moving a workflow; phase 2 proves the target shape on the product already on the spine (DF4W, lowest risk); phase 3 attacks the highest-volume legacy product (NDF2W, 248k/quarter). Each phase has an exit metric.
+
+```mermaid
+flowchart LR
+  classDef p1 fill:#FBEDD4,stroke:#B8741A,color:#3A2A0E
+  classDef p2 fill:#DDEBF1,stroke:#1F6F8B,color:#12252D
+  classDef p3 fill:#EAF4E4,stroke:#4F7F3A,color:#1B2E12
+  A["<b>0–30d — See it & stop the bleeding</b><br/>publish per-product effective flow<br/>CI lint: no new isXxx()/no-op gating<br/>harden /camunda (RCE)<br/>sign off target shape<br/>delete dead map keys + mock def"]:::p1
+  B["<b>30–60d — Prove on DF4W</b><br/>build explicit spine_df4w<br/>drop 3 gateways + DF4W isXxx branches<br/>turn KYC no-ops into model choices<br/>per-product diagram in CI"]:::p2
+  C["<b>60–90d — Migrate the big one</b><br/>stand up spine_ndf2w on shared children<br/>strangler-route new NDF2W volume<br/>de-dup worst 2W/4W delegate pairs<br/>NDF4W/RO decommission plan"]:::p3
+  A --> B --> C
+```
+
+### 0–30 days — Make variation visible and stop adding to it
+
+| Action | Detail | Exit criterion |
+|---|---|---|
+| Publish effective per-product flow | Generate from `workflow_master_config_detail ⋈ selector_order ⋈ selector_type` overlaid on the BPMN (the §8.4 query + the parse scripts behind this analysis). One diagram per product, in the repo, regenerated on build. | Every live product (NDF2W, NDF4W, RO, DF4W) has a current, owner-readable flow diagram |
+| Freeze new hidden variation | PR check that fails a new `application.isXxx()` in `activity/unified/**` and a new config-gated class lacking a doc entry. | CI blocks both; count of `isXxx()` sites can only go down from 19 |
+| Harden the engine | Authenticate + network-restrict `/camunda`; complete the RCE remediation in `SECURITY-FINDING-camunda-rce.md`. | `/camunda` not `permitAll`; injected defs purged; verified in prod + sharia |
+| Decide the target | One-page ADR: product-owned spines + shared domain children + fork-on-structure. Stakeholder sign-off (product owners per §10.2). | ADR merged |
+| Cheap cleanup | Delete `PREAPPROVAL`/`DF4W`/`DF2W`/`DF2W_Sharia` dead `setting.workflow.map` keys (G7); remove `Process_NDF4W_Scoring_1_Mock_Ro` (G8). | Map keys map 1:1 to real processes; no unreferenced deployment |
+
+### 30–60 days — Prove the pattern on DF4W (already the only live spine product)
+
+| Action | Detail | Exit criterion |
+|---|---|---|
+| Build `spine_df4w` | A thin executable spine that names DF4W's stages and calls each domain child by `calledElement`. Route new DF4W volume to it behind a flag; keep the shared spine for the others. | New DF4W loans run `spine_df4w`; unified spine no longer receives DF4W |
+| Remove DF4W's hidden variation | Delete the 3 `applicationWorkflowSelectorType` gateways for the DF4W path and the DF4W arms of the `isXxx()` activities it touches. | DF4W path has zero product gateways and zero `isDF4W()` in shared beans |
+| Kill phantom tasks | Convert the KYC/RAC config no-ops (§8.3) on the DF4W path into explicit model choices (gateway when data-driven, fork when product-driven). | No sub-50 ms no-op service tasks in DF4W history for gated KYC steps |
+| Lock in observability | Per-product flow diagram generated and diffed in CI; contract tests per domain child. | A change to a shared child that alters DF4W's path shows as a diagram diff in review |
+
+### 60–90 days — Migrate the highest-volume legacy product, retire duplication
+
+| Action | Detail | Exit criterion |
+|---|---|---|
+| Stand up `spine_ndf2w` | Biggest prize: 248k loans/quarter. Reuse the shared domain children; fork only where NDF2W's structure genuinely differs (e.g. its own survey/underwriting-regular path). | `spine_ndf2w` runs in prod for a strangler slice of new NDF2W volume |
+| Strangler cutover | Route a rising % of new NDF2W applications to the spine; legacy `NDF2W` stays for in-flight and rollback. | ≥25% of new NDF2W starts on `spine_ndf2w`, error/latency parity with legacy |
+| De-duplicate delegates | Collapse the worst 2W/4W near-duplicate beans (`createCif`/`createCif2w`, `preFatalRac`/`preFatalRac2w`, `pushApplicationToSalesTrax`/`…2w`) behind shared implementations called by both spines. | Distinct delegate count for 2W/4W trending down from 145 |
+| Plan the rest | Decommission roadmap for `NDF4W`, `NDF4W_RO`, and the Sharia deployment onto spines; DF2W (configured, 0 volume) either launched on `spine_df2w` or its dead config removed. | Written, dated decommission plan for the remaining monoliths |
+
+**Programme-level metrics** (report monthly):
+
+- % of new-application volume running on explicit product spines (today: 0; DF4W-on-shared-spine 5.5% does not count until it is `spine_df4w`).
+- Count of `application.isXxx()` sites in `activity/unified/**` (today: 19; target: 0).
+- Config-gated no-op service-task executions per day (today: heavy on the KYC path per §8.3; target: near-zero as gating becomes model structure).
+- Distinct delegate beans per legacy product pair (today: 145 for 2W+4W; target: falling).
+- Products with a current owner-readable spine diagram (today: 0; target: all live products).
+
+**Explicitly out of scope for 90 days.** Rewriting the survey/underwriting *domain logic*; migrating Sharia's separate deployment; and any change to the LORA/Temporal track — those are separate programmes (see `compare.md`). This plan is only about the *shape* of the Bravo workflows and moving product variation out of hiding and onto owned, readable spines.

@@ -58,8 +58,10 @@ def build(slug, title, accent_light, accent_dark, body):
           ":root[data-theme=\"dark\"]{--ac:%s;--acBg:%s24;--acBg2:%s12}\n") % (
           accent_light,accent_light,accent_light, accent_dark,accent_dark,accent_dark,
           accent_dark,accent_dark,accent_dark)
-    out = "<title>%s</title>\n%s\n<style>\n%s\n%s</style>\n<main class=\"deck\" id=\"deck\">\n%s\n</main>\n%s" % (
-          title, FONTS, CSS, ov, body, NAV)
+    fitf = D / ("_fit-%s.css" % slug)
+    fit = fitf.read_text() if fitf.exists() else ""
+    out = "<title>%s</title>\n%s\n<style>\n%s\n%s%s</style>\n<main class=\"deck\" id=\"deck\">\n%s\n</main>\n%s" % (
+          title, FONTS, CSS, ov, fit, body, NAV)
     (D/(slug+'.html')).write_text(out)
     n = out.count('class="slide')
     print("%-28s %6d bytes  %2d slides" % (slug+'.html', len(out), n))
