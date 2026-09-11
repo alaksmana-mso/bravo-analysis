@@ -425,12 +425,46 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <span><b>As at</b> &nbsp;2026-09-11</span>
     </div>
   </div>
-  <p class="cue"><span>&darr;</span> 13 slides &middot; Decision A is on 3&ndash;4 &middot; Decision B is on 5&ndash;11 &middot; the asks are on 12</p>
+  <p class="cue"><span>&darr;</span> 14 slides &middot; Decision A is on 4&ndash;5 &middot; Decision B is on 6&ndash;12 &middot; the asks are on 13</p>
+</section>
+
+<section class="slide" data-nav="Orientation">
+  <div class="inner">
+    <p class="eyebrow"><b>01</b><span class="sep">/</span>Orientation</p>
+    <h2 class="st">What Bravo and LORA are, and where the migration has reached</h2>
+    <p class="lede">Both platforms originate loans in production today. This is the minimum you need before the two decisions.</p>
+    <div class="sideby">
+      <div class="side b"><h4>Bravo &mdash; the platform we have</h4>
+        <ul>
+          <li><b>What it is.</b> BFI&rsquo;s current loan origination system. Its codebase dates from 2022 and it still runs the retail book.</li>
+          <li><b>How it works.</b> The process is <em>drawn</em>, as a flowchart in a standard called <b>BPMN</b>, and executed by a <b>Camunda 7</b> engine inside a single Spring Boot service, <code>ms-bpm</code>, behind three operator consoles.</li>
+          <li><b>What it carries.</b> <b>118,253</b> applications in August &mdash; about <b>41%</b> of the total, and roughly <b>95%</b> of the business value.</li>
+        </ul>
+      </div>
+      <div class="side l"><h4>LORA &mdash; the platform we are building</h4>
+        <ul>
+          <li><b>What it is.</b> The replacement. It has carried the majority of applications since July 2026.</li>
+          <li><b>How it works.</b> Nothing is drawn. Go services run on <b>Temporal</b>, and a planner works out what can run next from the data a loan already has.</li>
+          <li><b>What it carries.</b> <b>171,479</b> applications in August &mdash; about <b>59%</b> of the total, and all of it one product family.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="wash"><b>Where the migration has reached.</b> The two run side by side. Bravo still originates the retail book, and <b>every path in this deck leaves it doing that for at least another 12 months.</b> So neither decision here is about whether to finish the migration. One is about keeping Bravo safe to run in the meantime. The other is about what the <em>next</em> product family gets built on.</p>
+    <div class="tw"><table>
+      <thead><tr><th style="width:12%">Term</th><th style="width:38%">Means</th><th style="width:12%">Term</th><th style="width:38%">Means</th></tr></thead>
+      <tbody>
+        <tr><td><code>BPMN</code></td><td>The flowchart standard Bravo&rsquo;s process is drawn in</td><td><code>GSM</code></td><td>LORA&rsquo;s alternative. Nothing is drawn; the data decides what runs next</td></tr>
+        <tr><td><code>Camunda 7</code></td><td>The engine that runs Bravo&rsquo;s flowcharts. We run the free <b>Community Edition</b>, which is now out of support</td><td><code>Temporal</code></td><td>The engine LORA runs on, bought as a cloud service</td></tr>
+        <tr><td><code>LOS</code></td><td><b>Loan Origination System</b> &mdash; everything from application to go-live</td><td><code>ms-bpm</code></td><td>The one Bravo service holding the engine and all the human-task code</td></tr>
+      </tbody>
+    </table></div>
+    <div class="foot"><span class="src">compare.md &middot; compare-architecture.md &middot; application counts from the billing sheet, August 2026 (Bravo corrected 2026-09-11) &middot; business value per the CTO office, basis unconfirmed</span><span>02</span></div>
+  </div>
 </section>
 
 <section class="slide" data-nav="Two decisions">
   <div class="inner">
-    <p class="eyebrow"><b>01</b><span class="sep">/</span>How to read this pack</p>
+    <p class="eyebrow"><b>02</b><span class="sep">/</span>How to read this pack</p>
     <h2 class="st">Do A this month. Leave B until we have three numbers.</h2>
     <div class="clocks">
       <div class="clock firm">
@@ -449,17 +483,17 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
     <p class="pull">Whatever we decide, Bravo runs the retail book for at least another 12 months.
       <small>Moving to Temporal would take 12&ndash;18 months. Moving to LORA would take 15&ndash;24. The Spring Boot upgrade is owed either way. <strong>Nothing later in this deck should delay A.</strong></small></p>
     <div class="readpath">
-      <div class="rp"><p class="k">Five minutes</p><p>This slide, then <b>the asks</b> on slide 12.</p></div>
-      <div class="rp"><p class="k">Fifteen minutes</p><p><b>Decision A</b> (3&ndash;4), the <b>value chart</b> (6), the <b>measurements</b> (11), the asks (12).</p></div>
-      <div class="rp"><p class="k">The full pack</p><p>All 13 slides. Slide 9 covers BPMN against GSM if you want it.</p></div>
+      <div class="rp"><p class="k">Five minutes</p><p>This slide, then <b>the asks</b> on slide 13.</p></div>
+      <div class="rp"><p class="k">Fifteen minutes</p><p><b>Decision A</b> (4&ndash;5), the <b>value chart</b> (7), the <b>measurements</b> (12), the asks (13).</p></div>
+      <div class="rp"><p class="k">The full pack</p><p>All 14 slides. Slide 10 covers BPMN against GSM if you want it.</p></div>
     </div>
-    <div class="foot"><span class="src">option-summary.md &sect;2 &middot; compare.md &sect;0, &sect;5</span><span>02</span></div>
+    <div class="foot"><span class="src">option-summary.md &sect;2 &middot; compare.md &sect;0, &sect;5</span><span>03</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="A: the problem">
   <div class="inner">
-    <p class="eyebrow"><b>02</b><span class="sep">/</span>Decision A &mdash; the problem</p>
+    <p class="eyebrow"><b>03</b><span class="sep">/</span>Decision A &mdash; the problem</p>
     <h2 class="st">Bravo is already out of support. Someone else&rsquo;s code has already run on its engine.</h2>
     <div class="tw"><table>
       <thead><tr><th>Component</th><th>Bravo runs</th><th>Support ended</th></tr></thead>
@@ -476,13 +510,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <p class="pull">The engine is running today. It gets no security patches, and code can still be uploaded to it.
         <small>That is why Decision A is kept separate, and why it does not wait for anything else in this deck.</small></p>
     </div>
-    <div class="foot"><span class="src">option-summary.md &sect;1 &middot; SECURITY-FINDING-camunda-rce.md &middot; verified 2026-09-11</span><span>03</span></div>
+    <div class="foot"><span class="src">option-summary.md &sect;1 &middot; SECURITY-FINDING-camunda-rce.md &middot; verified 2026-09-11</span><span>04</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="A: the fix">
   <div class="inner">
-    <p class="eyebrow"><b>03</b><span class="sep">/</span>Decision A &mdash; the fix</p>
+    <p class="eyebrow"><b>04</b><span class="sep">/</span>Decision A &mdash; the fix</p>
     <h2 class="st">There is a supported version to move to. It takes 18&ndash;33 engineer-days.</h2>
     <p class="lede">Two open-source forks of Camunda 7 are available. Both run on Spring Boot 4. Both keep our existing <code>ACT_</code> database tables and accept all 53 of our current BPMN files. Java 17 stays as it is. By comparison, rewriting on Temporal or moving to LORA would take <strong>31&ndash;57 engineer-months.</strong></p>
     <div class="cols b">
@@ -502,13 +536,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <div class="note note--bad"><h4>Run four database checks before setting a cutover date</h4>One table, <code>ACT_GE_SCHEMA_LOG</code>, may still hold a version label from before 7.22. If it does, the new engine will not start. Checking takes a few hours. Do it first.</div>
       </div>
     </div>
-    <div class="foot"><span class="src">option-1.md &sect;4, &sect;7.1 &middot; option-summary.md &sect;3, &sect;6 &middot; Bravo team Camunda 7 Exit Plan</span><span>04</span></div>
+    <div class="foot"><span class="src">option-1.md &sect;4, &sect;7.1 &middot; option-summary.md &sect;3, &sect;6 &middot; Bravo team Camunda 7 Exit Plan</span><span>05</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="What B is">
   <div class="inner">
-    <p class="eyebrow"><b>04</b><span class="sep">/</span>Decision B &mdash; the question</p>
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the question</p>
     <h2 class="st">B is only about where the next product family is built.</h2>
     <div class="sideby">
       <div class="side l"><h4>You are deciding this</h4>
@@ -521,7 +555,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </div>
       <div class="side b"><h4>You are not deciding this</h4>
         <ul>
-          <li><b>BPMN against GSM.</b> Slide 9 covers it. The choice shaped about 6% of Bravo and 10% of LORA. It is real, it is settled, and it does not decide B.</li>
+          <li><b>BPMN against GSM.</b> Slide 10 covers it. The choice shaped about 6% of Bravo and 10% of LORA. It is real, it is settled, and it does not decide B.</li>
           <li><b>Whether Bravo works.</b> It does. It handled 118,253 applications in August. When things fail, they fail cleanly, and no loan gets stuck forever.</li>
           <li><b>Whether to retire Bravo faster.</b> We do not recommend it.</li>
           <li><b>Which platform is cheaper.</b> Bravo is, by 4&ndash;5 times per application. Settled.</li>
@@ -532,13 +566,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
     </div>
     <p class="pull">Judge a modelling approach by what teams actually build under deadline pressure, not by what it allows in theory.
       <small>We accept the Bravo team&rsquo;s review. The flowchart problems come from how Bravo was modelled, and standard fixes exist. Of those three fixes, one is <strong>5.5% rolled out</strong>, one has <strong>not been started</strong>, and one is <strong>not enforced</strong>.</small></p>
-    <div class="foot"><span class="src">compare-architecture.md &sect;7, &sect;8 &middot; Bravo team review 2026-09-09</span><span>05</span></div>
+    <div class="foot"><span class="src">compare-architecture.md &sect;7, &sect;8 &middot; Bravo team review 2026-09-09</span><span>06</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="Volume vs value">
   <div class="inner">
-    <p class="eyebrow"><b>05</b><span class="sep">/</span>Decision B &mdash; the picture that changed</p>
+    <p class="eyebrow"><b>06</b><span class="sep">/</span>Decision B &mdash; the picture that changed</p>
     <h2 class="st">LORA handles more applications. Bravo brings in the money.</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
@@ -571,13 +605,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
         <div class="note"><h4>The two rupiah figures are an estimate from the CTO office</h4>Neither platform holds agreement, disbursement, new-money or revenue data. Getting this split out of a real system, with the period and the basis written down, is <strong>the first of the three measurements B waits for.</strong></div>
       </div>
     </div>
-    <div class="foot"><span class="src">Business value per CTO office, 2026-09-11 &middot; family liveness from LORA production findings &middot; compare.md &sect;1</span><span>06</span></div>
+    <div class="foot"><span class="src">Business value per CTO office, 2026-09-11 &middot; family liveness from LORA production findings &middot; compare.md &sect;1</span><span>07</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="Who is ahead">
   <div class="inner">
-    <p class="eyebrow"><b>06</b><span class="sep">/</span>Decision B &mdash; the scoreboard</p>
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>Decision B &mdash; the scoreboard</p>
     <h2 class="st">Who is ahead on what</h2>
     <div class="wins">
       <div class="win b">
@@ -608,13 +642,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </div>
     </div>
     <p class="wash"><b>Left off on purpose.</b> Team size, 25 against 22, is your decision, not a platform fact. Ticket volume flipped once Bravo&rsquo;s full scope was counted. Cycle time is 2 days on both. Neither side enforces coverage. Full table: <code>compare.md</code> &sect;1.</p>
-    <div class="foot"><span class="src">compare.md &sect;1, &sect;2</span><span>07</span></div>
+    <div class="foot"><span class="src">compare.md &sect;1, &sect;2</span><span>08</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="Three facts">
   <div class="inner">
-    <p class="eyebrow"><b>07</b><span class="sep">/</span>Decision B &mdash; what is left</p>
+    <p class="eyebrow"><b>08</b><span class="sep">/</span>Decision B &mdash; what is left</p>
     <h2 class="st">Three facts decide B. One measurement could flip two of them.</h2>
     <div class="stats stats--4">
       <div class="stat"><span class="stat__n" style="color:var(--bravo)">4&ndash;5<small>&times;</small></span><span class="stat__l">Cheaper per application on Bravo, which also carries about 21 times the value</span></div>
@@ -628,13 +662,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <div class="note note--bad"><h4>3 &middot; Visibility and tests &mdash; points to LORA, and is cheap to fix</h4>Bravo&rsquo;s workflow layer produces no traces. Its logs carry no loan id. None of its monitors watch a loan&rsquo;s progress. Its end-to-end suite is frozen, so it cannot fail.<br><br>The two kinds of test that would catch the most run in milliseconds and are about 7 days of work. <strong>This is a decision nobody has made, not a mountain to climb.</strong> Fund the fix. It is a weak reason to move products.</div>
     </div>
     <div class="note"><h4>Two things that look like reasons and are not</h4><strong>Team size</strong> is the result of the last decision to consolidate on LORA. Quoting it back to the office that made that decision proves nothing. <strong>&ldquo;Seven product families&rdquo;</strong> was never true in production, because only one family is live. Both are off the board.</div>
-    <div class="foot"><span class="src">compare.md &sect;4 &middot; people.md &sect;5 &middot; ticket-analysis.md</span><span>08</span></div>
+    <div class="foot"><span class="src">compare.md &sect;4 &middot; people.md &sect;5 &middot; ticket-analysis.md</span><span>09</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="BPMN vs GSM">
   <div class="inner">
-    <p class="eyebrow"><b>08</b><span class="sep">/</span>Decision B &mdash; architecture, already assessed</p>
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>Decision B &mdash; architecture, already assessed</p>
     <h2 class="st">BPMN against GSM is settled. It is not what decides B.</h2>
     <div class="verdictbox">
       <span class="lab">The verdict on the original rationale</span>
@@ -651,13 +685,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </tbody>
     </table></div>
     <div class="note"><h4>The Bravo team reviewed this, and we accepted their review</h4>The flowchart problems and the sequential flows are how Bravo was modelled. They are not laws of BPMN, and standard fixes exist. Of those fixes, one is 5.5% rolled out, one has not been started, and one is not enforced.<br><br>Seven further things are the same on both platforms: human-task complexity, untested orchestration, an abandoned end-to-end suite, an unenforced lifecycle, no compensation logic, the same misleading health model, and surveyor assignment as the top complaint. The full write-up is in <code>compare-architecture.md</code>.</div>
-    <div class="foot"><span class="src">compare-architecture.md &sect;2, &sect;5, &sect;7, &sect;8 &middot; code at <code>v2.93.43</code></span><span>09</span></div>
+    <div class="foot"><span class="src">compare-architecture.md &sect;2, &sect;5, &sect;7, &sect;8 &middot; code at <code>v2.93.43</code></span><span>10</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="What you accept">
   <div class="inner">
-    <p class="eyebrow"><b>09</b><span class="sep">/</span>Decision B &mdash; the trade</p>
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Decision B &mdash; the trade</p>
     <h2 class="st">What you accept, either way</h2>
     <div class="sideby">
       <div class="side b"><h4>If the next product goes to Bravo</h4>
@@ -680,13 +714,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </div>
     </div>
     <p class="lede" style="font-weight:600;color:var(--ink)">LORA&rsquo;s risk is that it has not been proven at scale. Bravo&rsquo;s risk is discipline that has not been fixed. Both can be dealt with, and both have already been scoped. That is why B is still open.</p>
-    <div class="foot"><span class="src">compare.md &sect;2, &sect;5 &middot; both platforms&rsquo; production-findings packs</span><span>10</span></div>
+    <div class="foot"><span class="src">compare.md &sect;2, &sect;5 &middot; both platforms&rsquo; production-findings packs</span><span>11</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="What would settle it">
   <div class="inner">
-    <p class="eyebrow"><b>10</b><span class="sep">/</span>Decision B &mdash; what would settle it</p>
+    <p class="eyebrow"><b>11</b><span class="sep">/</span>Decision B &mdash; what would settle it</p>
     <h2 class="st">Three measurements gate B. None has been taken.</h2>
     <div class="tw"><table>
       <thead><tr><th class="n">#</th><th>Measure this</th><th>If it comes back one way</th><th>If it comes back the other</th><th class="n">Cost</th></tr></thead>
@@ -715,13 +749,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       </tbody>
     </table></div>
     <div class="note note--ok"><h4>The one item here that should not wait for evidence</h4><strong>Fund Decision A.</strong> Once the engine and Spring Boot are done, B can be decided on architecture and economics alone. It costs 18&ndash;33 engineer-days.</div>
-    <div class="foot"><span class="src">compare.md &sect;5&ndash;6</span><span>11</span></div>
+    <div class="foot"><span class="src">compare.md &sect;5&ndash;6</span><span>12</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="The asks">
   <div class="inner">
-    <p class="eyebrow"><b>11</b><span class="sep">/</span>What we need from you</p>
+    <p class="eyebrow"><b>12</b><span class="sep">/</span>What we need from you</p>
     <h2 class="st">Take A now. Defer B. Approve four things.</h2>
     <div class="clocks">
       <div class="clock firm">
@@ -742,13 +776,13 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
       <div class="askrow"><span class="n">4</span><span class="t"><b>Approve the Cloud Logging fix.</b> It saves Rp 50&ndash;90M a month and is configuration only. That is more than retiring Bravo&rsquo;s workflow tier would save. Do it whatever you decide about B.</span><span class="c">weeks<br>Rp 50–90M / mo</span></div>
     </div>
     <div class="note note--ok"><h4>One standing instruction</h4><strong>Bravo carries most of the book and most of the money.</strong> Resource it as a strategic platform, not as a system being wound down.</div>
-    <div class="foot"><span class="src">option-summary.md &sect;6&ndash;7 &middot; compare.md &sect;5, &sect;7 &middot; bravo-cost.md &sect;6</span><span>12</span></div>
+    <div class="foot"><span class="src">option-summary.md &sect;6&ndash;7 &middot; compare.md &sect;5, &sect;7 &middot; bravo-cost.md &sect;6</span><span>13</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="Evidence">
   <div class="inner">
-    <p class="eyebrow"><b>12</b><span class="sep">/</span>Evidence base</p>
+    <p class="eyebrow"><b>13</b><span class="sep">/</span>Evidence base</p>
     <h2 class="st">Where the numbers come from, and what is still weak</h2>
     <div class="cols">
       <div class="note"><h4>Measured for this analysis</h4><strong>Jira</strong> &mdash; projects <code>DF</code>, <code>D2W</code>, <code>BL</code>, <code>BLCS</code> and <code>LN</code>.<br><br><strong>Datadog</strong> &mdash; tracing, 1.1M log lines a week, the full monitor list, Synthetics, CI Visibility, and browser data from four consoles.<br><br><strong>GCP billing</strong> through the FinOps API, for the whole of August 2026.<br><br><strong>Both codebases</strong> &mdash; <code>bravo-bpm-service</code> at v2.93.43, three Bravo consoles, <code>bravo-e2e-test</code>, and 13 LORA repositories.<br><br><strong>OTRS</strong> ticket export for both platforms, over the same window.</div>
@@ -757,7 +791,7 @@ thead th.hL{color:var(--lora);border-bottom-color:var(--lora)}
     </div>
     <p class="pull">Decision A has a firm answer and costs 18&ndash;33 engineer-days. Decision B is open, and the two measurements that would settle it cost days.
       <small>Four earlier readings in this pack turned out to be wrong. Bravo&rsquo;s end-to-end suite does exist, but is frozen. Team size was used as evidence, which is circular. &ldquo;Seven LORA families&rdquo; was really one. And Bravo&rsquo;s consoles and the <code>LN</code> project were never counted. <strong>Every one of those corrections moved in Bravo&rsquo;s favour.</strong> The findings that survived &mdash; the dead engine, the blind workflow layer, the cost ratio and the intervention gap &mdash; are the ones to trust.</small></p>
-    <div class="foot"><span class="src">bravo-analysis/docs &middot; prepared 2026-09-11</span><span>13</span></div>
+    <div class="foot"><span class="src">bravo-analysis/docs &middot; prepared 2026-09-11</span><span>14</span></div>
   </div>
 </section>
 
