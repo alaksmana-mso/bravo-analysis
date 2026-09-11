@@ -2,12 +2,12 @@
   <div class="inner" style="justify-content:center;flex:1;gap:22px">
     <p class="cover-kicker">Bravo production findings &middot; 03 of 05 &middot; Observability</p>
     <h1>What Bravo<br>can actually see</h1>
-    <p class="claim">Can Bravo query &ldquo;all loans stuck in survey&rdquo;? Are activity logs thin and untagged? Can Bravo tell which upstream is failing, or only that upstreams are unreliable? Is there proper monitoring? And is the log the only durable substrate?</p>
+    <p class="claim">Can Bravo ask &ldquo;which loans are stuck in survey?&rdquo; Are its activity logs thin and untagged? Can it tell which upstream service is failing, or only that upstreams are unreliable? Is there proper monitoring? And are logs really the only place anything is kept?</p>
     <div class="stats stats--4" style="margin-top:6px">
-      <div class="stat"><span class="stat__n plain">0</span><span class="stat__l">Camunda spans &mdash; the orchestration layer emits none</span></div>
-      <div class="stat"><span class="stat__n neg">266,767</span><span class="stat__l">404s a week from one endpoint, across 69% of surveyor sessions</span></div>
-      <div class="stat"><span class="stat__n plain">38</span><span class="stat__l">Monitors match <code>bpm</code>. <b style="color:var(--ac)">Zero</b> watch a process</span></div>
-      <div class="stat"><span class="stat__n neg">2.41<small>M</small></span><span class="stat__l">Front-end errors in 7 days, instrumented all along, never read</span></div>
+      <div class="stat"><span class="stat__n plain">0</span><span class="stat__l">Camunda traces. The layer that runs the workflow produces none.</span></div>
+      <div class="stat"><span class="stat__n neg">266,767</span><span class="stat__l">404s a week from one endpoint, reaching 69% of surveyor sessions</span></div>
+      <div class="stat"><span class="stat__n plain">38</span><span class="stat__l">Monitors match <code>bpm</code>. <b style="color:var(--ac)">None</b> of them watches a loan&rsquo;s progress.</span></div>
+      <div class="stat"><span class="stat__n neg">2.41<small>M</small></span><span class="stat__l">Front-end errors in 7 days. The monitoring was there all along, and nobody read it.</span></div>
     </div>
     <div class="meta">
       <span><b>Audience</b> &nbsp;Production, on-call, Squad LOS, Squad S&amp;U</span>
@@ -21,12 +21,12 @@
 <section class="slide" data-nav="Verdicts I">
   <div class="inner">
     <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts, 1 of 2</p>
-    <h2 class="st">Most of the stated premises were refuted &mdash; in both directions</h2>
+    <h2 class="st">Most of the stated premises turned out to be wrong &mdash; in both directions</h2>
     <div class="vlist">
-      <div class="vrow"><p class="cl">Bravo can query &ldquo;all loans stuck in survey&rdquo;</p><span class="v v--sup">True in SQL only</span><p class="gi">False everywhere an on-call engineer looks. <code>surveyor_assignment.assignment_status</code> is a <code>WHERE</code> clause, and that is a genuine Bravo advantage over LORA. But <strong>no dashboard, monitor, SLO or APM view expresses it</strong>, the Camunda runtime tables purge at <b>90 days</b>, and <code>Application.lastStage</code> is <code>@Transient</code> &mdash; the current stage is not persisted at all. The capability exists; the practice does not.</p></div>
-      <div class="vrow"><p class="cl">&hellip;therefore stuck loans cannot be grouped at fleet scale</p><span class="v v--ref">Refuted</span><p class="gi">By a different route than expected. Camunda&rsquo;s engine log lines carry <code>@activityName</code>, <code>@activityId</code> and <code>@processDefinitionId</code>, so failures <strong>can</strong> be ranked per BPMN activity today: <code>One Obligor Check</code> 5,583 errors in 48 hours, <code>PD Model Check NTB</code> 1,394. <strong>Nobody was doing it.</strong></p></div>
-      <div class="vrow"><p class="cl">Activity logs are thin / untagged</p><span class="v v--ref">Refuted for the engine</span><p class="gi">Confirmed for everything else &mdash; and <strong>the real defect is different</strong>. The ~5% of lines from the Camunda job executor are richly tagged, including the process definition <em>version</em>. The other ~95% are Spring stack traces with no process context. And <strong>no log line carries the application or lead id</strong>, so you can group failures by activity but cannot join a failure to a loan. LORA&rsquo;s <code>@WorkflowID</code> <em>is</em> the loan id.</p></div>
-      <div class="vrow"><p class="cl">We can tell which upstream is failing</p><span class="v v--ref">True, and better than LORA</span><p class="gi">25 upstreams resolve cleanly from <code>okhttp.request</code> spans by <code>@peer.hostname</code>, with status codes. One Feign client per upstream means <strong>attribution is structural</strong>. LORA puts ~300 proxies behind one route and cannot do this at all without an unreleased PR.</p></div>
+      <div class="vrow"><p class="cl">Bravo can ask &ldquo;which loans are stuck in survey?&rdquo;</p><span class="v v--sup">True in SQL only</span><p class="gi">False everywhere an on-call engineer would actually look. <code>surveyor_assignment.assignment_status</code> is a <code>WHERE</code> clause, and that is a genuine Bravo advantage over LORA. But <strong>no dashboard, monitor, SLO or APM view asks that question</strong>, the Camunda runtime tables are deleted after <b>90 days</b>, and <code>Application.lastStage</code> is <code>@Transient</code> &mdash; the current stage is never saved. The capability exists. The practice does not.</p></div>
+      <div class="vrow"><p class="cl">&hellip;so stuck loans cannot be grouped across the whole book</p><span class="v v--ref">Refuted</span><p class="gi">By a different route than we expected. Camunda&rsquo;s engine log lines carry <code>@activityName</code>, <code>@activityId</code> and <code>@processDefinitionId</code>. So failures <strong>can</strong> be ranked per BPMN step today: <code>One Obligor Check</code> had 5,583 errors in 48 hours, <code>PD Model Check NTB</code> 1,394. <strong>Nobody was doing it.</strong></p></div>
+      <div class="vrow"><p class="cl">Activity logs are thin and untagged</p><span class="v v--ref">Refuted for the engine</span><p class="gi">Confirmed for everything else &mdash; and <strong>the real defect is a different one</strong>. The 5% or so of lines that come from the Camunda job executor are richly tagged, right down to the <em>version</em> of the process definition. The other 95% are Spring stack traces with no workflow context at all. And <strong>no log line carries the application or lead id</strong>, so you can group failures by step but you cannot connect a failure to a loan. In LORA, <code>@WorkflowID</code> <em>is</em> the loan id.</p></div>
+      <div class="vrow"><p class="cl">We can tell which upstream service is failing</p><span class="v v--ref">True, and better than LORA</span><p class="gi">25 upstream services can be told apart cleanly from <code>okhttp.request</code> traces, using <code>@peer.hostname</code>, with status codes. Because there is one Feign client per upstream, <strong>you get this for free from the design</strong>. LORA puts about 300 proxies behind a single route and cannot do this at all without an unreleased PR.</p></div>
     </div>
     <div class="foot"><span class="src">bravo-observability.md &sect;Verdicts &middot; the <code>bravo-bpm-db</code> MCP servers failed to connect during this session, so every SQL-shaped claim is marked <em>mechanism verified, volume not re-measured today</em></span><span>02</span></div>
   </div>
@@ -35,15 +35,15 @@
 <section class="slide" data-nav="Verdicts II">
   <div class="inner">
     <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts, 2 of 2</p>
-    <h2 class="st">And the thesis itself is upside down</h2>
+    <h2 class="st">And the main thesis is upside down</h2>
     <div class="vlist">
-      <div class="vrow"><p class="cl">Upstream BFI services are unreliable</p><span class="v v--ref">Refuted</span><p class="gi">20,802 outbound errors in 7 days and <strong>not one 5xx in the top 20 rows</strong>. Every attributable upstream failure is a 4xx: <code>401</code> from IAM (8,533), <code>404</code> from repeat-order (5,070), <code>400</code> from scheduling (3,508). <strong>These are contract and auth defects, not outages.</strong></p></div>
-      <div class="vrow"><p class="cl">Bravo has no proper monitoring</p><span class="v v--sup">Refuted on count, confirmed on subject</span><p class="gi"><b>38 monitors</b> match <code>bpm</code>. Every one watches a container, a JVM, an HTTP surface or a queue. <strong>Zero watch a process instance, a Camunda incident, the job-executor backlog, or <code>application_error_tracking</code>.</strong> Eight are in <code>Alert</code> right now; six read <code>No Data</code> and cannot fire.</p></div>
-      <div class="vrow"><p class="cl">Logs are the only durable substrate</p><span class="v v--ref">Refuted, and inverted</span><p class="gi">Bravo&rsquo;s durable substrate is <strong>PostgreSQL</strong> &mdash; 238 entities, <code>application_status_log</code> written by a database trigger, reprocess generations chained as rows. Logs are the <em>least</em> durable layer here, and Camunda&rsquo;s own runtime history is the one that expires. <strong>This is the opposite of LORA.</strong></p></div>
-      <div class="vrow"><p class="cl">Bravo&rsquo;s front ends are unmonitored</p><span class="v v--con">Refuted &mdash; and the largest live defect here</span><p class="gi">All four LOS consoles are RUM-instrumented at <code>ALL</code>. The Surveyor Platform emits <b>1,962,909 errors in 7 days</b>, of which <b>748,686 are HTTP 404s</b>, and the top one hits <b>54,350 of 79,090 sessions</b>. <strong>No alert can see it, because every success-rate monitor filters on <code>5*</code>.</strong></p></div>
+      <div class="vrow"><p class="cl">Upstream BFI services are unreliable</p><span class="v v--ref">Refuted</span><p class="gi">20,802 outbound errors in 7 days, and <strong>not one 5xx in the top 20 rows</strong>. Every upstream failure we can attribute is a 4xx: <code>401</code> from IAM (8,533), <code>404</code> from repeat-order (5,070), <code>400</code> from scheduling (3,508). <strong>Those are contract and authentication defects, not outages.</strong></p></div>
+      <div class="vrow"><p class="cl">Bravo has no proper monitoring</p><span class="v v--sup">Wrong on the count, right on the subject</span><p class="gi"><b>38 monitors</b> match <code>bpm</code>. Every one watches a container, a JVM, an HTTP endpoint or a queue. <strong>None watches a running workflow, a Camunda incident, the job-executor backlog, or <code>application_error_tracking</code>.</strong> Eight are in <code>Alert</code> right now; six read <code>No Data</code> and cannot fire.</p></div>
+      <div class="vrow"><p class="cl">Logs are the only place anything is kept</p><span class="v v--ref">Refuted, and the reverse is true</span><p class="gi">What Bravo keeps permanently is in <strong>PostgreSQL</strong> &mdash; 238 entities, an <code>application_status_log</code> written by a database trigger, each reprocess attempt chained as a row. Logs are the <em>least</em> permanent layer here, and it is Camunda&rsquo;s own history that expires. <strong>This is the opposite of LORA.</strong></p></div>
+      <div class="vrow"><p class="cl">Bravo&rsquo;s front ends are unmonitored</p><span class="v v--con">Refuted &mdash; and the largest live defect here</span><p class="gi">All four LOS consoles send browser monitoring at <code>ALL</code>. The Surveyor Platform produces <b>1,962,909 errors in 7 days</b>, of which <b>748,686 are HTTP 404s</b>; the biggest single one hits <b>54,350 of 79,090 sessions</b>. <strong>No alert can see it, because every success-rate monitor only counts codes starting with 5.</strong></p></div>
     </div>
     <p class="pull">Bravo&rsquo;s problem is not that the data is missing. Most of it is there, and in two places it is better than LORA&rsquo;s.
-      <small>The problem is that <em>every alert Bravo owns is scoped to the container and the 5xx</em> &mdash; so a system that fails by 4xx and by parking a process cannot trigger one.</small></p>
+      <small>The problem is that <em>every alert Bravo owns watches the container and the 5xx</em> &mdash; so a system that fails with 4xx, or by parking a workflow, cannot set one off.</small></p>
     <div class="foot"><span class="src">bravo-observability.md &sect;Verdicts</span><span>03</span></div>
   </div>
 </section>
@@ -51,14 +51,14 @@
 <section class="slide" data-nav="Stuck loans">
   <div class="inner">
     <p class="eyebrow"><b>&sect;1</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">&ldquo;All loans stuck in survey&rdquo; &mdash; answerable in SQL, invisible in telemetry</h2>
-    <p class="lede">This is the question LORA cannot answer in Temporal at all &mdash; zero search attributes, zero query handlers. Bravo can, and the reason is architectural: business state is a <strong>relational aggregate</strong>, so <em>&ldquo;which applications are sitting in surveyor assignment and for how long&rdquo;</em> is a <code>WHERE</code> clause over <code>surveyor_assignment.assignment_status</code> (25 values) joined to <code>application</code>. <strong>That advantage is real and this document does not diminish it.</strong> Three things bound it.</p>
+    <h2 class="st">&ldquo;Which loans are stuck in survey?&rdquo; &mdash; answerable in SQL, invisible in monitoring</h2>
+    <p class="lede">This is the question LORA cannot answer in Temporal at all: no search attributes, no query handlers. Bravo can, and the reason is architectural. Business state lives in <strong>one relational data model</strong>, so <em>&ldquo;which applications are sitting in surveyor assignment, and for how long?&rdquo;</em> is a <code>WHERE</code> clause over <code>surveyor_assignment.assignment_status</code> (25 values) joined to <code>application</code>. <strong>That advantage is real, and this document does not diminish it.</strong> Three things limit it.</p>
     <div class="cols">
-      <div class="note note--bad"><h4>The stage is not persisted</h4><code>Application.lastStage</code> is <code>@Transient</code>; the current position in the flow is recovered from Camunda&rsquo;s runtime tables. So the SQL answer is <em>&ldquo;stuck in this assignment status&rdquo;</em>, not <em>&ldquo;stuck at this BPMN step&rdquo;</em> &mdash; and those differ whenever the step is one the assignment tables do not model.</div>
-      <div class="note note--bad"><h4>Camunda&rsquo;s history purges at 90 days</h4><code>historyTimeToLive: P90D</code>, history level <code>full</code>. <code>act_hi_actinst</code> carries roughly <strong>50M rows per 90-day window</strong>. After the window, only the trigger-written <code>application_status_log</code> can say what happened &mdash; which is a status ladder, not a step trace.</div>
-      <div class="note note--bad"><h4>Nobody has written the query down</h4>No dashboard widget, no saved query, no monitor and no SLO in the Datadog org expresses &ldquo;applications stuck at stage X for more than N hours&rdquo;. The fleet question is answerable by someone who opens a psql session and knows the schema. <strong>It is not answerable by whoever is on call at 02:00.</strong></div>
+      <div class="note note--bad"><h4>The current stage is never saved</h4><code>Application.lastStage</code> is <code>@Transient</code>. Where a loan has got to is recovered from Camunda&rsquo;s runtime tables instead. So the SQL answer is <em>&ldquo;stuck in this assignment status&rdquo;</em>, not <em>&ldquo;stuck at this BPMN step&rdquo;</em> &mdash; and the two differ whenever the step is one the assignment tables do not model.</div>
+      <div class="note note--bad"><h4>Camunda deletes its history after 90 days</h4><code>historyTimeToLive: P90D</code>, with history level <code>full</code>. <code>act_hi_actinst</code> holds roughly <strong>50 million rows in each 90-day window</strong>. After that window, the only thing that can say what happened is <code>application_status_log</code>, written by a trigger &mdash; and that is a ladder of statuses, not a trace of steps.</div>
+      <div class="note note--bad"><h4>Nobody has written the query down</h4>No dashboard widget, no saved query, no monitor and no SLO anywhere in the Datadog org asks &ldquo;which applications have been stuck at stage X for more than N hours?&rdquo; The question can be answered by somebody who opens a psql session and knows the schema. <strong>It cannot be answered by whoever is on call at 02:00.</strong></div>
     </div>
-    <p class="pull">Grouping stuck loans at fleet scale <em>does</em> work today, and nobody was doing it.
+    <p class="pull">Grouping stuck loans across the whole book <em>does</em> work today, and nobody was doing it.
       <small>That is the part of this finding that was simply wrong &mdash; see the next two sections.</small></p>
     <div class="foot"><span class="src">bravo-observability.md &sect;1 &middot; compare-architecture.md &sect;3.2 &middot; workflow-gap.md &sect;8&ndash;9</span><span>04</span></div>
   </div>
@@ -67,27 +67,27 @@
 <section class="slide" data-nav="No spans">
   <div class="inner">
     <p class="eyebrow"><b>&sect;2</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">The orchestration layer emits no spans at all</h2>
+    <h2 class="st">The layer that runs the workflow produces no traces at all</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th><code>operation_name</code></th><th class="n">spans / 7 d</th><th>What it is</th></tr></thead>
+        <thead><tr><th><code>operation_name</code></th><th class="n">traces / 7 d</th><th>What it is</th></tr></thead>
         <tbody>
-          <tr><td class="k">repository.operation</td><td class="n">1,412,356</td><td>JPA/Hibernate</td></tr>
+          <tr><td class="k">repository.operation</td><td class="n">1,412,356</td><td>Database queries via JPA and Hibernate</td></tr>
           <tr><td class="k">spring.handler</td><td class="n">990,256</td><td>REST controllers</td></tr>
-          <tr><td class="k">okhttp.request</td><td class="n">335,731</td><td>outbound calls to upstreams</td></tr>
-          <tr><td class="k">servlet.request</td><td class="n">335,010</td><td>inbound HTTP</td></tr>
-          <tr><td class="k">http.request</td><td class="n">84,743</td><td>client, other</td></tr>
-          <tr><td class="k">scheduled.call</td><td class="n">1,193</td><td><code>@Scheduled</code> / ShedLock jobs</td></tr>
+          <tr><td class="k">okhttp.request</td><td class="n">335,731</td><td>Calls out to upstream services</td></tr>
+          <tr><td class="k">servlet.request</td><td class="n">335,010</td><td>Incoming HTTP</td></tr>
+          <tr><td class="k">http.request</td><td class="n">84,743</td><td>Other outbound client calls</td></tr>
+          <tr><td class="k">scheduled.call</td><td class="n">1,193</td><td><code>@Scheduled</code> and ShedLock jobs</td></tr>
           <tr><td class="k">jakarta_rs.request</td><td class="n">75</td><td>&mdash;</td></tr>
-          <tr class="tot"><td>Camunda spans of any kind</td><td class="n">0</td><td>no process instance, no service task, no <code>JavaDelegate</code>, no job execution</td></tr>
+          <tr class="tot"><td>Camunda traces of any kind</td><td class="n">0</td><td>no workflow instance, no service task, no <code>JavaDelegate</code>, no job execution</td></tr>
         </tbody>
-        <caption>Seven operation names cover every span <code>prod-ms-bpm</code> produced in 7 days. Grouping <code>spring.handler</code> by resource confirms it &mdash; the top twenty are all controllers and not one is an <code>*Activity</code> bean.</caption>
+        <caption>Those seven names cover every trace <code>prod-ms-bpm</code> produced in 7 days. Grouping <code>spring.handler</code> by resource confirms it: the top twenty are all controllers, and not one is an <code>*Activity</code> bean.</caption>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="note"><h4>This is structural, not a sampling oversight</h4>All <strong>483 service tasks</strong> bind via <code>camunda:delegateExpression</code> and run inside job-executor threads. Those threads are <strong>not started by an HTTP request</strong>, so the Java agent has no trace to attach to, and nothing in the codebase opens one.</div>
-        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">The 90% of Bravo&rsquo;s work that is <em>the loan moving through the flow</em> produces no trace.
-          <small>APM sees the consoles talking to the database and the engine talking to upstreams. It does not see the process.</small></p>
-        <div class="note note--bad"><h4>The contrast with LORA runs the other way</h4>LORA&rsquo;s Temporal SDK OTel interceptor emits <strong>one span per activity attempt</strong>, carrying <code>@temporalWorkflowID</code> (= the loan id), <code>resource_name</code> (= the activity), <code>@error.type</code> and the attempt number. That is how LORA found <strong>47 wedged loans in a 7-day window with no code change</strong>. Bravo has no equivalent span &mdash; and if it had a wedged-process class it could not be found this way.</div>
+        <div class="note"><h4>This is structural, not a sampling oversight</h4>All <strong>483 service tasks</strong> are wired up through <code>camunda:delegateExpression</code> and run inside job-executor threads. Those threads are <strong>not started by an HTTP request</strong>, so the Java agent has no trace to attach them to, and nothing in the codebase starts one.</div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">The 90% of Bravo&rsquo;s work that is <em>the loan moving through the flow</em> produces no trace at all.
+          <small>APM sees the consoles talking to the database, and the engine talking to upstream services. It does not see the workflow.</small></p>
+        <div class="note note--bad"><h4>Here the comparison with LORA runs the other way</h4>LORA&rsquo;s Temporal SDK emits <strong>one trace per attempt at each activity</strong>, carrying <code>@temporalWorkflowID</code> (which is the loan id), <code>resource_name</code> (the activity), <code>@error.type</code> and the attempt number. That is how LORA found <strong>47 stuck loans in a 7-day window, with no code change at all</strong>. Bravo has nothing equivalent &mdash; so if it had a class of stuck workflows, this is not how anyone would find them.</div>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-observability.md &sect;2 &middot; <code>env:prod service:prod-ms-bpm</code>, 7 days</span><span>05</span></div>
@@ -97,7 +97,7 @@
 <section class="slide" data-nav="Logs unjoinable">
   <div class="inner">
     <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Logs are not thin. They are unjoinable.</h2>
+    <h2 class="st">The logs are not thin. You just cannot connect them to a loan.</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="stats stats--4">
@@ -106,11 +106,11 @@
           <div class="stat"><span class="stat__n plain">45,775</span><span class="stat__l"><code>warn</code> lines / 7 d</span></div>
           <div class="stat"><span class="stat__n plain">1.12<small>M</small></span><span class="stat__l">total lines / 7 d</span></div>
         </div>
-        <p class="lede"><strong>47% of this service&rsquo;s log volume is ERROR.</strong> That number is not a reliability measurement; it is a <em>formatting artefact</em>, and both halves of that matter. Clustering the error stream gives 124 patterns, and the largest are individual Java stack-trace frames logged as separate lines &mdash; <code>at &lt;pkg&gt;.&lt;class&gt;.&lt;method&gt;</code> &times;1,571, <code>at org.springframework.&hellip;</code> &times;874, <code>at java.base/&hellip;</code> &times;66. A single exception produces dozens of ERROR lines. Worse, <strong>one Camunda job failure produces two lines at two severities</strong> &mdash; <code>ENGINE-14006</code> at <code>warn</code>, then <code>ENGINE-16004</code> at <code>error</code>, for the same failure.</p>
-        <div class="note note--bad"><h4>The consequence</h4>The error stream <strong>cannot be counted</strong>, and every log-based monitor built on it inherits that.</div>
+        <p class="lede"><strong>47% of this service&rsquo;s log volume is ERROR.</strong> That is not a measure of how reliable it is. It is <em>a side effect of how the logs are formatted</em>, and both halves of that matter. Clustering the error stream gives 124 patterns, and the biggest ones are individual Java stack-trace frames written as separate lines: <code>at &lt;pkg&gt;.&lt;class&gt;.&lt;method&gt;</code> 1,571 times, <code>at org.springframework.&hellip;</code> 874 times, <code>at java.base/&hellip;</code> 66 times. A single exception produces dozens of ERROR lines. Worse, <strong>one Camunda job failure produces two lines at two different severities</strong> &mdash; <code>ENGINE-14006</code> at <code>warn</code>, then <code>ENGINE-16004</code> at <code>error</code>, for the same failure.</p>
+        <div class="note note--bad"><h4>What that costs</h4>The error stream <strong>cannot be counted</strong>, and every log-based monitor built on it inherits that problem.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px">
-        <p class="eyebrow">But the engine lines are richly tagged</p>
+        <p class="eyebrow">But the engine&rsquo;s own lines are richly tagged</p>
         <pre>message: <b>ENGINE-16004</b> Exception while closing command
   context: Error while invoking Ali Cloud for PD Model
   Check Response
@@ -120,7 +120,7 @@ version: v2.93.53
 <b>@activityName</b>:        PD Model Check NTB
 <b>@processDefinitionId</b>: <span class="a">NDF2W:127</span>:542b74c3-ab85-11f1&hellip;
 <b>@processInstanceId</b>:   5b477587-acd4-11f1-be7a-5a673f41&hellip;</pre>
-        <div class="note note--ok"><h4>A genuinely better version dimension</h4><code>@processDefinitionId</code> carries <strong>the process key and its deployed version</strong> (<code>NDF2W:127</code>) &mdash; better than LORA&rsquo;s task-queue proxy. The Camunda job executor writes MDC context on its own lines.</div>
+        <div class="note note--ok"><h4>One thing here is genuinely better than LORA</h4><code>@processDefinitionId</code> carries <strong>the process name and the exact version deployed</strong> (<code>NDF2W:127</code>). That is better than LORA&rsquo;s task-queue stand-in. The Camunda job executor writes this context onto its own lines.</div>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-observability.md &sect;3 &middot; <code>env:prod service:prod-ms-bpm</code>, 7 days</span><span>06</span></div>
@@ -130,10 +130,10 @@ version: v2.93.53
 <section class="slide" data-nav="Per-activity failure">
   <div class="inner">
     <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>The table this pack said Bravo did not have</p>
-    <h2 class="st">Per-activity failure ranking. It took one query.</h2>
+    <h2 class="st">Failures ranked by workflow step. It took one query.</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>BPMN activity</th><th>status</th><th class="n">lines / 2 d</th></tr></thead>
+        <thead><tr><th>BPMN step</th><th>status</th><th class="n">lines / 2 d</th></tr></thead>
         <tbody>
           <tr><td class="k"><b>One Obligor Check</b></td><td>error</td><td class="n"><span class="dn">5,583</span></td></tr>
           <tr><td class="k">PD Model Check NTB</td><td>error</td><td class="n">1,394</td></tr>
@@ -147,22 +147,22 @@ version: v2.93.53
           <tr><td class="k">Retrive Pefindo Profile Activity</td><td>error</td><td class="n">244</td></tr>
           <tr><td class="k">Get Agreement Number</td><td>error</td><td class="n">150</td></tr>
         </tbody>
-        <caption>Grouped by <code>@activityName</code>, <code>env:prod</code>, 48 hours. ~4,750 activity-level failures a day, concentrated in one check.</caption>
+        <caption>Grouped by <code>@activityName</code>, <code>env:prod</code>, over 48 hours. About 4,750 step-level failures a day, and most of them are in one check.</caption>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">The claim &ldquo;activity logs are thin&rdquo; is refuted. The claim &ldquo;nobody is looking&rdquo; is not.</p>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">&ldquo;Activity logs are thin&rdquo; is refuted. &ldquo;Nobody is looking&rdquo; is not.</p>
         <p class="eyebrow">Two real defects the tagging does have</p>
-        <div class="note note--bad"><h4>Only ~5% of lines carry process context</h4>17,333 lines in 48 hours match <code>@processInstanceId:*</code>, against ~319,000 total. Everything from the REST layer &mdash; the consoles, the operator endpoints, every stack trace &mdash; has no process context at all.</div>
-        <div class="note note--bad"><h4>No log line carries the application or lead id</h4><code>@applicationId</code> was probed and is <strong>absent</strong> from the engine MDC. Bravo can tell you <em>One Obligor Check is failing 2,800 times a day</em>. It cannot tell you <em>which 400 customers are affected</em> without leaving Datadog &mdash; and it cannot tell you whether those are 2,800 loans failing once or forty loans failing seventy times, because the <code>CARDINALITY(trace_id)</code> test has no analogue here. There are no traces on the engine path.</div>
+        <div class="note note--bad"><h4>Only about 5% of lines say which workflow they came from</h4>17,333 lines in 48 hours match <code>@processInstanceId:*</code>, out of roughly 319,000 in total. Everything from the REST layer &mdash; the consoles, the operator endpoints, every stack trace &mdash; has no workflow context at all.</div>
+        <div class="note note--bad"><h4>No log line carries the application or lead id</h4>We looked for <code>@applicationId</code> and it is <strong>not there</strong>. Bravo can tell you <em>One Obligor Check is failing 2,800 times a day</em>. It cannot tell you <em>which 400 customers are affected</em> without leaving Datadog. And it cannot tell you whether that is 2,800 loans failing once or forty loans failing seventy times each, because the <code>CARDINALITY(trace_id)</code> test has no equivalent here. There are no traces on the engine path.</div>
       </div>
     </div>
     <div class="tw"><table>
       <thead><tr><th>Question</th><th>Bravo</th><th>LORA</th></tr></thead>
       <tbody>
-        <tr><td class="k">Which activity fails most?</td><td><span class="up">yes</span> &mdash; <code>@activityName</code></td><td><span class="up">yes</span> &mdash; <code>@ActivityType</code></td></tr>
-        <tr><td class="k">On which process version?</td><td><span class="up">yes</span> &mdash; <code>@processDefinitionId</code></td><td>partly &mdash; <code>@TaskQueue</code></td></tr>
-        <tr><td class="k">Which loan is this failure on?</td><td><span class="dn">no</span> &mdash; a Camunda UUID; resolving it needs a database lookup against <code>application.process_id</code>, and only inside the 90-day window</td><td><span class="up">yes</span> &mdash; <code>@WorkflowID</code> <em>is</em> the application UUID</td></tr>
-        <tr><td class="k">How many times has this attempt been retried?</td><td><span class="dn">no</span> &mdash; no attempt counter on the line</td><td><span class="up">yes</span> &mdash; <code>@Attempt</code></td></tr>
+        <tr><td class="k">Which step fails most?</td><td><span class="up">yes</span> &mdash; <code>@activityName</code></td><td><span class="up">yes</span> &mdash; <code>@ActivityType</code></td></tr>
+        <tr><td class="k">On which version of the process?</td><td><span class="up">yes</span> &mdash; <code>@processDefinitionId</code></td><td>partly &mdash; <code>@TaskQueue</code></td></tr>
+        <tr><td class="k">Which loan is this failure on?</td><td><span class="dn">no</span> &mdash; you get a Camunda UUID. Resolving it needs a database lookup against <code>application.process_id</code>, and only inside the 90-day window.</td><td><span class="up">yes</span> &mdash; <code>@WorkflowID</code> <em>is</em> the application UUID</td></tr>
+        <tr><td class="k">How many times has this been retried?</td><td><span class="dn">no</span> &mdash; there is no attempt counter on the line</td><td><span class="up">yes</span> &mdash; <code>@Attempt</code></td></tr>
       </tbody></table></div>
     <div class="foot"><span class="src">bravo-observability.md &sect;3</span><span>07</span></div>
   </div>
@@ -171,11 +171,11 @@ version: v2.93.53
 <section class="slide" data-nav="Upstreams">
   <div class="inner">
     <p class="eyebrow"><b>&sect;4</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Upstream attribution works &mdash; and this inverts the LORA finding</h2>
+    <h2 class="st">Bravo can tell which upstream is failing &mdash; and this reverses the LORA finding</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="lede">Outbound calls carry <code>@peer.hostname</code> per Feign/OkHttp client, <strong>one client per upstream</strong>. 25 hosts resolve cleanly, led by <code>prod-ms-user-iam</code> (86,066 spans / 7 d), <code>prod-ms-employee</code> (64,725), <code>prod-ms-product</code> (31,463), <code>prod-ms-onboarding</code> (29,200) and <code>prod-ms-master</code> (27,954), down to <code>prod-ms-backoffice</code> at 32.</p>
-        <div class="note note--ok"><h4>This is the view LORA does not have</h4>LORA&rsquo;s gateway routes ~300 inner proxies through one endpoint (<code>POST /proxy/inner/request-v1</code>), so <strong>21,128 errors a week report as the same resource</strong> &mdash; and the fix, PR 1246, is merged but not in any release tag. Bravo gets per-upstream attribution structurally, from having <strong>113 typed Feign clients instead of one generic proxy</strong>. Give the point to Bravo.</div>
+        <p class="lede">Outbound calls carry <code>@peer.hostname</code> for each Feign and OkHttp client, and there is <strong>one client per upstream service</strong>. 25 hosts come out cleanly, led by <code>prod-ms-user-iam</code> (86,066 traces in 7 days), <code>prod-ms-employee</code> (64,725), <code>prod-ms-product</code> (31,463), <code>prod-ms-onboarding</code> (29,200) and <code>prod-ms-master</code> (27,954), down to <code>prod-ms-backoffice</code> at 32.</p>
+        <div class="note note--ok"><h4>This is the view LORA does not have</h4>LORA&rsquo;s gateway routes about 300 inner proxies through a single endpoint (<code>POST /proxy/inner/request-v1</code>), so <strong>21,128 errors a week all report as the same resource</strong>. The fix, PR 1246, is merged but is not in any release tag. Bravo gets per-upstream attribution automatically, because it has <strong>113 typed Feign clients instead of one generic proxy</strong>. Give the point to Bravo.</div>
         <p class="eyebrow">The errors are entirely 4xx</p>
         <div class="tw"><table>
           <thead><tr><th>Upstream</th><th class="n">status</th><th class="n">errors / 7 d</th><th class="n">traces</th></tr></thead>
@@ -189,14 +189,14 @@ version: v2.93.53
             <tr><td class="k">prod-ms-kyc-proxy</td><td class="n">400</td><td class="n">580</td><td class="n">474</td></tr>
             <tr><td class="k">prod-keycloak-headless</td><td class="n">404</td><td class="n">287</td><td class="n">240</td></tr>
           </tbody>
-          <caption>&hellip;12 more rows, all 4xx, down to 4 spans. <b>Not one 5xx appears in the top twenty.</b> Roughly 20,800 outbound errors a week, all client-side.</caption>
+          <caption>&hellip;and 12 more rows, all 4xx, down to 4 traces. <b>Not one 5xx appears in the top twenty.</b> Roughly 20,800 outbound errors a week, every one of them caused by the caller.</caption>
         </table></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="note note--bad"><h4>&ldquo;Upstream BFI services are unreliable&rdquo; is not what the data says</h4>It says <strong>Bravo asks upstreams for things they will not give it.</strong> <code>401</code> from the IAM permission endpoint at ~1,200/day is an auth or token-lifetime defect <em>in Bravo</em>, confirmed by the log stream (<code>FeignException$Unauthorized &hellip; [GET] /permission/assigned &hellip; "code":"INVALID_KEY"</code> alongside <code>TokenExpiredException</code> &times;176). <code>404</code> from repeat-order at ~720/day is a lookup for something that does not exist.</div>
-        <div class="note"><h4>The span:trace ratios say fleet-wide, not retry loops</h4>IAM is 8,533 errors across 7,964 traces &mdash; <strong>1.07:1</strong>, i.e. every affected request fails once. LORA&rsquo;s equivalent table had rows at <strong>10,442 spans in 2 traces</strong>.</div>
-        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Bravo&rsquo;s failure mode is <em>many loans failing once.</em> LORA&rsquo;s was <em>two loans failing ten thousand times.</em>
-          <small>Both are worth fixing and they need completely different fixes: Bravo&rsquo;s is a defect affecting a broad population; LORA&rsquo;s was a retry policy. This is the clearest single illustration in the pack of what &ldquo;bounded retry&rdquo; buys and costs.</small></p>
+        <div class="note note--bad"><h4>&ldquo;Upstream BFI services are unreliable&rdquo; is not what the data says</h4>What it says is that <strong>Bravo asks upstream services for things they will not give it.</strong> A <code>401</code> from the IAM permission endpoint, about 1,200 a day, is an authentication or token-lifetime defect <em>in Bravo</em>. The log stream confirms it: <code>FeignException$Unauthorized &hellip; [GET] /permission/assigned &hellip; "code":"INVALID_KEY"</code>, alongside 176 <code>TokenExpiredException</code>s. A <code>404</code> from repeat-order, about 720 a day, is a lookup for something that does not exist.</div>
+        <div class="note"><h4>Errors per trace show this is spread wide, not stuck in retry loops</h4>IAM shows 8,533 errors across 7,964 traces &mdash; <strong>1.07 errors per trace</strong>, meaning each affected request fails once. LORA&rsquo;s equivalent table had rows showing <strong>10,442 errors inside just 2 traces</strong>.</div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Bravo fails as <em>many loans failing once.</em> LORA failed as <em>two loans failing ten thousand times.</em>
+          <small>Both are worth fixing, and they need completely different fixes. Bravo&rsquo;s is a defect affecting a wide population. LORA&rsquo;s was a retry policy. This is the clearest illustration in the pack of what &ldquo;bounded retry&rdquo; buys and what it costs.</small></p>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-observability.md &sect;4 &middot; <code>okhttp.request</code>, 7 days</span><span>08</span></div>
@@ -206,31 +206,31 @@ version: v2.93.53
 <section class="slide" data-nav="38 monitors">
   <div class="inner">
     <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">38 monitors, none of them on the process</h2>
+    <h2 class="st">38 monitors, and none of them watches the workflow</h2>
     <div class="cols b">
       <div class="tw"><table>
         <thead><tr><th>Category</th><th class="n">Count</th><th>Examples</th></tr></thead>
         <tbody>
-          <tr><td class="k">Container / pod / JVM resource</td><td class="n">11</td><td>POD &amp; container CPU and memory &times;8, <code>jvm.heap_memory</code>, <code>OutOfMemoryError: Metaspace</code>, faulty-deployment events</td></tr>
-          <tr><td class="k">HTTP surface</td><td class="n">11</td><td>success rate, error rate &times;2, p90/average latency, Apdex, throughput anomaly, <code>Latency Get &gt; 500ms</code></td></tr>
-          <tr><td class="k">RabbitMQ failed-declare</td><td class="n">6</td><td>one per environment: dev, sit, uat, prod, and three Sharia variants</td></tr>
-          <tr><td class="k">SLO error budget</td><td class="n">3</td><td>7 d, 30 d, 90 d &mdash; all on the same SLO id</td></tr>
-          <tr><td class="k">Business / upstream log alerts</td><td class="n">5</td><td>Check Pefindo Error, Negativelist, <code>BranchAPIClient</code> error, CNV success rate, Palav callback</td></tr>
-          <tr><td class="k">Test / scratch</td><td class="n">1</td><td><code>TEST- succes rate bpm</code></td></tr>
-          <tr class="tot"><td><b>Process-level</b></td><td class="n"><b>0</b></td><td>&mdash;</td></tr>
+          <tr><td class="k">Container, pod or JVM resources</td><td class="n">11</td><td>8 pod and container CPU and memory monitors, <code>jvm.heap_memory</code>, <code>OutOfMemoryError: Metaspace</code>, faulty-deployment events</td></tr>
+          <tr><td class="k">HTTP endpoints</td><td class="n">11</td><td>success rate, 2 error-rate monitors, p90 and average latency, Apdex, throughput anomaly, <code>Latency Get &gt; 500ms</code></td></tr>
+          <tr><td class="k">RabbitMQ failed declarations</td><td class="n">6</td><td>one per environment: dev, sit, uat, prod, and three Sharia variants</td></tr>
+          <tr><td class="k">SLO error budget</td><td class="n">3</td><td>7-day, 30-day and 90-day &mdash; all on the same SLO</td></tr>
+          <tr><td class="k">Business and upstream log alerts</td><td class="n">5</td><td>Check Pefindo Error, Negativelist, <code>BranchAPIClient</code> error, CNV success rate, Palav callback</td></tr>
+          <tr><td class="k">Test or scratch</td><td class="n">1</td><td><code>TEST- succes rate bpm</code></td></tr>
+          <tr class="tot"><td><b>Watching the workflow</b></td><td class="n"><b>0</b></td><td>&mdash;</td></tr>
         </tbody>
-        <caption>Nothing watches a Camunda incident, a stuck process instance, the job-executor backlog, <code>application_error_tracking</code> row growth, or a per-activity failure rate &mdash; even though &sect;3 shows the last of those is one query away.</caption>
+        <caption>Nothing watches a Camunda incident, a stuck workflow, the job-executor backlog, growth in <code>application_error_tracking</code>, or the failure rate of a step &mdash; even though &sect;3 shows the last of those is one query away.</caption>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="eyebrow">Three pathologies, each with an exact LORA counterpart</p>
-        <div class="note note--bad"><h4>Eight monitors are in <code>Alert</code> right now</h4>POD CPU and Memory for Squad S&amp;U; both latency monitors; all three SLO error-budget monitors; and the scratch <code>TEST-</code> monitor. <strong>A monitor that has been red long enough to be normal is not a monitor.</strong> LORA found the same thing &mdash; a wedged-loan alert firing continuously into a chat room since January.</div>
-        <div class="note note--bad"><h4>Six monitors read <code>No Data</code> and cannot fire</h4>All four <code>prod-sharia-bpm</code> resource monitors filter <code>service:prod-sharia-bpm</code> while the service is registered as <strong><code>prod-sharia-bpm-sharia</code></strong>, plus two formula monitors that have never evaluated. This is precisely LORA&rsquo;s eight never-evaluated worker monitors, <em>tag mismatch and all</em>.</div>
+        <p class="eyebrow">Three problems, each with an exact match in LORA</p>
+        <div class="note note--bad"><h4>Eight monitors are in <code>Alert</code> right now</h4>Pod CPU and memory for Squad S&amp;U, both latency monitors, all three SLO error-budget monitors, and the scratch <code>TEST-</code> monitor. <strong>A monitor that has been red long enough to feel normal is not a monitor.</strong> LORA found the same thing: a stuck-loan alert firing continuously into a chat room since January.</div>
+        <div class="note note--bad"><h4>Six monitors read <code>No Data</code> and cannot fire</h4>All four <code>prod-sharia-bpm</code> resource monitors filter on <code>service:prod-sharia-bpm</code>, while the service is actually registered as <strong><code>prod-sharia-bpm-sharia</code></strong>. Two more formula monitors have never evaluated at all. This is exactly LORA&rsquo;s eight never-evaluated worker monitors, <em>tag mismatch and all</em>.</div>
         <div class="note note--bad"><h4>The one business monitor filters out the engine&rsquo;s own error class</h4><pre style="border-left-color:var(--bad);margin-top:8px;font-size:11.5px">logs("service:prod-ms-bpm checkpefindov2
   -status:(warn OR info) <b>-\"ENGINE-16004\"</b>")
-  .rollup("count").by("service").last("5m") &gt; 1</pre><p style="margin-top:8px"><code>ENGINE-16004</code> is the line that carries <code>@activityName</code> and the actual failure reason. It has been excluded, presumably because it was noisy. <strong>The noise was the signal.</strong> LORA&rsquo;s zombie monitor excluded its own worst failure class for the same reason. Two teams, two platforms, the same reflex.</p></div>
+  .rollup("count").by("service").last("5m") &gt; 1</pre><p style="margin-top:8px"><code>ENGINE-16004</code> is the line that carries <code>@activityName</code> and the actual reason for the failure. Somebody excluded it, presumably because it was noisy. <strong>The noise was the signal.</strong> LORA&rsquo;s dead monitor excluded its own worst failure class for the same reason. Two teams, two platforms, the same reflex.</p></div>
       </div>
     </div>
-    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Dashboards.</strong> No dashboard in the org mentions <code>bpm</code> or <code>camunda</code>. Bravo LOS is covered by nine cloned <code>LOS Weekly Report Latency</code> dashboards and two success-rate views &mdash; all per-service latency and 5xx. The process view is Camunda Cockpit, which is <code>permitAll()</code> at the Spring Security layer and is not part of any on-call flow recorded here.</p>
+    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Dashboards.</strong> No dashboard in the org mentions <code>bpm</code> or <code>camunda</code>. Bravo LOS is covered by nine copies of a <code>LOS Weekly Report Latency</code> dashboard and two success-rate views, all of them per-service latency and 5xx. The view of the workflow itself is Camunda Cockpit, which is set to <code>permitAll()</code> in Spring Security and is not part of any on-call process recorded here.</p>
     <div class="foot"><span class="src">bravo-observability.md &sect;5 &middot; full monitor inventory matching <code>bpm</code></span><span>09</span></div>
   </div>
 </section>
@@ -238,25 +238,25 @@ version: v2.93.53
 <section class="slide" data-nav="Intrusion unreported">
   <div class="inner">
     <p class="eyebrow"><b>&sect;5.1</b><span class="sep">/</span>What we found &mdash; added 2026-09-10</p>
-    <h2 class="st">The sharpest test of the estate: five weeks, and nothing reported</h2>
-    <p class="lede">&sect;5 shows <b>38 monitors matching <code>bpm</code> and zero on the process.</b> There is a concrete test of what that costs. Between <b>2026-05-23 and 2026-06-30</b>, across <b>7 sessions over five weeks</b>, 61 remote-code-execution process definitions were deployed into the production engine &mdash; and on <b>2026-06-11 07:08:51</b> one ran and captured the pod hostname.</p>
+    <h2 class="st">The sharpest test of all this: five weeks, and nothing reported it</h2>
+    <p class="lede">&sect;5 shows <b>38 monitors matching <code>bpm</code>, and none watching the workflow.</b> There is a concrete test of what that costs. Between <b>2026-05-23 and 2026-06-30</b>, across <b>7 sessions over five weeks</b>, 61 process definitions designed to run arbitrary code were deployed into the production engine. On <b>2026-06-11 at 07:08:51</b>, one of them ran and captured the pod hostname.</p>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Surface that could have reported it</th><th>What it held</th></tr></thead>
+        <thead><tr><th>What could have reported it</th><th>What it held</th></tr></thead>
         <tbody>
-          <tr><td class="k">The 38 <code>bpm</code> monitors</td><td><span class="dn">nothing</span> &mdash; none is process-level</td></tr>
+          <tr><td class="k">The 38 <code>bpm</code> monitors</td><td><span class="dn">nothing</span> &mdash; none of them watches the workflow</td></tr>
           <tr><td class="k">Dashboards</td><td><span class="dn">nothing</span> &mdash; none mentions <code>bpm</code> or <code>camunda</code></td></tr>
-          <tr><td class="k">APM spans on the engine path</td><td><span class="dn">nothing</span> &mdash; there are none at all</td></tr>
+          <tr><td class="k">APM traces on the engine path</td><td><span class="dn">nothing</span> &mdash; there are none at all</td></tr>
           <tr><td class="k">Camunda&rsquo;s own <code>act_hi_op_log</code></td><td><span class="dn">zero entries</span> for all 61 deployments</td></tr>
-          <tr><td class="k"><code>start_user_id_</code> on the executed instance</td><td><span class="dn">null</span></td></tr>
+          <tr><td class="k"><code>start_user_id_</code> on the instance that ran</td><td><span class="dn">null</span></td></tr>
         </tbody>
-        <caption>Found by a person reading the database <b>three months later</b> for an unrelated workflow analysis.</caption>
+        <caption>Found by a person reading the database <b>three months later</b>, for an unrelated piece of workflow analysis.</caption>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="pull" style="font-size:clamp(14px,1.45vw,18px)">The finding is not that Bravo was attacked. It is that <strong>the telemetry contributed nothing to detecting a five-week intrusion in the core service</strong>, and the discovery path was accidental.</p>
-        <div class="note note--ok"><h4>And this cuts the other way too</h4>The engine&rsquo;s history tables are <b>what made the forensics possible</b>. <code>act_re_procdef</code>, <code>act_re_deployment</code>, <code>act_ge_bytearray</code> and <code>act_hi_varinst</code> preserved the payloads, timestamps, session structure <b>and the captured command output</b> &mdash; three months on, with no APM and no monitoring. That is the durable-substrate thesis working: <b>poor at alerting, unusually good at reconstruction.</b> Do not replace the substrate; put a monitor in front of it.</div>
-        <div class="note"><h4>Two monitors close this, and they are the cheapest here</h4>One on new <code>act_re_deployment</code> rows whose <code>name_</code> is outside the deployment convention; one on process starts whose <code>proc_def_key_</code> is outside the known key set. Single SQL predicates over tables that already exist. <b>Either would have fired on 2026-05-23.</b></div>
-        <p class="lede" style="font-size:13px;color:var(--ink3)"><b>Not</b> an argument that LORA would have caught it &mdash; Temporal Cloud is a different deployment model and no equivalent test exists there. This is Bravo&rsquo;s monitoring against Bravo&rsquo;s own risk surface.</p>
+        <p class="pull" style="font-size:clamp(14px,1.45vw,18px)">The finding is not that Bravo was attacked. It is that <strong>the monitoring contributed nothing to detecting a five-week intrusion in the core service</strong>, and that it was found by accident.</p>
+        <div class="note note--ok"><h4>And this cuts the other way too</h4>The engine&rsquo;s history tables are <b>what made the investigation possible</b>. <code>act_re_procdef</code>, <code>act_re_deployment</code>, <code>act_ge_bytearray</code> and <code>act_hi_varinst</code> kept the payloads, the timestamps, the shape of each session <b>and the captured command output</b> &mdash; three months later, with no APM and no monitoring. That is the durable-record argument working: <b>poor at alerting, unusually good at reconstructing what happened.</b> Do not replace what keeps the record. Put a monitor in front of it.</div>
+        <div class="note"><h4>Two monitors close this, and they are the cheapest things here</h4>One on new rows in <code>act_re_deployment</code> whose <code>name_</code> falls outside the deployment naming convention. One on workflow starts whose <code>proc_def_key_</code> is outside the known set of keys. Both are single SQL conditions over tables that already exist. <b>Either would have fired on 2026-05-23.</b></div>
+        <p class="lede" style="font-size:13px;color:var(--ink3)">This is <b>not</b> an argument that LORA would have caught it. Temporal Cloud is a different deployment model, and no equivalent test exists there. This is Bravo&rsquo;s monitoring measured against Bravo&rsquo;s own risk.</p>
       </div>
     </div>
     <div class="foot"><span class="src">SECURITY-FINDING-camunda-rce.md &middot; bravo-observability.md &sect;5.1</span><span>10</span></div>
@@ -266,11 +266,11 @@ version: v2.93.53
 <section class="slide" data-nav="404 storm">
   <div class="inner">
     <p class="eyebrow"><b>&sect;6</b><span class="sep">/</span>The largest live defect in the pack</p>
-    <h2 class="st">The 404 storm nobody is watching</h2>
+    <h2 class="st">The flood of 404s that nobody is watching</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="tw"><table>
-          <thead><tr><th>Console</th><th class="n">Sessions</th><th class="n">Views</th><th class="n">Errors</th><th class="n">Err/view</th></tr></thead>
+          <thead><tr><th>Console</th><th class="n">Sessions</th><th class="n">Views</th><th class="n">Errors</th><th class="n">Errors per view</th></tr></thead>
           <tbody>
             <tr><td class="k"><b>Surveyor Platform Prod</b></td><td class="n">79,090</td><td class="n">953,115</td><td class="n"><span class="dn">1,962,909</span></td><td class="n"><b>2.06</b></td></tr>
             <tr><td class="k">Operation Platform Prod</td><td class="n">17,135</td><td class="n">96,707</td><td class="n">287,646</td><td class="n"><span class="dn">2.97</span></td></tr>
@@ -278,9 +278,9 @@ version: v2.93.53
             <tr><td class="k">Customer Platform DF</td><td class="n">2,594</td><td class="n">31,412</td><td class="n">38,221</td><td class="n">1.22</td></tr>
             <tr class="tot"><td>Total, 7 days</td><td class="n">114,447</td><td class="n">1,286,900</td><td class="n">2,413,198</td><td class="n">1.88</td></tr>
           </tbody>
-          <caption>All four consoles instrumented at <code>rum_event_processing_state: ALL</code>. For scale: LORA&rsquo;s back office produces 416,201 errors a week at &asymp;2.8/view. Bravo&rsquo;s four consoles produce <b>5.8&times;</b> that volume, at a comparable per-view rate. <b>Neither team was reading RUM.</b></caption>
+          <caption>All four consoles send browser monitoring at <code>rum_event_processing_state: ALL</code>. For scale: LORA&rsquo;s back office produces 416,201 errors a week, about 2.8 per view. Bravo&rsquo;s four consoles produce <b>5.8 times</b> that volume, at a similar rate per view. <b>Neither team was reading it.</b></caption>
         </table></div>
-        <p class="eyebrow">The 404s are four endpoints, and they hit most sessions</p>
+        <p class="eyebrow">The 404s come from four endpoints, and they hit most sessions</p>
         <div class="tw"><table>
           <thead><tr><th>Endpoint</th><th class="n">404s / 7 d</th><th class="n">sessions</th></tr></thead>
           <tbody>
@@ -295,13 +295,13 @@ version: v2.93.53
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="stats"><div class="stat"><span class="stat__n neg">69<small>%</small></span><span class="stat__l">Of surveyor sessions &mdash; 54,350 of 79,090 &mdash; get a 404 from <code>feature-configuration</code></span></div></div>
-        <p class="lede" style="font-size:14px">That is not a retry loop and not an edge case; <strong>it is the modal experience of using the Surveyor Platform.</strong> And the endpoint is the busiest one in the service: <code>PartnershipConfigurationController.getByApplicationId</code> is the top <code>spring.handler</code> resource at <strong>73,056 spans in 48 hours</strong>.</p>
+        <p class="lede" style="font-size:14px">That is not a retry loop, and it is not an edge case. <strong>It is what using the Surveyor Platform normally looks like.</strong> And this is the busiest endpoint in the service: <code>PartnershipConfigurationController.getByApplicationId</code> is the top <code>spring.handler</code> resource, at <strong>73,056 calls in 48 hours</strong>.</p>
         <p class="eyebrow">Why no alert fired</p>
         <pre style="border-left-color:var(--bad)">(hits{service:prod-ms-bpm}
  - hits{service:prod-ms-bpm, <b>http.status_code:5*</b>})
   / hits{service:prod-ms-bpm} &lt; 99</pre>
-        <p class="lede" style="font-size:14px"><strong>A 404 is a success by that definition.</strong> Bravo&rsquo;s health model is &ldquo;not 5xx = healthy&rdquo; &mdash; the same category of assumption as treating a running workflow as a well workflow, and wrong in the same way: the system&rsquo;s dominant failure mode is invisible to the thing meant to detect failure.</p>
-        <div class="note note--bad"><h4>What this document cannot say</h4>Whether these 404s are <strong>benign</strong> (an optional configuration probed on every page, 404 meaning &ldquo;no override&rdquo;) or a <strong>defect</strong> is not determinable from telemetry. It has to be read off the controller. But at 266,767 a week across two-thirds of sessions, on the console that generates 28% of Bravo&rsquo;s support tickets, <strong>somebody has to look</strong> &mdash; and the geolocation failures on the same console (20,690/week) are the kind of thing that stops a survey being submitted at all.</div>
+        <p class="lede" style="font-size:14px"><strong>By that definition, a 404 is a success.</strong> Bravo&rsquo;s idea of health is &ldquo;anything that is not a 5xx is fine&rdquo;. That is the same kind of assumption as treating a running workflow as a healthy workflow, and it is wrong in the same way: the system&rsquo;s main failure mode is invisible to the thing meant to detect failure.</p>
+        <div class="note note--bad"><h4>What this document cannot say</h4>Whether these 404s are <strong>harmless</strong> &mdash; an optional setting checked on every page, where 404 just means &ldquo;no override&rdquo; &mdash; or a <strong>defect</strong>, cannot be decided from monitoring data. Somebody has to read the controller. But at 266,767 a week, across two-thirds of sessions, on the console that generates 28% of Bravo&rsquo;s support tickets, <strong>somebody has to look</strong>. And the location failures on the same console, 20,690 a week, are the kind of thing that stops a survey being submitted at all.</div>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-observability.md &sect;6 &middot; RUM, 7 days to 2026-09-10</span><span>10</span></div>
@@ -310,23 +310,23 @@ version: v2.93.53
 
 <section class="slide" data-nav="Durable substrate">
   <div class="inner">
-    <p class="eyebrow"><b>&sect;7</b><span class="sep">/</span>The thesis, inverted</p>
-    <h2 class="st">The durable-substrate thesis, inverted</h2>
-    <p class="lede">The thesis offered was <em>&ldquo;logs currently serve as the only durable substrate.&rdquo;</em> For Bravo that is not merely wrong, <strong>it is upside down.</strong></p>
+    <p class="eyebrow"><b>&sect;7</b><span class="sep">/</span>The thesis, reversed</p>
+    <h2 class="st">Where each platform keeps a lasting record</h2>
+    <p class="lede">The thesis we were given was <em>&ldquo;logs currently serve as the only durable substrate.&rdquo;</em> For Bravo that is not just wrong. <strong>It is the exact reverse.</strong></p>
     <div class="tw"><table>
       <thead><tr><th>Layer</th><th>Bravo</th><th>LORA</th></tr></thead>
       <tbody>
-        <tr><td class="k">Business state</td><td><span class="up">PostgreSQL, 238 entities, 271 tables, indefinite</span></td><td>ArangoDB document + Temporal history</td></tr>
-        <tr><td class="k">Status history</td><td><span class="up"><code>application_status_log</code>, written by a database trigger &mdash; durable</span></td><td>append-only field version chain in the document</td></tr>
-        <tr><td class="k">Prior attempts</td><td><span class="up">chained <code>Application</code> rows via <code>prevApplication</code>/<code>currentIndex</code> &mdash; every reprocess generation is a durable, queryable row</span></td><td>rewind invalidates fields; the prior generation is reconstructed from Temporal history</td></tr>
-        <tr><td class="k">Step-level trace</td><td><span class="dn">Camunda <code>act_hi_*</code>, purged at 90 days</span></td><td>Temporal event history, 30-day retention on closed workflows</td></tr>
-        <tr><td class="k">Spans</td><td><span class="dn">none for the orchestration layer</span></td><td>30 days, one per activity attempt</td></tr>
-        <tr><td class="k">Logs</td><td><span class="dn">~1.1M lines/week, 47% ERROR, no loan id</span></td><td>~7 days, but carry <code>@WorkflowID</code> and <code>@Attempt</code></td></tr>
+        <tr><td class="k">Business state</td><td><span class="up">PostgreSQL, 238 entities, 271 tables, kept indefinitely</span></td><td>An ArangoDB document plus Temporal history</td></tr>
+        <tr><td class="k">Status history</td><td><span class="up"><code>application_status_log</code>, written by a database trigger &mdash; permanent</span></td><td>An append-only chain of field versions inside the document</td></tr>
+        <tr><td class="k">Earlier attempts</td><td><span class="up"><code>Application</code> rows chained by <code>prevApplication</code> and <code>currentIndex</code> &mdash; every reprocess attempt is a permanent row you can query</span></td><td>Rewinding invalidates fields; the earlier attempt has to be rebuilt from Temporal history</td></tr>
+        <tr><td class="k">Step-by-step trace</td><td><span class="dn">Camunda <code>act_hi_*</code>, deleted after 90 days</span></td><td>Temporal event history, kept 30 days after a workflow closes</td></tr>
+        <tr><td class="k">Traces</td><td><span class="dn">none for the workflow layer</span></td><td>30 days, one per attempt at each activity</td></tr>
+        <tr><td class="k">Logs</td><td><span class="dn">about 1.1M lines a week, 47% errors, no loan id</span></td><td>about 7 days, but they carry <code>@WorkflowID</code> and <code>@Attempt</code></td></tr>
       </tbody></table></div>
     <div class="cols b">
-      <div class="note note--ok"><h4>Bravo&rsquo;s durable substrate is the database</h4>&mdash; and it is <strong>the best one either platform has</strong> for answering &ldquo;what happened to this loan&rdquo;. Every reprocess generation is a row. Nothing has to be replayed. This is the advantage the relational aggregate genuinely delivers, and it is why the pack credits Bravo&rsquo;s crude &ldquo;new row per generation&rdquo; over LORA&rsquo;s more principled rollback.</div>
-      <p class="pull">Bravo&rsquo;s business facts are durable and its <em>process</em> facts are not.
-        <small>At day 91 you can still say what status a loan reached and when. You cannot say which activity failed, how often, or why. LORA is the mirror image: the loan document and its version chain are durable, but the fleet-level <em>business</em> question &mdash; &ldquo;all loans stuck in survey&rdquo; &mdash; cannot be asked at all.</small></p>
+      <div class="note note--ok"><h4>What Bravo keeps permanently is its database</h4>And it is <strong>the best record either platform has</strong> for answering &ldquo;what happened to this loan?&rdquo; Every reprocess attempt is a row. Nothing has to be replayed. This is the advantage the relational model genuinely delivers, and it is why this pack prefers Bravo&rsquo;s crude &ldquo;new row per attempt&rdquo; to LORA&rsquo;s more principled rollback.</div>
+      <p class="pull">Bravo&rsquo;s business facts last. Its <em>workflow</em> facts do not.
+        <small>On day 91 you can still say what status a loan reached and when. You cannot say which step failed, how often, or why. LORA is the mirror image: the loan document and its version chain last, but the question across the whole book &mdash; &ldquo;which loans are stuck in survey?&rdquo; &mdash; cannot be asked at all.</small></p>
     </div>
     <div class="foot"><span class="src">bravo-observability.md &sect;7 &middot; compare-architecture.md &sect;3.7</span><span>11</span></div>
   </div>
@@ -335,20 +335,20 @@ version: v2.93.53
 <section class="slide" data-nav="Recommendations">
   <div class="inner">
     <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
-    <h2 class="st">Ten actions, ordered by value over effort</h2>
+    <h2 class="st">Ten actions, ordered by value against effort</h2>
     <div class="recs">
-      <div class="rec first"><span class="no">1</span><span class="tx"><b>Look at the <code>feature-configuration</code> 404 <span class="sz">&middot; S, do this first</span></b>266,767 a week across 69% of surveyor sessions, on the busiest endpoint in the service, on the console generating 28% of Bravo&rsquo;s tickets. Read the controller; decide whether 404 is the intended &ldquo;no override&rdquo; response and if so stop the client treating it as an error. If not, this is a live production defect invisible because nothing alerts below 5xx.</span></div>
-      <div class="rec first"><span class="no">2</span><span class="tx"><b>Add a 4xx clause to the success-rate monitors <span class="sz">&middot; S</span></b>Every <code>prod-ms-bpm</code> health monitor is <code>5*</code>-only. Add per-resource 4xx monitors &mdash; at minimum <code>401</code> from IAM (8,533/week), <code>404</code> on the four surveyor endpoints, <code>400</code> on scheduling. <b>Bravo does not fail with 5xx; it fails with 4xx.</b></span></div>
-      <div class="rec"><span class="no">3</span><span class="tx"><b>Build the per-activity failure monitor that already works <span class="sz">&middot; S</span></b><code>@activityName</code> grouping is live and untouched. A monitor grouped by <code>@activityName, @processDefinitionId</code> is a five-minute change and would today read <code>One Obligor Check</code> at ~2,800/day. Give it an owner and a runbook entry <em>before</em> creating it.</span></div>
-      <div class="rec"><span class="no">4</span><span class="tx"><b>Un-exclude <code>ENGINE-16004</code> from the Pefindo monitor <span class="sz">&middot; S</span></b>It is the line carrying the activity name and the failure reason. If the monitor is too noisy without the exclusion, the fix is a threshold or a per-activity group-by &mdash; not suppressing the informative half of the signal.</span></div>
-      <div class="rec"><span class="no">5</span><span class="tx"><b>Put the application id into the engine MDC <span class="sz">&middot; S&ndash;M</span></b>One MDC key on the job-executor path turns per-activity ranking into per-loan triage and closes the biggest gap in &sect;3. <code>application.process_id</code> already links the two; the log line just needs the business key on it.</span></div>
-      <div class="rec"><span class="no">6</span><span class="tx"><b>Fix the six <code>No Data</code> monitors <span class="sz">&middot; S</span></b>Four Sharia monitors filter <code>service:prod-sharia-bpm</code> against a service registered as <code>prod-sharia-bpm-sharia</code>. Retag or delete. Two formula monitors have never evaluated.</span></div>
-      <div class="rec"><span class="no">7</span><span class="tx"><b>Triage the eight monitors in <code>Alert</code> <span class="sz">&middot; S</span></b>Either the thresholds are wrong or the service is degraded; both need an answer. <b>A permanently red monitor trains people to ignore the channel.</b></span></div>
-      <div class="rec"><span class="no">8</span><span class="tx"><b>Trace the job executor <span class="sz">&middot; M</span></b>A <code>@WithSpan</code> on <code>BaseActivity.execute()</code>, or the Camunda OTel plugin, gives one span per service task with process key, version, activity and instance. <b>The single change that would make Bravo&rsquo;s orchestration visible in APM at all</b> &mdash; and it also delivers per-activity latency, which no metric currently reports.</span></div>
-      <div class="rec"><span class="no">9</span><span class="tx"><b>Write down the stuck-loan SQL <span class="sz">&middot; S</span></b>Bravo&rsquo;s real advantage &mdash; fleet questions are <code>WHERE</code> clauses &mdash; is unusable at 02:00 because nobody saved the query. A notebook plus a monitor on the count converts a capability into an operation.</span></div>
-      <div class="rec"><span class="no">10</span><span class="tx"><b>Read RUM in the weekly review <span class="sz">&middot; S</span></b>Four consoles, 2.4M errors a week, instrumented all along, never consulted. Set a per-console error-per-view SLO; today the Surveyor Platform is at 2.06 and nobody could tell if it regressed.</span></div>
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Look at the <code>feature-configuration</code> 404 <span class="sz">&middot; S, do this first</span></b>266,767 a week, across 69% of surveyor sessions, on the busiest endpoint in the service, on the console that generates 28% of Bravo&rsquo;s tickets. Read the controller. Decide whether 404 is the intended &ldquo;no override&rdquo; response, and if it is, stop the client treating it as an error. If it is not, this is a live production defect, invisible because nothing alerts below 5xx.</span></div>
+      <div class="rec first"><span class="no">2</span><span class="tx"><b>Make the success-rate monitors count 4xx as well <span class="sz">&middot; S</span></b>Every <code>prod-ms-bpm</code> health monitor only looks for 5xx. Add monitors for 4xx per endpoint &mdash; at a minimum, <code>401</code> from IAM (8,533 a week), <code>404</code> on the four surveyor endpoints, and <code>400</code> on scheduling. <b>Bravo does not fail with 5xx. It fails with 4xx.</b></span></div>
+      <div class="rec"><span class="no">3</span><span class="tx"><b>Build the per-step failure monitor that already works <span class="sz">&middot; S</span></b>Grouping by <code>@activityName</code> works today and nobody uses it. A monitor grouped by <code>@activityName</code> and <code>@processDefinitionId</code> is a five-minute change, and today it would read <code>One Obligor Check</code> at about 2,800 a day. Give it an owner and a runbook entry <em>before</em> creating it.</span></div>
+      <div class="rec"><span class="no">4</span><span class="tx"><b>Stop excluding <code>ENGINE-16004</code> from the Pefindo monitor <span class="sz">&middot; S</span></b>It is the line that carries the step name and the reason for the failure. If the monitor is too noisy without the exclusion, the answer is a threshold or a group-by per step &mdash; not throwing away the informative half of the signal.</span></div>
+      <div class="rec"><span class="no">5</span><span class="tx"><b>Put the application id on the engine&rsquo;s log lines <span class="sz">&middot; S&ndash;M</span></b>One extra field on the job-executor path turns a ranking of failing steps into per-loan triage, and closes the biggest gap in &sect;3. <code>application.process_id</code> already links the two. The log line just needs the business key on it.</span></div>
+      <div class="rec"><span class="no">6</span><span class="tx"><b>Fix the six <code>No Data</code> monitors <span class="sz">&middot; S</span></b>Four Sharia monitors filter on <code>service:prod-sharia-bpm</code>, against a service registered as <code>prod-sharia-bpm-sharia</code>. Retag them or delete them. Two formula monitors have never evaluated.</span></div>
+      <div class="rec"><span class="no">7</span><span class="tx"><b>Triage the eight monitors stuck in <code>Alert</code> <span class="sz">&middot; S</span></b>Either the thresholds are wrong or the service is degraded. Both need an answer. <b>A permanently red monitor teaches people to ignore the channel.</b></span></div>
+      <div class="rec"><span class="no">8</span><span class="tx"><b>Trace the job executor <span class="sz">&middot; M</span></b>A <code>@WithSpan</code> on <code>BaseActivity.execute()</code>, or the Camunda OTel plugin, gives one trace per service task, with the process name, version, step and instance. <b>This is the single change that would make Bravo&rsquo;s workflow visible in APM at all</b> &mdash; and it also gives latency per step, which no metric reports today.</span></div>
+      <div class="rec"><span class="no">9</span><span class="tx"><b>Write the stuck-loan SQL down <span class="sz">&middot; S</span></b>Bravo&rsquo;s real advantage &mdash; you can ask questions across all loans in SQL &mdash; is unusable at 02:00 because nobody saved the query. A notebook, plus a monitor on the count, turns a capability into an operation.</span></div>
+      <div class="rec"><span class="no">10</span><span class="tx"><b>Read the browser monitoring in the weekly review <span class="sz">&middot; S</span></b>Four consoles, 2.4 million errors a week, monitored all along and never looked at. Set an errors-per-view SLO for each console. The Surveyor Platform is at 2.06 today, and nobody could tell you if that got worse.</span></div>
     </div>
-    <div class="note note--bad"><h4>Do not create these alerts without an owner and a runbook entry</h4>&sect;5 shows Bravo already has 38 monitors, 8 permanently firing, 6 that cannot fire, and one that had its most useful error class filtered out. <strong>Adding a ninth red light to the same chat room reproduces the problem this document is describing.</strong></div>
+    <div class="note note--bad"><h4>Do not create any of these alerts without an owner and a runbook entry</h4>&sect;5 shows Bravo already has 38 monitors: 8 permanently firing, 6 that cannot fire, and one that had its most useful error class filtered out. <strong>Adding a ninth red light to the same chat room recreates the problem this document is describing.</strong></div>
     <div class="foot"><span class="src">bravo-observability.md &sect;Recommended actions</span><span>12</span></div>
   </div>
 </section>
@@ -357,39 +357,39 @@ version: v2.93.53
   <div class="inner">
     <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Plan</p>
     <h2 class="st">30, 60, 90 days</h2>
-    <p class="lede">Ten recommendations plus the runbook precondition, phased against <strong>~10 person-days a month</strong> of Platform/SRE time and a slice of Squad S&amp;U.</p>
+    <p class="lede">Ten recommendations, plus the runbook that has to come first, phased against <strong>about 10 person-days a month</strong> of Platform and SRE time, plus a slice of Squad S&amp;U.</p>
     <div class="cols">
-      <div class="note note--bad"><h4>Sequencing rule</h4><strong>Repair the alert channel before adding anything to it.</strong> So recommendations 6 and 7 land in the first 30 days and recommendation 2 does <em>not</em> &mdash; even though it is the more valuable signal. It arrives in month 2, after the channel is worth alerting into and after the runbook table exists. The one exception is recommendation 3: created in phase 1 <strong>with its runbook entry and owner attached</strong>, because it needs no new plumbing and is the first process-level monitor Bravo will ever have.</div>
-      <div class="note"><h4>Shared with other documents</h4>Recommendation 1 is also <strong>bravo-delivery.md rec 1</strong> and <strong>bravo-cost.md rec 5</strong>; recommendation 2 is also <strong>bravo-testing.md rec 3</strong>; recommendation 10 pairs with <strong>bravo-delivery.md rec 3</strong>. Phased identically everywhere &mdash; do them once.</div>
+      <div class="note note--bad"><h4>The rule for ordering this work</h4><strong>Repair the alert channel before adding anything to it.</strong> So recommendations 6 and 7 land in the first 30 days, and recommendation 2 does <em>not</em> &mdash; even though it is the more valuable signal. It arrives in month 2, once the channel is worth alerting into and the runbook table exists. The one exception is recommendation 3, created in phase 1 <strong>with its owner and runbook entry attached</strong>, because it needs no new plumbing and is the first monitor Bravo will ever have that watches the workflow.</div>
+      <div class="note"><h4>Shared with other documents</h4>Recommendation 1 is also rec 1 in <strong>bravo-delivery.md</strong> and rec 5 in <strong>bravo-cost.md</strong>. Recommendation 2 is also rec 3 in <strong>bravo-testing.md</strong>. Recommendation 10 goes with rec 3 in <strong>bravo-delivery.md</strong>. Phased the same way everywhere, so do them once.</div>
     </div>
     <div class="phases">
       <div class="ph">
-        <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">One live defect, and a working alert channel</span></div>
+        <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">One live defect, and an alert channel that works</span></div>
         <ul>
-          <li><span class="r">1</span><span><b>Investigate the <code>feature-configuration</code> 404.</b> <em>S&amp;U &middot; 2 d.</em> A written answer &mdash; 266,767/week across 69% of sessions is explained.</span></li>
-          <li><span class="r">1</span><span><b>Fix it</b> &mdash; resolve the lookup, or stop the client raising 404 as an error. <em>S&amp;U &middot; 3 d.</em> Surveyor error volume falls measurably in RUM.</span></li>
-          <li><span class="r">7</span><span><b>Triage the eight monitors in <code>Alert</code>.</b> <em>Platform/SRE &middot; 2 d.</em> Each fixed, re-thresholded or deleted. <b>Zero permanently-red monitors.</b></span></li>
-          <li><span class="r">6</span><span><b>Fix the six <code>No Data</code> monitors.</b> <em>Platform/SRE &middot; 1 d.</em></span></li>
-          <li><span class="r">4</span><span><b>Un-exclude <code>ENGINE-16004</code></b> from the Pefindo monitor. <em>Platform/SRE &middot; 0.5 d.</em></span></li>
-          <li><span class="r">3</span><span><b>Build the per-activity failure monitor</b> &mdash; with owner and runbook entry. <em>Platform/SRE &middot; 1 d.</em> <b>Bravo&rsquo;s first process-level alert.</b></span></li>
-          <li><span class="r">5</span><span><b>Put the application id into the engine MDC.</b> <em>S&amp;U &middot; 3 d.</em> Unblocks per-loan triage and makes recs 2 and 8 far more useful.</span></li>
-          <li><span class="r">9</span><span><b>Write down the stuck-loan SQL</b> as a saved notebook. <em>S&amp;U &middot; 2 d.</em></span></li>
+          <li><span class="r">1</span><span><b>Investigate the <code>feature-configuration</code> 404.</b> <em>S&amp;U &middot; 2 days.</em> A written answer, so that 266,767 a week across 69% of sessions is explained.</span></li>
+          <li><span class="r">1</span><span><b>Fix it</b> &mdash; resolve the lookup, or stop the client raising the 404 as an error. <em>S&amp;U &middot; 3 days.</em> Surveyor error volume falls measurably in the browser monitoring.</span></li>
+          <li><span class="r">7</span><span><b>Triage the eight monitors in <code>Alert</code>.</b> <em>Platform and SRE &middot; 2 days.</em> Each one fixed, re-thresholded or deleted. <b>No permanently red monitors left.</b></span></li>
+          <li><span class="r">6</span><span><b>Fix the six <code>No Data</code> monitors.</b> <em>Platform and SRE &middot; 1 day.</em></span></li>
+          <li><span class="r">4</span><span><b>Stop excluding <code>ENGINE-16004</code></b> from the Pefindo monitor. <em>Platform and SRE &middot; half a day.</em></span></li>
+          <li><span class="r">3</span><span><b>Build the per-step failure monitor</b>, with an owner and a runbook entry. <em>Platform and SRE &middot; 1 day.</em> <b>Bravo&rsquo;s first alert on the workflow itself.</b></span></li>
+          <li><span class="r">5</span><span><b>Put the application id on the engine&rsquo;s log lines.</b> <em>S&amp;U &middot; 3 days.</em> This unblocks per-loan triage and makes recommendations 2 and 8 far more useful.</span></li>
+          <li><span class="r">9</span><span><b>Write the stuck-loan SQL down</b> as a saved notebook. <em>S&amp;U &middot; 2 days.</em></span></li>
         </ul>
       </div>
       <div class="ph">
-        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">See the orchestration, then alert on it</span></div>
+        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">See the workflow, then alert on it</span></div>
         <ul>
-          <li><span class="r">8</span><span><b>Trace the job executor.</b> <em>S&amp;U &middot; 8 d.</em> One span per service task. The 90% of Bravo&rsquo;s work that is the process becomes visible in APM, with per-activity latency and a <code>CARDINALITY(trace_id)</code> loop test.</span></li>
-          <li><span class="r">&mdash;</span><span><b>Alert runbook table</b> &mdash; severity, runbook entry and owner for every signal, retrofitted to the surviving old monitors. <em>Platform/SRE &middot; 2 d.</em> <b>This gates the next row.</b></span></li>
-          <li><span class="r">2</span><span><b>Per-endpoint 4xx monitors.</b> <em>Platform/SRE &middot; 3 d.</em> Bravo&rsquo;s actual failure mode is alertable for the first time.</span></li>
-          <li><span class="r">10</span><span><b>RUM in the weekly review</b>, with a per-console error-per-view SLO. <em>Platform/SRE + EM &middot; 2 d.</em></span></li>
+          <li><span class="r">8</span><span><b>Trace the job executor.</b> <em>S&amp;U &middot; 8 days.</em> One trace per service task. The 90% of Bravo&rsquo;s work that is the workflow becomes visible in APM, with latency per step and a <code>CARDINALITY(trace_id)</code> test for retry loops.</span></li>
+          <li><span class="r">&mdash;</span><span><b>Build the alert runbook table</b> &mdash; a severity, a runbook entry and an owner for every signal, applied to the surviving old monitors too. <em>Platform and SRE &middot; 2 days.</em> <b>Nothing below this row starts until it exists.</b></span></li>
+          <li><span class="r">2</span><span><b>Add 4xx monitors per endpoint.</b> <em>Platform and SRE &middot; 3 days.</em> Bravo&rsquo;s actual failure mode can be alerted on for the first time.</span></li>
+          <li><span class="r">10</span><span><b>Browser monitoring in the weekly review</b>, with an errors-per-view SLO for each console. <em>Platform, SRE and EM &middot; 2 days.</em></span></li>
         </ul>
       </div>
       <div class="ph ph--last">
         <div class="ph__h"><span class="ph__d">Days 61&ndash;90</span><span class="ph__t">Consolidate &mdash; no new work</span></div>
         <ul>
-          <li><span class="r">&mdash;</span><span>Phase 3 is spent on the deploy-safety and test items in <b>bravo-testing.md</b>, which consume this document&rsquo;s output: the job-executor spans from rec 8 are what make the two end-to-end process tests <em>diagnosable</em> when they fail.</span></li>
-          <li><span class="r">&#10003;</span><span><b>What to check at day 90:</b> that the monitors created in phases 1 and 2 have fired, been acted on, and are <b>still un-muted</b>. The failure mode this document describes is not missing tooling &mdash; it is a firing alert with no owner. Ninety days is long enough to tell whether that changed.</span></li>
+          <li><span class="r">&mdash;</span><span>This phase is spent on the deploy-safety and test items in <b>bravo-testing.md</b>, which use this document&rsquo;s output: the job-executor traces from recommendation 8 are what make the two end-to-end workflow tests <em>diagnosable</em> when they fail.</span></li>
+          <li><span class="r">&#10003;</span><span><b>What to check at day 90:</b> that the monitors created in phases 1 and 2 have fired, been acted on, and are <b>still not muted</b>. The failure this document describes is not missing tooling. It is an alert that fires with nobody owning it. Ninety days is long enough to tell whether that changed.</span></li>
         </ul>
       </div>
     </div>
@@ -404,15 +404,15 @@ version: v2.93.53
     <div class="tw"><table>
       <thead><tr><th>Recommendation</th><th>Example when done</th></tr></thead>
       <tbody>
-        <tr><td class="k">4xx in the health model</td><td>A 404 storm on the busiest endpoint pages someone in five minutes instead of running for months at 266k/week.</td></tr>
-        <tr><td class="k">Per-activity monitor</td><td>&ldquo;One Obligor Check is failing 2,800 times a day&rdquo; is a number on a dashboard, not a query someone happened to run.</td></tr>
-        <tr><td class="k">Application id in the MDC</td><td>On-call goes from a loan number to its activity failures in one Datadog query, the way LORA on-call already can.</td></tr>
-        <tr><td class="k">Job-executor spans</td><td>The 90% of Bravo&rsquo;s work that is the process becomes visible in APM, with per-activity latency and a <code>CARDINALITY(trace_id)</code> test that separates a broad defect from a loop.</td></tr>
-        <tr><td class="k">Saved stuck-loan query</td><td>Bravo&rsquo;s genuine architectural advantage &mdash; SQL over relational state &mdash; becomes something the on-call rota uses, not something the architecture merely permits.</td></tr>
-        <tr><td class="k">RUM in the weekly review</td><td>A surveyor console regression is caught by a number instead of by 315 <code>Release reject</code> tickets a month.</td></tr>
-        <tr><td class="k">Monitors triaged</td><td>The alert channel means something again &mdash; which is the precondition for every other item on this list.</td></tr>
+        <tr><td class="k">4xx counted as failure</td><td>A flood of 404s on the busiest endpoint pages somebody within five minutes, instead of running for months at 266,000 a week.</td></tr>
+        <tr><td class="k">Per-step monitor</td><td>&ldquo;One Obligor Check is failing 2,800 times a day&rdquo; is a number on a dashboard, not a query somebody happened to run.</td></tr>
+        <tr><td class="k">Application id on the log lines</td><td>On-call goes from a loan number to that loan&rsquo;s failures in one Datadog query, the way LORA&rsquo;s on-call already can.</td></tr>
+        <tr><td class="k">Job-executor traces</td><td>The 90% of Bravo&rsquo;s work that is the workflow becomes visible in APM, with latency per step and a <code>CARDINALITY(trace_id)</code> test that tells a wide defect apart from a retry loop.</td></tr>
+        <tr><td class="k">Stuck-loan query saved</td><td>Bravo&rsquo;s genuine architectural advantage &mdash; SQL over relational state &mdash; becomes something the on-call rota uses, rather than something the architecture merely allows.</td></tr>
+        <tr><td class="k">Browser monitoring in the weekly review</td><td>A regression on the surveyor console is caught by a number, instead of by 315 <code>Release reject</code> tickets a month.</td></tr>
+        <tr><td class="k">Monitors triaged</td><td>The alert channel means something again &mdash; which has to happen before anything else on this list is worth doing.</td></tr>
       </tbody></table></div>
-    <p class="pull">Most of the data is already there. What is missing is an alert that is not scoped to the container and the 5xx.</p>
+    <p class="pull">Most of the data is already there. What is missing is an alert that looks at something other than the container and the 5xx.</p>
     <div class="foot"><span class="src">bravo-observability.md &middot; related: bravo-testing.md, bravo-delivery.md, ticket-analysis.md, SECURITY-FINDING-camunda-rce.md</span><span>14</span></div>
   </div>
 </section>

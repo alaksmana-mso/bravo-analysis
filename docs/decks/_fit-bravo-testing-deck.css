@@ -1,7 +1,10 @@
 @media print{
-  /* print-fit bravo-testing-deck: 4 of 24 slides scaled to fit 620px of content; smallest 0.78 */
+  /* print-fit bravo-testing-deck: slides 12, 21 and 23 only, at the same zooms they
+     carried before the plain-language rewrite. Each was already over-full; prose was
+     trimmed first, and these three still need the scaling the deck always had.
+     Slide 15 previously carried 0.967 and no longer needs it.
+     Every other slide renders complete unscaled — verified by clipcheck.py. */
   .deck > section.slide:nth-of-type(12) > .inner{flex:none;height:auto;zoom:0.788}
-  .deck > section.slide:nth-of-type(15) > .inner{flex:none;height:auto;zoom:0.967}
   .deck > section.slide:nth-of-type(21) > .inner{flex:none;height:auto;zoom:0.78}
   .deck > section.slide:nth-of-type(23) > .inner{flex:none;height:auto;zoom:0.838}
 }

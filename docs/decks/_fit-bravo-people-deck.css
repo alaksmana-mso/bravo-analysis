@@ -1,4 +1,7 @@
 @media print{
-  /* print-fit bravo-people-deck: 1 of 15 slides scaled to fit 620px of content; smallest 0.913 */
-  .deck > section.slide:nth-of-type(8) > .inner{flex:none;height:auto;zoom:0.913}
+  /* print-fit bravo-people-deck: slide 8 only, essentially unchanged from the
+     pre-rewrite 0.913. Prose trims did not move its height — the two-column note
+     block reflows within the same line count. Every other slide renders complete
+     unscaled (verified by clipcheck.py against the PDF). */
+  .deck > section.slide:nth-of-type(8) > .inner{flex:none;height:auto;zoom:0.9}
 }

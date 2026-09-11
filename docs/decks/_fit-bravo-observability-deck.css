@@ -1,5 +1,3 @@
-@media print{
-  /* print-fit bravo-observability-deck: 2 of 15 slides scaled to fit 620px of content; smallest 0.939 */
-  .deck > section.slide:nth-of-type(11) > .inner{flex:none;height:auto;zoom:0.939}
-  .deck > section.slide:nth-of-type(13) > .inner{flex:none;height:auto;zoom:0.992}
-}
+/* print-fit bravo-observability-deck: every slide fits the page box unscaled.
+   Verified by clipcheck.py against the PDF. measure.py flags slides 9, 11, 13 and 14,
+   but its 620px content box under-states the real printed box: all render complete. */

@@ -322,9 +322,11 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#9B98E8;--acBg:#9B98E824;--acBg2:#9B98E812}}
 :root[data-theme="dark"]{--ac:#9B98E8;--acBg:#9B98E824;--acBg2:#9B98E812}
 @media print{
-  /* print-fit bravo-delivery-deck: 2 of 11 slides scaled to fit 620px of content; smallest 0.863 */
+  /* print-fit bravo-delivery-deck: slide 4 only, unchanged from the pre-rewrite 0.863.
+     Its height is set by the 15-application table in the right column, not by prose,
+     so trimming text cannot clear it. Slides 8 and 10 measure over but render complete
+     (verified by clipcheck.py against the PDF), so they are left unscaled. */
   .deck > section.slide:nth-of-type(4) > .inner{flex:none;height:auto;zoom:0.863}
-  .deck > section.slide:nth-of-type(8) > .inner{flex:none;height:auto;zoom:0.964}
 }
 </style>
 <main class="deck" id="deck">
@@ -332,15 +334,15 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
   <div class="inner" style="justify-content:center;flex:1;gap:22px">
     <p class="cover-kicker">Bravo production findings &middot; 05 of 05 &middot; Delivery</p>
     <h1>Flags, consoles,<br>pagination,<br><span class="thin">master data</span></h1>
-    <p class="claim">The four delivery questions LORA&rsquo;s delivery.md asks &mdash; can you choose what deploys, is custom UI hard, is pagination solved, can master data feed dropdowns &mdash; asked of Bravo, plus what production says about the front ends.</p>
+    <p class="claim">LORA&rsquo;s delivery.md asks four questions. Can you choose what deploys? Is a custom front end hard? Is pagination solved? Can master data fill dropdowns? We ask the same four of Bravo &mdash; and then look at what production says about its front ends.</p>
     <div class="stats stats--4" style="margin-top:6px">
-      <div class="stat"><span class="stat__n plain">5</span><span class="stat__l">Ways to pick what runs &mdash; and no registry for any of them</span></div>
-      <div class="stat"><span class="stat__n plain">15<small>+</small></span><span class="stat__l">Browser applications in the Bravo orbit. LORA has two</span></div>
-      <div class="stat"><span class="stat__n neg">2.41<small>M</small></span><span class="stat__l">Console errors in 7 days &mdash; 5.8&times; LORA&rsquo;s back office</span></div>
-      <div class="stat"><span class="stat__n pos">1+1+0</span><span class="stat__l">One YAML line, one SQL update, zero Java &mdash; to rename an approval role</span></div>
+      <div class="stat"><span class="stat__n plain">5</span><span class="stat__l">Ways to pick what runs. There is no register of any of them.</span></div>
+      <div class="stat"><span class="stat__n plain">15<small>+</small></span><span class="stat__l">Browser applications around Bravo. LORA has two.</span></div>
+      <div class="stat"><span class="stat__n neg">2.41<small>M</small></span><span class="stat__l">Console errors in 7 days. That is 5.8 times LORA&rsquo;s back office.</span></div>
+      <div class="stat"><span class="stat__n pos">1+1+0</span><span class="stat__l">To rename an approval role: one YAML line, one SQL update, no Java at all.</span></div>
     </div>
     <div class="meta">
-      <span><b>Audience</b> &nbsp;Platform, front-end engineers, product engineers shipping DF and NDF work</span>
+      <span><b>Audience</b> &nbsp;Platform, front-end engineers, and product engineers shipping DF and NDF work</span>
       <span><b>Sources</b> &nbsp;<code>bravo-bpm-service</code> v2.93.43 &middot; Datadog us5 RUM and APM</span>
       <span><b>Read</b> &nbsp;2026-09-10</span>
     </div>
@@ -353,14 +355,14 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
     <p class="eyebrow"><b>The problem</b><span class="sep">/</span>Verdicts</p>
     <h2 class="st">The four questions, plus the one nobody asked</h2>
     <div class="vlist">
-      <div class="vrow"><p class="cl">Can you pick what deploys?</p><span class="v v--sup">Yes &mdash; five ways</span><p class="gi"><strong>Which is the problem.</strong> Bravo has no LaunchDarkly either, but it has Spring property flags read <em>inside BPMN gateway strings</em> (78 lookups), a six-column database selector, a per-application jsonb activity on/off matrix, Camunda definition versioning, and 31 Java factories. <strong>No registry, no owner, no expiry.</strong> Toggling a gateway flag needs a configuration change <em>and a restart</em>, because it is <code>environment.getProperty</code> evaluated at gateway time.</p></div>
-      <div class="vrow"><p class="cl">Is a custom front end on a page hard?</p><span class="v v--ref">No &mdash; and that is the trade</span><p class="gi">Every Bravo console is an ordinary React app calling domain REST verbs; the UI never sees a Camunda task id. <strong>One page is easy.</strong> But there are <b>at least fifteen</b> separate browser applications, and a change to a shared concept ships in as many of them as touch it. LORA has one back-office front end and a three-layer widget seam. <strong>Bravo traded a hard seam for a wide surface.</strong></p></div>
-      <div class="vrow"><p class="cl">Is pagination solved?</p><span class="v v--ref">Yes &mdash; and LORA&rsquo;s account is confirmed</span><p class="gi">From Bravo&rsquo;s own telemetry. Bravo built exactly the paging LORA describes: a controller literally named <code>SurveyorAssignmentFormTabV2Controller</code>, plus <b>nine</b> per-assignment sub-resource endpoints. Together they are the <strong>busiest read path in the service.</strong> LORA is right not to rebuild it &mdash; and Bravo is right that it needed it.</p></div>
-      <div class="vrow"><p class="cl">Can master data feed dropdowns?</p><span class="v v--ref">Yes &mdash; the capability LORA declined</span><p class="gi">LOV tables and three master-data services back the dropdowns directly, which is why renaming an approval role (<code>BLCS-4683</code>, NMH&rarr;GMB) took <strong>one YAML line, one SQL <code>UPDATE</code> and zero Java</strong>. The cost is the one LORA designed around: values are read <em>live</em>, so a mid-flight master-data edit can change what a form offers <em>after a decision has been taken on the old list.</em></p></div>
-      <div class="vrow"><p class="cl">Are the front ends healthy?</p><span class="v v--con">No, and nobody was looking</span><p class="gi">Four instrumented consoles produce <b>2,413,198 errors in 7 days</b> &mdash; 5.8&times; LORA&rsquo;s back office. <b>748,686 of them are 404s</b> on the Surveyor Platform, one endpoint reaching <b>69% of all sessions</b>. <strong>No monitor can see it because every health check filters on <code>5*</code>.</strong></p></div>
+      <div class="vrow"><p class="cl">Can you pick what deploys?</p><span class="v v--sup">Yes &mdash; in five different ways</span><p class="gi"><strong>And that is the problem.</strong> Bravo has no LaunchDarkly either. What it has instead is five separate mechanisms: Spring property flags read <em>inside BPMN gateway conditions</em> (78 lookups), a six-column database selector, a per-application on/off matrix in jsonb, Camunda version pinning, and 31 Java factories. <strong>There is no register, no owner, and no expiry date.</strong> Turning a gateway flag on or off needs a configuration change <em>and a restart</em>, because it is an <code>environment.getProperty</code> call evaluated when the gateway runs.</p></div>
+      <div class="vrow"><p class="cl">Is a custom front end on a page hard?</p><span class="v v--ref">No &mdash; and that is the trade-off</span><p class="gi">Every Bravo console is an ordinary React app calling REST endpoints named after business actions. The interface never sees a Camunda task id. <strong>One page is easy.</strong> But there are <b>at least fifteen</b> separate browser applications, and a change to anything shared has to ship in every one of them that uses it. LORA has one back-office front end and a three-layer widget seam. <strong>Bravo swapped a hard seam for a wide surface.</strong></p></div>
+      <div class="vrow"><p class="cl">Is pagination solved?</p><span class="v v--ref">Yes &mdash; and LORA&rsquo;s account of it is confirmed</span><p class="gi">Confirmed from Bravo&rsquo;s own telemetry. Bravo built exactly the paging LORA describes: a controller literally named <code>SurveyorAssignmentFormTabV2Controller</code>, plus <b>nine</b> more endpoints for the parts of an assignment. Together they are the <strong>busiest read path in the service.</strong> LORA is right not to rebuild it, and Bravo was right that it needed it.</p></div>
+      <div class="vrow"><p class="cl">Can master data fill dropdowns?</p><span class="v v--ref">Yes &mdash; this is the capability LORA turned down</span><p class="gi">LOV tables and three master-data services fill the dropdowns directly. That is why renaming an approval role (<code>BLCS-4683</code>, NMH to GMB) took <strong>one YAML line, one SQL <code>UPDATE</code>, and no Java</strong>. The cost is the one LORA designed around: the values are read <em>live</em>, so editing master data mid-flight can change what a form offers <em>after a decision has already been made from the old list.</em></p></div>
+      <div class="vrow"><p class="cl">Are the front ends healthy?</p><span class="v v--con">No, and nobody was looking</span><p class="gi">Four monitored consoles produce <b>2,413,198 errors in 7 days</b> &mdash; 5.8 times LORA&rsquo;s back office. <b>748,686 of those are 404s</b> on the Surveyor Platform, and one endpoint reaches <b>69% of all sessions</b>. <strong>No monitor can see any of it, because every health check only looks for status codes starting with 5.</strong></p></div>
     </div>
     <p class="pull">Every delivery mechanism Bravo needs exists, and most of them work. What is missing is a <em>boundary.</em>
-      <small>No flag registry, no console inventory, no front-end error budget &mdash; so the delivery surface grows and nothing tells anyone it has.</small></p>
+      <small>No flag register, no list of consoles, no error budget for the front ends. So the delivery surface keeps growing, and nothing tells anyone that it has.</small></p>
     <div class="foot"><span class="src">bravo-delivery.md &sect;Verdicts</span><span>02</span></div>
   </div>
 </section>
@@ -368,21 +370,21 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 <section class="slide" data-nav="Five flag mechanisms">
   <div class="inner">
     <p class="eyebrow"><b>&sect;1</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Feature flags: five mechanisms, no registry, and a restart</h2>
-    <p class="lede">LORA&rsquo;s complaint was &ldquo;no feature flag; cannot pick what deploys&rdquo;, graded <em>partially true</em>. <strong>Bravo&rsquo;s answer is the opposite failure.</strong> It has five ways to pick what runs, and they are not coordinated.</p>
+    <h2 class="st">Feature flags: five mechanisms, no register, and a restart</h2>
+    <p class="lede">LORA&rsquo;s complaint was &ldquo;no feature flag; cannot pick what deploys&rdquo;, which it graded <em>partially true</em>. <strong>Bravo fails in the opposite direction.</strong> It has five ways to pick what runs, and nothing coordinates them.</p>
     <div class="tw"><table>
-      <thead><tr><th>Mechanism</th><th>Granularity</th><th>To change it you&hellip;</th><th>In-flight loans?</th></tr></thead>
+      <thead><tr><th>Mechanism</th><th>How fine-grained</th><th>To change it, you&hellip;</th><th>Affects loans already running?</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>Spring property flags inside BPMN gateway conditions</b> &mdash; <code>environment.getProperty('setting.feature.config.featDF2W') == 'true'</code>; <b>68 lookups</b> in the legacy monoliths, <b>10</b> in the unified spine</td><td>environment-wide</td><td>change configuration and <b>restart</b>, or refresh config</td><td>yes, at the next gateway evaluation</td></tr>
-        <tr><td class="k"><b>Java service flags</b> &mdash; <code>featRefactorWorkflow</code>, <code>featFinalApproverRoleOnReject</code>, <code>featSingleApproverRejectedRole</code></td><td>environment-wide</td><td>same</td><td>yes</td></tr>
-        <tr><td class="k"><b>Six-column selector tables</b> &mdash; <code>WorkflowProductConfig(productId, type, customerType, userType, businessType, riskType)</code></td><td>per product / customer / risk combination</td><td>a Flyway <b>data migration</b></td><td>at resolution time</td></tr>
-        <tr><td class="k"><b>Per-application jsonb activity matrix</b> &mdash; <code>{"CI": {"PilotBranchCheckActivity": [true,false]}}</code>, read by <code>BaseActivity.execute()</code> before every unified activity</td><td><b>per application, per activity</b></td><td>resolved at start, re-resolved mid-flight for the &ldquo;SUO&rdquo; phase</td><td>fixed per application at start</td></tr>
-        <tr><td class="k"><b>Camunda definition versioning</b></td><td>per process definition</td><td>deploy</td><td>parent stays on its version; <b>children resolve to latest at call time</b></td></tr>
+        <tr><td class="k"><b>Spring property flags written inside BPMN gateway conditions</b> &mdash; for example <code>environment.getProperty('setting.feature.config.featDF2W') == 'true'</code>. There are <b>68 of these lookups</b> in the older monoliths and <b>10</b> in the unified spine.</td><td>The whole environment</td><td>change the configuration and <b>restart</b>, or refresh the config</td><td>Yes, the next time that gateway runs</td></tr>
+        <tr><td class="k"><b>Java service flags</b> &mdash; <code>featRefactorWorkflow</code>, <code>featFinalApproverRoleOnReject</code>, <code>featSingleApproverRejectedRole</code></td><td>The whole environment</td><td>the same</td><td>Yes</td></tr>
+        <tr><td class="k"><b>Six-column selector tables</b> &mdash; <code>WorkflowProductConfig(productId, type, customerType, userType, businessType, riskType)</code></td><td>Per combination of product, customer and risk</td><td>write a Flyway <b>data migration</b></td><td>The next time the row is looked up</td></tr>
+        <tr><td class="k"><b>A per-application on/off matrix in jsonb</b> &mdash; <code>{"CI": {"PilotBranchCheckActivity": [true,false]}}</code>, read by <code>BaseActivity.execute()</code> before every unified activity</td><td><b>Per application, per activity</b></td><td>it is worked out when the application starts, and worked out again mid-flight for the &ldquo;SUO&rdquo; phase</td><td>Fixed for each application when it starts</td></tr>
+        <tr><td class="k"><b>Camunda version pinning</b></td><td>Per process definition</td><td>deploy</td><td>The parent stays on its own version, but <b>each child picks the newest version when it is called</b></td></tr>
       </tbody></table></div>
     <div class="cols">
-      <div class="note note--ok"><h4>What is genuinely good here</h4>The jsonb matrix is a <strong>real per-application guard layer sitting on top of the flowchart</strong> &mdash; the closest thing in either platform to LORA&rsquo;s <code>$.experiments.*</code>, and it arrived independently. It can only <em>skip</em> a step the diagram already contains, never introduce or reorder one, and it is static per application rather than computed from data readiness &mdash; <strong>but it is the right idea.</strong></div>
-      <div class="note note--bad"><h4>A flag inside a BPMN gateway string is not a release toggle</h4>Flipping it is a <strong>configuration deploy, not a switch</strong>, and it applies to the whole environment at once. That is a <em>slower</em> release control than a code change gated behind a property &mdash; because the property is now also in XML. And there is <strong>no registry and no expiry</strong>: 78 gateway lookups plus an unbounded set of Java flags, with no list of which are live. <code>featRefactorWorkflow</code> gates the entire unified-versus-legacy behaviour and has been in place since 2024.</div>
-      <div class="note note--bad"><h4>Bravo&rsquo;s real deploy risk is not flags &mdash; it is child-process binding</h4>No <code>callActivity</code> sets <code>camunda:calledElementBinding</code>, so redeploying a sub-process changes behaviour for <em>running</em> loans at their next call &mdash; including NDF2W loans entering unified underwriting. <strong>That is 73% of production volume with no migration plan.</strong> It is the single most important &ldquo;what deploys to whom&rdquo; question on this platform.</div>
+      <div class="note note--ok"><h4>What is genuinely good here</h4>The jsonb matrix is a <strong>real per-application guard sitting on top of the flowchart</strong>. It is the closest thing in either platform to LORA&rsquo;s <code>$.experiments.*</code>, and the team arrived at it independently. It has limits. It can only <em>skip</em> a step the diagram already contains, never add one or reorder them, and it is fixed per application rather than worked out from what data is ready. <strong>But it is the right idea.</strong></div>
+      <div class="note note--bad"><h4>A flag inside a BPMN gateway string is not a release switch</h4>Flipping one is a <strong>configuration deploy, not a switch</strong>, and it applies to the whole environment at once. That is a <em>slower</em> release control than a code change behind a property, because the property now lives in XML as well. There is also <strong>no register and no expiry date</strong>: 78 gateway lookups, plus an open-ended set of Java flags, and no list of which ones are live. <code>featRefactorWorkflow</code> gates the whole unified-versus-legacy behaviour, and it has been in place since 2024.</div>
+      <div class="note note--bad"><h4>The real deploy risk is not flags. It is how child processes are bound.</h4>No <code>callActivity</code> sets <code>camunda:calledElementBinding</code>. So redeploying a sub-process changes the behaviour of loans that are <em>already running</em>, the next time they call it. That includes NDF2W loans entering unified underwriting. <strong>That is 73% of production volume, with no migration plan.</strong> It is the most important &ldquo;what deploys to whom&rdquo; question on this platform.</div>
     </div>
     <div class="foot"><span class="src">bravo-delivery.md &sect;1 &middot; bravo-testing.md &sect;3 &middot; compare-architecture.md &sect;4</span><span>03</span></div>
   </div>
@@ -391,29 +393,28 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 <section class="slide" data-nav="Fifteen front ends">
   <div class="inner">
     <p class="eyebrow"><b>&sect;2</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Custom front end: easy per page, hard per system</h2>
+    <h2 class="st">Custom front ends: easy on one page, hard across the system</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="lede">LORA&rsquo;s complaint was that a custom widget is <strong>three layers</strong> &mdash; templ emits a custom tag, SolidJS registers the <code>customElement</code>, HTMX carries the value back &mdash; and that field-by-field templ cannot see sibling fields. Production bore it out: a script injected twice (8,067&times;/week) and hydration-order null dereferences (~34,900&times;/week).</p>
-        <div class="note note--ok"><h4>Bravo has none of that seam</h4>Each console is a plain React application talking to REST endpoints that speak <strong>domain verbs</strong> &mdash; <code>PATCH /v1/underwritings/{id}/approval/bm-decision</code>, <code>PUT &hellip;/approver-decision</code>. The UI never sees a Camunda task id or a form definition. <strong>Adding a field, a control or a whole page is ordinary front-end work.</strong></div>
-        <div class="note note--bad"><h4>The cost is on the other axis: how many front ends there are</h4>Every shared concept &mdash; an approval banner, an asset-category field, a status label &mdash; is implemented and maintained <strong>once per console that shows it</strong>. The <code>BLCS</code> ticket stream shows the consequence directly: <code>BLCS-4397</code> <em>&ldquo;Shared summary section config for both surfaces&rdquo;</em> and <code>BLCS-4398</code> <em>&ldquo;Verify section matrix across 5 flows on both surfaces&rdquo;</em> are <strong>one story spending its effort on keeping two consoles consistent.</strong></div>
-        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Per page, Bravo is clearly easier. Per <em>system</em>, Bravo pays a coordination tax LORA does not have &mdash;
-          <small>and it pays it in exactly the place where its production error volume is concentrated.</small></p>
+        <p class="lede">LORA&rsquo;s complaint was that a custom widget takes <strong>three layers</strong> &mdash; templ emits a custom tag, SolidJS registers the <code>customElement</code>, HTMX carries the value back &mdash; and that templ cannot see neighbouring fields. Production backed that up: one script injected twice (8,067 times a week), and null errors from hydration running out of order about 34,900 times a week.</p>
+        <div class="note note--ok"><h4>Bravo has none of that layering</h4>Every console is a plain React app calling REST endpoints named after the business action, such as <code>PATCH /v1/underwritings/{id}/approval/bm-decision</code>. The interface never sees a Camunda task id or a form definition. <strong>Adding a field, a control, or a whole page is ordinary front-end work.</strong></div>
+        <div class="note note--bad"><h4>The cost turns up somewhere else: the number of front ends</h4>Anything shared &mdash; an approval banner, an asset-category field, a status label &mdash; has to be built and maintained <strong>once in every console that shows it</strong>. The <code>BLCS</code> tickets show it: <code>BLCS-4397</code> is <em>&ldquo;Shared summary section config for both surfaces&rdquo;</em>, <code>BLCS-4398</code> is <em>&ldquo;Verify section matrix across 5 flows on both surfaces&rdquo;</em>. <strong>One story, spending all its effort on keeping two consoles in step.</strong></div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">On a single page, Bravo is clearly easier. Across the whole system, it pays a coordination cost LORA does not &mdash; <small>exactly where its production errors are concentrated.</small></p>
         <div class="tw"><table>
           <thead><tr><th>Measured 2026-09-10</th><th>surveyor-console</th><th>operation-console</th><th>underwriting-console</th></tr></thead>
           <tbody>
-            <tr><td class="k"><code>@bfi-finance/frontend-ui</code></td><td><code>3.0.155</code></td><td><span class="dn"><code>3.0.138</code></span> &mdash; 17 behind</td><td><code>^3.0.158</code></td></tr>
+            <tr><td class="k"><code>@bfi-finance/frontend-ui</code></td><td><code>3.0.155</code></td><td><span class="dn"><code>3.0.138</code></span> &mdash; 17 versions behind</td><td><code>^3.0.158</code></td></tr>
             <tr><td class="k">React</td><td><code>^17.0.2</code></td><td><span class="dn"><code>^18.2.0</code></span></td><td><code>^17.0.2</code></td></tr>
             <tr><td class="k">Vite</td><td><code>7.3.6</code></td><td><code>7.3.6</code></td><td><span class="dn"><code>4.5.0</code></span></td></tr>
-            <tr><td class="k">Linter &middot; CI Node</td><td>ESLint &middot; 20</td><td><span class="dn">Biome</span> &middot; 20</td><td>ESLint &middot; <span class="dn">18</span></td></tr>
-            <tr><td class="k">Source LOC &middot; tests</td><td>306,670 &middot; 286</td><td>207,825 &middot; 102</td><td>249,366 &middot; 441</td></tr>
+            <tr><td class="k">Linter &middot; Node in CI</td><td>ESLint &middot; 20</td><td><span class="dn">Biome</span> &middot; 20</td><td>ESLint &middot; <span class="dn">18</span></td></tr>
+            <tr><td class="k">Lines of code &middot; tests</td><td>306,670 &middot; 286</td><td>207,825 &middot; 102</td><td>249,366 &middot; 441</td></tr>
             <tr><td class="k">Owning squad</td><td><code>LN</code></td><td><code>LN</code></td><td><code>BLCS</code></td></tr>
           </tbody>
-          <caption><b>763,861 LOC and 829 tests across three consoles</b> &mdash; sharing a design system that has drifted to three versions, on two major versions of React. The coordination tax is not asserted here; this is its invoice.</caption>
+          <caption><b>Three consoles, 763,861 lines of code, 829 tests</b> &mdash; sharing a design system that has drifted into three versions, on two major versions of React. <b>This table is the bill for the coordination cost.</b></caption>
         </table></div>
       </div>
       <div class="tw"><table>
-        <thead><tr><th>Console, Bravo/LOS orbit</th><th>RUM</th></tr></thead>
+        <thead><tr><th>Console in the Bravo and LOS estate</th><th>Browser monitoring</th></tr></thead>
         <tbody>
           <tr><td class="k">Surveyor Platform (Prod + Test)</td><td><span class="up">ALL</span></td></tr>
           <tr><td class="k">Operation Platform (Prod + Test)</td><td><span class="up">ALL</span></td></tr>
@@ -424,7 +425,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
           <tr><td class="k">Agency Cockpit</td><td><span class="dn">NONE</span></td></tr>
           <tr><td class="k"><code>prod-bravo-e-line-ui</code>, <code>prod-notary-ui</code>, <code>prod-bravo-lms-fe</code>, <code>prod-bravo-lms-fund-fe</code>, <code>Prod LMS Core FE</code>, <code>prod-bfi-dashboard-digital-fe</code>, <code>prod-bravo-edoc-download</code>, <code>PROD-DMS-FE</code>, <code>EGC Platform</code>, agent and RO tooling</td><td>mixed</td></tr>
         </tbody>
-        <caption>At least <b>fifteen</b> browser applications, where LORA has <b>two</b> &mdash; back office and customer.</caption>
+        <caption>At least <b>fifteen</b> browser applications. LORA has <b>two</b>: back office and customer.</caption>
       </table></div>
     </div>
     <div class="foot"><span class="src">bravo-delivery.md &sect;2 &middot; RUM application inventory for the whole org</span><span>04</span></div>
@@ -434,28 +435,28 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 <section class="slide" data-nav="Pagination">
   <div class="inner">
     <p class="eyebrow"><b>&sect;3</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Pagination: Bravo built it, it is called <code style="font-size:.8em">FormTab</code>, and it is the busiest read path</h2>
+    <h2 class="st">Pagination: Bravo built it, called it <code style="font-size:.8em">FormTab</code>, and it is now the busiest read path</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Controller</th><th class="n">spans / 2 d</th><th>What it is</th></tr></thead>
+        <thead><tr><th>Controller</th><th class="n">calls / 2 days</th><th>What it is</th></tr></thead>
         <tbody>
-          <tr><td class="k">PartnershipConfigurationController.getByApplicationId</td><td class="n"><b>73,056</b></td><td>per-application configuration &mdash; and the 404 storm</td></tr>
-          <tr><td class="k"><b>SurveyorAssignmentFormTabV2Controller</b>.findByAssignmentId</td><td class="n"><b>33,673</b></td><td><b>the paged form itself, v2</b></td></tr>
-          <tr><td class="k">ApplicationDocumentTrackingController.get</td><td class="n">32,820</td><td>documents pane</td></tr>
+          <tr><td class="k">PartnershipConfigurationController.getByApplicationId</td><td class="n"><b>73,056</b></td><td>Per-application configuration. Also the source of the 404 flood.</td></tr>
+          <tr><td class="k"><b>SurveyorAssignmentFormTabV2Controller</b>.findByAssignmentId</td><td class="n"><b>33,673</b></td><td><b>The paged form itself, version 2</b></td></tr>
+          <tr><td class="k">ApplicationDocumentTrackingController.get</td><td class="n">32,820</td><td>Documents pane</td></tr>
           <tr><td class="k">SurveyorAssignmentManualKycController.scoring</td><td class="n">30,591</td><td>KYC pane</td></tr>
-          <tr><td class="k">SurveyorAssignmentController.exposeSurveyData</td><td class="n">8,535</td><td>survey payload</td></tr>
-          <tr><td class="k">SurveyorAssignmentCompanyDataController.findByAssignmentId</td><td class="n">7,526</td><td>company pane</td></tr>
-          <tr><td class="k">SurveyorAssignmentCompanyLegalityDocumentController</td><td class="n">7,476</td><td>legality pane</td></tr>
-          <tr><td class="k">SurveyorAssignmentCapitalDetailController.findByAssignmentId</td><td class="n">6,413</td><td>capital pane</td></tr>
-          <tr><td class="k">LongSurveyController.findAllByApplicationId / findByAssignmentId</td><td class="n">5,077 / 4,903</td><td>long-survey panes</td></tr>
+          <tr><td class="k">SurveyorAssignmentController.exposeSurveyData</td><td class="n">8,535</td><td>Survey payload</td></tr>
+          <tr><td class="k">SurveyorAssignmentCompanyDataController.findByAssignmentId</td><td class="n">7,526</td><td>Company pane</td></tr>
+          <tr><td class="k">SurveyorAssignmentCompanyLegalityDocumentController</td><td class="n">7,476</td><td>Legality pane</td></tr>
+          <tr><td class="k">SurveyorAssignmentCapitalDetailController.findByAssignmentId</td><td class="n">6,413</td><td>Capital pane</td></tr>
+          <tr><td class="k">LongSurveyController.findAllByApplicationId / findByAssignmentId</td><td class="n">5,077 / 4,903</td><td>Long-survey panes</td></tr>
         </tbody>
-        <caption>Plus three more per-assignment sub-resources visible in the 404 table: <code>surveyor-assignment-other-business</code>, <code>surveyor-assignment-asset-validation-two-wheeler</code>, <code>surveyor-assignment-request</code>.</caption>
+        <caption>Three more per-assignment endpoints appear in the 404 table as well: <code>surveyor-assignment-other-business</code>, <code>surveyor-assignment-asset-validation-two-wheeler</code> and <code>surveyor-assignment-request</code>.</caption>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="lede">LORA&rsquo;s delivery document grades this complaint <strong>misstated</strong>, on this reasoning: <em>&ldquo;In Bravo the surveyor saw all fields from all tasks on one giant form. They needed pagination by logical group. In LORA the surveyor opens one task and sees only that task&rsquo;s fields.&rdquo;</em> <strong>That account is correct &mdash; and it can now be verified from Bravo&rsquo;s own production telemetry rather than from memory.</strong></p>
-        <div class="note"><h4>A controller named <code>FormTabV2</code> is a pagination mechanism that has already been through one major version</h4>Nine or more sub-resource endpoints per assignment is &ldquo;pagination by logical group&rdquo; implemented as <strong>one endpoint per group</strong>. It works, it is heavily used, and it is the dominant read path in <code>ms-bpm</code>.</div>
-        <div class="note note--ok"><h4>Bravo&rsquo;s design is not a workaround</h4>It is a consequence of the object it presents. A Bravo surveyor opens an <em>assignment</em>, which spans the whole application. <strong>Paging it is the only sane thing to do. Calling this a defect misreads it.</strong> And LORA&rsquo;s recommendation stands, now better evidenced: nobody should rebuild whole-application paging in LORA, because LORA&rsquo;s surveyor genuinely opens one task.</div>
-        <div class="note note--bad"><h4>But it has a real cost LORA does not pay</h4>Opening one assignment issues <strong>roughly ten HTTP requests</strong>, each a controller, each a set of JPA <code>repository.operation</code> spans against <code>prod-postgres-bpm-d2bpm</code> &mdash; which is 34.7% of Bravo&rsquo;s production Cloud SQL bill. And <strong>four of those ten endpoints are the top four sources of the 404 storm</strong>, so <em>the paging surface is also the failure surface.</em></div>
+        <p class="lede">LORA&rsquo;s delivery document grades this complaint <strong>misstated</strong>, and reasons as follows: <em>&ldquo;In Bravo the surveyor saw all fields from all tasks on one giant form. They needed pagination by logical group. In LORA the surveyor opens one task and sees only that task&rsquo;s fields.&rdquo;</em> <strong>That account is correct. And we can now check it against Bravo&rsquo;s own production data, instead of relying on memory.</strong></p>
+        <div class="note"><h4>A controller called <code>FormTabV2</code> is paging that has already been through one major rewrite</h4>Nine or more endpoints per assignment is exactly &ldquo;pagination by logical group&rdquo;, built as <strong>one endpoint per group</strong>. It works, it is heavily used, and it is the main read path in <code>ms-bpm</code>.</div>
+        <div class="note note--ok"><h4>Bravo&rsquo;s design is not a workaround</h4>It follows from what the screen shows. A Bravo surveyor opens an <em>assignment</em>, which covers the whole application. <strong>Paging that is the only sensible thing to do, and calling it a defect misreads it.</strong> LORA&rsquo;s recommendation also stands, and is now better evidenced: nobody should rebuild whole-application paging in LORA, because a LORA surveyor really does open one task at a time.</div>
+        <div class="note note--bad"><h4>But it has a real cost that LORA does not pay</h4>Opening one assignment sends <strong>roughly ten HTTP requests</strong>. Each is a controller, and each runs a set of JPA <code>repository.operation</code> queries against <code>prod-postgres-bpm-d2bpm</code> &mdash; which is 34.7% of Bravo&rsquo;s production Cloud SQL bill. And <strong>four of those ten endpoints are the four biggest sources of the 404 flood</strong>, so <em>the endpoints built for paging are also the endpoints that fail.</em></div>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-delivery.md &sect;3 &middot; <code>spring.handler</code> spans grouped by resource, 48 hours</span><span>05</span></div>
@@ -465,22 +466,22 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 <section class="slide" data-nav="Master data">
   <div class="inner">
     <p class="eyebrow"><b>&sect;4</b><span class="sep">/</span>What we found</p>
-    <h2 class="st">Master data: Bravo has the feature LORA declined to build</h2>
+    <h2 class="st">Master data: Bravo has the feature LORA chose not to build</h2>
     <div class="tw"><table>
       <thead><tr><th></th><th>Bravo</th><th>LORA</th></tr></thead>
       <tbody>
-        <tr><td class="k">Where dropdown options come from</td><td>LOV tables in the same database (<code>underwriting_job_level_lov</code>, <code>&hellip;_detail</code>, <code>surveyor_coverage</code>, <code>surveyor_level</code>) plus live calls to master-data services</td><td>process-global cache loaded at worker start from BFI DMS; JSON Schema <code>enum</code>/<code>lov</code>; widget APIs</td></tr>
-        <tr><td class="k">Master-data traffic, 7 days</td><td><code>prod-ms-product</code> 31,463 &middot; <code>prod-ms-master</code> 27,954 &middot; <code>prod-ms-branch</code> 22,784 &middot; <code>prod-ms-employee</code> 64,725</td><td>~620k calls/week to <code>prod-ms-master</code> alone, via the gateway</td></tr>
-        <tr><td class="k">Adding a new lookup</td><td><span class="up">insert rows; the form reads them</span></td><td>LGS inner proxy + schema <code>lov</code> (+ optional cache key) &mdash; a multi-repo change</td></tr>
-        <tr><td class="k">Renaming a role across the approval ladder</td><td><span class="up"><b>one YAML line, one SQL <code>UPDATE</code>, zero Java</b></span> (<code>BLCS-4683</code>, NMH&rarr;GMB)</td><td>a schema change and a redeploy</td></tr>
-        <tr><td class="k">Consistency for the life of the loan</td><td><span class="dn"><b>not guaranteed</b></span> &mdash; options are read live</td><td><span class="up">guaranteed</span> by copying values onto the document at write</td></tr>
+        <tr><td class="k">Where dropdown options come from</td><td>LOV tables in the same database (<code>underwriting_job_level_lov</code>, <code>&hellip;_detail</code>, <code>surveyor_coverage</code>, <code>surveyor_level</code>), plus live calls to master-data services</td><td>A process-wide cache, loaded from BFI DMS when the worker starts; JSON Schema <code>enum</code> and <code>lov</code>; widget APIs</td></tr>
+        <tr><td class="k">Master-data traffic, 7 days</td><td><code>prod-ms-product</code> 31,463 &middot; <code>prod-ms-master</code> 27,954 &middot; <code>prod-ms-branch</code> 22,784 &middot; <code>prod-ms-employee</code> 64,725</td><td>About 620,000 calls a week to <code>prod-ms-master</code> alone, through the gateway</td></tr>
+        <tr><td class="k">Adding a new lookup</td><td><span class="up">Insert rows. The form reads them.</span></td><td>An LGS inner proxy, a schema <code>lov</code>, and optionally a cache key &mdash; a change across several repositories</td></tr>
+        <tr><td class="k">Renaming a role across the approval ladder</td><td><span class="up"><b>One YAML line, one SQL <code>UPDATE</code>, and no Java</b></span> (<code>BLCS-4683</code>, NMH to GMB)</td><td>A schema change and a redeploy</td></tr>
+        <tr><td class="k">Staying consistent for the life of the loan</td><td><span class="dn"><b>Not guaranteed.</b></span> Options are read live.</td><td><span class="up">Guaranteed.</span> Values are copied onto the document when it is written.</td></tr>
       </tbody></table></div>
     <div class="cols b">
-      <div class="note note--ok"><h4>The <code>BLCS-4683</code> case is the strongest single argument for Bravo&rsquo;s approach in this pack</h4>Renaming an approval role across a <em>staged ladder</em> &mdash; the kind of change that ordinarily ripples through code &mdash; was a <strong>configuration edit</strong>, because the ladder is <code>underwriting_job_level_lov_detail</code> rows ordered by <code>global_level</code> (CAFH 200 &rarr; AMB 300 &rarr; CCU 400 &rarr; GMB 600) snapshotted onto approver rows. <strong>That is data-driven delivery working exactly as intended.</strong></div>
-      <div class="note note--bad"><h4>And the cost is exactly the one LORA designed around</h4>Because options are read <em>live</em>, a master-data edit changes what a form offers immediately &mdash; including for applications already in flight and <strong>already decided on the old list.</strong> Bravo mitigates this partially: the approver ladder <em>is</em> snapshotted onto approver rows at assignment. But that is <strong>one path, done deliberately, not a platform property.</strong></div>
+      <div class="note note--ok"><h4><code>BLCS-4683</code> is the strongest single argument for Bravo&rsquo;s approach in this pack</h4>Renaming an approval role across a <em>staged ladder</em> is the kind of change that normally ripples through code. Here it was a <strong>configuration edit</strong>. The ladder is only rows in <code>underwriting_job_level_lov_detail</code>, ordered by <code>global_level</code> &mdash; CAFH 200, then AMB 300, then CCU 400, then GMB 600 &mdash; and those values are copied onto approver rows. <strong>That is data-driven delivery working exactly as intended.</strong></div>
+      <div class="note note--bad"><h4>And the cost is exactly the one LORA designed around</h4>Because options are read <em>live</em>, editing master data changes what a form offers straight away. That includes applications already in flight, and applications <strong>already decided from the old list.</strong> Bravo reduces the risk in one place: the approver ladder <em>is</em> copied onto approver rows when the approver is assigned. But that is <strong>one path, done on purpose. It is not a property of the platform.</strong></div>
     </div>
-    <div class="note note--bad"><h4>A live illustration of the risk, in the ticket stream</h4><code>BLCS-4683</code> renamed NMH&rarr;GMB in September 2026. <code>BLCS-4811</code>, <strong>three days before this document</strong>, is <em>&ldquo;[BE] Prepare Query Change GMB to NMH&rdquo;</em> &mdash; <strong>the rename is being reversed.</strong> A configuration change that is cheap to make is also cheap to make twice, and each edit lands on whatever applications are in flight at that moment. <strong>Nothing in Bravo records which applications were decided under which version of the ladder</strong>, because the master-data tables have no temporal dimension and Camunda&rsquo;s history purges at 90 days.</div>
-    <p class="lede" style="font-weight:600;color:var(--ink)">Neither design is wrong. Bravo optimised for change velocity on slowly-changing reference data and got it; LORA optimised for per-loan immutability and pays a multi-repo change for every new lookup. The right answer differs per lookup &mdash; and neither platform lets you choose per lookup.</p>
+    <div class="note note--bad"><h4>The risk, playing out in the ticket stream right now</h4><code>BLCS-4683</code> renamed NMH to GMB in September 2026. <code>BLCS-4811</code>, raised <strong>three days before this document</strong>, is <em>&ldquo;[BE] Prepare Query Change GMB to NMH&rdquo;</em>. <strong>The rename is being reversed.</strong> A configuration change that is cheap to make is also cheap to make twice, and each edit lands on whatever applications happen to be in flight at that moment. <strong>Nothing in Bravo records which applications were decided under which version of the ladder.</strong> The master-data tables keep no history, and Camunda deletes its own history after 90 days.</div>
+    <p class="lede" style="font-weight:600;color:var(--ink)">Neither design is wrong. Bravo optimised for changing reference data quickly, and it got that. LORA optimised for keeping each loan&rsquo;s values fixed, and pays for it with a change across several repositories for every new lookup. The right answer differs from one lookup to the next &mdash; and neither platform lets you choose lookup by lookup.</p>
     <div class="foot"><span class="src">bravo-delivery.md &sect;4</span><span>06</span></div>
   </div>
 </section>
@@ -489,11 +490,11 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
   <div class="inner">
     <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>What production actually says</p>
     <h2 class="st">2.4 million console errors a week, and nobody had looked</h2>
-    <p class="lede">Sections 1&ndash;4 are code and configuration reading. <strong>They did not have to be.</strong> All four production Bravo LOS consoles are RUM-instrumented at <code>rum_event_processing_state: ALL</code> &mdash; and, as with LORA&rsquo;s back office, nobody had opened the view.</p>
+    <p class="lede">Sections 1 to 4 were written by reading code and configuration. <strong>They did not have to be.</strong> All four production Bravo LOS consoles already send browser monitoring data, at <code>rum_event_processing_state: ALL</code>. As with LORA&rsquo;s back office, nobody had opened the view.</p>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="tw"><table>
-          <thead><tr><th>Console</th><th class="n">Sessions</th><th class="n">Views</th><th class="n">Actions</th><th class="n">Errors</th><th class="n">Err/view</th></tr></thead>
+          <thead><tr><th>Console</th><th class="n">Sessions</th><th class="n">Views</th><th class="n">Actions</th><th class="n">Errors</th><th class="n">Errors per view</th></tr></thead>
           <tbody>
             <tr><td class="k"><b>Surveyor Platform Prod</b></td><td class="n">79,090</td><td class="n">953,115</td><td class="n">3,739,210</td><td class="n"><span class="dn">1,962,909</span></td><td class="n"><b>2.06</b></td></tr>
             <tr><td class="k">Operation Platform Prod</td><td class="n">17,135</td><td class="n">96,707</td><td class="n">2,516,533</td><td class="n">287,646</td><td class="n"><span class="dn">2.97</span></td></tr>
@@ -501,27 +502,27 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
             <tr><td class="k">Customer Platform DF</td><td class="n">2,594</td><td class="n">31,412</td><td class="n">87,473</td><td class="n">38,221</td><td class="n">1.22</td></tr>
             <tr class="tot"><td>Total, 7 days</td><td class="n">114,447</td><td class="n">1,286,900</td><td class="n">8,307,499</td><td class="n">2,413,198</td><td class="n">1.88</td></tr>
           </tbody>
-          <caption>For scale: LORA&rsquo;s back office produces 416,201 errors a week at &asymp;2.8/view over 24,172 sessions. <b>Bravo&rsquo;s LOS consoles produce 5.8&times; the error volume at a comparable per-view rate. Both teams had the instrumentation and neither was reading it.</b></caption>
+          <caption>For scale: LORA&rsquo;s back office produces 416,201 errors a week, about 2.8 per view, across 24,172 sessions. <b>Bravo&rsquo;s consoles produce 5.8 times as many errors, at a similar rate per view. Both teams had the monitoring, and neither was reading it.</b></caption>
         </table></div>
       </div>
       <div class="tw"><table>
-        <thead><tr><th>Top errors, Surveyor Platform</th><th class="n">/ 7 d</th></tr></thead>
+        <thead><tr><th>Top errors, Surveyor Platform</th><th class="n">per 7 days</th></tr></thead>
         <tbody>
           <tr><td class="k"><b><code>Request failed with status code 404</code></b></td><td class="n"><span class="dn">748,686</span></td></tr>
           <tr><td class="k"><code>csp_violation</code> &mdash; <code>cdn-cgi/rum</code> blocked by <code>connect-src</code></td><td class="n">35,415</td></tr>
           <tr><td class="k"><code>intervention: Ignored attempt to cancel a touchmove event</code> &mdash; tablet devices</td><td class="n">20,928</td></tr>
           <tr><td class="k"><code>Request failed with status code 400</code></td><td class="n">12,796</td></tr>
-          <tr><td class="k">same beacon, explicit-port origin</td><td class="n">10,573</td></tr>
+          <tr><td class="k">The same beacon, from an origin with an explicit port</td><td class="n">10,573</td></tr>
           <tr><td class="k"><b><code>Error getting location: "[GeolocationPositionError]"</code></b></td><td class="n"><span class="dn">10,365</span></td></tr>
-          <tr><td class="k"><b><code>Unable to get current position</code></b> &mdash; same defect, second message</td><td class="n"><span class="dn">10,325</span></td></tr>
-          <tr><td class="k"><code>Request failed with status code 401</code> &mdash; the browser face of 8,533 IAM 401s</td><td class="n">7,402</td></tr>
+          <tr><td class="k"><b><code>Unable to get current position</code></b> &mdash; the same defect under a second message</td><td class="n"><span class="dn">10,325</span></td></tr>
+          <tr><td class="k"><code>Request failed with status code 401</code> &mdash; the browser side of 8,533 IAM 401s</td><td class="n">7,402</td></tr>
           <tr><td class="k"><code>Network Error</code></td><td class="n">6,828</td></tr>
-          <tr><td class="k"><code>Cannot read properties of null (reading 'filter')</code> &mdash; real null dereference</td><td class="n">6,445</td></tr>
+          <tr><td class="k"><code>Cannot read properties of null (reading 'filter')</code> &mdash; a genuine null error</td><td class="n">6,445</td></tr>
         </tbody>
-        <caption>The console behind <code>Surveyor Platform - Release reject</code> &mdash; <b>28.4% of Bravo&rsquo;s entire support-ticket load.</b></caption>
+        <caption>This is the console behind <code>Surveyor Platform - Release reject</code>, which is <b>28.4% of Bravo&rsquo;s entire support-ticket load.</b></caption>
       </table></div>
     </div>
-    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Caveats.</strong> RUM sessions are sampled and the counts include benign browser noise &mdash; the two CSP rows (45,988 combined) are a third-party beacon and are cosmetic, and <code>utc_offset is deprecated</code> (5,950) is a library warning. Treat the 404 rows, the geolocation rows and the null dereference as the actionable ones. Window is 7 days to 2026-09-10.</p>
+    <p class="lede" style="font-size:13.5px;color:var(--ink3)"><strong style="color:var(--ink2)">Caveats.</strong> Browser sessions are sampled, and the counts include harmless browser noise. The two CSP rows, 45,988 between them, come from a third-party beacon and are cosmetic, and <code>utc_offset is deprecated</code> (5,950) is a library warning. The rows worth acting on are the 404s, the location errors and the null error. The window is the 7 days to 2026-09-10.</p>
     <div class="foot"><span class="src">bravo-delivery.md &sect;5</span><span>07</span></div>
   </div>
 </section>
@@ -529,12 +530,12 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
 <section class="slide" data-nav="Three findings">
   <div class="inner">
     <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>Three findings that change this document</p>
-    <h2 class="st">The paging surface is the failure surface</h2>
+    <h2 class="st">The endpoints built for paging are the endpoints that fail</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="eyebrow"><b>A</b> &middot; The 404s are the paging surface from &sect;3</p>
+        <p class="eyebrow"><b>A</b> &middot; The 404s are landing on the same paging endpoints as &sect;3</p>
         <div class="tw"><table>
-          <thead><tr><th>Endpoint</th><th class="n">404s / 7 d</th><th class="n">sessions</th></tr></thead>
+          <thead><tr><th>Endpoint</th><th class="n">404s / 7 days</th><th class="n">sessions</th></tr></thead>
           <tbody>
             <tr><td class="k">/bpm/v1/partnership-configuration/<b>feature-configuration</b></td><td class="n"><span class="dn">266,767</span></td><td class="n"><b>54,350 of 79,090 &mdash; 69%</b></td></tr>
             <tr><td class="k">/bpm/v2/surveyor-assignment-form-tab/assignment/{id}</td><td class="n">157,623</td><td class="n">37,359</td></tr>
@@ -544,14 +545,14 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
             <tr><td class="k">/surveyor/assignment</td><td class="n">14,565</td><td class="n">11,287</td></tr>
           </tbody>
         </table></div>
-        <p class="lede" style="font-size:14px"><strong>Three of the top four are the assignment sub-resource endpoints</strong> &mdash; the <code>FormTab</code> paging model. The first is the busiest handler in the entire service, and <strong>two-thirds of all surveyor sessions receive a 404 from it.</strong> Whether that is benign (an optional configuration probe where 404 means &ldquo;no override&rdquo;) or a defect is a question for the controller, not for telemetry &mdash; but at this volume, on this console, it has to be asked. <em>It is section 3&rsquo;s mechanism and section 5&rsquo;s largest error, and nobody had connected them because nobody had opened either view.</em></p>
+        <p class="lede" style="font-size:14px"><strong>Three of the top four are the assignment endpoints</strong> &mdash; the <code>FormTab</code> paging model. The first is the busiest handler in the entire service, and <strong>two-thirds of all surveyor sessions get a 404 from it.</strong> It may be harmless: it could be an optional configuration probe, where 404 simply means &ldquo;no override&rdquo;. Or it could be a defect. Only the controller can settle that; telemetry cannot. But at this volume, on this console, somebody has to ask. <em>It is section 3&rsquo;s mechanism and section 5&rsquo;s largest error, and nobody had connected them, because nobody had opened either view.</em></p>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <p class="eyebrow"><b>B</b> &middot; Geolocation fails ~20,700 times a week on a platform spending Rp64.0M/month on Maps</p>
-        <div class="note note--bad"><code>GeolocationPositionError</code> and <code>Unable to get current position</code> are <strong>the same defect reported twice</strong>. Surveyors are field staff whose submissions depend on position capture. Separately, bravo-cost.md &sect;5 finds Geocoding, Places and Maps billing <strong>Rp63,979,414 in August</strong>. This document does not claim the two are causally linked &mdash; a browser geolocation failure and a server-side Maps call are different layers &mdash; <strong>but they are the same feature, in the same console, and neither has been examined.</strong></div>
+        <p class="eyebrow"><b>B</b> &middot; Location capture fails about 20,700 times a week, on a platform spending Rp64.0M a month on Maps</p>
+        <div class="note note--bad"><code>GeolocationPositionError</code> and <code>Unable to get current position</code> are <strong>the same defect, reported twice</strong>. Surveyors work in the field, and their submissions depend on capturing a position. Separately, bravo-cost.md &sect;5 finds that Geocoding, Places and Maps billed <strong>Rp63,979,414 in August</strong>. We are not claiming one causes the other &mdash; a browser failure and a server-side API call are different layers. <strong>But they are the same feature, in the same console, and nobody has examined either.</strong></div>
         <p class="eyebrow"><b>C</b> &middot; No alert can see any of this</p>
         <pre style="border-left-color:var(--bad)">(hits &minus; hits{<b>http.status_code:5*</b>}) / hits &lt; 99</pre>
-        <div class="note note--bad">A 404 is a <em>success</em> by that definition, and <strong>none of the 38 monitors touches RUM at all.</strong> This is the delivery-side face of the same finding: <strong>Bravo can ship a console change that 404s two-thirds of sessions and every signal it owns stays green.</strong></div>
+        <div class="note note--bad">By that definition a 404 counts as a <em>success</em>, and <strong>not one of the 38 monitors looks at browser data at all.</strong> This is the delivery side of the same finding: <strong>Bravo can ship a console change that returns 404 to two-thirds of sessions, and every signal it owns stays green.</strong></div>
         <p class="eyebrow">How to reproduce</p>
         <pre><span class="c"># Datadog RUM, Surveyor Platform Prod</span>
 @application.id:<span class="a">2f3ca103-2053-4601-8e2a-5de3aee713bb</span>
@@ -574,15 +575,15 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
     <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
     <h2 class="st">Nine actions</h2>
     <div class="recs">
-      <div class="rec first"><span class="no">1</span><span class="tx"><b>Read the <code>feature-configuration</code> 404 <span class="sz">&middot; S, do this first</span></b>266,767 a week, 69% of surveyor sessions, on the busiest handler in the service. Decide whether 404 is the intended &ldquo;no override&rdquo; response &mdash; and if it is, <b>stop the client raising it as an error</b>, because it is currently drowning that console&rsquo;s error stream. If it is not, this is a live production defect that has been invisible for as long as anyone has data for.</span></div>
-      <div class="rec"><span class="no">2</span><span class="tx"><b>Fix the geolocation failures, and check them against the Maps bill <span class="sz">&middot; S&ndash;M</span></b>~20,700 failures a week on a field-staff console. Establish the cause (permissions, HTTPS context, device, timeout) and whether the retries are billed against the Rp64.0M/month Maps line.</span></div>
-      <div class="rec"><span class="no">3</span><span class="tx"><b>Set a front-end error budget per console <span class="sz">&middot; S</span></b>Today the Surveyor Platform runs at 2.06 errors per view and Operation at 2.97, and <b>no number would move if either doubled</b>. One SLO per console, reviewed weekly, is the cheapest thing on this list.</span></div>
-      <div class="rec"><span class="no">4</span><span class="tx"><b>Filter the CSP beacon rows <span class="sz">&middot; S</span></b>45,988 <code>cdn-cgi/rum</code> violations a week are cosmetic and are the second- and fifth-largest rows on the Surveyor Platform. Either allow the origin in <code>connect-src</code> or stop loading the beacon; <b>right now they hide real errors.</b></span></div>
-      <div class="rec"><span class="no">5</span><span class="tx"><b>Build a feature-flag registry <span class="sz">&middot; S&ndash;M</span></b>78 gateway lookups plus the Java flags plus the selector tables, with no list of what is live, what it gates, who owns it, or when it can be removed. <b>Start by listing them; the removal candidates will be obvious.</b></span></div>
-      <div class="rec"><span class="no">6</span><span class="tx"><b>Pin <code>calledElementBinding</code>, or accept in-flight child migration deliberately <span class="sz">&middot; S&ndash;M</span></b>This is the real &ldquo;choose what deploys&rdquo; question on Bravo and it is <b>currently answered by default.</b> Cross-referenced in bravo-testing.md recommendation 1.</span></div>
-      <div class="rec"><span class="no">7</span><span class="tx"><b>Inventory the consoles and name a shared component owner <span class="sz">&middot; M</span></b>At least fifteen browser applications, with stories already spending their effort on &ldquo;both surfaces&rdquo;. Either a shared component library with an owner, or an explicit decision that each console diverges.</span></div>
-      <div class="rec"><span class="no">8</span><span class="tx"><b>Give slowly-changing reference data a version, or a snapshot <span class="sz">&middot; M</span></b>The NMH&rarr;GMB rename and its in-progress reversal show a configuration lever cheap enough to pull twice. Applications decided under the old ladder are not distinguishable from those decided under the new one after 90 days. Either version the LOV tables or snapshot the values onto the application, as the approver rows already do.</span></div>
-      <div class="rec"><span class="no">9</span><span class="tx"><b>Instrument Agency Cockpit, or retire it <span class="sz">&middot; S</span></b>It is the one LOS-adjacent console with <code>rum_event_processing_state: NONE</code>.</span></div>
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Work out what the <code>feature-configuration</code> 404 means <span class="sz">&middot; S, do this first</span></b>266,767 a week, reaching 69% of surveyor sessions, on the busiest handler in the service. Decide whether 404 is the response we intend for &ldquo;no override&rdquo;. If it is, <b>stop the client treating it as an error</b>, because right now it is drowning that console&rsquo;s error stream. If it is not, this is a live production defect, and it has been invisible for as long as we have data.</span></div>
+      <div class="rec"><span class="no">2</span><span class="tx"><b>Fix the location failures, and check them against the Maps bill <span class="sz">&middot; S&ndash;M</span></b>About 20,700 failures a week, on a console used by field staff. Find the cause &mdash; permissions, HTTPS context, device, or timeout &mdash; and find out whether the retries are billed against the Rp64.0M a month Maps line.</span></div>
+      <div class="rec"><span class="no">3</span><span class="tx"><b>Set an error budget for each console <span class="sz">&middot; S</span></b>The Surveyor Platform runs at 2.06 errors per view today, and Operation at 2.97. <b>If either doubled, no number anywhere would move.</b> One SLO per console, reviewed weekly, is the cheapest thing on this list.</span></div>
+      <div class="rec"><span class="no">4</span><span class="tx"><b>Filter out the CSP beacon rows <span class="sz">&middot; S</span></b>45,988 <code>cdn-cgi/rum</code> violations a week are cosmetic, and they are the second- and fifth-largest rows on the Surveyor Platform. Either allow the origin in <code>connect-src</code>, or stop loading the beacon. <b>As things stand, they hide real errors.</b></span></div>
+      <div class="rec"><span class="no">5</span><span class="tx"><b>Build a feature-flag register <span class="sz">&middot; S&ndash;M</span></b>There are 78 gateway lookups, plus the Java flags, plus the selector tables. There is no list of which are live, what each one gates, who owns it, or when it can be removed. <b>Start by listing them. The ones to delete will be obvious.</b></span></div>
+      <div class="rec"><span class="no">6</span><span class="tx"><b>Pin <code>calledElementBinding</code>, or decide deliberately to move running loans <span class="sz">&middot; S&ndash;M</span></b>This is the real &ldquo;choose what deploys&rdquo; question on Bravo, and <b>right now it is answered by default.</b> Also listed as recommendation 1 in bravo-testing.md.</span></div>
+      <div class="rec"><span class="no">7</span><span class="tx"><b>List the consoles, and name an owner for shared components <span class="sz">&middot; M</span></b>There are at least fifteen browser applications, and stories are already spending their effort on &ldquo;both surfaces&rdquo;. Either build a shared component library and give it an owner, or decide explicitly that each console goes its own way.</span></div>
+      <div class="rec"><span class="no">8</span><span class="tx"><b>Give reference data a version, or copy it onto the application <span class="sz">&middot; M</span></b>The NMH-to-GMB rename, and the reversal now in progress, show a configuration change cheap enough to make twice. After 90 days you cannot tell which applications were decided under the old ladder and which under the new one. Either keep versions of the LOV tables, or copy the values onto the application, the way approver rows already do.</span></div>
+      <div class="rec"><span class="no">9</span><span class="tx"><b>Add monitoring to Agency Cockpit, or retire it <span class="sz">&middot; S</span></b>It is the only console near the LOS with <code>rum_event_processing_state: NONE</code>, so nothing is watching it.</span></div>
     </div>
     <div class="foot"><span class="src">bravo-delivery.md &sect;Recommended actions</span><span>09</span></div>
   </div>
@@ -592,43 +593,43 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
   <div class="inner">
     <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Plan</p>
     <h2 class="st">30, 60, 90 days</h2>
-    <p class="lede">Nine recommendations, phased against <strong>~25 person-days a month</strong> of Squad S&amp;U time and a slice of Platform/SRE.</p>
+    <p class="lede">Nine recommendations, phased against <strong>about 25 person-days a month</strong> of Squad S&amp;U time, plus a slice of Platform and SRE.</p>
     <div class="cols">
-      <div class="note note--bad"><h4>Sequencing rule</h4><strong>Fix what users hit before rebuilding what engineers dislike.</strong> The 404 storm reaches 69% of surveyor sessions on the console that generates 28.4% of Bravo&rsquo;s support tickets; the console inventory and the shared-component question are structurally important and <em>hurt nobody today</em>. So the live defects go first and the architecture of the delivery surface goes last.</div>
-      <div class="note"><h4>Shared with other documents</h4>Recommendation 1 is also <strong>bravo-observability.md rec 1</strong> and <strong>bravo-cost.md rec 5</strong>; recommendation 2 pairs with <strong>bravo-cost.md rec 3</strong>; recommendation 3 pairs with <strong>bravo-observability.md rec 10</strong>; recommendation 6 <em>is</em> <strong>bravo-testing.md rec 1</strong>. Phased identically everywhere &mdash; do them once.</div>
+      <div class="note note--bad"><h4>The rule for ordering this work</h4><strong>Fix what users hit before rebuilding what engineers dislike.</strong> The 404 flood reaches 69% of surveyor sessions, on the console that generates 28.4% of Bravo&rsquo;s support tickets. The console inventory and the shared-component question matter structurally, but they <em>hurt nobody today</em>. So the live defects go first, and the shape of the delivery surface goes last.</div>
+      <div class="note"><h4>Shared with other documents</h4>Recommendation 1 is also rec 1 in <strong>bravo-observability.md</strong> and rec 5 in <strong>bravo-cost.md</strong>. Recommendation 2 goes with rec 3 in <strong>bravo-cost.md</strong>. Recommendation 3 goes with rec 10 in <strong>bravo-observability.md</strong>. Recommendation 6 <em>is</em> rec 1 in <strong>bravo-testing.md</strong>. Phased the same way everywhere, so do them once.</div>
     </div>
     <div class="phases">
       <div class="ph">
         <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">The live defects and the cheap noise</span></div>
         <ul>
-          <li><span class="r">1</span><span><b>Read the <code>feature-configuration</code> 404</b> &mdash; is 404 the intended &ldquo;no override&rdquo; response, or a defect? <em>S&amp;U &middot; 2 d.</em> A written answer for the endpoint hitting 54,350 of 79,090 sessions.</span></li>
-          <li><span class="r">1</span><span><b>Act on the answer</b> &mdash; resolve the lookup, or stop the client raising it as an error. <em>S&amp;U &middot; 3 d.</em> The Surveyor Platform&rsquo;s error stream drops by roughly a third, and whatever the 404 was hiding becomes visible.</span></li>
-          <li><span class="r">4</span><span><b>Filter or allowlist the CSP beacon</b> &mdash; 45,988 violations a week. <em>Platform &middot; 1 d.</em> Real errors stop being buried.</span></li>
-          <li><span class="r">9</span><span><b>Instrument Agency Cockpit, or retire it.</b> <em>Platform &middot; 1 d.</em></span></li>
-          <li><span class="r">6</span><span><b><code>calledElementBinding</code> investigation &mdash; read-only</b> <em>(shared)</em>. <em>S&amp;U &middot; 5 d.</em> A written exposure note. <b>No code change.</b></span></li>
+          <li><span class="r">1</span><span><b>Work out what the <code>feature-configuration</code> 404 means</b> &mdash; is 404 the intended &ldquo;no override&rdquo; response, or a defect? <em>S&amp;U &middot; 2 days.</em> A written answer, for the endpoint that hits 54,350 of 79,090 sessions.</span></li>
+          <li><span class="r">1</span><span><b>Act on the answer</b> &mdash; fix the lookup, or stop the client treating it as an error. <em>S&amp;U &middot; 3 days.</em> The Surveyor Platform&rsquo;s error stream drops by roughly a third, and whatever the 404 was hiding becomes visible.</span></li>
+          <li><span class="r">4</span><span><b>Filter or allow the CSP beacon</b> &mdash; 45,988 violations a week. <em>Platform &middot; 1 day.</em> Real errors stop being buried.</span></li>
+          <li><span class="r">9</span><span><b>Add monitoring to Agency Cockpit, or retire it.</b> <em>Platform &middot; 1 day.</em></span></li>
+          <li><span class="r">6</span><span><b>Investigate <code>calledElementBinding</code> &mdash; read-only</b> <em>(shared)</em>. <em>S&amp;U &middot; 5 days.</em> A written note on the exposure. <b>No code change.</b></span></li>
         </ul>
       </div>
       <div class="ph">
-        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">Budgets, the field defect, the flag inventory</span></div>
+        <div class="ph__h"><span class="ph__d">Days 31&ndash;60</span><span class="ph__t">Budgets, the field defect, the flag list</span></div>
         <ul>
-          <li><span class="r">2</span><span><b>Fix the geolocation failures</b> &mdash; ~20,700 a week on a field-staff console; establish cause (permissions, HTTPS context, device, timeout). <em>S&amp;U &middot; 5 d.</em> Cause documented and cross-checked against the Rp64.0M/month Maps line.</span></li>
-          <li><span class="r">3</span><span><b>Set a front-end error budget per console</b> &mdash; one SLO each, reviewed weekly. <em>Platform/SRE + EM &middot; 2 d.</em> A console regression is caught by a number instead of by 315 <code>Release reject</code> tickets a month.</span></li>
-          <li><span class="r">5</span><span><b>Build the feature-flag registry</b> &mdash; what is live, what it gates, who owns it, when it expires. <em>S&amp;U &middot; 4 d.</em> Somebody can answer &ldquo;what is <code>featRefactorWorkflow</code> gating and can we delete it&rdquo; without reading 53 BPMN files.</span></li>
-          <li><span class="r">6</span><span><b><code>calledElementBinding</code> decision</b> <em>(shared)</em>. <em>S&amp;U + EM &middot; 2 d.</em> A recorded decision with a migration plan.</span></li>
+          <li><span class="r">2</span><span><b>Fix the location failures</b> &mdash; about 20,700 a week on a console used by field staff. Find the cause: permissions, HTTPS context, device, or timeout. <em>S&amp;U &middot; 5 days.</em> The cause is documented and checked against the Rp64.0M a month Maps line.</span></li>
+          <li><span class="r">3</span><span><b>Set an error budget for each console</b> &mdash; one SLO each, reviewed weekly. <em>Platform, SRE and EM &middot; 2 days.</em> A console regression gets caught by a number, instead of by 315 <code>Release reject</code> tickets a month.</span></li>
+          <li><span class="r">5</span><span><b>Build the feature-flag register</b> &mdash; what is live, what it gates, who owns it, and when it expires. <em>S&amp;U &middot; 4 days.</em> Somebody can answer &ldquo;what does <code>featRefactorWorkflow</code> gate, and can we delete it?&rdquo; without reading 53 BPMN files.</span></li>
+          <li><span class="r">6</span><span><b>Decide <code>calledElementBinding</code></b> <em>(shared)</em>. <em>S&amp;U and EM &middot; 2 days.</em> A decision on the record, with a migration plan.</span></li>
         </ul>
       </div>
       <div class="ph">
         <div class="ph__h"><span class="ph__d">Days 61&ndash;90</span><span class="ph__t">The delivery surface itself</span></div>
         <ul>
-          <li><span class="r">6</span><span><b>Implement the binding decision</b> <em>(shared; effort carried in bravo-testing.md)</em>. Redeploying a unified sub-process stops silently changing the path of in-flight NDF2W loans.</span></li>
-          <li><span class="r">7</span><span><b>Inventory the consoles and name a shared-component owner</b> &mdash; at least fifteen browser applications, with stories already spending their effort on &ldquo;both surfaces&rdquo;. <em>EM + FE leads &middot; 3 d.</em> Either a shared component library with an owner, or an explicit, recorded decision that consoles diverge.</span></li>
+          <li><span class="r">6</span><span><b>Carry out the binding decision</b> <em>(shared; the effort is carried in bravo-testing.md)</em>. Redeploying a unified sub-process stops silently changing the path of NDF2W loans that are already running.</span></li>
+          <li><span class="r">7</span><span><b>List the consoles and name an owner for shared components</b> &mdash; at least fifteen browser applications, with stories already spending their effort on &ldquo;both surfaces&rdquo;. <em>EM and the front-end leads &middot; 3 days.</em> Either a shared component library with an owner, or an explicit decision, on the record, that the consoles go their own way.</span></li>
         </ul>
       </div>
       <div class="ph ph--last">
         <div class="ph__h"><span class="ph__d">Deferred</span><span class="ph__t">With triggers</span></div>
         <ul>
-          <li><span class="r">7</span><span><b>Shared component library</b>, beyond the inventory. An organisational decision with a budget, not an engineering task. <em>Trigger: after the phase-3 inventory.</em></span></li>
-          <li><span class="r">8</span><span><b>Version or snapshot slowly-changing reference data.</b> 10 days, and the design depends on the Camunda history decision in <b>bravo-cost.md rec 4</b>, because both concern what is knowable after day 91. <em>Trigger: after that decision lands.</em></span></li>
+          <li><span class="r">7</span><span><b>The shared component library itself</b>, beyond the list. An organisational decision with a budget attached, not an engineering task. <em>Trigger: the phase-3 inventory.</em></span></li>
+          <li><span class="r">8</span><span><b>Version the reference data, or copy it onto the application.</b> 10 days. The design depends on the Camunda history decision in <b>bravo-cost.md rec 4</b>, because both are about what we can still know after day 91. <em>Trigger: that decision landing.</em></span></li>
         </ul>
       </div>
     </div>
@@ -644,14 +645,14 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <thead><tr><th>Recommendation</th><th>Example when done</th></tr></thead>
       <tbody>
         <tr><td class="k"><code>feature-configuration</code> 404 resolved</td><td>The Surveyor Platform&rsquo;s error stream drops by roughly a third, and whatever the 404 was hiding becomes visible.</td></tr>
-        <tr><td class="k">Geolocation fixed</td><td>Field surveyors stop failing position capture ~20,700 times a week, and the Maps line gets an explanation.</td></tr>
-        <tr><td class="k">Front-end error budgets</td><td>A console regression is caught by a number instead of by 315 <code>Release reject</code> tickets a month.</td></tr>
-        <tr><td class="k">Flag registry</td><td>Somebody can answer &ldquo;what is <code>featRefactorWorkflow</code> gating and can we delete it&rdquo; without reading 53 BPMN files.</td></tr>
-        <tr><td class="k"><code>calledElementBinding</code> decided</td><td>Redeploying a unified sub-process stops silently changing the path of in-flight NDF2W loans.</td></tr>
-        <tr><td class="k">Console ownership</td><td>&ldquo;Shared summary section config for both surfaces&rdquo; is a component change, not a story.</td></tr>
-        <tr><td class="k">Reference data versioned</td><td>The question &ldquo;which ladder was this application approved under&rdquo; has an answer at day 120.</td></tr>
+        <tr><td class="k">Location capture fixed</td><td>Field surveyors stop failing to capture a position about 20,700 times a week, and the Maps bill gets an explanation.</td></tr>
+        <tr><td class="k">Error budgets for the front ends</td><td>A console regression gets caught by a number, instead of by 315 <code>Release reject</code> tickets a month.</td></tr>
+        <tr><td class="k">Flag register</td><td>Somebody can answer &ldquo;what does <code>featRefactorWorkflow</code> gate, and can we delete it?&rdquo; without reading 53 BPMN files.</td></tr>
+        <tr><td class="k"><code>calledElementBinding</code> decided</td><td>Redeploying a unified sub-process stops silently changing the path of NDF2W loans that are already running.</td></tr>
+        <tr><td class="k">Console ownership</td><td>&ldquo;Shared summary section config for both surfaces&rdquo; becomes a change to one component, not a story.</td></tr>
+        <tr><td class="k">Reference data versioned</td><td>The question &ldquo;which ladder was this application approved under?&rdquo; has an answer at day 120.</td></tr>
       </tbody></table></div>
-    <p class="pull">Bravo can ship a console change that 404s two-thirds of sessions and every signal it owns stays green. One SLO per console fixes that.</p>
+    <p class="pull">Bravo can ship a console change that returns 404 to two-thirds of sessions, and every signal it owns stays green. One SLO per console fixes that.</p>
     <div class="foot"><span class="src">bravo-delivery.md &middot; related: bravo-observability.md &sect;5&ndash;6, bravo-testing.md &sect;3&ndash;4, bravo-cost.md &sect;5, compare-architecture.md &sect;3.4 &sect;3.8 &sect;3.11</span><span>11</span></div>
   </div>
 </section>

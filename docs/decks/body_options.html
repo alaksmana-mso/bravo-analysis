@@ -47,14 +47,14 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
     <h1>One decision is firm.<br><span class="thin">One is still open.</span></h1>
     <div class="verdictbox" style="max-width:90ch">
       <span class="lab">Decision A &middot; weeks &middot; firm &middot; fund now</span>
-      <p class="txt">Bravo runs the <em>last public build</em> of two dead stacks, with live code execution already confirmed in the production engine. A licence-free fork plus Spring Boot 4 clears both cliffs for <em>18&ndash;33 engineer-days.</em></p>
+      <p class="txt">Bravo runs the <em>last public build</em> of two products that are no longer supported. Someone has already run their own code on its production engine. A free fork of the engine, plus Spring Boot 4, fixes both problems for <em>18 to 33 engineer-days.</em></p>
     </div>
     <div class="verdictbox" style="max-width:90ch;border-color:var(--ruleS);background:transparent">
-      <span class="lab" style="color:var(--ink3)">Decision B &middot; months &middot; open &middot; this pack deliberately does not pick</span>
-      <p class="txt" style="font-size:clamp(16px,1.9vw,23px)">Upgrade, Temporal, or LORA. Three correct answers to <strong>three different questions</strong> &mdash; and one measurement that would settle the biggest number has not been taken.</p>
+      <span class="lab">Decision B &middot; months &middot; open &middot; this pack deliberately does not choose</span>
+      <p class="txt" style="font-size:clamp(16px,1.9vw,23px)">Upgrade, Temporal, or LORA. Three right answers to <strong>three different questions</strong> &mdash; and the one measurement that would settle the biggest number has not been taken.</p>
     </div>
     <div class="meta">
-      <span><b>Evidence</b> &nbsp;<code>ms-bpm</code> @ 2d5d856 &middot; 3 operator consoles &middot; production BPM Postgres, 90d &middot; GCP FinOps Aug 2026 &middot; vendor calendars</span>
+      <span><b>Evidence</b> &nbsp;<code>ms-bpm</code> @ 2d5d856 &middot; 3 operator consoles &middot; production BPM Postgres, 90 days &middot; GCP FinOps Aug 2026 &middot; vendor calendars</span>
       <span><b>As at</b> &nbsp;2026-09-11</span>
     </div>
   </div>
@@ -64,21 +64,21 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="The finding">
   <div class="inner">
     <p class="eyebrow"><b>01</b><span class="sep">/</span>The finding</p>
-    <h2 class="st">Bravo is not approaching two end-of-support cliffs. It has gone over both.</h2>
-    <p class="lede">And it sits on the <strong>last publicly available build of each stack</strong> &mdash; there is no further free patch to take.</p>
+    <h2 class="st">Bravo is not approaching two end-of-support dates. It has passed both.</h2>
+    <p class="lede">And it is running the <strong>last build either product will ever release for free</strong>. There is no further patch to take.</p>
     <div class="tw"><table>
       <thead><tr><th>Component</th><th>Bravo runs</th><th>Support ended</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>Camunda 7 Community Edition</b></td><td>7.23.0</td><td><span class="dn"><b>14 Oct 2025</b></span> &mdash; line closed, final artifact 7.24.0, GitHub repo archived, <b>no security patches ever again</b></td></tr>
-        <tr><td class="k"><b>Spring Boot 3.5.x (OSS)</b></td><td>3.5.16 &mdash; the final OSS patch, 25 Jun 2026</td><td><span class="dn"><b>30 Jun 2026</b></span></td></tr>
-        <tr><td class="k">Java 17 (Oracle premier)</td><td>17, on distroless / Temurin</td><td>30 Sep 2026 &mdash; <b>20 days</b></td></tr>
-        <tr><td class="k">Camunda 7.23 (Enterprise maintenance)</td><td><b>&mdash; no licence held &mdash;</b></td><td>13 Oct 2026 &mdash; <b>33 days</b></td></tr>
+        <tr><td class="k"><b>Camunda 7 Community Edition</b></td><td>7.23.0</td><td><span class="dn"><b>14 Oct 2025</b></span> &mdash; the line is closed, the final release was 7.24.0, the GitHub repo is archived, and there will be <b>no security patches ever again</b></td></tr>
+        <tr><td class="k"><b>Spring Boot 3.5.x (open source)</b></td><td>3.5.16 &mdash; the last free patch, 25 Jun 2026</td><td><span class="dn"><b>30 Jun 2026</b></span></td></tr>
+        <tr><td class="k">Java 17 (Oracle premier support)</td><td>17, on distroless and Temurin</td><td>30 Sep 2026 &mdash; <b>20 days away</b></td></tr>
+        <tr><td class="k">Camunda 7.23 (Enterprise maintenance)</td><td><b>&mdash; we hold no licence &mdash;</b></td><td>13 Oct 2026 &mdash; <b>33 days away</b></td></tr>
       </tbody>
     </table></div>
     <div class="cols">
-      <div class="note note--ok"><h4>1 &middot; A supported destination exists, and it is cheap</h4>The Apache-2.0 community forks &mdash; <strong>Operaton 2.1.4</strong> and <strong>CIB seven 2.2.0</strong> &mdash; run on Spring Boot 4, keep the <code>ACT_</code> schema unchanged, accept the legacy <code>camunda:</code> BPMN namespace and ship automated migration recipes. What ended is <em>Camunda&rsquo;s stewardship</em>, not the engine.</div>
-      <div class="note"><h4>2 &middot; The binding constraint is Spring Boot, not Camunda</h4>Camunda 7.23&rsquo;s starter will not run on Boot 4, and the coupling runs one way: moving to Boot 4 <strong>forces</strong> an engine decision; swapping the engine does not force Boot 4. So &ldquo;upgrade Spring Boot first, decide about the engine later&rdquo; <strong>is not available.</strong></div>
-      <div class="note note--bad"><h4>3 &middot; There is no second line of defence</h4><strong>61 injected remote-code-execution process definitions</strong> sit in the production engine, <strong>one confirmed executed</strong> inside the prod pod. An engine with no patch channel and a reachable deployment endpoint is the worst combination on this list.</div>
+      <div class="note note--ok"><h4>1 &middot; There is somewhere supported to go, and it is cheap</h4>Two community forks under the Apache 2.0 licence &mdash; <strong>Operaton 2.1.4</strong> and <strong>CIB seven 2.2.0</strong> &mdash; run on Spring Boot 4, leave the <code>ACT_</code> database tables unchanged, still accept the old <code>camunda:</code> BPMN namespace, and ship automated migration scripts. What ended is <em>Camunda&rsquo;s ownership of the project</em>, not the engine itself.</div>
+      <div class="note"><h4>2 &middot; Spring Boot forces the decision, not Camunda</h4>Camunda 7.23 will not run on Spring Boot 4, and the dependency runs one way only. Moving to Boot 4 <strong>forces</strong> a decision about the engine; changing the engine does not force Boot 4. So &ldquo;upgrade Spring Boot first and decide about the engine later&rdquo; <strong>is not an option.</strong></div>
+      <div class="note note--bad"><h4>3 &middot; There is no second line of defence</h4><strong>61 process definitions designed to run arbitrary code</strong> are sitting in the production engine, and <strong>one of them has been confirmed to run</strong> inside the production pod. An engine with no way to receive patches, and a deployment endpoint anyone can reach, is the worst combination on this list.</div>
     </div>
     <div class="foot"><span class="src">option-summary.md &sect;1 &middot; SECURITY-FINDING-camunda-rce.md &middot; Correction 2026-09-10: the forks removed the Enterprise-licence assumption and cut Option 1 from 11&ndash;19 engineer-months to 18&ndash;33 engineer-days</span><span>02</span></div>
   </div>
@@ -87,20 +87,20 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Two clocks">
   <div class="inner">
     <p class="eyebrow"><b>02</b><span class="sep">/</span>Framing</p>
-    <h2 class="st">There are two decisions here, and they run on different clocks</h2>
+    <h2 class="st">There are two decisions here, and they have different deadlines</h2>
     <p class="lede">Separating them is the single most useful thing this pack does.</p>
     <div class="tw"><table>
       <thead><tr><th></th><th>Decision A &mdash; urgent</th><th>Decision B &mdash; strategic</th></tr></thead>
       <tbody>
-        <tr><td class="k">The question</td><td>How do we make Bravo <b>safe to run</b> while B is taken?</td><td>What is Bravo&rsquo;s platform for the next <b>5&ndash;10 years</b>?</td></tr>
-        <tr><td class="k">Clock</td><td><b>Weeks</b></td><td><b>Months</b></td></tr>
-        <tr><td class="k">Answer today</td><td><span class="up"><b>Firm.</b></span> Fork the engine <b>and</b> upgrade Spring Boot in one change &mdash; 18&ndash;33 engineer-days, Rp45&ndash;125M, <b>no licence</b>. Plus: fix the RCE and the schema-log drift</td><td><span class="dn"><b>Open.</b></span> Option 1 as destination, Option 2 (Temporal), or Option 3 (LORA)</td></tr>
-        <tr><td class="k">Contingent on the other?</td><td><b>No</b></td><td><b>No</b></td></tr>
-        <tr><td class="k">Nature of the question</td><td>Technical and time-boxed</td><td><b>Not primarily technical</b> &mdash; which cost the organisation would rather carry for five years</td></tr>
+        <tr><td class="k">The question</td><td>How do we make Bravo <b>safe to run</b> while we take Decision B?</td><td>What platform should Bravo be on for the next <b>5 to 10 years</b>?</td></tr>
+        <tr><td class="k">Deadline</td><td><b>Weeks</b></td><td><b>Months</b></td></tr>
+        <tr><td class="k">The answer today</td><td><span class="up"><b>Firm.</b></span> Fork the engine <b>and</b> upgrade Spring Boot in one change &mdash; 18 to 33 engineer-days, Rp45&ndash;125M, and <b>no licence to buy</b>. Then fix the code-execution hole and the database version-log drift.</td><td><span class="dn"><b>Open.</b></span> Option 1 as the destination, Option 2 (Temporal), or Option 3 (LORA).</td></tr>
+        <tr><td class="k">Does it depend on the other?</td><td><b>No</b></td><td><b>No</b></td></tr>
+        <tr><td class="k">What kind of question is it?</td><td>Technical, and it has a fixed end date</td><td><b>Not mainly technical</b> &mdash; it is about which cost the organisation would rather carry for five years</td></tr>
       </tbody>
     </table></div>
     <p class="pull">Decision A should not wait for Decision B.
-      <small>Every strategic path leaves Bravo running the retail book for <strong>at least 12 months</strong> &mdash; Temporal takes 12&ndash;18, LORA 15&ndash;24. And at 18&ndash;33 days, Decision A no longer merely holds the line: it lands Bravo on a <strong>fully supported engine and a supported Spring Boot outright</strong>. The Spring Boot half (12&ndash;20 of those days) is owed under Option 2 as well.</small></p>
+      <small>Every strategic path leaves Bravo running the retail book for <strong>at least 12 months</strong>: Temporal takes 12 to 18 months, LORA 15 to 24. And at 18 to 33 days, Decision A does more than hold the line. It puts Bravo on a <strong>fully supported engine and a supported Spring Boot outright</strong>. The Spring Boot half, 12 to 20 of those days, has to be paid under Option 2 anyway.</small></p>
     <div class="foot"><span class="src">option-summary.md &sect;2</span><span>03</span></div>
   </div>
 </section>
@@ -112,15 +112,15 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
     <div class="tw"><table>
       <thead><tr><th></th><th class="h1">Option 1 &mdash; Upgrade in place</th><th class="h2">Option 2 &mdash; Temporal</th><th class="h3">Option 3 &mdash; LORA</th></tr></thead>
       <tbody>
-        <tr><td class="k">What it is</td><td>Swap Camunda 7.23 CE for an Apache-2.0 fork <b>and</b> upgrade Boot 3.5.16&rarr;4.0.x in one change. Automated OpenRewrite recipe; <b>53 BPMN, the <code>ACT_</code> schema and Java 17 unchanged</b></td><td>Port ~60 BPMN definitions to Temporal Java SDK workflow code; 225 <code>JavaDelegate</code>s become Activities; <b>the other 94% of the service stays put</b></td><td>Close LORA&rsquo;s coverage gap, prove parity, cut the remaining book over, <b>switch Bravo off</b></td></tr>
-        <tr><td class="k">Paradigm change</td><td><span class="up"><b>None</b></span></td><td><span class="up"><b>None</b></span> &mdash; imperative workflow, same language</td><td><span class="dn"><b>Yes</b></span> &mdash; data-centric GSM, Go, custom SDK and planner</td></tr>
-        <tr><td class="k">Effort</td><td><span class="hi"><b>&asymp;1&ndash;1.5 eng-months</b></span> build (18&ndash;33 eng-days); 1.5&ndash;2.5 with review and soak</td><td><b>31&ndash;57 eng-months</b> (or 8&ndash;14 for a DF4W-only pilot)</td><td><b>30&ndash;57 eng-months</b> (some overlaps LORA&rsquo;s existing roadmap)</td></tr>
-        <tr><td class="k">Elapsed</td><td><b>1&ndash;2 months</b>, one engineer</td><td>12&ndash;18 months, 5&ndash;8 engineers</td><td>15&ndash;24 months</td></tr>
-        <tr><td class="k">Indicative one-off <span style="color:var(--ink3)">(Rp30&ndash;50M/eng-month)</span></td><td><span class="hi"><b>Rp45M &ndash; Rp125M</b></span></td><td>Rp930M &ndash; 2.85B</td><td>Rp900M &ndash; 2.85B</td></tr>
-        <tr><td class="k">New licences</td><td><b>None</b> &mdash; both forks are Apache 2.0</td><td>None &mdash; Temporal already contracted at Rp140M/month</td><td>None</td></tr>
-        <tr><td class="k">Run-rate change</td><td>None. Tier stays &asymp;Rp58M/month prod &mdash; <b>the cheapest of the three</b></td><td>&asymp;neutral. +Rp4.5&ndash;12M/month Actions, likely inside the existing commitment</td><td><span class="up"><b>&minus;&asymp;Rp58M/month</b></span> prod (&minus;Rp70&ndash;100M with non-prod), plus a second platform&rsquo;s staffing</td></tr>
+        <tr><td class="k">What it is</td><td>Swap Camunda 7.23 CE for an Apache 2.0 fork <b>and</b> upgrade Boot 3.5.16 to 4.0.x, in one change. An automated OpenRewrite script does most of it, and <b>the 53 BPMN files, the <code>ACT_</code> tables and Java 17 all stay as they are</b></td><td>Rewrite about 60 BPMN definitions as Temporal Java SDK code. The 225 <code>JavaDelegate</code> classes become Activities. <b>The other 94% of the service does not move</b></td><td>Close the gap in what LORA covers, prove it matches Bravo, move the rest of the book across, and <b>switch Bravo off</b></td></tr>
+        <tr><td class="k">Does the way we build change?</td><td><span class="up"><b>No</b></span></td><td><span class="up"><b>No</b></span> &mdash; still step-by-step code, in the same language</td><td><span class="dn"><b>Yes</b></span> &mdash; data-centric GSM, in Go, with a custom SDK and planner</td></tr>
+        <tr><td class="k">Effort</td><td><span class="hi"><b>About 1 to 1.5 engineer-months</b></span> to build (18 to 33 engineer-days); 1.5 to 2.5 including review and soak</td><td><b>31 to 57 engineer-months</b> (or 8 to 14 for a DF4W-only pilot)</td><td><b>30 to 57 engineer-months</b> (some of which overlaps LORA&rsquo;s existing roadmap)</td></tr>
+        <tr><td class="k">Elapsed time</td><td><b>1 to 2 months</b>, one engineer</td><td>12 to 18 months, 5 to 8 engineers</td><td>15 to 24 months</td></tr>
+        <tr><td class="k">Indicative one-off cost <span style="color:var(--ink3)">(at Rp30&ndash;50M per engineer-month)</span></td><td><span class="hi"><b>Rp45M to Rp125M</b></span></td><td>Rp930M to Rp2.85B</td><td>Rp900M to Rp2.85B</td></tr>
+        <tr><td class="k">New licences to buy</td><td><b>None</b> &mdash; both forks are Apache 2.0</td><td>None &mdash; Temporal is already contracted, at Rp140M a month</td><td>None</td></tr>
+        <tr><td class="k">Change to the monthly bill</td><td>None. The tier stays at about Rp58M a month in production &mdash; <b>the cheapest of the three</b></td><td>About the same. Actions add Rp4.5&ndash;12M a month, probably inside the existing commitment</td><td><span class="up"><b>About Rp58M a month less</b></span> in production (Rp70&ndash;100M less including test and staging), but you also staff a second platform</td></tr>
       </tbody>
-      <caption>Effort is engineer-months of an engineer already familiar with the codebase, including their own testing and excluding business-run UAT. <b>Option 1&rsquo;s figures are the Bravo team&rsquo;s own</b>, from the Camunda 7 Exit Plan, in engineer-days, at their stated &ldquo;medium&rdquo; confidence. Ranges are low-to-high, not confidence intervals.</caption>
+      <caption>Effort is in engineer-months of an engineer who already knows the codebase, including their own testing but not UAT run by the business. <b>Option 1&rsquo;s figures are the Bravo team&rsquo;s own</b>, from their Camunda 7 Exit Plan, in engineer-days, at the confidence they stated themselves: &ldquo;medium&rdquo;. Ranges are low to high. They are not confidence intervals.</caption>
     </table></div>
     <div class="foot"><span class="src">option-summary.md &sect;3 &middot; option-1.md &middot; option-2.md &middot; option-3.md</span><span>04</span></div>
   </div>
@@ -133,13 +133,13 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
     <div class="tw"><table>
       <thead><tr><th></th><th class="h1">Option 1 &mdash; Upgrade in place</th><th class="h2">Option 2 &mdash; Temporal</th><th class="h3">Option 3 &mdash; LORA</th></tr></thead>
       <tbody>
-        <tr><td class="k">Runway bought</td><td>Supported engine <b>and</b> supported Spring Boot, on 6-month lines (Operaton) or a purchasable contract (CIB seven)</td><td><b>Permanent</b> &mdash; no workflow-engine vendor</td><td><b>Permanent</b> &mdash; the platform ceases to exist</td></tr>
-        <tr><td class="k">Solves the EOL finding?</td><td><span class="up"><b>Yes, outright</b></span> &mdash; and fastest by an order of magnitude</td><td><span class="up">Yes</span></td><td>Yes, but only after <b>15&ndash;24 months</b></td></tr>
-        <tr><td class="k">Business capability gained</td><td><span class="dn">None</span></td><td><span class="dn">None</span></td><td><span class="up"><b>Add an automated step with no orchestration edit</b></span> &mdash; validated at 172 activities, 3 precursors</td></tr>
-        <tr><td class="k">Architectural findings addressed</td><td><span class="dn">None</span></td><td><span class="dn">None</span> &mdash; a faithful port ports the problems</td><td><span class="up"><b>Yes, by replacement</b></span></td></tr>
-        <tr><td class="k">Preserves what Bravo does well</td><td><b>All of it</b> &mdash; BPMN legibility, Cockpit, relational fleet queries, reprocess generations, bounded/classified failure</td><td>Mostly &mdash; 0.4% engine contact, no data migration, no retraining. <b>Cockpit is the real loss</b></td><td><span class="dn">No</span> &mdash; replaced by a different model with different strengths</td></tr>
-        <tr><td class="k">Ends with two platforms?</td><td>Yes</td><td>Yes</td><td><span class="up"><b>No</b></span></td></tr>
-        <tr><td class="k">Biggest risk</td><td>Schema-log drift could fail startup at cutover (diagnosable in hours); a 6-month support line is a <em>chosen</em> dependency</td><td>Large investment whose value depends on <b>Bravo having a long life</b></td><td>Paradigm adoption cost, plus LORA&rsquo;s measured reliability gap at 3&times; volume</td></tr>
+        <tr><td class="k">How long it buys</td><td>A supported engine <b>and</b> a supported Spring Boot, on 6-month support lines (Operaton) or a contract you can buy (CIB seven)</td><td><b>Permanent</b> &mdash; no workflow-engine vendor at all</td><td><b>Permanent</b> &mdash; the platform stops existing</td></tr>
+        <tr><td class="k">Does it fix the end-of-support problem?</td><td><span class="up"><b>Yes, completely</b></span> &mdash; and roughly ten times faster than anything else here</td><td><span class="up">Yes</span></td><td>Yes, but only after <b>15 to 24 months</b></td></tr>
+        <tr><td class="k">New business capability</td><td><span class="dn">None</span></td><td><span class="dn">None</span></td><td><span class="up"><b>You can add an automated step without editing the workflow</b></span> &mdash; proven across 172 activities with only 3 hard ordering constraints</td></tr>
+        <tr><td class="k">Does it fix the architectural findings?</td><td><span class="dn">No</span></td><td><span class="dn">No</span> &mdash; a faithful port carries the problems across with it</td><td><span class="up"><b>Yes, by replacing them</b></span></td></tr>
+        <tr><td class="k">Keeps what Bravo does well</td><td><b>All of it</b> &mdash; readable BPMN, Cockpit, questions across all loans in SQL, a durable row per reprocess attempt, failures that are bounded and classified</td><td>Mostly. Only 0.4% of the code touches the engine, there is no data migration and no retraining. <b>Losing Cockpit is the real cost</b></td><td><span class="dn">No</span> &mdash; it is replaced by a different model with different strengths</td></tr>
+        <tr><td class="k">Do we still run two platforms afterwards?</td><td>Yes</td><td>Yes</td><td><span class="up"><b>No</b></span></td></tr>
+        <tr><td class="k">Biggest risk</td><td>The database version log may not match the schema, which could stop the engine starting at cutover. That is diagnosable in hours. And a 6-month support line is a dependency we would be <em>choosing</em></td><td>A large investment whose value depends on <b>Bravo having a long life ahead of it</b></td><td>The cost of adopting a new way of building, plus LORA&rsquo;s measured reliability gap at three times the volume</td></tr>
       </tbody>
     </table></div>
     <div class="foot"><span class="src">option-summary.md &sect;3 &middot; compare.md &sect;5 &middot; ticket-analysis.md</span><span>05</span></div>
@@ -149,10 +149,10 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Cost at a glance">
   <div class="inner">
     <p class="eyebrow"><b>05</b><span class="sep">/</span>The gap in one picture</p>
-    <h2 class="st">Option 1 is not a cheaper version of the others. It is a different order of magnitude.</h2>
+    <h2 class="st">Option 1 is not a cheaper version of the others. It is a different scale entirely.</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:12px">
-        <p class="eyebrow">One-off engineering effort, engineer-months</p>
+        <p class="eyebrow">One-off engineering effort, in engineer-months</p>
         <svg class="chart" viewBox="0 0 500 248" role="img" aria-label="One-off effort by option, in engineer-months">
           <!-- scale: 60 eng-months -> 313px ; x0=150 -->
           <g><rect class="bA" x="150" y="10" width="8" height="34"></rect><text class="cl-lab" x="144" y="31" text-anchor="end">Option 1 &mdash; upgrade</text><text class="cl-valA" x="164" y="31">1&ndash;1.5 (1.5&ndash;2.5 all-in)</text></g>
@@ -163,15 +163,15 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
           <text class="cl-lab" x="150" y="212">0</text><text class="cl-lab" x="306" y="212" text-anchor="middle">30</text><text class="cl-lab" x="463" y="212" text-anchor="end">60 eng-months</text>
           <text class="cl-lab" x="150" y="238" style="fill:var(--ink3)">At Rp30&ndash;50M per engineer-month: Rp45&ndash;125M against Rp0.9&ndash;2.85B</text>
         </svg>
-        <div class="legend"><span><i class="bA" style="background:var(--ac)"></i>Removes the exposure now</span><span><i class="bB" style="background:var(--ruleS)"></i>Removes it in 12&ndash;24 months</span></div>
+        <div class="legend"><span><i class="bA" style="background:var(--ac)"></i>Removes the exposure now</span><span><i class="bB" style="background:var(--ruleS)"></i>Removes it in 12 to 24 months</span></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:13px">
         <div class="stats stats--4" style="grid-template-columns:1fr 1fr">
-          <div class="stat"><span class="stat__n">20&ndash;40<small>&times;</small></span><span class="stat__l">More expensive to reach a similar runtime position via Option 2</span></div>
-          <div class="stat"><span class="stat__n plain">12&ndash;20</span><span class="stat__l">Of Option 1&rsquo;s days are the Spring Boot half &mdash; owed under Option 2 regardless</span></div>
+          <div class="stat"><span class="stat__n">20&ndash;40<small>&times;</small></span><span class="stat__l">More expensive to reach a similar runtime position through Option 2</span></div>
+          <div class="stat"><span class="stat__n plain">12&ndash;20</span><span class="stat__l">Of Option 1&rsquo;s days are the Spring Boot half &mdash; which Option 2 has to pay anyway</span></div>
         </div>
-        <div class="note note--ok"><h4>Why the number collapsed</h4>The earlier version of this pack costed Option 1 at <strong>11&ndash;19 engineer-months</strong> and assumed a Camunda <strong>Enterprise licence</strong> was required for Spring Boot 4. Both were wrong. The Bravo team&rsquo;s own <em>Camunda 7 Exit Plan</em> established the Apache-2.0 forks; the figures here are <strong>the team&rsquo;s own estimate</strong>, in engineer-days, re-verified against the working tree on 2026-09-10 &mdash; inventory counts matched exactly.</div>
-        <div class="note"><h4>What Option 2 actually buys for its 31&ndash;57</h4>Not a cheaper migration &mdash; it is <strong>not materially cheaper than Option 3</strong>. The reuse converts into <strong>predictability and reversibility</strong>: only 2,004 of 497,970 lines (0.40%) touch a Camunda API, 238 entities and 271 tables do not move, and rollback lands on the same database.</div>
+        <div class="note note--ok"><h4>Why the number collapsed</h4>An earlier version of this pack costed Option 1 at <strong>11 to 19 engineer-months</strong>, and assumed a Camunda <strong>Enterprise licence</strong> was needed for Spring Boot 4. Both were wrong. The Bravo team&rsquo;s own <em>Camunda 7 Exit Plan</em> established the Apache 2.0 forks, and the figures here are <strong>the team&rsquo;s own estimate</strong>, in engineer-days. We re-checked them against the working tree on 2026-09-10, and the inventory counts matched exactly.</div>
+        <div class="note"><h4>What Option 2 actually buys for its 31 to 57 months</h4>Not a cheaper migration &mdash; it is <strong>not meaningfully cheaper than Option 3</strong>. What the reuse buys is <strong>predictability, and the ability to go back</strong>: only 2,004 of 497,970 lines (0.40%) touch a Camunda API, the 238 entities and 271 tables do not move, and a rollback lands on the same database.</div>
       </div>
     </div>
     <div class="foot"><span class="src">option-summary.md &sect;3, &sect;8 &middot; option-2.md &sect;3 &middot; Camunda 7 Exit Plan (Bravo team, 2026-09-09)</span><span>06</span></div>
@@ -181,16 +181,16 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Which question">
   <div class="inner">
     <p class="eyebrow"><b>06</b><span class="sep">/</span>Decision B, framed</p>
-    <h2 class="st">Each option is the correct answer to a different question</h2>
-    <p class="lede">The fastest route to a decision is not to argue the options. It is to establish <strong>which question BFI is actually asking.</strong></p>
+    <h2 class="st">Each option is the right answer to a different question</h2>
+    <p class="lede">The fastest route to a decision is not to argue about the options. It is to work out <strong>which question BFI is actually asking.</strong></p>
     <div class="tw"><table>
-      <thead><tr><th>If the governing belief is&hellip;</th><th>Then the answer is</th><th>Because</th></tr></thead>
+      <thead><tr><th>If what you believe is&hellip;</th><th>Then the answer is</th><th>Because</th></tr></thead>
       <tbody>
-        <tr><td class="k">&ldquo;Bravo should remain a strategic platform&rdquo;</td><td><span class="e e--1">Option 1</span> then reassess</td><td>At 18&ndash;33 days it lands on a maintained engine and a current Spring Boot. Option 2 costs <b>20&ndash;40&times; more</b> to reach a similar place; its distinct value is removing the engine dependency altogether, which the fork route does not do &mdash; it changes stewards</td></tr>
-        <tr><td class="k">&ldquo;Bravo has a finite life, but we have not decided what replaces it&rdquo;</td><td><span class="e e--1">Option 1 now</span> decide later</td><td>18&ndash;33 days removes the exposure entirely rather than deferring it, and <b>prejudges nothing</b>. It is the only option that preserves optionality</td></tr>
-        <tr><td class="k">&ldquo;We want one LOS, and the GSM capability is worth its adoption cost&rdquo;</td><td><span class="e e--3">Option 3</span></td><td>The only option that <b>ends with one platform</b>. Sequenced so DF4W proves it on 5.5% of volume before the retail book moves</td></tr>
-        <tr><td class="k">&ldquo;We want one LOS, but the GSM paradigm is the wrong model for us&rdquo;</td><td><span class="e e--2">Option 2, full scope</span> then consolidate onto it</td><td>Temporal is the execution layer both platforms would share. <b>This is the option nobody has costed, and it deserves to be</b></td></tr>
-        <tr><td class="k">&ldquo;Risk/compliance will not accept unpatched runtime for any period&rdquo;</td><td><span class="e e--1">Option 1, Path B</span> whatever B turns out to be</td><td>The only route that ends on a supported engine <em>and</em> a supported Spring Boot. If a contractual support agreement is mandatory, that selects <b>CIB seven</b> over Operaton</td></tr>
+        <tr><td class="k">&ldquo;Bravo should stay a strategic platform&rdquo;</td><td><span class="e e--1">Option 1</span> then reassess</td><td>For 18 to 33 days it lands on a maintained engine and a current Spring Boot. Option 2 costs <b>20 to 40 times more</b> to reach a similar place. What Option 2 uniquely does is remove the engine dependency altogether; the fork route does not do that, it changes who maintains it</td></tr>
+        <tr><td class="k">&ldquo;Bravo has a limited life, but we have not decided what replaces it&rdquo;</td><td><span class="e e--1">Option 1 now</span> decide later</td><td>18 to 33 days removes the exposure outright rather than postponing it, and <b>commits you to nothing</b>. It is the only option that keeps every choice open</td></tr>
+        <tr><td class="k">&ldquo;We want one LOS, and the GSM capability is worth what it costs to adopt&rdquo;</td><td><span class="e e--3">Option 3</span></td><td>It is the only option that <b>ends with one platform</b>. Sequence it so DF4W proves the approach on 5.5% of volume before the retail book moves</td></tr>
+        <tr><td class="k">&ldquo;We want one LOS, but GSM is the wrong model for us&rdquo;</td><td><span class="e e--2">Option 2, full scope</span> then consolidate onto it</td><td>Temporal is the execution layer both platforms would share. <b>Nobody has costed this option, and it deserves to be costed</b></td></tr>
+        <tr><td class="k">&ldquo;Risk and compliance will not accept an unpatched runtime for any length of time&rdquo;</td><td><span class="e e--1">Option 1, Path B</span> whatever B turns out to be</td><td>It is the only route that ends on a supported engine <em>and</em> a supported Spring Boot. If a support contract is mandatory, that choice picks <b>CIB seven</b> over Operaton</td></tr>
       </tbody>
     </table></div>
     <div class="foot"><span class="src">option-summary.md &sect;4</span><span>07</span></div>
@@ -200,33 +200,33 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="What each optimises for">
   <div class="inner">
     <p class="eyebrow"><b>07</b><span class="sep">/</span>Decision B, framed</p>
-    <h2 class="st">What each option optimises for &mdash; and what it leaves unanswered</h2>
+    <h2 class="st">What each option is good at &mdash; and what it leaves unanswered</h2>
     <div class="trio">
       <div class="opt a"><h4>Option 1 &middot; upgrade in place</h4>
-        <p class="big">Disruption avoided &mdash; and now speed and cost as well</p>
+        <p class="big">Avoids disruption &mdash; and now it is the fastest and cheapest as well</p>
         <ul>
-          <li>Changes <b>nothing</b> about how a single engineer or analyst works: no data migration, no paradigm change, no retraining, no new language</li>
-          <li>Preserves everything the comparison found Bravo genuinely does better: bounded and classified failure with a designed dead-letter path, relational fleet queries, durable reprocess generations, an <b>analyst-readable BPMN model</b>, commodity skills</li>
-          <li>Cheapest orchestration tier of the three at <b>&asymp;Rp58M/month</b></li>
-          <li><b>What it does not do:</b> address Bravo&rsquo;s architecture &mdash; five monoliths, product identity in five places, four status vocabularies</li>
+          <li>Changes <b>nothing</b> about how an engineer or an analyst works. No data migration, no new way of building, no retraining, no new language</li>
+          <li>Keeps everything the comparison found Bravo genuinely does better: failures that are bounded and classified, with a designed place for the ones that cannot be handled; questions across all loans in SQL; a durable row for every reprocess attempt; a <b>BPMN model an analyst can read</b>; skills that are easy to hire</li>
+          <li>The cheapest workflow tier of the three, at <b>about Rp58M a month</b></li>
+          <li><b>What it does not do:</b> anything about Bravo&rsquo;s architecture &mdash; five monoliths, the product identified in five places, four status vocabularies</li>
         </ul>
       </div>
       <div class="opt b"><h4>Option 2 &middot; Temporal</h4>
-        <p class="big">Permanence without paradigm change &mdash; and migration risk</p>
+        <p class="big">A permanent fix without changing how we build &mdash; and migration risk</p>
         <ul>
-          <li>The only option that removes the vendor dependency <b>for good</b> while keeping the imperative model the team already thinks in, on infrastructure BFI already owns and staffs</li>
-          <li>Parity can be argued <b>element by element</b> rather than demonstrated path by path; rollback lands on the same database</li>
-          <li>Process legibility is preserved and made verifiable by a generated-vs-intent diagram diff</li>
-          <li><b>Its weakness:</b> it changes the engine and preserves the architecture exactly. If the real complaint is Bravo&rsquo;s <em>design</em>, this does not answer it</li>
+          <li>The only option that removes the vendor dependency <b>for good</b> while keeping the step-by-step model the team already thinks in, on infrastructure BFI already owns and staffs</li>
+          <li>You can argue it matches Bravo <b>element by element</b>, rather than having to demonstrate every path. And a rollback lands on the same database</li>
+          <li>The workflow stays readable, and a diagram diff between what was generated and what was intended makes that checkable</li>
+          <li><b>Its weakness:</b> it changes the engine and keeps the architecture exactly as it is. If the real complaint is Bravo&rsquo;s <em>design</em>, this does not answer it</li>
         </ul>
       </div>
       <div class="opt c"><h4>Option 3 &middot; LORA</h4>
-        <p class="big">One platform and one capability</p>
+        <p class="big">One platform, and one new capability</p>
         <ul>
-          <li>Adding an automated step <b>without editing an orchestration model</b> is real, validated, and the clearest thing LORA does better</li>
-          <li>The only option that ends the two-platform estate &mdash; and it removes &asymp;Rp58M/month of prod orchestration cost</li>
-          <li>Reliability currently favours LORA: <b>&asymp;0.13%</b> manual-intervention against Bravo&rsquo;s <b>&asymp;0.44%</b></li>
-          <li><b>Its price:</b> a paradigm change whose cost is documented, partly remediable, and <b>currently unremediated</b></li>
+          <li>Adding an automated step <b>without editing a workflow model</b> is real, it is proven, and it is the clearest thing LORA does better</li>
+          <li>The only option that ends the two-platform estate &mdash; and it removes about Rp58M a month of production workflow cost</li>
+          <li>Reliability currently favours LORA: staff step in on <b>about 0.13%</b> of applications, against Bravo&rsquo;s <b>0.44%</b></li>
+          <li><b>Its price:</b> a change in how everyone builds, whose cost is documented, partly fixable, and <b>not fixed yet</b></li>
         </ul>
       </div>
     </div>
@@ -237,20 +237,20 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Paradigm objection">
   <div class="inner">
     <p class="eyebrow"><b>08</b><span class="sep">/</span>The main objection to Option 3</p>
-    <h2 class="st">The paradigm objection, weighed &mdash; neither dismissed nor accepted whole</h2>
+    <h2 class="st">The objection to LORA&rsquo;s way of building, weighed &mdash; neither dismissed nor swallowed whole</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Version of the objection</th><th>Status</th><th class="n">Cost to remediate</th></tr></thead>
+        <thead><tr><th>Version of the objection</th><th>Status</th><th class="n">Cost to fix</th></tr></thead>
         <tbody>
-          <tr><td class="k">&ldquo;Nobody can see what a product actually executes&rdquo;</td><td><span class="up"><b>Addressable</b></span> &mdash; a generated status &times; activity &times; product readiness index; the <code>depchain-generator</code> is <b>~80% built and not in CI</b></td><td class="n" rowspan="3" style="vertical-align:middle"><b>1&ndash;2</b><br>eng-months<br><span style="color:var(--ink3)">for all three</span></td></tr>
-          <tr><td class="k">&ldquo;New engineers cannot learn it&rdquo;</td><td><span class="up"><b>Addressable</b></span> &mdash; a week-1 curriculum</td></tr>
-          <tr><td class="k">&ldquo;The design rationale is undocumented&rdquo;</td><td><span class="up"><b>Addressable</b></span> &mdash; ADRs</td></tr>
-          <tr><td class="k">&ldquo;A shared document and a shared planner leave <b>no natural seam</b> to split UW and Surveyor teams&rdquo;</td><td><span class="dn"><b>Confirmed and structural</b></span> &mdash; and as of 2026-09-10 <b>measured on both sides</b></td><td class="n"><b>Not costed</b><br><span style="color:var(--ink3)">organisational</span></td></tr>
+          <tr><td class="k">&ldquo;Nobody can see what a product actually runs&rdquo;</td><td><span class="up"><b>Fixable</b></span> &mdash; generate an index of status by activity by product; the <code>depchain-generator</code> is <b>about 80% built and not in CI</b></td><td class="n" rowspan="3" style="vertical-align:middle"><b>1&ndash;2</b><br>engineer-months<br><span style="color:var(--ink3)">for all three</span></td></tr>
+          <tr><td class="k">&ldquo;New engineers cannot learn it&rdquo;</td><td><span class="up"><b>Fixable</b></span> &mdash; write a week-1 curriculum</td></tr>
+          <tr><td class="k">&ldquo;Nobody wrote down why it was designed this way&rdquo;</td><td><span class="up"><b>Fixable</b></span> &mdash; write the ADRs</td></tr>
+          <tr><td class="k">&ldquo;A shared document and a shared planner leave <b>no natural boundary</b> for splitting the underwriting and surveyor teams&rdquo;</td><td><span class="dn"><b>Confirmed, and structural</b></span> &mdash; and as of 2026-09-10 we have <b>measured it on both sides</b></td><td class="n"><b>Not costed</b><br><span style="color:var(--ink3)">organisational</span></td></tr>
         </tbody>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note note--bad"><h4>The measured half &mdash; why it is sharper than it looks</h4>The seam LORA lacks is one <strong>Bravo is actively running</strong>: two squads (<code>BLCS</code> and <code>LN</code>), two Jira boards, three operator consoles and separate sprint regression, with <strong>zero cross-project links</strong>. Option 3&rsquo;s organisational cost is therefore concrete &mdash; <strong>merge two working squads and re-cut them by product family</strong> &mdash; not an abstract constraint.</div>
-        <div class="note"><h4>The fair summary</h4>The objection is <strong>real, mostly remediable, and cheap to remediate relative to the migration</strong> &mdash; but it is unremediated today, and a decision that assumes it away will meet it at full strength during cutover.<br><br>It is a reason to <strong>sequence Option 3 carefully</strong>, and a legitimate reason to prefer Option 2 if the organisation values the current mental model highly. It is <strong>not</strong>, on this evidence, a reason to rule Option 3 out.</div>
+        <div class="note note--bad"><h4>The measured half, and why it is sharper than it looks</h4>The boundary LORA lacks is one <strong>Bravo is actively running</strong>: two squads (<code>BLCS</code> and <code>LN</code>), two Jira boards, three operator consoles and separate sprint regression, with <strong>no links at all between the two projects</strong>. So Option 3&rsquo;s organisational cost is concrete: <strong>merge two working squads and re-cut them by product family.</strong> It is not an abstract constraint.</div>
+        <div class="note"><h4>The fair summary</h4>The objection is <strong>real, mostly fixable, and cheap to fix compared with the migration</strong> &mdash; but nothing has been fixed yet, and a decision that assumes it away will meet it at full strength during cutover.<br><br>It is a reason to <strong>sequence Option 3 carefully</strong>, and a legitimate reason to prefer Option 2 if the organisation values the current way of thinking highly. On this evidence it is <strong>not</strong> a reason to rule Option 3 out.</div>
       </div>
     </div>
     <div class="foot"><span class="src">option-summary.md &sect;4 &middot; option-3.md &sect;3, &sect;3a &middot; lora-workspace people.md</span><span>09</span></div>
@@ -260,16 +260,16 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Open questions">
   <div class="inner">
     <p class="eyebrow"><b>09</b><span class="sep">/</span>What we do not know</p>
-    <h2 class="st">Four gaps stand between this pack and a confident recommendation on Decision B</h2>
-    <p class="lede">All are answerable in <strong>weeks</strong>. One closed on 2026-09-10 and is kept here with its answer, because the answer arrived with a caveat that is itself a smaller open question.</p>
+    <h2 class="st">Four gaps stand between this pack and a confident answer on Decision B</h2>
+    <p class="lede">All of them can be closed in <strong>weeks</strong>. One was closed on 2026-09-10, and we have kept it here with its answer, because that answer came with a caveat that is itself a smaller open question.</p>
     <div class="tw"><table>
-      <thead><tr><th>Open question</th><th>Why it decides something</th><th>How to close it</th></tr></thead>
+      <thead><tr><th>Open question</th><th>What it decides</th><th>How to close it</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>Is a contractual support agreement required for the workflow engine</b> &mdash; and can one be purchased for a BFI entity? <span style="color:var(--ink3)">(replaces the obsolete Camunda Enterprise pricing question &mdash; no licence is needed)</span></td><td>Decides the <b>fork</b>, not the option. Yes &rarr; <b>CIB seven</b> (company-backed, cheaper migration, two ex-Camunda core engineers). No &rarr; <b>Operaton</b> (9&times; the commit volume, 52 contributors)</td><td>Architect + procurement. <b>Start the CIB seven enquiry before finalising</b> &mdash; its terms are unpublished and sales-contact-only</td></tr>
-        <tr><td class="k">Does <code>ACT_GE_SCHEMA_LOG</code> match the schema in SIT, UAT and PROD?</td><td>Two Flyway migrations hand-replayed the 7.20&rarr;7.22 upgrade DDL with <code>IF NOT EXISTS</code> guards. If the version label is below 7.22 while the columns exist, <b>engine startup fails at cutover</b>. Strong inference, not yet verified</td><td><b>Four SQL queries per environment</b>, run independently. <b>Hours</b></td></tr>
-        <tr><td class="k">How big is LORA&rsquo;s coverage gap against Bravo, per product and risk tier?</td><td>The <b>largest uncertainty in Option 3&rsquo;s 30&ndash;57 eng-months</b>, and the input that says how much is incremental versus already-roadmapped</td><td>Gap inventory, <b>1&ndash;2 eng-months</b>. Useful under every option</td></tr>
-        <tr><td class="k"><s>What is Bravo&rsquo;s manual-intervention rate?</s> <span class="up"><b>Answered: &asymp;0.44% vs LORA&rsquo;s &asymp;0.13%</b></span> &mdash; 1 application in 225 against 1 in 790</td><td>No longer blocks the comparison. <b>Reliability now favours LORA as clearly as orchestration-tier cost favours Bravo</b></td><td><b>Residual, days of work:</b> one category &mdash; <code>Surveyor Platform - Release reject</code>, 1,542 tickets, 28.4% of the load, grown 4.8&times; &mdash; carries the gap. Exclude it and Bravo is at 0.152%, level with LORA. Nobody has mapped it to a BPMN element</td></tr>
-        <tr><td class="k"><b>How long must Bravo run?</b></td><td>No longer selects an Option 1 variant. It now decides <b>Decision B</b>: whether to spend 30&ndash;57 engineer-months at all. <b>A business decision, not a technical one</b></td><td>Steering committee. <b>Set and publish a horizon</b>, even a provisional one</td></tr>
+        <tr><td class="k"><b>Do we need a support contract for the workflow engine</b> &mdash; and can we buy one for a BFI entity? <span style="color:var(--ink3)">(this replaces the old question about Camunda Enterprise pricing; no licence is needed)</span></td><td>It decides <b>which fork</b>, not which option. Yes &rarr; <b>CIB seven</b>: company-backed, cheaper migration, two ex-Camunda core engineers. No &rarr; <b>Operaton</b>: nine times the commit volume, 52 contributors</td><td>Architect and procurement. <b>Start the CIB seven enquiry before finalising anything</b> &mdash; its terms are not published and you have to contact sales</td></tr>
+        <tr><td class="k">Does <code>ACT_GE_SCHEMA_LOG</code> match the actual schema in SIT, UAT and PROD?</td><td>Two Flyway migrations replayed the 7.20-to-7.22 upgrade by hand, guarded with <code>IF NOT EXISTS</code>. If the recorded version says below 7.22 while the columns already exist, <b>the engine will fail to start at cutover</b>. This is a strong inference, not yet verified</td><td><b>Four SQL queries per environment</b>, run independently. <b>Hours of work</b></td></tr>
+        <tr><td class="k">How much does LORA not cover that Bravo does, per product and risk tier?</td><td>This is the <b>largest uncertainty inside Option 3&rsquo;s 30 to 57 engineer-months</b>, and the input that tells you how much is new work rather than work already planned</td><td>A gap inventory, <b>1 to 2 engineer-months</b>. Useful whichever option is chosen</td></tr>
+        <tr><td class="k"><s>How often do staff have to step in on Bravo?</s> <span class="up"><b>Answered: about 0.44%, against LORA&rsquo;s 0.13%</b></span> &mdash; 1 application in 225, against 1 in 790</td><td>No longer blocks the comparison. <b>Reliability now favours LORA as clearly as workflow-tier cost favours Bravo</b></td><td><b>What is left is days of work:</b> one ticket category &mdash; <code>Surveyor Platform - Release reject</code>, 1,542 tickets, 28.4% of the load, grown 4.8 times &mdash; accounts for the whole gap. Exclude it and Bravo is at 0.152%, level with LORA. Nobody has traced it to a BPMN element</td></tr>
+        <tr><td class="k"><b>How long does Bravo have to keep running?</b></td><td>It no longer picks a variant of Option 1. It now decides <b>Decision B</b>: whether to spend 30 to 57 engineer-months at all. <b>That is a business decision, not a technical one</b></td><td>Steering committee. <b>Set a horizon and publish it</b>, even a provisional one</td></tr>
       </tbody>
     </table></div>
     <div class="foot"><span class="src">option-summary.md &sect;5 &middot; ticket-analysis.md &middot; option-1.md &sect;7.1</span><span>10</span></div>
@@ -283,15 +283,15 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
     <div class="verdictbox">
       <span class="lab">The one firm recommendation</span>
       <p class="txt">Option 1, Path B &mdash; <em>fork the engine and upgrade Spring Boot in one change.</em>
-        <small><strong>18&ndash;33 engineer-days. No licence.</strong> It ends with Bravo on a supported engine <em>and</em> a supported Spring Boot rather than merely holding an unpatched one. Every hour of it is useful under all three strategic options, and it addresses an exposure that is live today.</small></p>
+        <small><strong>18 to 33 engineer-days. No licence to buy.</strong> It ends with Bravo on a supported engine <em>and</em> a supported Spring Boot, rather than merely holding on to an unpatched one. Every hour of it is useful whichever strategic option is chosen, and it fixes an exposure that is live today.</small></p>
     </div>
     <div class="recs">
-      <div class="rec first"><span class="no">1</span><span class="tx"><b>Close the RCE</b>Fix <code>SecurityConfig.java:65</code>, authenticate the Camunda REST and webapp surfaces in production, purge the 61 injected definitions, network-isolate the engine.<span class="sz">Live exposure &middot; required under all options</span></span></div>
-      <div class="rec"><span class="no">2</span><span class="tx"><b>Run the schema-log diagnostics in every environment</b>Before committing a cutover date. <b>This is the one finding that can change the plan.</b><span class="sz">Hours &middot; four SQL queries per environment</span></span></div>
-      <div class="rec"><span class="no">3</span><span class="tx"><b>Land the six-item pre-decision cleanup</b>Four of the six items are pure deletion. Independent of both the path and the fork.<span class="sz">1&ndash;2 days</span></span></div>
-      <div class="rec"><span class="no">4</span><span class="tx"><b>Rehearse the cutover on a PROD clone</b>And build the minimal parity harness Bravo has never had at the engine layer &mdash; <b>4 of <code>ms-bpm</code>&rsquo;s 1,457 test files run a Camunda process today.</b><span class="sz">The missing safety net for any subsequent change, both migrations included</span></span></div>
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Close the code-execution hole</b>Fix <code>SecurityConfig.java:65</code>, require authentication on the Camunda REST and web interfaces in production, delete the 61 injected definitions, and put the engine behind network isolation.<span class="sz">Live exposure &middot; needed whichever option is chosen</span></span></div>
+      <div class="rec"><span class="no">2</span><span class="tx"><b>Run the schema-log checks in every environment</b>Before committing to a cutover date. <b>This is the one finding that can change the plan.</b><span class="sz">Hours &middot; four SQL queries per environment</span></span></div>
+      <div class="rec"><span class="no">3</span><span class="tx"><b>Do the six-item cleanup before deciding</b>Four of the six items are pure deletion. It is independent of both the path and the fork.<span class="sz">1&ndash;2 days</span></span></div>
+      <div class="rec"><span class="no">4</span><span class="tx"><b>Rehearse the cutover on a copy of production</b>And build the minimal parity test suite Bravo has never had at the engine layer. <b>Of <code>ms-bpm</code>&rsquo;s 1,457 test files, 4 actually run a Camunda process.</b><span class="sz">The missing safety net for any later change, including both migrations</span></span></div>
     </div>
-    <div class="note note--ok"><h4>One partial net does exist, and was uncounted until 2026-09-10</h4>The three operator consoles carry <strong>829 PR-gating tests</strong> that exercise the domain endpoints the engine sits behind. Because console source contains <strong>zero Camunda references</strong>, a fork swap leaves them untouched &mdash; they can be run as a boundary smoke test.</div>
+    <div class="note note--ok"><h4>One partial safety net does exist, and nobody had counted it until 2026-09-10</h4>The three operator consoles carry <strong>829 tests that gate their pull requests</strong>, and those tests exercise the domain endpoints the engine sits behind. Because the console source contains <strong>no Camunda references at all</strong>, swapping the fork leaves them untouched. They can be run as a boundary smoke test.</div>
     <div class="foot"><span class="src">option-summary.md &sect;6 &middot; option-1.md &sect;4a, &sect;7.1</span><span>11</span></div>
   </div>
 </section>
@@ -299,16 +299,16 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="The fork choice">
   <div class="inner">
     <p class="eyebrow"><b>11</b><span class="sep">/</span>The one open sub-decision</p>
-    <h2 class="st">Inside Option 1, one question is genuinely open &mdash; and it is not a technical one</h2>
+    <h2 class="st">Inside Option 1 one question is genuinely open, and it is not a technical one</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="verdictbox"><span class="lab">The question that selects the fork</span><p class="txt" style="font-size:clamp(16px,1.9vw,23px)">Is a contractual support agreement <em>required</em> for the workflow engine &mdash; and can one actually be purchased for a BFI entity?<br><br><span class="p1" style="font-size:.78em">Yes &rarr; CIB seven.</span>&nbsp;&nbsp;<span class="p2" style="font-size:.78em">No &rarr; Operaton.</span></p></div>
-        <div class="note"><h4>Why it is on the critical path</h4>It is the <strong>only sub-decision that cannot be answered from the codebase</strong>, and CIB seven&rsquo;s terms &mdash; length, service levels, pricing &mdash; are <strong>not published</strong>. If the answer may be yes, open that enquiry <em>now</em> rather than after the technical work is scoped.</div>
+        <div class="verdictbox"><span class="lab">The question that picks the fork</span><p class="txt" style="font-size:clamp(16px,1.9vw,23px)">Do we <em>need</em> a support contract for the workflow engine &mdash; and can one actually be bought for a BFI entity?<br><br><span class="p1" style="font-size:.78em">Yes &rarr; CIB seven.</span>&nbsp;&nbsp;<span class="p2" style="font-size:.78em">No &rarr; Operaton.</span></p></div>
+        <div class="note"><h4>Why it is on the critical path</h4>It is the <strong>only sub-decision we cannot answer from the codebase</strong>, and CIB seven&rsquo;s terms &mdash; length, service levels, pricing &mdash; are <strong>not published</strong>. If the answer might be yes, open that enquiry <em>now</em>, rather than after the technical work has been scoped.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note note--ok"><h4>Operaton 2.1.4</h4><strong>9&times; the commit volume, 52 contributors, Apache 2.0 with no paid tier.</strong> Maintained on rolling <strong>6-month support lines</strong>; no legal entity yet, a non-profit is planned.<br><br><em>Choose it if</em> community velocity matters more than a contract.</div>
-        <div class="note"><h4>CIB seven 2.2.0</h4><strong>Company-backed (CIB software GmbH), two ex-Camunda core engineers, a cheaper migration</strong> &mdash; no 7.24 hop first, Cockpit webjar path unchanged. Paid support exists; <strong>terms undisclosed</strong>.<br><br><em>Choose it if</em> Risk requires a counterparty.</div>
-        <div class="note note--bad"><h4>Either way, this is a chosen dependency</h4>Adopting a project with a 6-month support line will be <strong>scrutinised differently from inherited drift</strong>. Say so in the paper rather than letting it surface in review.</div>
+        <div class="note note--ok"><h4>Operaton 2.1.4</h4><strong>Nine times the commit volume, 52 contributors, Apache 2.0, with no paid tier.</strong> Maintained on rolling <strong>6-month support lines</strong>. There is no legal entity behind it yet; a non-profit is planned.<br><br><em>Choose it if</em> an active community matters more than a contract.</div>
+        <div class="note"><h4>CIB seven 2.2.0</h4><strong>Backed by a company (CIB software GmbH), with two ex-Camunda core engineers, and a cheaper migration</strong> &mdash; no need to go via 7.24 first, and the Cockpit webjar path is unchanged. Paid support exists, but <strong>the terms are undisclosed</strong>.<br><br><em>Choose it if</em> Risk needs a counterparty.</div>
+        <div class="note note--bad"><h4>Either way, this is a dependency we are choosing</h4>Adopting a project with a 6-month support line will be <strong>judged differently from drift we inherited</strong>. Say so in the paper, rather than letting it come up in review.</div>
       </div>
     </div>
     <div class="foot"><span class="src">option-summary.md &sect;5, &sect;6, &sect;7 item 4 &middot; option-1.md &sect;4</span><span>12</span></div>
@@ -318,19 +318,19 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Next 30 days">
   <div class="inner">
     <p class="eyebrow"><b>12</b><span class="sep">/</span>Execution</p>
-    <h2 class="st">The next 30 days &mdash; sequenced so nothing on this list is wasted under any option</h2>
+    <h2 class="st">The next 30 days, ordered so nothing here is wasted whichever option wins</h2>
     <div class="tw"><table>
-      <thead><tr><th class="n">#</th><th>Action</th><th>Owner</th><th>Why it is unconditional</th></tr></thead>
+      <thead><tr><th class="n">#</th><th>Action</th><th>Owner</th><th>Why it is worth doing regardless</th></tr></thead>
       <tbody>
-        <tr><td class="n">1</td><td class="k"><b>Fix the Camunda RCE.</b> Rotate <code>INTERNAL_SERVICE_KEY</code> and the plaintext secrets in <code>cypress.config.js</code>; identify the caller from deployment access logs (2026-05-23&rarr;06-30); register a <code>ProcessEngineAuthenticationFilter</code>; purge the 61 definitions; check for lateral movement</td><td>Bravo + Security</td><td><span class="dn"><b>Live, confirmed code execution in production.</b></span> Required under all options</td></tr>
-        <tr><td class="n">2</td><td class="k"><b>Run the schema-log diagnostics</b> in SIT, UAT and PROD independently &mdash; four SQL queries</td><td>Bravo</td><td>The one finding that can change the migration plan. <b>Hours of work</b></td></tr>
-        <tr><td class="n">2b</td><td class="k"><b>Land the six-item pre-decision cleanup</b> &mdash; <code>CollectionUtil</code> swap, delete <code>instance-tab-modify.js</code>, drop <code>camunda-bpm-mockito</code>, <code>hibernate-types-55</code>, the retired Jaeger stack and <code>OldSecurityConfig.java</code></td><td>Bravo</td><td>1&ndash;2 days, four items pure deletion. Delaying it costs a messier diff later</td></tr>
-        <tr><td class="n">3</td><td class="k"><b>Set and publish a Bravo horizon</b>, even provisionally</td><td>Steering / CTO</td><td>The main input to Decision B</td></tr>
-        <tr><td class="n">4</td><td class="k"><b>Answer the support-agreement question</b> &mdash; and if the answer may be yes, open the CIB seven enquiry now</td><td>Architect + procurement + Risk</td><td><span class="hi"><b>Selects the fork.</b></span> The critical path inside Option 1</td></tr>
-        <tr><td class="n">5</td><td class="k"><b>Start the LORA gap inventory</b> &mdash; every Bravo delegate, status, assignment rule and approval path mapped to an existing LORA ProcessStep, a required new one, or &ldquo;drop&rdquo;</td><td>LORA + Bravo</td><td>Gates every number in Option 3; the per-product map is useful under every option</td></tr>
-        <tr><td class="n">6</td><td class="k"><b>Map <code>Surveyor Platform - Release reject</code> to a BPMN element or endpoint</b> &mdash; now six named candidate endpoints</td><td>Bravo &mdash; squad <code>LN</code></td><td>One category carries <b>61%</b> of Bravo&rsquo;s intervention rate. Narrowed from days to hours</td></tr>
-        <tr><td class="n">7</td><td class="k"><b>Confirm Temporal commitment headroom</b> ahead of the ~March 2027 renewal</td><td>Platform + FinOps</td><td>Needed for Option 2&rsquo;s costing and Option 3&rsquo;s capacity planning</td></tr>
-        <tr><td class="n">8</td><td class="k"><b>Reduce Camunda history level</b> on non-audited processes</td><td>Bravo</td><td><code>full</code> history with 90-day retention on 483 service tasks is a material slice of the Rp52.7M/month Cloud SQL line. <b>Free money under every option</b></td></tr>
+        <tr><td class="n">1</td><td class="k"><b>Fix the Camunda code-execution hole.</b> Rotate <code>INTERNAL_SERVICE_KEY</code> and the plaintext secrets in <code>cypress.config.js</code>. Identify who did it from the deployment access logs (2026-05-23 to 06-30). Register a <code>ProcessEngineAuthenticationFilter</code>. Delete the 61 definitions. Check whether anything moved laterally</td><td>Bravo and Security</td><td><span class="dn"><b>Live, and code has already run in production.</b></span> Needed whichever option is chosen</td></tr>
+        <tr><td class="n">2</td><td class="k"><b>Run the schema-log checks</b> in SIT, UAT and PROD independently &mdash; four SQL queries</td><td>Bravo</td><td>The one finding that can change the migration plan. <b>Hours of work</b></td></tr>
+        <tr><td class="n">2b</td><td class="k"><b>Do the six-item cleanup before deciding</b> &mdash; swap <code>CollectionUtil</code>, delete <code>instance-tab-modify.js</code>, drop <code>camunda-bpm-mockito</code> and <code>hibernate-types-55</code>, remove the retired Jaeger stack and <code>OldSecurityConfig.java</code></td><td>Bravo</td><td>1 to 2 days, and four of the six are pure deletion. Delaying it only makes the later diff messier</td></tr>
+        <tr><td class="n">3</td><td class="k"><b>Set a Bravo horizon and publish it</b>, even provisionally</td><td>Steering and CTO</td><td>The main input to Decision B</td></tr>
+        <tr><td class="n">4</td><td class="k"><b>Answer the support-contract question</b> &mdash; and if the answer might be yes, open the CIB seven enquiry now</td><td>Architect, procurement and Risk</td><td><span class="hi"><b>It picks the fork.</b></span> The critical path inside Option 1</td></tr>
+        <tr><td class="n">5</td><td class="k"><b>Start the LORA gap inventory</b> &mdash; map every Bravo delegate, status, assignment rule and approval path to an existing LORA ProcessStep, a new one that would be needed, or &ldquo;drop it&rdquo;</td><td>LORA and Bravo</td><td>Every number in Option 3 depends on it, and the per-product map is useful whichever option is chosen</td></tr>
+        <tr><td class="n">6</td><td class="k"><b>Trace <code>Surveyor Platform - Release reject</code> to a BPMN element or an endpoint</b> &mdash; there are now six named candidate endpoints</td><td>Bravo &mdash; squad <code>LN</code></td><td>This one category accounts for <b>61%</b> of the times Bravo needs a person. Narrowed from days of work to hours</td></tr>
+        <tr><td class="n">7</td><td class="k"><b>Confirm how much Temporal headroom the contract has</b>, ahead of the renewal around March 2027</td><td>Platform and FinOps</td><td>Needed for Option 2&rsquo;s costing and Option 3&rsquo;s capacity planning</td></tr>
+        <tr><td class="n">8</td><td class="k"><b>Record less Camunda history</b> on processes that are not audited</td><td>Bravo</td><td><code>full</code> history kept for 90 days across 483 service tasks is a real slice of the Rp52.7M a month Cloud SQL line. <b>Free money whichever option is chosen</b></td></tr>
       </tbody>
     </table></div>
     <div class="foot"><span class="src">option-summary.md &sect;7</span><span>13</span></div>
@@ -340,22 +340,22 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
 <section class="slide" data-nav="Basis">
   <div class="inner">
     <p class="eyebrow"><b>13</b><span class="sep">/</span>How to read the numbers</p>
-    <h2 class="st">Estimation basis, and what is deliberately not measured</h2>
+    <h2 class="st">How the estimates were made, and what we deliberately did not measure</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note"><h4>Basis</h4>Effort is in <strong>engineer-months of a competent engineer already familiar with the codebase</strong>, including that engineer&rsquo;s own testing but <strong>excluding UAT run by business users</strong>.<br><br><strong>Option 1 is the exception:</strong> its figures come from the Bravo team&rsquo;s own <em>Camunda 7 Exit Plan</em> in engineer-<em>days</em> for one engineer, explicitly excluding review, deployment soak and open-question fallout &mdash; <strong>18&ndash;33 days build</strong>, reconciled here to &asymp;1&ndash;1.5 engineer-months, or 1.5&ndash;2.5 all-in. Its inventory counts were re-verified against the working tree and <strong>matched exactly</strong>; its day estimates carry the team&rsquo;s own <strong>&ldquo;medium&rdquo; confidence</strong>.<br><br>Ranges are <strong>low-to-high, not confidence intervals</strong>. Rupiah applies an <strong>assumed Rp30&ndash;50M fully-loaded cost per engineer-month</strong> &mdash; substitute BFI&rsquo;s rate card. USD converts at Rp16,800.</div>
-        <div class="note note--bad"><h4>What is not measured, and would change the numbers</h4>The five open questions, plus Temporal commitment headroom and the true Bravo/LORA application split &mdash; <strong>the billing sheet&rsquo;s application counts are the least-verified numbers in the pack</strong> (Bravo&rsquo;s engine meter reports ~120k process starts/month against the sheet&rsquo;s 76,446). Option 3&rsquo;s estimate additionally <strong>does not separate incremental cost from work already on LORA&rsquo;s roadmap</strong>; the gap inventory is the workstream that would.</div>
+        <div class="note"><h4>How the effort is counted</h4>Effort is in <strong>engineer-months of a competent engineer who already knows the codebase</strong>, including that engineer&rsquo;s own testing but <strong>not UAT run by business users</strong>.<br><br><strong>Option 1 is the exception.</strong> Its figures come from the Bravo team&rsquo;s own <em>Camunda 7 Exit Plan</em>, in engineer-<em>days</em> for one engineer, and they explicitly exclude review, deployment soak and anything the open questions throw up &mdash; <strong>18 to 33 days to build</strong>, which we have converted here to about 1 to 1.5 engineer-months, or 1.5 to 2.5 all in. We re-checked their inventory counts against the working tree and they <strong>matched exactly</strong>. The day estimates carry the team&rsquo;s own confidence rating: <strong>&ldquo;medium&rdquo;</strong>.<br><br>Ranges are <strong>low to high. They are not confidence intervals.</strong> Rupiah figures assume a <strong>fully-loaded cost of Rp30&ndash;50M per engineer-month</strong> &mdash; substitute BFI&rsquo;s own rate card. USD converts at Rp16,800.</div>
+        <div class="note note--bad"><h4>What we did not measure, and what it would change</h4>The five open questions, plus how much headroom the Temporal contract has, plus the true split of applications between Bravo and LORA. <strong>The billing sheet&rsquo;s application counts are the least-verified numbers in the pack</strong> &mdash; Bravo&rsquo;s engine reports about 120,000 process starts a month, against the sheet&rsquo;s 76,446. Option 3&rsquo;s estimate also <strong>does not separate new cost from work already on LORA&rsquo;s roadmap</strong>. The gap inventory is the piece of work that would.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px">
         <p class="eyebrow">Sizing inputs &middot; counted from <code>ms-bpm</code> @ 2d5d856</p>
         <div class="tw"><table>
           <tbody>
-            <tr><td class="k">Main Java</td><td class="n"><b>497,970</b> LOC / 5,070 files</td></tr>
+            <tr><td class="k">Main Java</td><td class="n"><b>497,970</b> lines / 5,070 files</td></tr>
             <tr><td class="k">Test files &middot; of which run a Camunda process</td><td class="n"><b>1,457</b> &middot; <span class="dn"><b>4</b></span></td></tr>
-            <tr><td class="k">Bravo LOS in total</td><td class="n"><b>4 repositories</b>, 2,286 test files, +763,861 lines of console source</td></tr>
+            <tr><td class="k">Bravo LOS in total</td><td class="n"><b>4 repositories</b>, 2,286 test files, plus 763,861 lines of console source</td></tr>
             <tr><td class="k">BPMN &middot; DMN</td><td class="n"><b>53</b> &middot; 3</td></tr>
             <tr><td class="k"><code>delegateExpression</code> bindings &middot; beans</td><td class="n"><b>483</b> &middot; 274</td></tr>
-            <tr><td class="k"><code>JavaDelegate</code> implementations</td><td class="n"><b>225</b> (276 with subclasses)</td></tr>
+            <tr><td class="k"><code>JavaDelegate</code> implementations</td><td class="n"><b>225</b> (276 counting subclasses)</td></tr>
             <tr><td class="k">User tasks &middot; call activities</td><td class="n">96 &middot; 56</td></tr>
             <tr><td class="k">Entities &middot; tables &middot; Flyway migrations</td><td class="n">238 &middot; 271 &middot; <b>1,350</b></td></tr>
             <tr><td class="k">Active authors &middot; commits in 2026</td><td class="n">23 &middot; <b>4,514</b></td></tr>
@@ -372,13 +372,13 @@ thead th.h3{color:var(--o3);border-bottom-color:var(--o3)}
     <p class="eyebrow"><b>14</b><span class="sep">/</span>The ask</p>
     <h2 class="st">Two things to approve, and one thing to publish</h2>
     <div class="ask">
-      <div class="askrow"><span class="n">1</span><span class="t"><b>Approve Decision A as an unconditional spend.</b> Option 1, Path B &mdash; fork the engine and upgrade Spring Boot in one change, plus the RCE remediation and the schema-log diagnostics. It prejudges nothing about Decision B.</span><span class="c">18&ndash;33 eng-days<br>Rp45&ndash;125M<br>no licence</span></div>
-      <div class="askrow"><span class="n">2</span><span class="t"><b>Authorise the support-agreement enquiry now, not later.</b> Procurement and Risk answer one question: is a contractual support agreement required for the workflow engine, and can one be bought for a BFI entity? That answer selects the fork.</span><span class="c">weeks<br>critical path<br>inside Option 1</span></div>
-      <div class="askrow"><span class="n">3</span><span class="t"><b>Publish a Bravo horizon, even a provisional one.</b> It is the main input to Decision B, and it is a business decision rather than a technical one. Without it, the 30&ndash;57 engineer-month options cannot be argued either way.</span><span class="c">steering<br>committee</span></div>
-      <div class="askrow"><span class="n">4</span><span class="t"><b>Commission the two measurements that would firm up Decision B</b> &mdash; the LORA coverage gap inventory (1&ndash;2 eng-months, useful under every option) and the <code>Release reject</code> mapping (now hours, not days).</span><span class="c">1&ndash;2 eng-months<br>+ days</span></div>
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Approve Decision A as spending that does not depend on anything else.</b> Option 1, Path B &mdash; fork the engine and upgrade Spring Boot in one change, plus fixing the code-execution hole and running the schema-log checks. It commits you to nothing about Decision B.</span><span class="c">18&ndash;33 eng-days<br>Rp45&ndash;125M<br>no licence</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Authorise the support-contract enquiry now, not later.</b> Procurement and Risk answer one question: do we need a support contract for the workflow engine, and can one be bought for a BFI entity? That answer picks the fork.</span><span class="c">weeks<br>critical path<br>inside Option 1</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Publish a Bravo horizon, even a provisional one.</b> It is the main input to Decision B, and it is a business decision rather than a technical one. Without it, the 30-to-57 engineer-month options cannot be argued either way.</span><span class="c">steering<br>committee</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Commission the two measurements that would firm up Decision B</b> &mdash; the LORA coverage gap inventory (1 to 2 engineer-months, useful whichever option is chosen) and tracing <code>Release reject</code> to its source (now hours, not days).</span><span class="c">1&ndash;2 eng-months<br>+ days</span></div>
     </div>
-    <p class="pull">On Decision B, this pack deliberately does not pick.
-      <small>The three options answer different questions, and the coverage gap that would firm up Option 3&rsquo;s number has not been measured. <strong>What has changed is the pressure:</strong> with Option 1 removing the end-of-support exposure in weeks rather than quarters, Decision B can be taken <strong>on its merits</strong> &mdash; architecture, paradigm, one platform or two &mdash; instead of under a security deadline.</small></p>
+    <p class="pull">On Decision B, this pack deliberately does not choose.
+      <small>The three options answer different questions, and the coverage gap that would firm up Option 3&rsquo;s number has not been measured. <strong>What has changed is the pressure.</strong> With Option 1 removing the end-of-support exposure in weeks rather than quarters, Decision B can be taken <strong>on its merits</strong> &mdash; architecture, way of building, one platform or two &mdash; instead of under a security deadline.</small></p>
     <div class="foot"><span class="src">Sources: option-summary.md &middot; option-1.md &middot; option-2.md &middot; option-3.md &middot; compare.md &middot; SECURITY-FINDING-camunda-rce.md &middot; Camunda 7 Exit Plan (Bravo team, 2026-09-09) &middot; bravo-analysis/docs</span><span>15</span></div>
   </div>
 </section>

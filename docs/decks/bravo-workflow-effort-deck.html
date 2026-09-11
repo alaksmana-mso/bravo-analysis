@@ -368,12 +368,12 @@ tfoot td.n{text-align:right}
     <h1>What best-practice<br><span class="thin">workflow costs</span></h1>
     <div class="verdictbox" style="max-width:90ch">
       <span class="lab">The answer, in one line</span>
-      <p class="txt"><em>&asymp;9&ndash;14 engineer-months</em> to take every product to the target shape &mdash; but the first <em>2&ndash;3 engineer-months</em> buy almost all of the governance value and move no workflow at all.
-        <small>Rp265M&ndash;700M for the full programme; <strong>Rp60M&ndash;160M for the part that is unconditional.</strong> Against 30&ndash;57 engineer-months for either platform migration.</small></p>
+      <p class="txt"><em>About 9 to 14 engineer-months</em> to bring every product to the shape we want. But the first <em>2 to 3 engineer-months</em> buy almost all of the value, and move no workflow at all.
+        <small>Rp265M to Rp700M for the whole programme; <strong>Rp60M to Rp160M for the part that is worth doing whatever else we decide.</strong> Compare that with 30 to 57 engineer-months for either platform migration.</small></p>
     </div>
     <div class="meta">
-      <span><b>Question asked</b> &nbsp;What is the effort to move Bravo&rsquo;s workflows to best practice?</span>
-      <span><b>Evidence</b> &nbsp;<code>ms-bpm</code> working tree &middot; production BPM Postgres, 90d to 2026-09-09</span>
+      <span><b>Question asked</b> &nbsp;What would it cost to bring Bravo&rsquo;s workflows up to best practice?</span>
+      <span><b>Evidence</b> &nbsp;<code>ms-bpm</code> working tree &middot; production BPM Postgres, 90 days to 2026-09-09</span>
       <span><b>As at</b> &nbsp;2026-09-11</span>
     </div>
   </div>
@@ -383,43 +383,43 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="Where Bravo is">
   <div class="inner">
     <p class="eyebrow"><b>01</b><span class="sep">/</span>Starting position</p>
-    <h2 class="st">The premise most people hold about Bravo&rsquo;s workflows is false in production</h2>
-    <p class="lede">&ldquo;A single giant workflow handles all products&rdquo; describes a spine that carries <strong>5.5% of applications and exactly one product.</strong> The complexity being paid today is the <em>legacy per-product</em> design &mdash; which is also, almost exactly, the design usually proposed as the fix.</p>
+    <h2 class="st">What most people believe about Bravo&rsquo;s workflows is not what production shows</h2>
+    <p class="lede">&ldquo;One giant workflow handles all products&rdquo; describes a shared spine that carries <strong>5.5% of applications and exactly one product.</strong> What is actually expensive today is the <em>older, one-workflow-per-product</em> design &mdash; which is, almost exactly, the design usually proposed as the fix.</p>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Root workflow</th><th class="n">Started, 90d</th><th class="n">Share</th><th>Generation</th></tr></thead>
+        <thead><tr><th>Root workflow</th><th class="n">Started, 90 days</th><th class="n">Share</th><th>Generation</th></tr></thead>
         <tbody>
-          <tr><td class="k"><code>NDF2W</code></td><td class="n"><b>248,682</b></td><td class="n">73.4%</td><td>legacy monolith &mdash; 174 nodes, 359 commits</td></tr>
-          <tr><td class="k"><code>NDF4W</code></td><td class="n"><b>59,909</b></td><td class="n">17.7%</td><td>legacy monolith &mdash; 223 nodes, 392 commits</td></tr>
-          <tr><td class="k"><code>NDF4W_RO</code></td><td class="n">11,458</td><td class="n">3.4%</td><td>legacy variant</td></tr>
-          <tr><td class="k"><code>Unified_Process_Main_Workflow</code></td><td class="n">18,809</td><td class="n"><span class="hi"><b>5.5%</b></span></td><td><b>the shared spine</b> &mdash; 43 nodes, 0 user tasks</td></tr>
+          <tr><td class="k"><code>NDF2W</code></td><td class="n"><b>248,682</b></td><td class="n">73.4%</td><td>older monolith &mdash; 174 nodes, 359 commits</td></tr>
+          <tr><td class="k"><code>NDF4W</code></td><td class="n"><b>59,909</b></td><td class="n">17.7%</td><td>older monolith &mdash; 223 nodes, 392 commits</td></tr>
+          <tr><td class="k"><code>NDF4W_RO</code></td><td class="n">11,458</td><td class="n">3.4%</td><td>older variant</td></tr>
+          <tr><td class="k"><code>Unified_Process_Main_Workflow</code></td><td class="n">18,809</td><td class="n"><span class="hi"><b>5.5%</b></span></td><td><b>the shared spine</b> &mdash; 43 nodes, no user tasks</td></tr>
         </tbody>
-        <caption>Of the 18,806 applications on the shared spine, <b>every one is DF4W</b> &mdash; plus a 4-application NDF4W company pilot. DF2W is fully configured with zero volume because it has not been released: it is in UAT with an LOS penetration test running.</caption>
+        <caption>Of the 18,806 applications on the shared spine, <b>every one is DF4W</b>, plus a 4-application NDF4W company pilot. DF2W is fully configured with no volume because it has not been released: it is in UAT, with a penetration test running against the LOS.</caption>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note note--bad"><h4>The giant workflows are the per-product ones</h4>The unified spine is <strong>43 top-level nodes over 33 files</strong>. <code>NDF4W</code> is <strong>223</strong> and <code>NDF2W</code> is <strong>174</strong>. The legacy generation <em>is</em> the per-product design, and it is where the complexity accumulated: <strong>156 distinct delegate beans</strong> across the legacy roots against <strong>69</strong> for the unified generation&rsquo;s five products.</div>
-        <div class="note note--ok"><h4>There is already a working strangler beachhead</h4>The spine has run DF4W in production <strong>for months, flat, at 5.5%</strong>. Nobody planned it as a migration &mdash; but it proves the target shape carries real volume. The programme below is largely about <strong>making that deliberate.</strong></div>
+        <div class="note note--bad"><h4>The giant workflows are the per-product ones</h4>The shared spine is <strong>43 top-level nodes across 33 files</strong>. <code>NDF4W</code> is <strong>223</strong> and <code>NDF2W</code> is <strong>174</strong>. The older generation <em>is</em> the one-workflow-per-product design, and it is where the complexity built up: <strong>156 different delegate beans</strong> across the older roots, against <strong>69</strong> for the five products on the newer one.</div>
+        <div class="note note--ok"><h4>A gradual replacement has already started by itself</h4>The shared spine has run DF4W in production <strong>for months, steadily, at 5.5%</strong>. Nobody planned it as a migration, but it proves the shape we want can carry real volume. The programme below is mostly about <strong>doing that on purpose.</strong></div>
       </div>
     </div>
-    <div class="foot"><span class="src">workflow-gap.md &sect;1, &sect;2, &sect;8.1&ndash;8.2 &middot; production BPM Postgres, 90d to 2026-09-09 &middot; delegate counts re-verified in the working tree 2026-09-11</span><span>02</span></div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;1, &sect;2, &sect;8.1&ndash;8.2 &middot; production BPM Postgres, 90 days to 2026-09-09 &middot; delegate counts re-verified in the working tree 2026-09-11</span><span>02</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="The real gap">
   <div class="inner">
     <p class="eyebrow"><b>02</b><span class="sep">/</span>The real gap</p>
-    <h2 class="st">Product variation is expressed in four places, and the model shows none of them</h2>
-    <p class="lede">This &mdash; not the size of any diagram &mdash; is what the effort below is buying out. <strong>No artifact in the repository shows what a given product actually executes.</strong></p>
+    <h2 class="st">Product differences live in four places, and the diagram shows none of them</h2>
+    <p class="lede">This is what the effort below is buying out &mdash; not the size of any diagram. <strong>Nothing in the repository shows what a given product actually runs.</strong></p>
     <div class="tw"><table>
-      <thead><tr><th>Mechanism</th><th>Where</th><th>Measured today</th><th>Why it is a gap</th></tr></thead>
+      <thead><tr><th>Mechanism</th><th>Where</th><th>Measured today</th><th>Why it is a problem</th></tr></thead>
       <tbody>
-        <tr><td class="k">Gateway conditions on product</td><td><code>unified-main-workflow</code>, <code>-underwriting</code>, <code>-pd-model</code></td><td class="n"><b>3 files</b> carry <code>applicationWorkflowSelectorType</code>; <b>9 distinct feature flags</b> read from BPMN via <code>environment.getProperty</code></td><td>Product routing is mixed with feature flags <b>inside process XML</b>; the diagram reads as one flow but executes as several</td></tr>
-        <tr><td class="k">Config-gated no-op tasks</td><td><code>BaseActivity.isNeedToProceed</code> + the <code>workflow_*</code> tables</td><td class="n"><b>55 classes gated</b>; <b>64 workflow-config migrations</b> since 2024-03</td><td>A skipped task <b>completes normally</b>, so Camunda history, Cockpit and the BPMN all show steps that did nothing. The only way to know a product&rsquo;s real path is a <b>five-table join</b></td></tr>
-        <tr><td class="k">Product branches in Java</td><td><code>activity/unified/**</code></td><td class="n"><b>19 of 68</b> classes; <b>42 call sites</b> &mdash; <code>isDF4W()</code> 21, <code>isDF2W()</code> 7, <code>isNDF2W()</code> 7, <code>isNDF4W()</code> 5, <code>isDF2WSharia()</code> 2</td><td>The same activity behaves differently per product <b>with no trace in BPMN or config</b>. This is the layer that grows silently</td></tr>
-        <tr><td class="k">Feature flags per product</td><td><code>application.yaml</code></td><td class="n"><code>featDF2W</code>, <code>featDF2WSharia</code>, four <code>featBypassScoringProcess*</code> &mdash; inside <b>726 <code>feat*</code> keys</b> in total</td><td>A product can be <b>half-enabled per environment</b>, and the BPMN cannot express that</td></tr>
+        <tr><td class="k">Gateway conditions on the product</td><td><code>unified-main-workflow</code>, <code>-underwriting</code>, <code>-pd-model</code></td><td class="n"><b>3 files</b> carry <code>applicationWorkflowSelectorType</code>; <b>9 different feature flags</b> are read from BPMN via <code>environment.getProperty</code></td><td>Product routing and feature flags are mixed together <b>inside the process XML</b>. The diagram reads as one flow but runs as several</td></tr>
+        <tr><td class="k">Tasks that do nothing, switched off by config</td><td><code>BaseActivity.isNeedToProceed</code> and the <code>workflow_*</code> tables</td><td class="n"><b>55 classes gated this way</b>; <b>64 workflow-config migrations</b> since March 2024</td><td>A skipped task <b>records itself as completed</b>, so Camunda history, Cockpit and the BPMN all show steps that did nothing. The only way to know a product&rsquo;s real path is a <b>five-table join</b></td></tr>
+        <tr><td class="k">Product branches inside Java</td><td><code>activity/unified/**</code></td><td class="n"><b>19 of 68</b> classes; <b>42 call sites</b> &mdash; <code>isDF4W()</code> 21, <code>isDF2W()</code> 7, <code>isNDF2W()</code> 7, <code>isNDF4W()</code> 5, <code>isDF2WSharia()</code> 2</td><td>The same step behaves differently for different products, <b>with no trace of it in the BPMN or the config</b>. This is the layer that grows quietly</td></tr>
+        <tr><td class="k">Feature flags per product</td><td><code>application.yaml</code></td><td class="n"><code>featDF2W</code>, <code>featDF2WSharia</code>, four <code>featBypassScoringProcess*</code> &mdash; among <b>726 <code>feat*</code> keys</b> in total</td><td>A product can be <b>half-enabled in one environment</b>, and the BPMN has no way to show that</td></tr>
       </tbody>
     </table></div>
-    <div class="note note--bad"><h4>The phantom tasks are measured, not hypothetical</h4>In <code>Unified_Process_KYC_Check</code>, Address Verification, Phone Checking and Shopee Score each ran <strong>4,822 times in 7 days with 86&ndash;89% of executions under 50 ms</strong> &mdash; below the network floor. They are active for DF4W only; for every other product they log &ldquo;Skipping&rdquo; and return, while history records a completed step. The real calls in the same process sit at <strong>898&ndash;1,874 ms</strong>.</div>
+    <div class="note note--bad"><h4>The steps that do nothing are measured, not hypothetical</h4>In <code>Unified_Process_KYC_Check</code>, Address Verification, Phone Checking and Shopee Score each ran <strong>4,822 times in 7 days, with 86 to 89% of those runs finishing in under 50 milliseconds</strong> &mdash; faster than a network call can complete. They are switched on for DF4W only. For every other product they log &ldquo;Skipping&rdquo; and return, while history records a completed step. The real calls in the same process take <strong>898 to 1,874 milliseconds</strong>.</div>
     <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;7, &sect;8.3&ndash;8.4 &middot; counts re-verified in the working tree 2026-09-11</span><span>03</span></div>
   </div>
 </section>
@@ -429,20 +429,20 @@ tfoot td.n{text-align:right}
     <p class="eyebrow"><b>03</b><span class="sep">/</span>Target versus today</p>
     <h2 class="st">Eight principles define best practice. Bravo meets one and a half.</h2>
     <div class="tw"><table>
-      <thead><tr><th>Principle</th><th>Current state</th><th class="n">Severity</th></tr></thead>
+      <thead><tr><th>Principle</th><th>Where Bravo is today</th><th class="n">Severity</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>A</b> &nbsp;Model is the source of truth; structure in the model, data in config</td><td>Structure encoded as <code>is_active</code> no-op rows; 55 classes gated; effective path <b>not derivable from the model</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
-        <tr><td class="k"><b>B</b> &nbsp;A thin product-owned spine per product</td><td>One shared spine for all five; product chosen by gateways and a selector variable. <b>No product owns a readable spine</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
-        <tr><td class="k"><b>C</b> &nbsp;Domain children shared, with no product logic inside</td><td>19 of 68 unified activities branch on <code>application.isXxx()</code> &mdash; 42 call sites</td><td class="n"><span class="dn"><b>High</b></span></td></tr>
-        <tr><td class="k"><b>D</b> &nbsp;Fork a child only on structural difference</td><td><span class="up">Done once correctly</span> &mdash; <code>&hellip;Underwriting_Regular</code>. Everywhere else variation is config no-ops. <b>The good precedent is the exception</b></td><td class="n">Medium</td></tr>
-        <tr><td class="k"><b>E</b> &nbsp;Product kept out of domain code behind stable contracts</td><td>Config + Java + gateways + flags all carry product: <b>four mechanisms to change to alter one product&rsquo;s flow</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
-        <tr><td class="k"><b>F</b> &nbsp;Least-privilege engine, per-product deployment unit</td><td><code>/camunda</code> is <code>permitAll</code>; <code>/engine-rest</code> grants full engine rights to any holder of the shared key &mdash; <b>the actual RCE vector</b>. One deployment unit for all products</td><td class="n"><span class="dn"><b>High</b></span> <span style="color:var(--ink3)">(security)</span></td></tr>
-        <tr><td class="k"><b>G</b> &nbsp;Migrate by strangler, never big-bang</td><td><span class="up">Happening</span> &mdash; but <b>by accident</b>, flat at 5.5%, with no migration plan. Legacy carries ~94% and the whole retail book</td><td class="n">Medium</td></tr>
-        <tr><td class="k"><b>H</b> &nbsp;Dead and duplicated assets removed</td><td>Four dead <code>setting.workflow.map</code> keys; one unreferenced mock deployment; <b>10 named 2W/4W delegate pairs</b> doing the same job twice</td><td class="n">Low&ndash;Med</td></tr>
+        <tr><td class="k"><b>A</b> &nbsp;The diagram is the truth: structure in the diagram, data in config</td><td>Structure is encoded as <code>is_active</code> rows for steps that do nothing. 55 classes are gated this way. <b>You cannot work out the real path from the diagram</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>B</b> &nbsp;Each product owns a thin spine of its own</td><td>One shared spine serves all five products, and the product is chosen by gateways and a selector variable. <b>No product owns a readable spine</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>C</b> &nbsp;Shared sub-workflows, with no product logic inside them</td><td>19 of 68 shared steps branch on <code>application.isXxx()</code>, across 42 call sites</td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>D</b> &nbsp;Split a sub-workflow only when the structure genuinely differs</td><td><span class="up">Done correctly once</span> &mdash; <code>&hellip;Underwriting_Regular</code>. Everywhere else, differences are handled by switching steps off in config. <b>The good example is the exception</b></td><td class="n">Medium</td></tr>
+        <tr><td class="k"><b>E</b> &nbsp;Keep the product out of shared code, behind stable contracts</td><td>Config, Java, gateways and flags all carry the product: <b>four separate places to change to alter one product&rsquo;s flow</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>F</b> &nbsp;The engine should have only the rights it needs, and deploy per product</td><td><code>/camunda</code> is set to <code>permitAll</code>. <code>/engine-rest</code> gives full control of the engine to anyone holding the shared key &mdash; <b>this is how the injected code got in</b>. And there is one deployment unit for all products</td><td class="n"><span class="dn"><b>High</b></span> <span style="color:var(--ink3)">(security)</span></td></tr>
+        <tr><td class="k"><b>G</b> &nbsp;Replace gradually, never all at once</td><td><span class="up">Happening</span> &mdash; but <b>by accident</b>, stuck at 5.5%, with no migration plan. The older workflows still carry about 94% of volume and the whole retail book</td><td class="n">Medium</td></tr>
+        <tr><td class="k"><b>H</b> &nbsp;Dead and duplicated things are deleted</td><td>Four dead <code>setting.workflow.map</code> keys; one mock deployment nothing refers to; <b>10 named 2W/4W delegate pairs</b> doing the same job twice</td><td class="n">Low&ndash;Med</td></tr>
       </tbody>
     </table></div>
-    <p class="pull">Bravo has the right building blocks and one correct fork &mdash; it just expresses product variation in three places the model cannot show.
-      <small>So no product has a readable, owned, independently-deployable spine, and the legacy monoliths carrying 94% of volume were never migrated at all.</small></p>
+    <p class="pull">Bravo has the right building blocks, and one correctly-split sub-workflow. What it does wrong is express product differences in three places the diagram cannot show.
+      <small>So no product has a readable spine of its own that can be deployed independently &mdash; and the older monoliths carrying 94% of volume were never migrated at all.</small></p>
     <div class="foot"><span class="src">workflow-gap.md &sect;10, &sect;11 &middot; SECURITY-FINDING-camunda-rce.md</span><span>04</span></div>
   </div>
 </section>
@@ -450,52 +450,52 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="Target shape">
   <div class="inner">
     <p class="eyebrow"><b>04</b><span class="sep">/</span>What we would be building</p>
-    <h2 class="st">Product-owned spines, domain-owned children, explicit variation</h2>
+    <h2 class="st">A spine per product, shared sub-workflows, and differences out in the open</h2>
     <div class="sideby">
-      <div class="side ok"><h4>Keep &mdash; what the unified design got right</h4>
+      <div class="side ok"><h4>Keep &mdash; what the newer design got right</h4>
         <ul>
-          <li><b>Orchestrators contain no user tasks.</b> Human work is confined to leaf children &mdash; confirmed in production: the orchestrators recorded <b>zero user-task instances</b> in 90 days</li>
-          <li><b>Domain steps exist once.</b> Onboarding DF2W Sharia in 2026 touched the spine in one commit plus migrations, instead of adding a fourth monolith</li>
-          <li><b>Escalation, cancellation and rejection are centralised</b> as boundary events on the spine, not re-drawn per product</li>
-          <li><b>The correct fork already exists:</b> <code>Unified_Process_Workflow_Underwriting_Regular</code> is a DF2W-family fork called from the shared underwriting orchestrator. The pattern is known &mdash; it is simply not applied consistently</li>
+          <li><b>The top-level workflows contain no human tasks.</b> Human work sits only in the sub-workflows. Production confirms it: the top-level workflows recorded <b>no user tasks at all</b> in 90 days</li>
+          <li><b>Each domain step exists once.</b> Adding DF2W Sharia in 2026 touched the spine in one commit plus some migrations, instead of adding a fourth monolith</li>
+          <li><b>Escalation, cancellation and rejection are handled in one place</b>, as boundary events on the spine, rather than redrawn for every product</li>
+          <li><b>The right kind of split already exists:</b> <code>Unified_Process_Workflow_Underwriting_Regular</code> is a DF2W-family version called from the shared underwriting workflow. The team knows the pattern. It is just not applied consistently</li>
         </ul>
       </div>
-      <div class="side"><h4>Change &mdash; the five rules, in order of payoff</h4>
+      <div class="side"><h4>Change &mdash; five rules, in order of payoff</h4>
         <ul>
-          <li><b>1 &middot; One thin spine per product</b> (~40 nodes): the source of truth for stage order and which child each stage calls. The spine <em>is</em> the selector; retire the gateways</li>
-          <li><b>2 &middot; No silent skipping.</b> A task not applicable to a product must not be on that product&rsquo;s path. At minimum, a missing config row must <b>fail loudly</b></li>
-          <li><b>3 &middot; Remove <code>application.isXxx()</code> from the 19 shared activities.</b> Product behaviour belongs in the spine or a product-specific child, never in a shared bean</li>
-          <li><b>4 &middot; Fork a domain child only on structural difference</b> &mdash; order of steps, different human roles, different partners. A different threshold does not qualify</li>
-          <li><b>5 &middot; Publish the effective flow per product</b>, generated on every build and diffed in CI</li>
+          <li><b>1 &middot; One thin spine per product</b> (about 40 nodes). It is the single source of truth for the order of stages and which sub-workflow each stage calls. The spine <em>does</em> the selecting, so the gateways go away</li>
+          <li><b>2 &middot; No silent skipping.</b> A task that does not apply to a product should not be on that product&rsquo;s path at all. At the very least, a missing config row must <b>fail loudly</b></li>
+          <li><b>3 &middot; Take <code>application.isXxx()</code> out of the 19 shared steps.</b> Product behaviour belongs in the spine or in a product-specific sub-workflow, never in a shared bean</li>
+          <li><b>4 &middot; Split a sub-workflow only when the structure differs</b> &mdash; a different order of steps, different human roles, different partners. A different threshold does not count</li>
+          <li><b>5 &middot; Publish the real flow for each product</b>, generated on every build and diffed in CI</li>
         </ul>
       </div>
     </div>
-    <div class="note"><h4>Camunda 7 makes the middle path cheap</h4>A call activity&rsquo;s <code>calledElement</code> can be <strong>an expression</strong> &mdash; so a product spine dispatches to the shared <code>survey</code> child for most products and to <code>survey_sharia</code> for one, <strong>with no gateway and no flag</strong>. Five spines of ~40 nodes cost far less than the 25 per-product children a full split would require &mdash; and full duplication is exactly how <code>NDF4W</code> and <code>NDF2W</code> drifted apart.</div>
-    <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;5, &sect;6, &sect;10.2 &middot; &sect;8.6 (zero orchestrator user tasks)</span><span>05</span></div>
+    <div class="note"><h4>Camunda 7 makes the middle path cheap</h4>A call activity&rsquo;s <code>calledElement</code> can be <strong>an expression</strong>. So a product spine can send most products to the shared <code>survey</code> sub-workflow and one product to <code>survey_sharia</code>, <strong>with no gateway and no flag</strong>. Five spines of about 40 nodes each cost far less than the 25 per-product sub-workflows a full split would need &mdash; and duplicating everything is exactly how <code>NDF4W</code> and <code>NDF2W</code> drifted apart in the first place.</div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;5, &sect;6, &sect;10.2 &middot; &sect;8.6 (no user tasks in the top-level workflows)</span><span>05</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="How it was sized">
   <div class="inner">
-    <p class="eyebrow"><b>05</b><span class="sep">/</span>Estimation basis</p>
-    <h2 class="st">How these numbers were built &mdash; and how much to trust each phase</h2>
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>How the numbers were built</p>
+    <h2 class="st">Where these estimates come from &mdash; and how much to trust each phase</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note"><h4>Basis</h4>Engineer-<strong>days</strong> of a competent engineer <strong>already familiar with <code>ms-bpm</code></strong>, including that engineer&rsquo;s own testing, <strong>excluding UAT run by business users</strong>. 21 working days to the engineer-month; Rupiah at the pack&rsquo;s standing assumption of <strong>Rp30&ndash;50M fully loaded per engineer-month</strong> &mdash; substitute BFI&rsquo;s rate card. Ranges are <strong>low-to-high, not confidence intervals</strong>.<br><br><strong>Unlike the end-of-support numbers, these are not a team memo.</strong> They are derived here from counted inventory &mdash; delegates, branch sites, gated classes, user tasks, production volumes &mdash; and should be re-estimated by the squads that would do the work.</div>
-        <div class="note note--bad"><h4>The one measurement that would firm up Phases 3&ndash;4</h4>Of <code>NDF2W</code>&rsquo;s <strong>67 delegate beans, exactly one</strong> (<code>checkUnderwritingNeededUnifiedActivity</code>) is also used by the unified children. <strong>So migration is not re-pointing: it is establishing, bean by bean, whether the unified child already does that job.</strong><br><br>A delegate-level mapping &mdash; <strong>5&ndash;8 days</strong> &mdash; would convert the widest range in this deck into a real number. It is the direct analogue of the LORA coverage-gap inventory.</div>
+        <div class="note"><h4>How the effort is counted</h4>Engineer-<strong>days</strong> of a competent engineer <strong>who already knows <code>ms-bpm</code></strong>, including that engineer&rsquo;s own testing but <strong>not UAT run by business users</strong>. 21 working days to the engineer-month. Rupiah figures use the assumption applied throughout this pack: <strong>Rp30&ndash;50M fully loaded per engineer-month</strong> &mdash; substitute BFI&rsquo;s own rate card. Ranges are <strong>low to high. They are not confidence intervals.</strong><br><br><strong>Unlike the end-of-support numbers, these did not come from a team memo.</strong> We derived them here by counting what is there &mdash; delegates, branch sites, gated classes, user tasks, production volumes &mdash; and the squads who would do the work should re-estimate them.</div>
+        <div class="note note--bad"><h4>The one measurement that would firm up Phases 3 and 4</h4>Of <code>NDF2W</code>&rsquo;s <strong>67 delegate beans, exactly one</strong> (<code>checkUnderwritingNeededUnifiedActivity</code>) is also used by the shared sub-workflows. <strong>So migrating is not a matter of pointing things somewhere else. It means working out, bean by bean, whether the shared sub-workflow already does that job.</strong><br><br>Mapping the delegates &mdash; <strong>5 to 8 days</strong> &mdash; would turn the widest range in this deck into a real number. It is the direct equivalent of the LORA coverage-gap inventory.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px">
-        <p class="eyebrow">Confidence, by phase</p>
+        <p class="eyebrow">How confident we are, by phase</p>
         <div class="tw"><table>
           <thead><tr><th>Phase</th><th>Confidence</th><th>Why</th></tr></thead>
           <tbody>
-            <tr><td class="k"><span class="e e--a">P1 visibility</span></td><td><span class="up"><b>High</b></span></td><td>The queries exist (&sect;8.4) and the parse scripts exist. Tooling work with a known shape</td></tr>
-            <tr><td class="k"><span class="e e--b">P2 prove on DF4W</span></td><td><span class="up"><b>Medium-high</b></span></td><td>Scope is enumerable: one spine, 3 gateways, 21 <code>isDF4W()</code> sites, a known set of gated KYC/RAC steps</td></tr>
-            <tr><td class="k"><span class="e e--c">P3 NDF2W</span></td><td><span class="dn"><b>Low-medium</b></span></td><td>Turns on how much of NDF2W&rsquo;s behaviour the shared children already cover &mdash; <b>unmeasured</b>. The widest range here</td></tr>
-            <tr><td class="k"><span class="e e--d">P4 the rest</span></td><td><span class="dn"><b>Low</b></span></td><td>Scaled from P3 plus counted inventory; Sharia is a separate deployment nobody has scoped</td></tr>
+            <tr><td class="k"><span class="e e--a">P1 visibility</span></td><td><span class="up"><b>High</b></span></td><td>The queries exist (&sect;8.4) and so do the parse scripts. It is tooling work of a known shape</td></tr>
+            <tr><td class="k"><span class="e e--b">P2 prove on DF4W</span></td><td><span class="up"><b>Medium-high</b></span></td><td>You can list the scope exactly: one spine, 3 gateways, 21 <code>isDF4W()</code> sites, and a known set of gated KYC and RAC steps</td></tr>
+            <tr><td class="k"><span class="e e--c">P3 NDF2W</span></td><td><span class="dn"><b>Low-medium</b></span></td><td>It depends on how much of NDF2W&rsquo;s behaviour the shared sub-workflows already cover, and <b>nobody has measured that</b>. The widest range here</td></tr>
+            <tr><td class="k"><span class="e e--d">P4 the rest</span></td><td><span class="dn"><b>Low</b></span></td><td>Scaled up from P3 plus what we counted. Sharia is a separate deployment that nobody has scoped</td></tr>
           </tbody>
         </table></div>
-        <div class="note note--ok"><h4>What is excluded from every number</h4>Business-run UAT, product-owner workshop time, domain-logic rewrites (survey and underwriting <em>behaviour</em> is out of scope), and any change to the LORA or Temporal track.</div>
+        <div class="note note--ok"><h4>What every number here leaves out</h4>UAT run by the business, product-owner workshop time, rewriting domain logic (how survey and underwriting actually <em>behave</em> is out of scope), and any change to the LORA or Temporal track.</div>
       </div>
     </div>
     <div class="foot"><span class="src">Derived from workflow-gap.md &sect;12 &middot; inventory counted in <code>ms-bpm</code> 2026-09-11 &middot; cost basis per option-summary.md &sect;8</span><span>06</span></div>
@@ -505,20 +505,20 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="Phase 1 cost">
   <div class="inner">
     <p class="eyebrow"><b>06</b><span class="sep">/</span>Phase 1 &middot; 0&ndash;30 days</p>
-    <h2 class="st">See it and stop the bleeding &mdash; no workflow moves</h2>
+    <h2 class="st">See it, and stop it getting worse. No workflow moves.</h2>
     <div class="tw"><table>
-      <thead><tr><th>Work item</th><th>What it involves</th><th class="n">Eng-days</th><th>Exit criterion</th></tr></thead>
+      <thead><tr><th>Work item</th><th>What it involves</th><th class="n">Engineer-days</th><th>Done when</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>Publish the effective per-product flow</b></td><td>Join <code>workflow_master_config_detail</code> &#8904; <code>selector_order</code> &#8904; <code>selector_type</code> and overlay on the BPMN; one diagram per product, regenerated on build. <b>The &sect;8.4 query and the parse scripts already exist</b></td><td class="n"><b>8&ndash;13</b></td><td>Every live product has a current, owner-readable flow diagram</td></tr>
-        <tr><td class="k"><b>Freeze new hidden variation</b></td><td>PR check failing a new <code>application.isXxx()</code> in <code>activity/unified/**</code>, and a new config-gated class with no doc entry</td><td class="n"><b>2&ndash;4</b></td><td>CI blocks both; the count of branch sites can only go down from 42</td></tr>
-        <tr><td class="k"><b>Harden the engine</b></td><td>Authenticate and network-restrict <code>/camunda</code> <b>and</b> <code>/engine-rest</code>; rotate <code>INTERNAL_SERVICE_KEY</code>; register a <code>ProcessEngineAuthenticationFilter</code>; purge the 61 injected definitions</td><td class="n"><b>3&ndash;5</b><br><span style="color:var(--ink3)">already in Decision A</span></td><td>Injected definitions purged, verified in prod and Sharia</td></tr>
-        <tr><td class="k"><b>Decide the target</b></td><td>A one-page ADR &mdash; product-owned spines, shared domain children, fork-on-structure &mdash; with product-owner sign-off</td><td class="n"><b>2&ndash;3</b></td><td>ADR merged</td></tr>
-        <tr><td class="k"><b>Cheap cleanup</b></td><td>Delete the four dead <code>setting.workflow.map</code> keys; remove <code>Process_NDF4W_Scoring_1_Mock_Ro</code></td><td class="n"><b>0.5&ndash;1</b></td><td>Map keys map 1:1 to real processes</td></tr>
+        <tr><td class="k"><b>Publish the real flow for each product</b></td><td>Join <code>workflow_master_config_detail</code>, <code>selector_order</code> and <code>selector_type</code>, and lay the result over the BPMN. One diagram per product, regenerated on every build. <b>The &sect;8.4 query and the parse scripts already exist</b></td><td class="n"><b>8&ndash;13</b></td><td>Every live product has a current flow diagram its owner can read</td></tr>
+        <tr><td class="k"><b>Stop new hidden differences appearing</b></td><td>A pull-request check that fails on a new <code>application.isXxx()</code> in <code>activity/unified/**</code>, or a new config-gated class with no documentation entry</td><td class="n"><b>2&ndash;4</b></td><td>CI blocks both, and the count of branch sites can only fall from 42</td></tr>
+        <tr><td class="k"><b>Secure the engine</b></td><td>Require authentication and restrict the network on <code>/camunda</code> <b>and</b> <code>/engine-rest</code>; rotate <code>INTERNAL_SERVICE_KEY</code>; register a <code>ProcessEngineAuthenticationFilter</code>; delete the 61 injected definitions</td><td class="n"><b>3&ndash;5</b><br><span style="color:var(--ink3)">already in Decision A</span></td><td>Injected definitions deleted, verified in production and in Sharia</td></tr>
+        <tr><td class="k"><b>Agree the target</b></td><td>A one-page ADR &mdash; a spine per product, shared sub-workflows, split only on structure &mdash; signed off by the product owners</td><td class="n"><b>2&ndash;3</b></td><td>ADR merged</td></tr>
+        <tr><td class="k"><b>Cheap cleanup</b></td><td>Delete the four dead <code>setting.workflow.map</code> keys and remove <code>Process_NDF4W_Scoring_1_Mock_Ro</code></td><td class="n"><b>0.5&ndash;1</b></td><td>Every map key points to a real process</td></tr>
       </tbody>
-      <tfoot><tr><td colspan="2">Phase 1 total &mdash; <b>1&ndash;2 engineers, ~1 month elapsed</b></td><td class="n"><span class="hi"><b>15&ndash;26 days</b></span><br>&asymp;0.8&ndash;1.3 eng-months</td><td class="n"><b>Rp 25M &ndash; 65M</b></td></tr></tfoot>
+      <tfoot><tr><td colspan="2">Phase 1 total &mdash; <b>1&ndash;2 engineers, about 1 month</b></td><td class="n"><span class="hi"><b>15&ndash;26 days</b></span><br>about 0.8&ndash;1.3 engineer-months</td><td class="n"><b>Rp 25M &ndash; 65M</b></td></tr></tfoot>
     </table></div>
-    <div class="note"><h4>What Phase 1 deliberately does not do</h4>No workflow moves, no BPMN is restructured, and no product migrates. Phase 1 changes <strong>what can be seen and what can be added</strong> &mdash; it makes each product&rsquo;s real path visible and stops the count of hidden branches from rising. Every structural change is deferred to Phase 2, behind a signed-off ADR.</div>
-    <div class="note note--ok"><h4>This phase is unconditional &mdash; it survives every Decision B outcome</h4>The per-product effective-flow artifact is <strong>exactly the input the LORA gap inventory needs</strong> (&ldquo;every Bravo delegate, status, assignment rule and approval path mapped to a LORA ProcessStep&rdquo;). If BFI migrates to LORA, this work is <strong>a prerequisite, not a write-off</strong>. If it ports to Temporal, a faithful port of an <em>unreadable</em> model ports the problem &mdash; this makes the port smaller. And if Bravo stays, it is the foundation of everything below.</div>
+    <div class="note"><h4>What Phase 1 deliberately does not do</h4>No workflow moves, no BPMN is restructured, and no product migrates. Phase 1 changes <strong>what can be seen, and what can be added</strong>. It makes each product&rsquo;s real path visible and stops the number of hidden branches rising. Every structural change waits for Phase 2, behind a signed-off ADR.</div>
+    <div class="note note--ok"><h4>This phase is worth doing whatever Decision B turns out to be</h4>The per-product flow diagram is <strong>exactly what the LORA gap inventory needs as input</strong> &mdash; &ldquo;every Bravo delegate, status, assignment rule and approval path mapped to a LORA ProcessStep&rdquo;. If BFI migrates to LORA, this work is <strong>a prerequisite, not money wasted</strong>. If it moves to Temporal, a faithful port of a model nobody can read carries the problem across &mdash; this makes the port smaller. And if Bravo stays, it is the foundation for everything below.</div>
     <div class="foot"><span class="src">workflow-gap.md &sect;12 (0&ndash;30d) &middot; option-summary.md &sect;7 item 5 &middot; effort derived 2026-09-11</span><span>07</span></div>
   </div>
 </section>
@@ -527,19 +527,19 @@ tfoot td.n{text-align:right}
   <div class="inner">
     <p class="eyebrow"><b>07</b><span class="sep">/</span>Phase 2 &middot; 30&ndash;60 days</p>
     <h2 class="st">Prove the pattern on DF4W &mdash; the only product already on the spine</h2>
-    <p class="lede">Lowest-risk possible pilot: <strong>5.5% of volume, one product, already in production on the shared spine.</strong> If the target shape does not work here, it does not work.</p>
+    <p class="lede">This is the lowest-risk pilot available: <strong>5.5% of volume, one product, already running in production on the shared spine.</strong> If the target shape does not work here, it does not work anywhere.</p>
     <div class="tw"><table>
-      <thead><tr><th>Work item</th><th>Counted scope</th><th class="n">Eng-days</th><th>Exit criterion</th></tr></thead>
+      <thead><tr><th>Work item</th><th>Scope, as counted</th><th class="n">Engineer-days</th><th>Done when</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>Build <code>spine_df4w</code></b></td><td>A thin executable spine naming DF4W&rsquo;s stages and calling each domain child by <code>calledElement</code>; new DF4W volume routed behind a flag</td><td class="n"><b>5&ndash;8</b></td><td>New DF4W loans run <code>spine_df4w</code>; the shared spine no longer receives DF4W</td></tr>
-        <tr><td class="k"><b>Remove DF4W&rsquo;s hidden variation</b></td><td><b>21 <code>isDF4W()</code> call sites</b> in shared beans, plus the <b>3 <code>applicationWorkflowSelectorType</code> gateways</b> on the DF4W path</td><td class="n"><b>6&ndash;10</b></td><td>Zero product gateways and zero <code>isDF4W()</code> on the DF4W path</td></tr>
-        <tr><td class="k"><b>Kill the phantom tasks</b></td><td>Convert the gated KYC and RAC no-ops into explicit model choices &mdash; a gateway where the choice is data-driven, a fork where it is product-driven</td><td class="n"><b>8&ndash;12</b></td><td>No sub-50 ms no-op service tasks in DF4W history for the gated KYC steps</td></tr>
-        <tr><td class="k"><b>Lock in observability</b></td><td>Per-product flow diagram generated and <b>diffed in CI</b>; contract tests per domain child</td><td class="n"><b>4&ndash;6</b></td><td>A change to a shared child that alters DF4W&rsquo;s path appears as a diagram diff in review</td></tr>
-        <tr><td class="k"><b>Route, soak and prove parity</b></td><td>Strangler routing, rollback path, latency and error parity against the shared spine</td><td class="n"><b>4&ndash;6</b></td><td>Parity held over a full soak window at DF4W&rsquo;s ~6,800 applications/month</td></tr>
+        <tr><td class="k"><b>Build <code>spine_df4w</code></b></td><td>A thin runnable spine naming DF4W&rsquo;s stages and calling each sub-workflow by <code>calledElement</code>, with new DF4W volume routed to it behind a flag</td><td class="n"><b>5&ndash;8</b></td><td>New DF4W loans run on <code>spine_df4w</code>, and the shared spine no longer receives DF4W</td></tr>
+        <tr><td class="k"><b>Remove DF4W&rsquo;s hidden differences</b></td><td><b>21 <code>isDF4W()</code> call sites</b> in shared beans, plus the <b>3 <code>applicationWorkflowSelectorType</code> gateways</b> on the DF4W path</td><td class="n"><b>6&ndash;10</b></td><td>No product gateways and no <code>isDF4W()</code> anywhere on the DF4W path</td></tr>
+        <tr><td class="k"><b>Get rid of the tasks that do nothing</b></td><td>Turn the gated KYC and RAC no-ops into explicit choices in the diagram &mdash; a gateway where the choice depends on data, a split where it depends on the product</td><td class="n"><b>8&ndash;12</b></td><td>No sub-50ms do-nothing service tasks in DF4W history for the gated KYC steps</td></tr>
+        <tr><td class="k"><b>Lock in the visibility</b></td><td>The per-product flow diagram is generated and <b>diffed in CI</b>, and each sub-workflow gets contract tests</td><td class="n"><b>4&ndash;6</b></td><td>A change to a shared sub-workflow that alters DF4W&rsquo;s path shows up as a diagram diff in review</td></tr>
+        <tr><td class="k"><b>Route it, run it, and check it matches</b></td><td>Gradual routing, a rollback path, and checking latency and errors match the shared spine</td><td class="n"><b>4&ndash;6</b></td><td>It matched for a full soak period, at DF4W&rsquo;s roughly 6,800 applications a month</td></tr>
       </tbody>
-      <tfoot><tr><td colspan="2">Phase 2 total &mdash; <b>1&ndash;2 engineers, ~1&ndash;1.5 months elapsed</b></td><td class="n"><span class="hi"><b>27&ndash;42 days</b></span><br>&asymp;1.3&ndash;2.0 eng-months</td><td class="n"><b>Rp 40M &ndash; 100M</b></td></tr></tfoot>
+      <tfoot><tr><td colspan="2">Phase 2 total &mdash; <b>1&ndash;2 engineers, about 1 to 1.5 months</b></td><td class="n"><span class="hi"><b>27&ndash;42 days</b></span><br>about 1.3&ndash;2.0 engineer-months</td><td class="n"><b>Rp 40M &ndash; 100M</b></td></tr></tfoot>
     </table></div>
-    <div class="note"><h4>What Phase 2 settles that no document can</h4>Whether one thin spine plus shared children really carries a product without the config gating &mdash; and <strong>what the true cost per product is</strong>. Phases 3 and 4 should be re-estimated against Phase 2&rsquo;s actuals rather than the ranges on the next two slides.</div>
+    <div class="note"><h4>What Phase 2 settles that no document can</h4>Whether one thin spine plus shared sub-workflows really can carry a product without the config gating &mdash; and <strong>what one product actually costs to move</strong>. Phases 3 and 4 should be re-estimated against what Phase 2 really took, rather than the ranges on the next two slides.</div>
     <div class="foot"><span class="src">workflow-gap.md &sect;12 (30&ndash;60d), &sect;8.2&ndash;8.3 &middot; branch sites counted in the working tree 2026-09-11</span><span>08</span></div>
   </div>
 </section>
@@ -547,26 +547,26 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="Phase 3 cost">
   <div class="inner">
     <p class="eyebrow"><b>08</b><span class="sep">/</span>Phase 3 &middot; the volume</p>
-    <h2 class="st">NDF2W is the prize and the expense &mdash; 248,682 applications a quarter</h2>
+    <h2 class="st">NDF2W is both the prize and the expense &mdash; 248,682 applications a quarter</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Work item</th><th class="n">Eng-days</th><th>Counted scope</th></tr></thead>
+        <thead><tr><th>Work item</th><th class="n">Engineer-days</th><th>Scope, as counted</th></tr></thead>
         <tbody>
-          <tr><td class="k"><b>Map NDF2W&rsquo;s delegates onto shared children; build <code>spine_ndf2w</code></b></td><td class="n"><b>10&ndash;15</b></td><td>67 delegate beans, 174 top-level nodes, 45 embedded subprocesses</td></tr>
-          <tr><td class="k"><b>Extend the domain children to cover NDF2W semantics</b></td><td class="n"><span class="dn"><b>25&ndash;40</b></span></td><td><b>66 of the 67 beans have no unified counterpart.</b> The single widest range in the programme</td></tr>
-          <tr><td class="k"><b>Re-home the human work</b></td><td class="n"><b>8&ndash;12</b></td><td>20 user tasks &mdash; including the 185,574-instance User Survey Task &mdash; whose assignment lives in Java, since <code>candidateGroups</code> is empty on every task</td></tr>
-          <tr><td class="k"><b>Strangler routing, dual-run, parity harness, runbook</b></td><td class="n"><b>10&ndash;15</b></td><td>Legacy <code>NDF2W</code> stays live for in-flight instances and rollback</td></tr>
-          <tr><td class="k"><b>Regression and UAT support</b></td><td class="n"><b>8&ndash;12</b></td><td>Engineer-side only; business UAT excluded</td></tr>
+          <tr><td class="k"><b>Map NDF2W&rsquo;s delegates onto shared sub-workflows, and build <code>spine_ndf2w</code></b></td><td class="n"><b>10&ndash;15</b></td><td>67 delegate beans, 174 top-level nodes, 45 embedded sub-processes</td></tr>
+          <tr><td class="k"><b>Extend the shared sub-workflows to cover how NDF2W behaves</b></td><td class="n"><span class="dn"><b>25&ndash;40</b></span></td><td><b>66 of the 67 beans have no equivalent on the newer side.</b> This is the single widest range in the programme</td></tr>
+          <tr><td class="k"><b>Move the human work</b></td><td class="n"><b>8&ndash;12</b></td><td>20 user tasks, including the User Survey Task with 185,574 instances. Who each one goes to is decided in Java, because <code>candidateGroups</code> is empty on every task</td></tr>
+          <tr><td class="k"><b>Gradual routing, running both, checking they match, and a runbook</b></td><td class="n"><b>10&ndash;15</b></td><td>The old <code>NDF2W</code> stays live for loans already running, and for rollback</td></tr>
+          <tr><td class="k"><b>Regression testing and UAT support</b></td><td class="n"><b>8&ndash;12</b></td><td>Engineer time only. UAT run by the business is excluded</td></tr>
         </tbody>
-        <tfoot><tr><td>Phase 3 total &mdash; <b>2 engineers, ~3&ndash;4 months elapsed</b></td><td class="n"><span class="hi"><b>61&ndash;94 days</b></span><br>&asymp;3.0&ndash;4.5 eng-months</td><td class="n"><b>Rp 90M &ndash; 225M</b></td></tr></tfoot>
+        <tfoot><tr><td>Phase 3 total &mdash; <b>2 engineers, about 3 to 4 months</b></td><td class="n"><span class="hi"><b>61&ndash;94 days</b></span><br>about 3.0&ndash;4.5 engineer-months</td><td class="n"><b>Rp 90M &ndash; 225M</b></td></tr></tfoot>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:13px">
         <div class="stats stats--4" style="grid-template-columns:1fr 1fr">
-          <div class="stat"><span class="stat__n neg">1<small>&thinsp;of&thinsp;69</small></span><span class="stat__l">Unified delegate beans also used by a legacy root &mdash; the reason migration is not re-pointing</span></div>
-          <div class="stat"><span class="stat__n plain">&asymp;25%</span><span class="stat__l">Exit gate: share of new NDF2W starts on the new spine, at error and latency parity</span></div>
+          <div class="stat"><span class="stat__n neg">1<small>&thinsp;of&thinsp;69</small></span><span class="stat__l">Newer delegate beans also used by an older root. This is why migrating is not just re-pointing things.</span></div>
+          <div class="stat"><span class="stat__n plain">&asymp;25%</span><span class="stat__l">The gate to pass: share of new NDF2W starts on the new spine, matching on errors and latency</span></div>
         </div>
-        <div class="note note--bad"><h4>Why this number is honest but wide</h4>The two generations share <strong>almost no implementation</strong>. Every NDF2W step has to be classified: <em>the shared child already does this</em>, <em>the shared child needs extending</em>, or <em>NDF2W genuinely differs and needs a fork</em>. Nobody has done that classification &mdash; it is the 5&ndash;8 day mapping on slide 6, and it is worth doing <strong>before</strong> committing to this phase.</div>
-        <div class="note note--ok"><h4>The payoff is proportional</h4>NDF2W alone is <strong>73% of Bravo&rsquo;s originations</strong>. Moving it is what converts the programme from a governance improvement into a reduction in the maintenance surface that 359 commits on one file represent.</div>
+        <div class="note note--bad"><h4>Why this number is honest but wide</h4>The two generations share <strong>almost no code</strong>. Every NDF2W step has to be classified as one of three things: <em>the shared sub-workflow already does this</em>, <em>the shared sub-workflow needs extending</em>, or <em>NDF2W genuinely differs and needs its own version</em>. Nobody has done that classification. It is the 5-to-8-day mapping on slide 6, and it is worth doing <strong>before</strong> committing to this phase.</div>
+        <div class="note note--ok"><h4>The payoff is proportional</h4>NDF2W on its own is <strong>73% of Bravo&rsquo;s originations</strong>. Moving it is what turns this programme from a governance improvement into a real reduction in how much there is to maintain &mdash; which is what 359 commits on a single file represents.</div>
       </div>
     </div>
     <div class="foot"><span class="src">workflow-gap.md &sect;12 (60&ndash;90d), &sect;8.1, &sect;8.6, &sect;9 &middot; delegate overlap computed in the working tree 2026-09-11</span><span>09</span></div>
@@ -579,12 +579,12 @@ tfoot td.n{text-align:right}
     <h2 class="st">The rest of the estate, and what the whole thing costs</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Phase 4 work item</th><th class="n">Eng-days</th><th>Scope</th></tr></thead>
+        <thead><tr><th>Phase 4 work item</th><th class="n">Engineer-days</th><th>Scope</th></tr></thead>
         <tbody>
-          <tr><td class="k"><b><code>NDF4W</code> + <code>NDF4W_RO</code> onto spines</b></td><td class="n"><b>50&ndash;80</b></td><td>68 + 14 delegate beans, 223 top-level nodes, 21 user tasks; RO reuses NDF4W&rsquo;s children (17 of 19 steps identical)</td></tr>
-          <tr><td class="k"><b>Sharia&rsquo;s separate deployment</b></td><td class="n"><b>15&ndash;25</b></td><td>Its own engine and deployment unit; 12 delegates, never scoped</td></tr>
-          <tr><td class="k"><b>De-duplicate the 2W/4W beans</b></td><td class="n"><b>12&ndash;20</b></td><td><b>10 named pairs</b> &mdash; <code>createCif</code>/<code>createCif2w</code>, <code>preFatalRac</code>/<code>&hellip;2w</code>, <code>addressVerification</code>/<code>&hellip;2W</code> and seven more &mdash; behind shared implementations</td></tr>
-          <tr><td class="k"><b>Launch DF2W on <code>spine_df2w</code></b></td><td class="n"><b>5&ndash;8</b></td><td>Incremental only &mdash; it is configured and in UAT, not dead config</td></tr>
+          <tr><td class="k"><b>Move <code>NDF4W</code> and <code>NDF4W_RO</code> onto spines</b></td><td class="n"><b>50&ndash;80</b></td><td>68 + 14 delegate beans, 223 top-level nodes, 21 user tasks. RO reuses NDF4W&rsquo;s sub-workflows &mdash; 17 of its 19 steps are identical</td></tr>
+          <tr><td class="k"><b>Sharia&rsquo;s separate deployment</b></td><td class="n"><b>15&ndash;25</b></td><td>Its own engine and its own deployment unit, 12 delegates, never scoped</td></tr>
+          <tr><td class="k"><b>Merge the duplicated 2W and 4W beans</b></td><td class="n"><b>12&ndash;20</b></td><td><b>10 named pairs</b> &mdash; <code>createCif</code> and <code>createCif2w</code>, <code>preFatalRac</code> and <code>&hellip;2w</code>, <code>addressVerification</code> and <code>&hellip;2W</code>, and seven more &mdash; behind one shared implementation</td></tr>
+          <tr><td class="k"><b>Launch DF2W on <code>spine_df2w</code></b></td><td class="n"><b>5&ndash;8</b></td><td>Only the extra work &mdash; it is configured and in UAT, not dead config</td></tr>
         </tbody>
         <tfoot><tr><td>Phase 4 total &mdash; <b>2 engineers, ~4&ndash;6 months elapsed</b></td><td class="n"><b>82&ndash;133 days</b><br>&asymp;4.0&ndash;6.3 eng-months</td><td class="n"><b>Rp 120M &ndash; 315M</b></td></tr></tfoot>
       </table></div>
@@ -600,8 +600,8 @@ tfoot td.n{text-align:right}
           <line class="cl-ax" x1="140" y1="4" x2="140" y2="152"></line>
           <text class="cl-lab" x="140" y="168">0</text><text class="cl-lab" x="290" y="168" text-anchor="middle">150</text><text class="cl-lab" x="440" y="168" text-anchor="end">300 eng-days</text>
         </svg>
-        <div class="note"><h4>Staffing assumption behind the elapsed figures</h4>Phases 1&ndash;2 assume <strong>1&ndash;2 engineers</strong>, Phases 3&ndash;4 <strong>2 engineers</strong> running alongside normal delivery. At that shape the programme spans roughly <strong>12&ndash;18 months elapsed</strong>; with three engineers on Phases 3&ndash;4 it compresses toward 9&ndash;12 without changing the engineer-day totals.</div>
-        <div class="verdictbox"><span class="lab">Programme total</span><p class="txt" style="font-size:clamp(16px,1.9vw,23px)"><em>185&ndash;295 engineer-days &asymp; 9&ndash;14 engineer-months &asymp; Rp265M&ndash;700M</em><small>Against <strong>30&ndash;57 engineer-months</strong> for either platform migration, and <strong>18&ndash;33 engineer-days</strong> for the end-of-support fix that must happen first.</small></p></div>
+        <div class="note"><h4>The staffing assumed behind those elapsed times</h4>Phases 1 and 2 assume <strong>1&ndash;2 engineers</strong>; Phases 3 and 4 assume <strong>2 engineers</strong>, working alongside normal delivery. On that basis the programme runs for roughly <strong>12&ndash;18 months</strong>. With three engineers on Phases 3 and 4 it compresses towards 9&ndash;12 months, without changing the engineer-day totals.</div>
+        <div class="verdictbox"><span class="lab">Programme total</span><p class="txt" style="font-size:clamp(16px,1.9vw,23px)"><em>185&ndash;295 engineer-days &asymp; 9&ndash;14 engineer-months &asymp; Rp265M&ndash;700M</em><small>Compare that with <strong>30&ndash;57 engineer-months</strong> for either platform migration, and <strong>18&ndash;33 engineer-days</strong> for the end-of-support fix that has to happen first.</small></p></div>
       </div>
     </div>
     <div class="foot"><span class="src">workflow-gap.md &sect;3, &sect;12 &middot; option-summary.md &sect;3 &middot; effort derived 2026-09-11</span><span>10</span></div>
@@ -611,34 +611,34 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="In proportion">
   <div class="inner">
     <p class="eyebrow"><b>10</b><span class="sep">/</span>Proportion</p>
-    <h2 class="st">Where this sits against the other things competing for the same engineers</h2>
+    <h2 class="st">How this compares with everything else competing for the same engineers</h2>
     <div class="tw"><table>
-      <thead><tr><th>Programme</th><th class="n">Effort</th><th class="n">Indicative Rp</th><th>What it buys</th><th class="n">Conditional on?</th></tr></thead>
+      <thead><tr><th>Programme</th><th class="n">Effort</th><th class="n">Indicative Rp</th><th>What it buys</th><th class="n">Depends on?</th></tr></thead>
       <tbody>
-        <tr><td class="k"><b>Decision A &mdash; end-of-support fix</b> <span style="color:var(--ink3)">(fork + Spring Boot 4 + RCE)</span></td><td class="n"><b>18&ndash;33 eng-days</b></td><td class="n"><b>Rp45&ndash;125M</b></td><td>A supported engine and a supported Spring Boot; closes a live code-execution path</td><td class="n"><span class="up"><b>Nothing</b></span><br>do it first</td></tr>
-        <tr><td class="k"><span class="e e--a">Workflow P1</span> <span class="e e--b">P2</span> &mdash; visibility, freeze, prove on DF4W</td><td class="n"><b>42&ndash;68 eng-days</b><br>&asymp;2.0&ndash;3.2 eng-months</td><td class="n"><b>Rp60&ndash;160M</b></td><td>An owner-readable flow per product, CI that stops the hiding, and the target shape proven on live volume</td><td class="n"><span class="up"><b>Nothing</b></span><br>useful under every option</td></tr>
-        <tr><td class="k"><span class="e e--c">Workflow P3</span> <span class="e e--d">P4</span> &mdash; migrate the monoliths</td><td class="n"><b>143&ndash;227 eng-days</b><br>&asymp;6.8&ndash;10.8 eng-months</td><td class="n"><b>Rp205&ndash;540M</b></td><td>Every product on its own readable, independently-deployable spine; the duplication retired</td><td class="n"><span class="dn"><b>Bravo&rsquo;s horizon</b></span><br>and Decision B</td></tr>
-        <tr><td class="k">Option 2 &mdash; migrate Bravo to Temporal</td><td class="n">31&ndash;57 eng-months</td><td class="n">Rp930M&ndash;2.85B</td><td>Removes the workflow-engine vendor permanently; <b>preserves the architecture exactly</b></td><td class="n">Decision B</td></tr>
-        <tr><td class="k">Option 3 &mdash; migrate Bravo to LORA</td><td class="n">30&ndash;57 eng-months</td><td class="n">Rp900M&ndash;2.85B</td><td>One platform; adds an automated step with no orchestration edit</td><td class="n">Decision B</td></tr>
+        <tr><td class="k"><b>Decision A &mdash; the end-of-support fix</b> <span style="color:var(--ink3)">(fork + Spring Boot 4 + the code-execution hole)</span></td><td class="n"><b>18&ndash;33 eng-days</b></td><td class="n"><b>Rp45&ndash;125M</b></td><td>A supported engine and a supported Spring Boot. Closes a live path for running code on our servers</td><td class="n"><span class="up"><b>Nothing</b></span><br>do it first</td></tr>
+        <tr><td class="k"><span class="e e--a">Workflow P1</span> <span class="e e--b">P2</span> &mdash; see it, freeze it, prove it on DF4W</td><td class="n"><b>42&ndash;68 eng-days</b><br>&asymp;2.0&ndash;3.2 eng-months</td><td class="n"><b>Rp60&ndash;160M</b></td><td>A flow per product its owner can read, CI that stops the hiding, and the target shape proven on live volume</td><td class="n"><span class="up"><b>Nothing</b></span><br>useful under every option</td></tr>
+        <tr><td class="k"><span class="e e--c">Workflow P3</span> <span class="e e--d">P4</span> &mdash; move the monoliths</td><td class="n"><b>143&ndash;227 eng-days</b><br>&asymp;6.8&ndash;10.8 eng-months</td><td class="n"><b>Rp205&ndash;540M</b></td><td>Every product on its own readable spine, deployable independently, and the duplication gone</td><td class="n"><span class="dn"><b>How long Bravo has</b></span><br>and Decision B</td></tr>
+        <tr><td class="k">Option 2 &mdash; move Bravo to Temporal</td><td class="n">31&ndash;57 eng-months</td><td class="n">Rp930M&ndash;2.85B</td><td>Removes the workflow-engine vendor for good, but <b>keeps the architecture exactly as it is</b></td><td class="n">Decision B</td></tr>
+        <tr><td class="k">Option 3 &mdash; move Bravo to LORA</td><td class="n">30&ndash;57 eng-months</td><td class="n">Rp900M&ndash;2.85B</td><td>One platform. You can add an automated step without editing a workflow</td><td class="n">Decision B</td></tr>
       </tbody>
     </table></div>
-    <p class="pull">The whole workflow programme costs about a quarter of either migration &mdash; and it is the only one of the three that improves Bravo&rsquo;s design without changing platform.
-      <small>It is also the only one whose <strong>first half is worth funding even if BFI eventually leaves Bravo</strong>: a per-product effective-flow map is the prerequisite for the LORA gap inventory, and a legible model is what makes a Temporal port smaller rather than a faithful port of the same confusion.</small></p>
+    <p class="pull">The whole workflow programme costs about a quarter of either migration, and it is the only one of the three that improves Bravo&rsquo;s design without changing platform.
+      <small>Its <strong>first half is worth funding even if BFI eventually leaves Bravo</strong>: a flow map per product is what the LORA gap inventory needs first, and a readable model makes a Temporal port smaller rather than a faithful port of the same confusion.</small></p>
     <div class="foot"><span class="src">option-summary.md &sect;3, &sect;7 &middot; workflow-gap.md &sect;12 &middot; effort derived 2026-09-11</span><span>11</span></div>
   </div>
 </section>
 
 <section class="slide" data-nav="Cost of doing nothing">
   <div class="inner">
-    <p class="eyebrow"><b>11</b><span class="sep">/</span>The counterfactual</p>
-    <h2 class="st">What the status quo costs, measured rather than asserted</h2>
+    <p class="eyebrow"><b>11</b><span class="sep">/</span>If we do nothing</p>
+    <h2 class="st">What leaving things as they are costs, measured rather than asserted</h2>
     <div class="cols">
-      <div class="note note--bad"><h4>Blast radius on every change</h4>Commit subjects on <code>unified-main-workflow.bpmn</code> name <strong>DF4W, DF2W, Sharia, RO, NDF4W and Company</strong>. Every one of those redeployed the spine that <strong>all five products</strong> run. On the survey child, DF4W work changed the orchestration NDF2W also uses. One deployment unit means one shared risk on every product edit.</div>
-      <div class="note note--bad"><h4>A test matrix nobody can enumerate</h4>Correctness of one BPMN file depends on <strong>products &times; config rows &times; flags</strong>. The <strong>64 workflow-config migrations</strong> include repeated corrective <code>set-active</code> / <code>set-inactive</code> pairs &mdash; <code>pd-model-df4w-set-active</code>, <code>underwriting-return-set-inactive-except-df4w</code>. That is what a hidden matrix looks like in practice: <strong>~2 corrective migrations a month</strong> since 2024-03.</div>
-      <div class="note note--bad"><h4>Silent divergence, not loud failure</h4>With <code>BaseActivity</code> returning quietly, <strong>a missing config row does not fail a deployment or a process. It removes a check from a loan product</strong> &mdash; and history still shows the step completing. There is no alert for this class of defect today.</div>
-      <div class="note"><h4>No artifact a product owner can be handed</h4>A stakeholder cannot be shown a diagram of their product: the diagram is shared and the differences live in SQL and Java. <strong>Business ownership per product is not modelled anywhere</strong> &mdash; <code>candidateGroups</code> is empty on every user task and assignment happens in code.</div>
-      <div class="note"><h4>Duplication keeps compounding</h4>The legacy generation holds <strong>156 distinct delegate beans</strong> and the two big monoliths share only <strong>20</strong> &mdash; most of the rest is the same domain step under a suffixed name. <strong>Full per-product duplication is how NDF4W and NDF2W drifted apart</strong>, and the pattern continues wherever a product needs one different step.</div>
-      <div class="note note--ok"><h4>What is <em>not</em> a reason to act</h4>Engine cost. Bravo&rsquo;s orchestration tier is the <strong>cheapest of the three platform options at &asymp;Rp58M/month</strong>. This programme is about legibility, blast radius and correctness &mdash; <strong>not savings</strong>. It will not pay for itself in infrastructure.</div>
+      <div class="note note--bad"><h4>Every change can break everything</h4>Commit messages on <code>unified-main-workflow.bpmn</code> name <strong>DF4W, DF2W, Sharia, RO, NDF4W and Company</strong>. Every one of those redeployed the spine that <strong>all five products</strong> run on. On the survey sub-workflow, DF4W work changed the orchestration NDF2W also uses. One deployment unit means every product shares the risk of every edit.</div>
+      <div class="note note--bad"><h4>A test matrix nobody can write down</h4>Whether one BPMN file is correct depends on <strong>products, times config rows, times flags</strong>. The <strong>64 workflow-config migrations</strong> include repeated pairs that correct each other &mdash; <code>pd-model-df4w-set-active</code>, then <code>underwriting-return-set-inactive-except-df4w</code>. That is what a hidden matrix looks like in practice: <strong>about 2 corrective migrations a month</strong> since March 2024.</div>
+      <div class="note note--bad"><h4>Things go quietly wrong instead of loudly failing</h4>Because <code>BaseActivity</code> returns quietly, <strong>a missing config row does not fail a deployment or a process. It just removes a check from a loan product</strong> &mdash; and history still shows the step completing. There is no alert for this kind of defect today.</div>
+      <div class="note"><h4>Nothing you can hand a product owner</h4>You cannot show a stakeholder a diagram of their product. The diagram is shared, and the differences live in SQL and Java. <strong>Who owns which product is not recorded anywhere in the model</strong> &mdash; <code>candidateGroups</code> is empty on every user task, and assignment happens in code.</div>
+      <div class="note"><h4>The duplication keeps growing</h4>The older generation holds <strong>156 different delegate beans</strong>, and the two big monoliths share only <strong>20</strong> of them. Most of the rest is the same domain step under a slightly different name. <strong>Duplicating everything per product is how NDF4W and NDF2W drifted apart</strong>, and it keeps happening wherever a product needs one step done differently.</div>
+      <div class="note note--ok"><h4>What is <em>not</em> a reason to do this</h4>Engine cost. Bravo&rsquo;s workflow tier is the <strong>cheapest of the three platform options, at about Rp58M a month</strong>. This programme is about being able to read the system, limiting what one change can break, and correctness. <strong>It is not about savings, and it will not pay for itself in infrastructure.</strong></div>
     </div>
     <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;7, &sect;9, &sect;3 &middot; compare.md &sect;5</span><span>12</span></div>
   </div>
@@ -647,21 +647,21 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="Risks">
   <div class="inner">
     <p class="eyebrow"><b>12</b><span class="sep">/</span>Risks and prerequisites</p>
-    <h2 class="st">What could make these numbers wrong, and what must be true before starting</h2>
+    <h2 class="st">What could make these numbers wrong, and what has to be true before we start</h2>
     <div class="cols b">
       <div class="tw"><table>
-        <thead><tr><th>Risk</th><th>Effect on the estimate</th><th>Mitigation</th></tr></thead>
+        <thead><tr><th>Risk</th><th>Effect on the estimate</th><th>What to do about it</th></tr></thead>
         <tbody>
-          <tr><td class="k"><b>Shared-child coverage for NDF2W is worse than assumed</b></td><td class="n">Phase 3 is the widest range for exactly this reason; a bad case pushes it past 94 days</td><td>Run the <b>5&ndash;8 day delegate mapping first</b>; re-estimate P3/P4 against Phase 2 actuals</td></tr>
-          <tr><td class="k"><b>No engine-layer safety net</b></td><td>Every phase is riskier than its day count implies</td><td><b>4 of <code>ms-bpm</code>&rsquo;s 1,457 test files run a Camunda process.</b> The parity harness in Decision A is a prerequisite here too, not a nice-to-have</td></tr>
-          <tr><td class="k"><b>In-flight instances during cutover</b></td><td>Adds calendar, not effort, if planned; adds both if not</td><td>Strangler by construction &mdash; legacy roots stay deployed for in-flight work and rollback</td></tr>
-          <tr><td class="k"><b>Decision B lands on LORA mid-programme</b></td><td>Phases 3&ndash;4 become sunk</td><td><b>Gate P3 on a published Bravo horizon.</b> P1&ndash;P2 remain useful either way</td></tr>
-          <tr><td class="k"><b>Product owners cannot be assembled to sign off the target</b></td><td>Blocks the ADR, which gates P2</td><td>Two squads and three consoles already own these products &mdash; the seam exists; use it</td></tr>
+          <tr><td class="k"><b>The shared sub-workflows cover less of NDF2W than assumed</b></td><td class="n">This is exactly why Phase 3 has the widest range. A bad case pushes it past 94 days</td><td>Do the <b>5-to-8-day delegate mapping first</b>, and re-estimate P3 and P4 against what Phase 2 actually took</td></tr>
+          <tr><td class="k"><b>There is no safety net at the engine layer</b></td><td>Every phase is riskier than its day count suggests</td><td><b>Of <code>ms-bpm</code>&rsquo;s 1,457 test files, 4 run a Camunda process.</b> The parity test suite in Decision A is a prerequisite here too, not a nice-to-have</td></tr>
+          <tr><td class="k"><b>Loans already running during a cutover</b></td><td>Adds calendar time, not effort, if you plan for it. Adds both if you do not</td><td>Replace gradually by design &mdash; the old roots stay deployed for loans in progress and for rollback</td></tr>
+          <tr><td class="k"><b>Decision B picks LORA halfway through</b></td><td>Phases 3 and 4 become wasted money</td><td><b>Do not start P3 until a Bravo horizon is published.</b> P1 and P2 are useful either way</td></tr>
+          <tr><td class="k"><b>You cannot get the product owners together to sign off the target</b></td><td>Blocks the ADR, which blocks P2</td><td>Two squads and three consoles already own these products. The boundary exists; use it</td></tr>
         </tbody>
       </table></div>
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note note--bad"><h4>One hard prerequisite</h4>The engine hardening is <strong>not optional and not sequenced late</strong>. <code>/camunda</code> is <code>permitAll</code> and <code>/engine-rest</code> grants full engine rights to any holder of the shared key &mdash; the vector by which <strong>61 hostile process definitions</strong> reached production. <strong>Nothing else on this plan should start while a third party can deploy process definitions into the engine being restructured.</strong></div>
-        <div class="note"><h4>Explicitly out of scope</h4>Rewriting survey or underwriting <strong>domain logic</strong>; migrating Sharia&rsquo;s separate deployment beyond the spine work costed in Phase 4; and any change to the LORA or Temporal track. This plan is only about <strong>the shape of Bravo&rsquo;s workflows</strong> and moving product variation out of hiding.</div>
+        <div class="note note--bad"><h4>One hard prerequisite</h4>Securing the engine is <strong>not optional, and it cannot be left until later</strong>. <code>/camunda</code> is set to <code>permitAll</code>, and <code>/engine-rest</code> gives full control of the engine to anyone holding the shared key. That is how <strong>61 hostile process definitions</strong> reached production. <strong>Nothing else on this plan should start while an outsider can deploy process definitions into the engine we are restructuring.</strong></div>
+        <div class="note"><h4>Explicitly out of scope</h4>Rewriting survey or underwriting <strong>domain logic</strong>; migrating Sharia&rsquo;s separate deployment beyond the spine work costed in Phase 4; and any change to the LORA or Temporal track. This plan is only about <strong>the shape of Bravo&rsquo;s workflows</strong>, and about bringing product differences out into the open.</div>
       </div>
     </div>
     <div class="foot"><span class="src">workflow-gap.md &sect;12 &middot; option-1.md &sect;7 &middot; SECURITY-FINDING-camunda-rce.md</span><span>13</span></div>
@@ -671,21 +671,21 @@ tfoot td.n{text-align:right}
 <section class="slide" data-nav="The ask">
   <div class="inner">
     <p class="eyebrow"><b>13</b><span class="sep">/</span>The ask</p>
-    <h2 class="st">Fund the first half now; gate the second half on Bravo&rsquo;s horizon</h2>
+    <h2 class="st">Fund the first half now, and hold the second half until we know how long Bravo has</h2>
     <div class="ask">
-      <div class="askrow"><span class="n">1</span><span class="t"><b>Approve Phases 1 and 2 as an unconditional spend.</b> Visibility, a CI freeze on new hidden variation, and the target shape proven on DF4W &mdash; the product already running on the spine. No legacy workflow moves, and the output is a prerequisite under every Decision B outcome.</span><span class="c">42&ndash;68 eng-days<br>&asymp;2&ndash;3 eng-months<br>Rp60&ndash;160M</span></div>
-      <div class="askrow"><span class="n">2</span><span class="t"><b>Commission the 5&ndash;8 day delegate mapping before deciding on Phase 3.</b> It converts the widest range in this deck &mdash; how much of NDF2W the shared children already cover &mdash; into a real number, and it is the direct analogue of the LORA coverage-gap inventory.</span><span class="c">5&ndash;8 days<br>do it inside P1</span></div>
-      <div class="askrow"><span class="n">3</span><span class="t"><b>Hold Phases 3 and 4 against the published Bravo horizon.</b> Migrating 94% of volume onto product spines is worth 143&ndash;227 engineer-days only if Bravo has years left. That is the same input Decision B needs, and it is a business call.</span><span class="c">143&ndash;227 eng-days<br>Rp205&ndash;540M<br>gated</span></div>
-      <div class="askrow"><span class="n">4</span><span class="t"><b>Accept the monthly metrics as the reporting contract</b> &mdash; and re-baseline Phases 3&ndash;4 against Phase 2&rsquo;s actuals rather than the ranges in this deck.</span><span class="c">monthly</span></div>
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Approve Phases 1 and 2 as spending that does not depend on anything else.</b> Visibility, a CI block on new hidden differences, and the target shape proven on DF4W &mdash; the product already running on the spine. No older workflow moves, and the output is needed first whichever way Decision B goes.</span><span class="c">42&ndash;68 eng-days<br>about 2&ndash;3 eng-months<br>Rp60&ndash;160M</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Commission the 5-to-8-day delegate mapping before deciding on Phase 3.</b> It turns the widest range in this deck &mdash; how much of NDF2W the shared sub-workflows already cover &mdash; into a real number, and it is the direct equivalent of the LORA coverage-gap inventory.</span><span class="c">5&ndash;8 days<br>do it inside P1</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Hold Phases 3 and 4 until the Bravo horizon is published.</b> Moving 94% of volume onto product spines is worth 143 to 227 engineer-days only if Bravo has years left. That is the same input Decision B needs, and it is a business call.</span><span class="c">143&ndash;227 eng-days<br>Rp205&ndash;540M<br>gated</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Accept the monthly metrics below as how this gets reported</b> &mdash; and re-baseline Phases 3 and 4 against what Phase 2 actually took, rather than the ranges in this deck.</span><span class="c">monthly</span></div>
     </div>
     <div class="tw"><table>
       <thead><tr><th>Programme metric, reported monthly</th><th class="n">Today</th><th class="n">Target</th></tr></thead>
       <tbody>
-        <tr><td class="k">% of new-application volume on explicit product spines</td><td class="n"><b>0</b> <span style="color:var(--ink3)">&mdash; DF4W-on-shared-spine does not count</span></td><td class="n">all live products</td></tr>
-        <tr><td class="k"><code>application.isXxx()</code> call sites in <code>activity/unified/**</code></td><td class="n"><b>42</b> across 19 of 68 classes</td><td class="n"><b>0</b></td></tr>
-        <tr><td class="k">Config-gated no-op service-task executions per day</td><td class="n">heavy &mdash; 89% of KYC gated steps under 50 ms</td><td class="n">near-zero</td></tr>
-        <tr><td class="k">Distinct delegate beans across the legacy products</td><td class="n"><b>156</b></td><td class="n">falling</td></tr>
-        <tr><td class="k">Products with a current owner-readable spine diagram</td><td class="n"><b>0</b></td><td class="n">all live products</td></tr>
+        <tr><td class="k">Share of new applications running on an explicit product spine</td><td class="n"><b>0</b> <span style="color:var(--ink3)">&mdash; DF4W on the shared spine does not count</span></td><td class="n">all live products</td></tr>
+        <tr><td class="k"><code>application.isXxx()</code> call sites in <code>activity/unified/**</code></td><td class="n"><b>42</b>, across 19 of 68 classes</td><td class="n"><b>0</b></td></tr>
+        <tr><td class="k">Do-nothing service tasks run per day because config switched them off</td><td class="n">heavy &mdash; 89% of gated KYC steps finish in under 50ms</td><td class="n">near zero</td></tr>
+        <tr><td class="k">Different delegate beans across the older products</td><td class="n"><b>156</b></td><td class="n">falling</td></tr>
+        <tr><td class="k">Products with a current spine diagram their owner can read</td><td class="n"><b>0</b></td><td class="n">all live products</td></tr>
       </tbody>
     </table></div>
     <div class="foot"><span class="src">Sources: workflow-gap.md (the gap, verified against the production BPM database) &middot; workflow-analysis.md (what exists) &middot; option-summary.md (the platform options and cost basis) &middot; effort derived 2026-09-11 &middot; bravo-analysis/docs</span><span>14</span></div>
