@@ -1,18 +1,26 @@
 # Bravo BPM workflow analysis
 
-Every BPMN process (drawn individually in section 13) in `bravo-bpm-service` (`src/main/resources/bpmn`, 53 files, 53 executable processes, plus 3 DMN tables), how they call each other, and two structural questions: are human tasks separated from domain (system) tasks in child workflows, and are workflows separated by product?
+This document covers every BPMN process in `bravo-bpm-service`. They live in `src/main/resources/bpmn`: 53 files holding 53 executable processes, plus 3 DMN tables. Section 13 draws each one individually.
+
+It also covers how they call each other, and it answers two structural questions. Are human tasks separated from domain, or system, tasks in child workflows? And are workflows separated by product?
 
 The copies under `squads/Scoring and Underwriting` and `squads/Survey and Verification` have identical BPMN file lists. Counts below were parsed from the XML on 2026-09-08.
 
 ## Short answer
 
-- **Two generations coexist.** A legacy generation of per-product root processes (`NDF4W`, `NDF2W`, `NDF4W_RO`, `NDF4W_Sharia`, `UNSECURED`, `unsecured-pre-mvp`, `preApprovalScoring`) and a "unified" generation (33 `Unified_*` / `Process_Unified_*` files, prefix added 2024-03-05) with one root, `Unified_Process_Main_Workflow`, for every product.
-- **Human vs domain separation: only in the unified generation, and by business step rather than by task type.** All seven unified orchestration processes contain zero user tasks. Of the 26 unified leaf processes, 15 are system-only, 4 are human-only, and 11 mix user tasks with service tasks (for example `Unified_Process_Underwriting_CA` has 2 user tasks and 5 service tasks). The legacy `NDF4W` and `NDF2W` are monoliths: 21 and 20 user tasks next to 111 and 118 service tasks in 48 and 45 embedded subprocesses, with call activities used only for Schedule Selection, Long Survey Scoring and (in 2W) the borrowed unified Underwriting Regular.
-- **Product separation: legacy yes, unified no.** Legacy picks a different root process key per product in Java from `setting.workflow.map` plus a repeat-order override. Unified runs one BPMN graph for NDF4W, DF4W, NDF2W, DF2W and DF2W Sharia; product differences live in a database configuration (`workflow_selector_type` OPTION_*, `workflow_master_config`, `workflow_selector_order`) that `BaseActivity` consults to silently skip service tasks not listed for that product, plus three gateway conditions on `applicationWorkflowSelectorType`.
+- **Two generations coexist.** The legacy generation has one root process per product: `NDF4W`, `NDF2W`, `NDF4W_RO`, `NDF4W_Sharia`, `UNSECURED`, `unsecured-pre-mvp` and `preApprovalScoring`. The "unified" generation is 33 files prefixed `Unified_*` or `Process_Unified_*`, with the prefix added on 2024-03-05. It has one root for every product: `Unified_Process_Main_Workflow`.
+- **Human work is separated from domain work only in the unified generation — and by business step, not by task type.** All seven unified orchestration processes contain no user tasks at all. Of the 26 unified leaf processes, 15 are system-only, 4 are human-only, and 11 mix user tasks with service tasks. `Unified_Process_Underwriting_CA`, for example, has 2 user tasks and 5 service tasks.
+
+  The legacy `NDF4W` and `NDF2W` are monoliths. `NDF4W` has 21 user tasks next to 111 service tasks, across 48 embedded subprocesses. `NDF2W` has 20 next to 118, across 45. Both use call activities only for Schedule Selection, Long Survey Scoring, and — in 2W — the borrowed unified Underwriting Regular.
+- **Product separation: yes in legacy, no in unified.** Legacy picks a different root process key per product, in Java, from `setting.workflow.map`, plus a repeat-order override.
+
+  Unified runs one BPMN graph for NDF4W, DF4W, NDF2W, DF2W and DF2W Sharia. Product differences live in database configuration: `workflow_selector_type` OPTION_* values, `workflow_master_config`, and `workflow_selector_order`. `BaseActivity` consults those and silently skips service tasks not listed for that product. On top of that there are three gateway conditions on `applicationWorkflowSelectorType`.
 
 ## 1. Entry points: which process a product starts
 
-Legacy routing lives in Java, not BPMN. `ApplicationServiceImpl.getWorkflow` reads `setting.workflow.map` (`{1:NDF4W, 2:NDF2W, 3:PREAPPROVAL, 4:DF4W, 10:NDF4W_Sharia, 9:UNSECURED, 11:DF2W, 15:DF2W_Sharia}`) and overrides product 1 to `NDF4W_RO` for RO customers. Four of those map values have no BPMN process with that key, so DF4W, DF2W, DF2W Sharia and pre-approval applications can only run through the v2.1 endpoint, which always starts `Unified_Process_Main_Workflow`.
+Legacy routing lives in Java, not BPMN. `ApplicationServiceImpl.getWorkflow` reads `setting.workflow.map` — `{1:NDF4W, 2:NDF2W, 3:PREAPPROVAL, 4:DF4W, 10:NDF4W_Sharia, 9:UNSECURED, 11:DF2W, 15:DF2W_Sharia}` — and overrides product 1 to `NDF4W_RO` for RO customers.
+
+Four of those map values have no BPMN process with that key. So DF4W, DF2W, DF2W Sharia and pre-approval applications can only run through the v2.1 endpoint, which always starts `Unified_Process_Main_Workflow`.
 
 ```mermaid
 flowchart LR
@@ -42,7 +50,7 @@ flowchart LR
 
 ## 2. Unified main workflow: the shared spine
 
-The stage order is the same for every product. The only product-aware decisions are the bypass-scoring gateway (feature flag per OPTION_*), the DF2W-only "Underwriting Regular" branch inside `Unified_Process_Workflow_Underwriting`, and one PD-model branch (`applicationWorkflowSelectorType == "OPTION_NDF2W" || pdModelType == "NTB"`). Everything else varies by data, see section 7.
+The stage order is the same for every product. There are only three product-aware decisions. The bypass-scoring gateway, which is a feature flag per OPTION_*. The DF2W-only "Underwriting Regular" branch inside `Unified_Process_Workflow_Underwriting`. And one PD-model branch, `applicationWorkflowSelectorType == "OPTION_NDF2W" || pdModelType == "NTB"`. Everything else varies by data — see section 7.
 
 ```mermaid
 flowchart LR
@@ -68,7 +76,9 @@ flowchart LR
 
 ## 3. Unified call tree: orchestration, system, human
 
-Solid arrows are BPMN call activities (`calledElement`). Orchestrators (teal) hold no user tasks at all. Leaves are colored by what they contain: system-only (slate), human-only (amber), or mixed (dashed amber). `Unified_Process_KYC_Check` and `Process_Unified_Pefindo_Check` are reused from more than one parent. The operation workflow is not a call activity: the main workflow ends by having a Java delegate start it as an independent root instance, so approval and operations are decoupled at the engine level.
+Solid arrows are BPMN call activities, using `calledElement`. Orchestrators, in teal, hold no user tasks at all. Leaves are coloured by what they contain: slate for system-only, amber for human-only, and dashed amber for mixed. `Unified_Process_KYC_Check` and `Process_Unified_Pefindo_Check` are each reused from more than one parent.
+
+The operation workflow is not a call activity. The main workflow ends by having a Java delegate start it as an independent root instance. So approval and operations are decoupled at the engine level.
 
 ```mermaid
 flowchart TB
@@ -126,7 +136,9 @@ flowchart TB
 
 ## 4. Legacy 4-wheel family
 
-`NDF4W` is the monolith. The RO and Sharia variants are the only legacy processes that were decomposed: both reuse `Process_NDF4W_Scoring_1` (pure system scoring) and each has its own surveyor child that mixes user and service tasks. `NDF4W_RO` can also call the whole `NDF4W` process as a child when the RO shortcut does not apply. Operation is again started from Java, choosing `OPERATION` for conventional and `Sharia_NDF4W_Operation_Process` for Sharia.
+`NDF4W` is the monolith. The RO and Sharia variants are the only legacy processes anyone decomposed. Both reuse `Process_NDF4W_Scoring_1`, which is pure system scoring. And each has its own surveyor child, which mixes user and service tasks. `NDF4W_RO` can also call the whole `NDF4W` process as a child, when the RO shortcut does not apply.
+
+Operation is again started from Java. It chooses `OPERATION` for conventional, and `Sharia_NDF4W_Operation_Process` for Sharia.
 
 ```mermaid
 flowchart TB
@@ -163,7 +175,7 @@ flowchart TB
 
 ## 5. Legacy 2-wheel family
 
-`NDF2W` is a second monolith, but it already leans on the unified generation: its underwriting is a call activity to `Unified_Process_Workflow_Underwriting_Regular`, and its Scoring 2 step is `Unified_Process_Scoring_2` started synchronously from Java. This is the migration seam between the two generations.
+`NDF2W` is a second monolith. But it already leans on the unified generation. Its underwriting is a call activity to `Unified_Process_Workflow_Underwriting_Regular`. And its Scoring 2 step is `Unified_Process_Scoring_2`, started synchronously from Java. This is the migration seam between the two generations.
 
 ```mermaid
 flowchart LR
@@ -203,7 +215,13 @@ flowchart LR
 
 ## 7. How one unified BPMN serves five products
 
-Rather than product-specific diagrams, the unified generation drives variation from data. Every unified service task extends `BaseActivity`, whose `execute` first asks whether the activity class name is listed and active for this application in the `CI` (Check, Initial scoring) or `SUO` (Survey, Underwriting, Operation) config map; if not, the task is a no-op. Migrations such as `V2_0_202607240900__insert-workflow-scoring2-survey-rac-df2w.sql` add or remove steps for one product without touching any BPMN file. Consequence: reading the BPMN alone does not tell you what a DF2W application actually executes.
+The unified generation drives variation from data, rather than from product-specific diagrams.
+
+Every unified service task extends `BaseActivity`. Its `execute` method first asks whether the activity class name is listed and active for this application, in either the `CI` config map — Check and Initial scoring — or the `SUO` one — Survey, Underwriting and Operation. If it is not listed, the task is a no-op.
+
+Migrations such as `V2_0_202607240900__insert-workflow-scoring2-survey-rac-df2w.sql` add or remove steps for one product, without touching any BPMN file.
+
+The consequence: reading the BPMN alone does not tell you what a DF2W application actually executes.
 
 ```mermaid
 sequenceDiagram
@@ -243,11 +261,11 @@ sequenceDiagram
 | Legacy | Yes, one root process key per product. | Java: `setting.workflow.map[productId]` plus `NDF4W_RO` override on customer type; Sharia gets its own surveyor and operation processes. |
 | Unified | No, one BPMN graph for NDF4W, DF4W, NDF2W, DF2W, DF2W Sharia. | DB config (`workflow_selector_type` OPTION_*, `workflow_master_config_detail.is_active`) consulted by `BaseActivity.isNeedToProceed`; 3 gateway conditions on `applicationWorkflowSelectorType`; feature flags such as `featDF2W`, `featBypassScoringProcessDF`. |
 
-Two loose ends worth knowing: `Process_NDF4W_Scoring_1_Mock_Ro` is deployed but referenced by no call activity or Java constant, and the `setting.workflow.map` entries for DF4W, DF2W, DF2W_Sharia and PREAPPROVAL point at process keys that do not exist.
+Two loose ends are worth knowing about. `Process_NDF4W_Scoring_1_Mock_Ro` is deployed, but no call activity and no Java constant references it. And the `setting.workflow.map` entries for DF4W, DF2W, DF2W_Sharia and PREAPPROVAL point at process keys that do not exist.
 
 ## 9. Full inventory
 
-Counts parsed from the BPMN XML. Role: root means started from Java via `startProcessInstanceByKey`; child means targeted by a `calledElement`.
+The counts are parsed from the BPMN XML. In the Role column, "root" means the process is started from Java, through `startProcessInstanceByKey`. "Child" means a `calledElement` targets it.
 
 | Family | Process key | File | Role | Nature | Call act. | User tasks | Service tasks | Embedded subproc. | Timers | DMN |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -307,19 +325,29 @@ Counts parsed from the BPMN XML. Role: root means started from Java via `startPr
 
 ## 10. Best practice: the recommended workflow architecture
 
-Sections 1–9 describe what exists. This section states the target shape; §11 measures the distance to it; §12 gives the plan. The deep, evidence-backed version — with the production numbers behind every claim — is in [workflow-gap.md](workflow-gap.md) §10–§12; this is the standalone summary.
+Sections 1 to 9 describe what exists. This section states the target shape. §11 measures the distance to it, and §12 gives the plan. The deep version, with the production numbers behind every claim, is in [workflow-gap.md](workflow-gap.md) §10 to §12. This is the standalone summary.
 
 Four principles govern multi-product process orchestration on a Camunda-style engine:
 
-1. **The model is the source of truth.** A loan's real path must be readable from the BPMN alone. *Structural* variation (which steps, what order, which humans) belongs in the model as gateways or different sub-processes; *data* variation (thresholds, branch/risk toggles) belongs in configuration. Bravo currently inverts this: structure is expressed as `is_active` config rows that make modelled tasks silently no-op (§7), so the diagram shows steps that do not run.
+1. **The model is the source of truth.** A loan's real path must be readable from the BPMN alone.
 
-2. **Product-owned spines, domain-owned shared children.** One thin executable spine per product (30–40 nodes, no domain logic — just the ordered stages and which child each calls), and domain children (`check`, `initial_scoring`, `survey`, `underwriting`, `operation`) shared across products with **no product `if/else` inside**. Fork a child only where the *structure* genuinely differs. Bravo already has the correct precedent — `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-family fork called from the shared underwriting orchestrator (§5, §3) — it is simply not applied consistently. Camunda's expression-valued `calledElement` makes per-product dispatch cheap and gateway-free.
+    *Structural* variation belongs in the model, as gateways or different sub-processes. Structural variation means which steps run, in what order, and which humans act. *Data* variation belongs in configuration — thresholds, and branch or risk toggles.
 
-3. **Product stays out of domain code.** A shared activity does its job the same way for everyone; product choice lives in the spine (which child it calls), never in `application.isDF4W()` inside a shared bean.
+    Bravo inverts this today. Structure is expressed as `is_active` config rows that make modelled tasks silently no-op (§7). So the diagram shows steps that do not run.
 
-4. **Platform governance.** Least-privilege engine surface (authenticated, network-restricted `/camunda`), a per-product deployment unit so changing one product does not redeploy the graph four others are mid-flight on, and per-product effective-flow diagrams generated in CI. Migrate by strangler — new volume product-by-product — never big-bang.
+2. **Product-owned spines, domain-owned shared children.** One thin executable spine per product: 30–40 nodes, no domain logic, just the ordered stages and which child each one calls. Then domain children — `check`, `initial_scoring`, `survey`, `underwriting`, `operation` — shared across products, with **no product `if/else` inside**.
 
-What the current design already gets right and must be kept: orchestrators hold zero user tasks (§3, §8); domain steps largely exist once rather than per-product; escalation/cancellation/rejection are centralised as boundary events.
+    Fork a child only where the *structure* genuinely differs. Bravo already has the right precedent: `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-family fork, called from the shared underwriting orchestrator (§5, §3). It is simply not applied consistently.
+
+    Camunda's expression-valued `calledElement` makes per-product dispatch cheap, and gateway-free.
+
+3. **Product stays out of domain code.** A shared activity does its job the same way for everyone. Product choice lives in the spine, in which child it calls. It never lives in an `application.isDF4W()` call inside a shared bean.
+
+4. **Platform governance.** Three things. A least-privilege engine surface, meaning `/camunda` is authenticated and network-restricted. A per-product deployment unit, so changing one product does not redeploy the graph four others are mid-flight on. And per-product effective-flow diagrams, generated in CI.
+
+    Migrate by strangler, moving new volume across product by product. Never big-bang.
+
+Three things the current design already gets right, and which must be kept. Orchestrators hold no user tasks (§3, §8). Domain steps mostly exist once, rather than once per product. And escalation, cancellation and rejection are centralised as boundary events.
 
 ## 11. The gap from Bravo today to that target
 
@@ -333,7 +361,7 @@ What the current design already gets right and must be kept: orchestrators hold 
 | Least-privilege, per-product deployment | `/camunda` is `permitAll` (Cockpit); `/engine-rest` grants full engine rights to any holder of the shared `api-secret` — the actual RCE vector (corrected 2026-09-10); one deployment unit for all | Shared operational and security blast radius |
 | Strangler migration | Happening by accident: DF4W runs the shared spine at 5.5%, flat, undeliberate (per workflow-gap.md §8) | Legacy monoliths still carry ~94% of volume and the whole retail book, unmigrated |
 
-The building blocks are right — orchestrator/worker split, shared children, one correct fork — but product variation lives in three places the model cannot show, so no product has a readable, owned, independently-deployable spine, and the legacy `NDF4W`/`NDF2W` monoliths (§4, §5) that carry most volume were never migrated.
+The building blocks are right: an orchestrator and worker split, shared children, and one correct fork. But product variation lives in three places the model cannot show. So no product has a readable, owned, independently deployable spine. And the legacy `NDF4W` and `NDF2W` monoliths (§4, §5), which carry most of the volume, were never migrated.
 
 ## 12. Plan: 30 / 60 / 90 days (summary)
 
@@ -345,11 +373,11 @@ Full action/exit-criteria tables and programme metrics are in [workflow-gap.md](
 | **30–60d** | Prove on DF4W | Build an explicit `spine_df4w` (DF4W is already the only live spine product); remove its 3 product gateways and DF4W `isXxx()` arms; convert its KYC/RAC config no-ops into real model choices; per-product diagram diffed in CI | DF4W runs a thin owned spine with zero product gateways and zero phantom no-op tasks |
 | **60–90d** | Migrate the big one | Stand up `spine_ndf2w` (248k loans/quarter) on the shared children, forking only on real structural difference; strangler-route new NDF2W volume; de-duplicate the worst 2W/4W delegate pairs; write the NDF4W/RO/Sharia decommission plan | ≥25% of new NDF2W starts on the spine at parity; distinct-delegate count falling from 145 |
 
-Out of scope for 90 days: rewriting domain logic, the separate Sharia deployment, and the LORA/Temporal track (see `compare.md`). This plan changes only the *shape* of the Bravo workflows — moving product variation out of hiding and onto owned, readable spines.
+Out of scope for 90 days: rewriting domain logic, the separate Sharia deployment, and the LORA or Temporal track (see `compare.md`). This plan changes only the *shape* of the Bravo workflows. It moves product variation out of hiding, and onto owned, readable spines.
 
 ## 13. Every process, drawn
 
-Top-level flow of each process as deployed. Embedded subprocesses are collapsed into one box (▣) with their task count; boundary events are dashed arrows from the activity they are attached to; call activities (⇢) show the `calledElement` key. Amber stadium = user task, slate box = service or rule task, red = error/escalation end.
+This is the top-level flow of each process, as deployed. Embedded subprocesses are collapsed into one box, marked ▣, with their task count. Boundary events are dashed arrows from the activity they attach to. Call activities, marked ⇢, show the `calledElement` key. An amber stadium is a user task. A slate box is a service or rule task. Red is an error or escalation end.
 
 ```mermaid
 flowchart LR

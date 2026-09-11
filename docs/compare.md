@@ -1,48 +1,71 @@
 # Bravo vs LORA: production findings, side by side, and where the next product should go
 
 **Audience:** CTO office, platform leadership, product leadership
-**Question:** Synthesising people, testing, observability, cost and delivery — which platform should BFI prioritise for hosting future business products?
+**Question:** Which platform should BFI use to host future business products? This document answers that from five angles: people, testing, observability, cost and delivery.
 
-**What this document is.** The five Bravo production-findings documents ([people](bravo-people.md), [testing](bravo-testing.md), [observability](bravo-observability.md), [cost](bravo-cost.md), [delivery](bravo-delivery.md)) each answer one question about Bravo and set it against LORA's equivalent. This document puts all five in one matrix and turns them into a recommendation.
+**What this document is.** There are five Bravo production-findings documents: [people](bravo-people.md), [testing](bravo-testing.md), [observability](bravo-observability.md), [cost](bravo-cost.md) and [delivery](bravo-delivery.md). Each one answers a single question about Bravo and sets the answer against LORA. This document gathers all five into one matrix and draws a conclusion from them.
 
-**What this document is not.** It is not the architecture comparison. That is [compare-architecture.md](compare-architecture.md) — the paradigm-level reading of BPMN against GSM+Temporal, including the Bravo team's review of it. That document's verdict stands and is not re-litigated here. This one is about how the two platforms *behave in production and under delivery pressure*, which is a different question and, for a hosting decision, the more decisive one.
+**What this document is not.** This is not the architecture comparison. That is [compare-architecture.md](compare-architecture.md). It reads BPMN against GSM plus Temporal as design approaches, and it includes the Bravo team's review. Its verdict stands, and we do not reopen it here. This document asks a different question: how do the two platforms behave in production and under delivery pressure? For a hosting decision, that is the more decisive question.
 
-**Method.** Everything below is measured, and every row names where. New measurements taken 2026-09-10: Jira (`DF`, `D2W`, `BL`, `BLCS`, **`LN`**), the three Bravo console repositories, Datadog `us5` (APM spans, logs, monitors, Synthetics, CI Visibility, RUM on four Bravo consoles), and GCP billing via the FinOps API for complete-month August 2026. Carried forward: the OTRS ticket export ([ticket-analysis.md](production-findings/ticket-analysis.md)), the 90-day PostgreSQL and Datadog volume split ([workflow-gap.md §8](workflow-gap.md)), and the LORA production-findings pack.
+**Method.** Everything below is measured, and every row names its source.
 
-> **Revised 2026-09-11 — and the recommendation in §5 has changed.** Four corrections landed after the previous version, three of which removed a pillar this document's recommendation stood on.
->
-> 1. **Team size is not evidence.** Bravo's 7 active engineers against LORA's 22 is the *output of a prior CTO decision to consolidate on LORA*, reversible by the same office. Citing it as a reason to prefer LORA was circular. Removed from the edge column and from the decision drivers ([people §5](bravo-people.md)).
-> 2. **"Seven product families" was false as used.** Verified against LORA's own production findings: the prod GKE namespace runs **only** `dp-ndf` workers. The live set is **NDF2W + NDF4W — one family**. Six families are un-deployed, three with no `deploy-prod.yaml` at all. The previous sentence *"already carries 69% of applications across seven product families"* was wrong: that share all runs on the one family.
-> 3. **Applications are the wrong unit, and no better unit exists anywhere.** Per CTO office: Bravo ≈**Rp 50.2bn** against LORA DP NDF ≈**Rp 2.4bn**. LORA has 1.45× the applications and roughly **1/21 the business value**. There is **zero** agreement, disbursement, NTF or revenue data in either workspace.
-> 4. **The engine end-of-support finding was never surfaced here.** Bravo runs **Camunda 7.23.0 Community Edition** — dead since 14 Oct 2025, no patches ever again — on Spring Boot 3.5.16, out of support since 30 Jun 2026. This was not missing analysis: [option-summary.md](option-summary.md) and [option-1.md](option-1.md) cover it in full. It simply never reached this document. It is now §0.
->
-> 5. **Added 2026-09-10 — Bravo's scope in this pack was too narrow, and one row reverses.** Team Bravo objected that the analysis omits the **`LN` project** (Surveyor & Verificator, [board 703](https://bfifinance.atlassian.net/jira/software/c/projects/LN/boards/703)) and the repositories **`bravo-operation-console`, `bravo-surveyor-console`, `bravo-underwriting-console`**. Verified and correct: those three repositories hold **763,861 lines of source and 829 test files**, gate every PR on unit tests, and released three days before this reading; `LN` has issued ~6,600 keys and is **larger than `BLCS`**. Consequences: the delivery-ticket row inverts (Bravo 1.27× LORA, from LORA 1.83×) and is *still* excluded for the same reason as before; the test-file row moves further Bravo's way (**2,286 across four repos**, not 1,457 in one); and Bravo's active-engineer count is **25, not 7**. Nothing in §0 or the value-per-application finding is affected.
->
-> 6. **Added 2026-09-10 — DF2W is not in production; it is in UAT.** Team Bravo's second correction. This pack described DF2W as *"fully configured in production with zero applications"*, which reads as *released and unused*. Verified: DF2W is **pre-release** — `INS-6245` seeded branch mapping **for UAT** (2026-09-07), `LN-6479` *"[DF2W] E2E Testing"* is resolved, `TDF-4273` *"DF2W — Golive worker TAC"* closed 2026-09-09, an **LOS penetration test is live** (`ADI-1312` firewall access Done 2026-09-09; `BLCS-4799` sample data Done 2026-09-07), and the go-live epics `D2W-5` and `LN-4573`/`LN-4554` are still open. The *"zero applications"* half was right; *"in production"* was not. [bravo-unified-development-process.md](bravo-unified-development-process.md) had it right all along. This weakens **convergence 8** in [§3](#3-where-they-converge--and-what-that-means-for-the-decision) — see the note there.
->
-> **Also resolved 2026-09-10 — the `BLCS`+`LN` double-counting question.** Four tests (project identity, sub-task taxonomy, capability prefixes, cross-project links) show the two projects are split by **squad and domain, not by tier**, and no pair of 80 sampled summaries describes the same change. So the delivery-ticket sum is the supported figure — **Bravo 6,518 against LORA's 5,144** — not the 3,705 floor. The row stays excluded from the edge column for the original reason: ticket volume measures decomposition, and it inverted on a scope fix.
->
-> **Net effect: §5 no longer recommends a platform for new products.** It funds the urgent decision and states the three measurements that gate the strategic one.
->
-> **A pattern worth naming, since it has now happened three times.** All three scope corrections ran the same way: **Bravo was bounded at `bravo-bpm-service` and LORA at its entire workspace.** That asymmetry produced the missing `bravo-e2e-test` suite, the missing consoles and `LN`, and — inverted — the credit given to LORA for six product families that exist only as code. Every correction that followed moved toward Bravo. **The remaining findings that survive all three corrections are the ones to trust**: the engine end-of-support exposure (§0), orchestration-tier blindness, the cost ratio, and the intervention-rate gap with its one unmapped category.
+New measurements, taken 2026-09-10:
 
-> **Three further corrections from the team, 2026-09-11 — landed after the revision above.**
->
-> 5. **Bravo's August application count was 118,253, not 76,446.** The old figure came from a partial-month extract: 76,446/118,253 = 0.646, close to the 0.601 cost-completeness factor on the same billing row. Consequences, all recomputed here: **August volume was flat, not −35%** (117,996 → 118,253), so the "unit cost inflates as it drains" reading of August is withdrawn; LORA's share of originations is **59%, not 69%**; Bravo's LOS tier is **≈Rp490–515 per application** (so LORA costs **5–6.5×** more per application, not 4–5×); value per Bravo application is **≈Rp425,000** and the value ratio **≈30×**, not 47×; the Jun–Aug intervention rate is **0.389%** (**3.1×** LORA's, 1 in 257), and **0.134%** excluding `Release reject`. **One thing got stronger:** the corrected count now agrees with Bravo's own engine meter (≈113k) to within 5%, where the two previously differed by 48%.
->
-> 6. **`Surveyor Platform - Release reject` is fixed, deployed 2026-09-10.** This is the category carrying 1,542 tickets, 28.4% of Bravo's load and 61% of its intervention rate. Every rate in this document still measures the period *before* the fix. If the category goes to zero, Bravo's rate lands at ≈0.134% — level with LORA's 0.126%. **That is arithmetic on a deployed fix, not a measurement**; a September–October ticket re-export is what would confirm it.
->
-> 7. **LORA's engineering spread is structural.** Per the VMP LORA plan, LORA runs as **three sub-teams (LORA 1, 2 and 3)** working different features in parallel, with most tasks executed end to end so members share a baseline understanding of the system. That answers a question this pack left open, and it means the bus-factor finding is **Bravo-specific** rather than platform-neutral.
->
-> **And one caveat the first correction creates.** The same billing row that produced a wrong Bravo count also produced LORA's **171,479**, which has *not* been re-verified. If it is partial on the same factor, August originations rose ~61% month over month — the implausibility the LORA cost document originally used to argue the counts were complete. **Getting both application columns from a system, with a stated period and basis, is now the first measurement to fund.**
+- Jira: `DF`, `D2W`, `BL`, `BLCS` and **`LN`**
+- the three Bravo console repositories
+- Datadog `us5`: APM spans, logs, monitors, Synthetics, CI Visibility, and RUM on four Bravo consoles
+- GCP billing through the FinOps API, for the complete month of August 2026
 
-**Two caveats that qualify every row.** Application counts on both sides come from a billing sheet whose platform totals nothing else corroborates, so every *per-application* figure is a verified numerator over a disputed denominator. And Bravo is being drained into LORA, so it keeps the residual hard cases — a real confound, not controlled for.
+Carried forward from earlier work:
+
+- the OTRS ticket export ([ticket-analysis.md](production-findings/ticket-analysis.md))
+- the 90-day PostgreSQL and Datadog volume split ([workflow-gap.md §8](workflow-gap.md))
+- the LORA production-findings pack
+
+> **Revised 2026-09-11, and the recommendation in §5 has changed.** Four corrections landed after the previous version. Three of them knocked out a pillar the old recommendation stood on.
+>
+> 1. **Team size is not evidence.** Bravo has 7 active engineers and LORA has 22. That gap is the result of an earlier CTO decision to consolidate on LORA. The same office can reverse it. Using it as a reason to prefer LORA was circular. It is now out of the edge column and out of the decision drivers ([people §5](bravo-people.md)).
+> 2. **"Seven product families" was false as we used it.** We checked LORA's own production findings. The production GKE namespace runs **only** `dp-ndf` workers. What is live is **NDF2W plus NDF4W, which is one family**. Six families are not deployed, and three of those have no `deploy-prod.yaml` at all. So the old sentence — *"already carries 69% of applications across seven product families"* — was wrong. That entire share runs on the one family.
+> 3. **Applications are the wrong unit, and no better unit exists anywhere.** The CTO office puts Bravo at ≈**Rp 50.2bn** and LORA DP NDF at ≈**Rp 2.4bn**. LORA handles 1.45× the applications. It carries roughly **1/21 of the business value**. Neither workspace holds **any** agreement, disbursement, NTF or revenue data.
+> 4. **The engine end-of-support finding never reached this document.** Bravo runs **Camunda 7.23.0 Community Edition**. That line died on 14 Oct 2025 and will never get another patch. It sits on Spring Boot 3.5.16, out of support since 30 Jun 2026. The analysis was not missing: [option-summary.md](option-summary.md) and [option-1.md](option-1.md) cover it in full. It simply never got here. It is now §0.
+>
+> 5. **Added 2026-09-10. Bravo's scope in this pack was too narrow, and one row reverses.** Team Bravo objected that we left out the **`LN` project** (Surveyor and Verificator, [board 703](https://bfifinance.atlassian.net/jira/software/c/projects/LN/boards/703)) and the repositories **`bravo-operation-console`, `bravo-surveyor-console` and `bravo-underwriting-console`**. We checked, and they were right. Those three repositories hold **763,861 lines of source and 829 test files**. Every pull request in them is gated on unit tests. All three released three days before this reading. `LN` has issued about 6,600 keys, which makes it **larger than `BLCS`**.
+>
+>     Three things follow. The delivery-ticket row inverts: Bravo now leads 1.27×, where LORA led by 1.83× before. That row is *still* excluded, for the same reason as before. The test-file row moves further Bravo's way — **2,286 files across four repositories**, not 1,457 in one. And Bravo's active-engineer count is **25, not 7**. None of this touches §0 or the value-per-application finding.
+>
+> 6. **Added 2026-09-10. DF2W is not in production. It is in UAT.** This was Team Bravo's second correction. The pack described DF2W as *"fully configured in production with zero applications"*, which reads as released and unused. That was wrong. DF2W is **pre-release**. The evidence: `INS-6245` seeded branch mapping **for UAT** on 2026-09-07; `LN-6479` *"[DF2W] E2E Testing"* is resolved; `TDF-4273` *"DF2W — Golive worker TAC"* closed on 2026-09-09; an **LOS penetration test is running** (`ADI-1312` firewall access Done 2026-09-09, `BLCS-4799` sample data Done 2026-09-07); and the go-live epics `D2W-5`, `LN-4573` and `LN-4554` are still open. So the *"zero applications"* half was right and the *"in production"* half was not. [bravo-unified-development-process.md](bravo-unified-development-process.md) had it right all along. This weakens **convergence 8** in [§3](#3-where-they-converge--and-what-that-means-for-the-decision) — see the note there.
+>
+> **Also resolved 2026-09-10: the `BLCS` plus `LN` double-counting question.** We ran four tests: project identity, sub-task taxonomy, capability prefixes, and cross-project links. They show the two projects are split by **squad and domain, not by tier**. No pair among 80 sampled summaries describes the same change. So the sum is the supported figure — **Bravo 6,518 against LORA's 5,144** — not the 3,705 floor. The row still stays out of the edge column, for the original reason: ticket volume measures how work is broken up, and it inverted the moment we fixed the scope.
+>
+> **Net effect: §5 no longer recommends a platform for new products.** It funds the urgent decision, and it names the three measurements that gate the strategic one.
+>
+> **A pattern worth naming, because it has now happened three times.** All three scope corrections ran the same way. **We bounded Bravo at `bravo-bpm-service` and LORA at its entire workspace.** That asymmetry produced the missing `bravo-e2e-test` suite. It produced the missing consoles and `LN`. And, in the other direction, it produced the credit we gave LORA for six product families that exist only as code. Every correction that followed moved toward Bravo. **So trust the findings that survive all three corrections:** the engine end-of-support exposure (§0), orchestration-tier blindness, the cost ratio, and the intervention-rate gap with its one unmapped category.
+
+> **Three further corrections from the team, 2026-09-11. These landed after the revision above.**
+>
+> 5. **Bravo's August application count was 118,253, not 76,446.** The old figure came from a partial-month extract. 76,446/118,253 = 0.646, which is close to the 0.601 cost-completeness factor on the same billing row. Everything derived from it has been recomputed here:
+>
+>     - **August volume was flat, not −35%** (117,996 → 118,253). So the "unit cost inflates as it drains" reading of August is withdrawn.
+>     - LORA's share of originations is **59%, not 69%**.
+>     - Bravo's LOS tier is **≈Rp490–515 per application**. So LORA costs **5–6.5×** more per application, not 4–5×.
+>     - Value per Bravo application is **≈Rp425,000**, and the value ratio is **≈30×**, not 47×.
+>     - The Jun–Aug intervention rate is **0.389%**, which is **3.1×** LORA's, or 1 in 257. Excluding `Release reject` it is **0.134%**.
+>
+>     **One thing got stronger.** The corrected count now agrees with Bravo's own engine meter (≈113k) to within 5%. The two used to differ by 48%.
+>
+> 6. **`Surveyor Platform - Release reject` is fixed, and the fix was deployed on 2026-09-10.** This is the category carrying 1,542 tickets, 28.4% of Bravo's load and 61% of its intervention rate. Every rate in this document still measures the period *before* the fix. If the category goes to zero, Bravo's rate lands at ≈0.134%, level with LORA's 0.126%. **That is arithmetic on a deployed fix, not a measurement.** A September–October ticket re-export would confirm it.
+>
+> 7. **LORA's engineering spread is structural.** The VMP LORA plan splits LORA into **three sub-teams: LORA 1, 2 and 3**. They work on different features in parallel. Most tasks are executed end to end, so members share a baseline understanding of the system. That answers a question this pack left open. It also means the bus-factor finding is **specific to Bravo**, not neutral across platforms.
+>
+> **The first correction creates one caveat.** The billing row that gave us a wrong Bravo count also gave us LORA's **171,479**, and nobody has re-verified that number. If it is partial on the same factor, then August originations rose about 61% month over month. That is the implausibility the LORA cost document originally used to argue the counts were complete. **Getting both application columns out of a system, with a stated period and basis, is now the first measurement to fund.**
+
+**Two caveats qualify every row below.** First, the application counts on both sides come from a billing sheet, and nothing else corroborates its platform totals. So every *per-application* figure is a verified numerator over a disputed denominator. Second, Bravo is being drained into LORA, so it keeps the residual hard cases. That is a real confound, and we have not controlled for it.
 
 ---
 
 ## 0. Before this decision: Bravo's runtime is out of support
 
-**This document used to open with the matrix. That was wrong**, because there is a more urgent decision sitting in front of it, it already has a firm answer, and it is not contingent on anything below.
+**This document used to open with the matrix. That was wrong.** A more urgent decision sits in front of it. That decision already has a firm answer. And it does not depend on anything below.
 
 | Component | Bravo runs | Support ended |
 |---|---|---|
@@ -51,11 +74,11 @@
 | Java 17 (Oracle premier) | 17 | 30 Sep 2026 |
 | Camunda 7.23 (Enterprise maintenance) | — **no licence held** — | 13 Oct 2026 |
 
-Verified in the checkout: `pom.xml:26` pins `camunda.spring-boot.version` to 7.23.0; there is no Camunda BOM, no enterprise artifact, no licence file or property, and no Camunda EE repository — only BFI's own Artifact Registry. The `-webapp` and `-rest` starters are both embedded, and `SecurityConfig.java:65` sets `/camunda/**` to `permitAll()`. [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) records **61 injected remote-code-execution process definitions** in that engine, **one confirmed executed**, all still active.
+We verified all of this in the checkout. `pom.xml:26` pins `camunda.spring-boot.version` to 7.23.0. There is no Camunda BOM, no enterprise artifact, no licence file or property, and no Camunda EE repository — only BFI's own Artifact Registry. Both the `-webapp` and `-rest` starters are embedded. `SecurityConfig.java:65` sets `/camunda/**` to `permitAll()`. [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) records **61 injected remote-code-execution process definitions** in that engine. **One of them ran.** All 61 are still active.
 
 > **An engine with no patch channel and a publicly reachable deployment endpoint is the worst combination on this list, and it is live today.**
 
-**There is a supported destination and it is cheap.** [option-1.md §4](option-1.md) compares the two Apache-2.0 community forks — **Operaton 2.1.4** and **CIB seven 2.2.0**. Both run on Spring Boot 4, keep the `ACT_` schema unchanged, accept the legacy `camunda:` namespace and ship automated migration recipes. Swapping the engine *and* upgrading Spring Boot in one change is **18–33 engineer-days, Rp45–125M, no licence** — against 31–57 engineer-months for a Temporal port or a LORA migration.
+**There is a supported destination, and it is cheap.** [option-1.md §4](option-1.md) compares the two Apache-2.0 community forks: **Operaton 2.1.4** and **CIB seven 2.2.0**. Both run on Spring Boot 4. Both keep the `ACT_` schema unchanged. Both accept the legacy `camunda:` namespace and ship automated migration recipes. Swapping the engine *and* upgrading Spring Boot in one change costs **18–33 engineer-days and Rp45–125M, with no licence to buy**. A Temporal port or a LORA migration costs 31–57 engineer-months.
 
 **Two decisions, two clocks** ([option-summary.md §2](option-summary.md)):
 
@@ -65,7 +88,7 @@ Verified in the checkout: `pom.xml:26` pins `camunda.spring-boot.version` to 7.2
 | Answer | **Option 1 Path B — fund it now** | **Open.** §5 states what gates it |
 | Contingent on the other? | **No** | No |
 
-**Decision A is unconditional.** Every strategic path leaves Bravo running the retail book for at least 12 months — a Temporal port takes 12–18, a LORA migration 15–24 — and the Spring Boot 4 half of the work is owed under those paths anyway. **Nothing in the rest of this document should delay it.**
+**Decision A is unconditional.** Every strategic path leaves Bravo running the retail book for at least 12 months. A Temporal port takes 12–18 months. A LORA migration takes 15–24. And the Spring Boot 4 half of the work is owed under those paths anyway. **Nothing in the rest of this document should delay it.**
 
 ---
 
@@ -152,20 +175,20 @@ Verified in the checkout: `pom.xml:26` pins `camunda.spring-boot.version` to 7.2
 - **Configuration-driven change on reference data.** A staged approval-role rename was one YAML line and one SQL `UPDATE`.
 - **A cheaper test boundary.** 113 typed Feign interfaces mean stub drift is caught by `javac`. LORA needs a `check:stubs` script against a live schema registry to get the same guarantee ([testing §7.1](bravo-testing.md)).
 - **Carrying the business.** ≈Rp 50.2bn against ≈Rp 2.4bn, and **four product families live in production against LORA's one.** Whatever is decided about new products, Bravo is where the book and the money are.
-- **Commodity skills at hiring** — and this now matters more, because it is the one staffing-adjacent fact a CTO cannot reverse by reallocating people. Java/Spring/Camunda is a commodity hire; Go plus a bespoke GSM planner is not.
+- **Commodity skills at hiring.** This matters more than it used to. It is the one staffing-related fact a CTO cannot reverse by moving people around. Java, Spring and Camunda are a commodity hire. Go plus a bespoke GSM planner is not.
 
 **LORA is better at:**
 
-- **A supported runtime.** Go and Temporal Cloud against Camunda 7 CE, dead since October 2025, and Spring Boot 3.5.16, dead since June 2026 ([§0](#0-before-this-decision-bravos-runtime-is-out-of-support)). Fixable on Bravo in 18–33 engineer-days, but not fixed today.
+- **A supported runtime.** LORA runs Go and Temporal Cloud. Bravo runs Camunda 7 CE, dead since October 2025, on Spring Boot 3.5.16, dead since June 2026 ([§0](#0-before-this-decision-bravos-runtime-is-out-of-support)). Bravo can fix this in 18–33 engineer-days. It is not fixed today.
 - **Adding automated steps.** 172 activities against 3 hard precursors, no orchestration edit. The clearest validated architectural win.
 - **Seeing what the orchestrator is doing.** One span per activity attempt, carrying the loan id. Bravo emits **zero** spans for its entire orchestration layer.
 - **Joining a failure to a customer.** `@WorkflowID` is the application UUID. Bravo cannot do this from telemetry at all.
-- **Not needing a person.** ≈0.126% intervention rate against ≈0.389%, and falling while Bravo's rises.
-- **Marginal cost.** Near zero per additional application. Bravo's is small but real, and its unit cost is inflating as it drains.
-- **Product isolation.** Separate schemas, workers and queues. Bravo has one job executor for every product and product identity in five places. **Proven on one family only** — the isolation is structural in the design, but six of seven families have never been deployed, so it has not been exercised across families in production.
+- **Not needing a person.** LORA's intervention rate is ≈0.126% against Bravo's ≈0.389%. LORA's is falling and Bravo's is rising.
+- **Marginal cost.** Near zero for each additional application. Bravo's is small but real.
+- **Product isolation.** LORA gives each family its own schema, workers and queues. Bravo has one job executor for every product, and product identity in five places. **But this is proven on one family only.** The isolation is built into the design. Six of the seven families have never been deployed, so nothing has exercised it across families in production.
 - **In-flight deploy safety.** Schema-versioned queues against Bravo's unpinned child processes.
-- **A journey test that runs and asserts.** LORA's nightly is mostly red and that is bad. **Bravo's is worse in a more specific way:** 595 feature files exist, one workflow is scheduled, and every step in it ends `|| true` — so it reports success whether the loan journey worked or not, on 10 of 595 files, and has been frozen since 2023-11-21. A red test can be fixed. **A permanently green one actively misleads** — and if it ran, 57% of the `Then` steps in the 465 UI feature files it covers are pure clicking and typing. One qualifier in Bravo's favour, added 2026-09-10: the corpus's **130 API feature files assert on 87% of their `Then` steps**, so the skill is present and the defect is confined to the UI tier ([testing §6](bravo-testing.md)).
-- **A verified failure policy.** LORA's retry behaviour is bad *and measured*. Bravo's is well-designed and **unverified** — nothing in Bravo can make an upstream fail, so the degrade paths this document recommends porting have never been executed by a test.
+- **A journey test that runs and asserts.** LORA's nightly run is mostly red, and that is bad. **Bravo's is worse, in a specific way.** Bravo has 595 feature files. One workflow is scheduled. Every step in that workflow ends `|| true`, so it reports success whether the loan journey worked or not. It covers only 10 of the 595 files. The repository has been frozen since 2023-11-21. A red test can be fixed. **A permanently green test actively misleads.** And if it did run, 57% of the `Then` steps in the 465 UI feature files it covers are pure clicking and typing. One qualifier in Bravo's favour, added 2026-09-10: the corpus's **130 API feature files assert on 87% of their `Then` steps**. The skill is there. The defect is confined to the UI tier ([testing §6](bravo-testing.md)).
+- **A verified failure policy.** LORA's retry behaviour is bad, and it is measured. Bravo's is well designed and **unverified**. Nothing in Bravo can make an upstream fail on demand, so the degrade paths this document recommends porting have never been run by a test.
 
 ---
 
@@ -173,45 +196,57 @@ Verified in the checkout: `pom.xml:26` pins `camunda.spring-boot.version` to 7.2
 
 Eight things are the same on both platforms, and they matter because **anything that is the same on both cannot be a reason to choose either.**
 
-1. **Human-task complexity is paradigm-independent.** Bravo spends 44% of its code on human work; LORA has ~12k lines of hand-written FSMs inside a declarative shell. Neither engine's native task model was used.
-2. **The orchestration layer is untested in both.** 4 of 1,457 Bravo tests execute a process; LORA's planner scheduling is untested and its nightly is red.
-3. **Both built a journey suite and left it unable to run.** Bravo: 595 Cypress features, 46 authors, four workflows, frozen 2023-11-21, and the one scheduled workflow written so it cannot fail. LORA: `lora-super-test`, 150 scenario tests, **a CI workflow file that has nowhere to run yet**. Two teams, two platforms, the same outcome — a large deliberate investment in journey testing that no longer gates anything. This is the closest structural parallel in the pack and neither team knew the other had it.
-4. **The lifecycle FSM is declared and not enforced in both.** Bravo has a state-machine class used once; LORA validates enum membership only.
-5. **Neither has saga compensation.** Both rely on sweepers, re-sync and humans for failed external commits.
-6. **Both mistake the absence of one failure mode for health.** "Not 5xx" and "still Running" are the same error. Both teams also filtered their most informative error class out of their one business monitor — Bravo excluded `ENGINE-16004`, LORA excluded the go-live agreement message.
-7. **Both platforms have product families built and not yet live — and this pack applied the criticism to only one of them. *Amended 2026-09-10: this is no longer a symmetric convergence.*** The double standard was real and its correction stands: earlier versions counted LORA's six un-deployed families as "7 product families" in its favour while counting Bravo's DF2W against it. But the two situations are **not the same state**, and saying so was itself an error in the opposite direction.
+1. **Human-task complexity does not depend on the paradigm.** Bravo spends 44% of its code on human work. LORA has about 12,000 lines of hand-written state machines inside a declarative shell. Neither engine's built-in task model was used.
+2. **Neither platform tests its orchestration layer.** Only 4 of 1,457 Bravo tests execute a process. LORA's planner scheduling is untested, and its nightly run is red.
+3. **Both built a journey suite and then left it unable to run.** Bravo has 595 Cypress features from 46 authors and four workflows. The repository was frozen on 2023-11-21, and the one scheduled workflow is written so it cannot fail. LORA has `lora-super-test` with 150 scenario tests and **a CI workflow file that has nowhere to run yet**. Two teams, two platforms, the same outcome: a large, deliberate investment in journey testing that no longer gates anything. This is the closest structural parallel in the pack, and neither team knew the other had it.
+4. **Both declare a lifecycle state machine and neither enforces it.** Bravo has a state-machine class that is used once. LORA only checks that a value is a member of an enum.
+5. **Neither has saga compensation.** When an external commit fails, both fall back on sweepers, re-sync jobs and people.
+6. **Both treat the absence of one failure mode as health.** "Not 5xx" and "still Running" are the same mistake. Both teams also filtered their most informative error class out of their one business monitor. Bravo excluded `ENGINE-16004`. LORA excluded the go-live agreement message.
+7. **Both platforms have product families that are built and not yet live, and this pack criticised only one of them for it. *Amended 2026-09-10: this is no longer a symmetric convergence.*** The double standard was real, and the correction stands. Earlier versions counted LORA's six un-deployed families as "7 product families" in LORA's favour, while counting Bravo's DF2W against Bravo. But the two situations are **not the same state**. Calling them the same was itself an error, in the opposite direction.
 
-    **Bravo's DF2W is in flight to a release.** Verified 2026-09-10: UAT branch mapping seeded (`INS-6245`, 2026-09-07), `[DF2W] E2E Testing` resolved (`LN-6479`), go-live worker TAC closed (`TDF-4273`, 2026-09-09), an **LOS penetration test running** (`ADI-1312`, `BLCS-4799`), and pre-go-live epics open and being worked (`D2W-5`, `LN-4573`, `LN-4554`). It is a product in pre-release testing, which is the normal state of an unlaunched product.
+    **Bravo's DF2W is on its way to a release.** Verified 2026-09-10. UAT branch mapping is seeded (`INS-6245`, 2026-09-07). `[DF2W] E2E Testing` is resolved (`LN-6479`). The go-live worker TAC is closed (`TDF-4273`, 2026-09-09). An **LOS penetration test is running** (`ADI-1312`, `BLCS-4799`). Pre-go-live epics are open and being worked (`D2W-5`, `LN-4573`, `LN-4554`). This is a product in pre-release testing, which is the normal state for a product that has not launched yet.
 
-    **LORA's six are awaiting a decision.** Per the CTO office they are *pending a decision to turn on or not*; three have **no `deploy-prod.yaml` at all** and three name a schema version that does not exist. None is in UAT.
+    **LORA's six are waiting on a decision.** The CTO office says they are *pending a decision to turn on or not*. Three have **no `deploy-prod.yaml` at all**. Three more name a schema version that does not exist. None of them is in UAT.
 
-    **So the honest reading:** both platforms have built families that have never taken an application, and neither team should be criticised for that alone — but **one has a dated release path and five to six do not.** On this row the edge is Bravo's. What survives as a genuine convergence is the narrower point: *neither platform's un-launched families tell you anything about how easy that platform is to build on, and both packs had been using them as if they did.*
-8. **Surveyor assignment is the top ops complaint on both, in the same words, at nearly the same rate** — 1,182 Bravo tickets (21.8%) and 1,021 LORA tickets (25.0%). A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer and inherited its failure modes.
+    **So here is the honest reading.** Both platforms have built families that have never taken an application. Neither team should be criticised for that alone. But **one has a dated release path and five to six do not.** On this row the edge goes to Bravo. What survives as a genuine convergence is a narrower point: *a platform's un-launched families tell you nothing about how easy that platform is to build on. Both packs had been using them as if they did.*
+8. **Surveyor assignment is the top operations complaint on both platforms, in the same words, at nearly the same rate.** Bravo has 1,182 tickets (21.8%) and LORA has 1,021 (25.0%). A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer, and each inherited its failure modes.
 
-**Both teams also had rich instrumentation they were not reading.** LORA's two RUM applications had been on all along and were never consulted. All four Bravo LOS consoles are instrumented at `ALL` and produce 2.4M errors a week that nobody had opened. This is not an architecture finding; it is the same operational gap on both sides, and it is the cheapest thing on either backlog.
+**Both teams also had rich instrumentation they were not reading.** LORA's two RUM applications had been on all along, and nobody ever looked at them. All four Bravo LOS consoles are instrumented at `ALL` and produce 2.4 million errors a week that nobody had opened. This is not an architecture finding. It is the same operational gap on both sides, and it is the cheapest item on either backlog.
 
 ---
 
 ## 4. The three measurements that actually decide it
 
-Strip out everything that converges, everything that is a wash, and everything that is a prior decision rather than a platform property. **Three measurements carry the decision. Two point at Bravo.**
+Strip out three kinds of row: everything that converges, everything that is a wash, and everything that is a prior decision rather than a property of the platform. **Three measurements are left. They carry the decision, and two of them point at Bravo.**
 
-**1. Bravo's orchestration is 5–6.5× cheaper per application — and the gap closes on its own.** ≈Rp490–515 against ≈Rp2,500–3,200. This is the strongest fact on Bravo's side and it should not be minimised. Two things bound it. The gap is caused by LORA's fixed contracts and over-provisioning — a 3-year CPU commitment, a Temporal commitment renegotiable at ~March 2027, 448 GB of requests at 15.5% utilisation, five idle worker versions — not by the paradigm. And Bravo's advantage erodes automatically: fixed cost over volume that falls as the migration proceeds means ≈Rp1,450 per application at 40k/month without either team doing anything. Meanwhile **Cloud Logging alone (Rp140.5M/month) is 2.4× the entire tier the migration would retire**, and it is a configuration fix.
+**1. Bravo's orchestration costs 5–6.5× less per application. And the gap closes on its own.** Bravo is at ≈Rp490–515 per application, LORA at ≈Rp2,500–3,200. This is the strongest fact on Bravo's side, and it should not be played down.
 
-**2. Bravo needs a person 3.1× more often, and the trend is diverging.** ≈0.389% against ≈0.126%; ×1.82 against ×0.66 over eight months, with Bravo's volume falling and LORA's rising. **The honest qualifier is large**: the gap turns entirely on one category, `Surveyor Platform - Release reject` — 1,542 tickets, 28.4% of Bravo's load, growing 4.8×, and **still unmapped to any code path**. Remove it and Bravo's rate is 0.134% against LORA's 0.126% — level. Two other errors push the other way (Bravo's denominator is probably inflated; its operator console lets staff unstick applications without a ticket), so the 3.1× is more likely a floor than a ceiling. But it is one category away from being a wash, and mapping that category is days of work nobody has done.
+Two things bound it. First, the gap comes from LORA's fixed contracts and over-provisioning, not from the paradigm: a 3-year CPU commitment, a Temporal commitment that can be renegotiated around March 2027, 448 GB of requests running at 15.5% utilisation, and five idle worker versions. Second, Bravo's advantage erodes by itself. Its cost is fixed, and its volume falls as the migration proceeds. At 40,000 applications a month that works out to ≈Rp1,450 each, with neither team doing anything.
 
-**3. Bravo cannot see its own orchestration, and its proof that a loan can still be originated has been switched off.** Zero spans on the engine path. No application id on any log line. Zero process-level monitors among 38. Zero CI pipeline telemetry. **And the journey suite is the sharpest version of this:** Bravo built 595 Cypress features with 46 authors, aimed 349 of them at the Surveyor Platform, wired four CI workflows — then froze the repo in November 2023 and left the one scheduled workflow written so that every step ends `|| true` and it cannot report a failure. The continuous evidence that Bravo works is the support-ticket queue. **But the remediation is cheap and this cuts against the argument**: the two test layers that would catch the most run in **milliseconds** and are ~7 days of work ([testing §7.2](bravo-testing.md)), and 349 usable journey descriptions already exist. **This is a decision nobody has made, not a mountain nobody can climb** — which makes it a reason to fund remediation, and a weak reason to move products.
+Meanwhile **Cloud Logging alone, at Rp140.5M a month, costs 2.4× the entire tier the migration would retire.** And that is a configuration fix.
 
-**What used to be driver 4 is withdrawn.** It read *"the claim that Bravo is easier rests on the two smallest things Bravo runs"* — DF4W at 5.5% and DF2W at zero. That is still true of the *unified spine*, and [§1](#1-the-matrix) keeps the row. But it cannot carry decision weight while **LORA's entire production estate is one product family** and six of its seven are in the same unlaunched state DF2W is in. Symmetrically applied, the observation cancels.
+**2. Bravo needs a person 3.1× more often, and the two trends are moving apart.** Bravo is at ≈0.389% against LORA's ≈0.126%. Over eight months Bravo's ticket count rose 1.82× while LORA's fell to 0.66×, with Bravo's volume falling and LORA's rising.
 
-**And what used to be the capacity half of driver 3 is withdrawn** for the reason in [people §5](bravo-people.md): headcount is the output of a prior CTO decision, not a property of a platform.
+**The qualifier here is large.** The whole gap turns on one category: `Surveyor Platform - Release reject`. That is 1,542 tickets, 28.4% of Bravo's load, grown 4.8×, and **still not mapped to any code path**. Take it out and Bravo sits at 0.134% against LORA's 0.126%, which is level.
+
+Two other errors push the other way. Bravo's denominator is probably inflated, and its operator console lets staff unstick applications without raising a ticket. So the 3.1× is more likely a floor than a ceiling. But it is one category away from being a wash, and mapping that category is days of work that nobody has done.
+
+**3. Bravo cannot see its own orchestration, and the proof that a loan can still be originated has been switched off.** There are zero spans on the engine path. No log line carries an application id. Of 38 monitors, none is at process level. There is no CI pipeline telemetry at all.
+
+**The journey suite is the sharpest version of this.** Bravo built 595 Cypress features with 46 authors. It aimed 349 of them at the Surveyor Platform and wired four CI workflows. Then it froze the repository in November 2023 and left the one scheduled workflow written so that every step ends `|| true`, which means it cannot report a failure. The continuous evidence that Bravo works is the support-ticket queue.
+
+**But the fix is cheap, and that cuts against using this to move products.** The two test layers that would catch the most run in **milliseconds** and take about 7 days of work ([testing §7.2](bravo-testing.md)). And 349 usable journey descriptions already exist. **This is a decision nobody has made, not a mountain nobody can climb.** So it is a strong reason to fund remediation and a weak reason to move products.
+
+**What used to be driver 4 is withdrawn.** It read: *"the claim that Bravo is easier rests on the two smallest things Bravo runs"* — DF4W at 5.5% and DF2W at zero. That is still true of the *unified spine*, and [§1](#1-the-matrix) keeps the row. But it cannot carry decision weight. **LORA's entire production estate is one product family**, and six of its seven sit in the same unlaunched state as DF2W. Apply the observation to both sides and it cancels.
+
+**The capacity half of driver 3 is withdrawn too**, for the reason given in [people §5](bravo-people.md). Headcount is the output of an earlier CTO decision. It is not a property of a platform.
 
 ## 5. Strategic recommendation
 
 > ### Decision A — fund now: get Bravo onto a supported engine and Spring Boot. 18–33 engineer-days, no licence.
 > ### Decision B — where the next product family goes: **open**, and gated on three measurements that have never been taken.
 
-**Why this document no longer picks a platform for new products.** The previous version recommended prioritising LORA. That recommendation rested on five pillars and **three of them have failed**:
+**Why this document no longer picks a platform for new products.** The previous version recommended prioritising LORA. That recommendation rested on five pillars, and **three of them have failed:**
 
 | Pillar | Status |
 |---|---|
@@ -221,20 +256,28 @@ Strip out everything that converges, everything that is a wash, and everything t
 | Bravo cannot see or test its own orchestration | **Stands** — but remediation is days-to-weeks, not quarters |
 | LORA has near-zero marginal cost and structural product isolation | **Stands**, though the isolation is proven on one family |
 
-**What survives is genuinely balanced.** LORA has near-zero marginal cost, product isolation and in-flight deploy safety by construction, one span per activity attempt carrying the loan id, and a journey test that asserts. Bravo has the cheaper tier by 5–6.5×, one or two repositories per change against five, a console tier of 829 tests gating every front-end merge, the business and the money, four live product families against one, fleet SQL queries, per-upstream attribution, durable reprocess generations, bounded classified failure, and the commodity hiring pool. **Neither list wins on the evidence available, and the evidence that would decide it does not exist yet.**
+**What survives is genuinely balanced.**
 
-**Three measurements gate Decision B.** All are weeks or less, and none has been taken:
+LORA brings near-zero marginal cost. It brings product isolation and in-flight deploy safety by construction. It emits one span per activity attempt, carrying the loan id. And its journey test asserts something.
 
-1. **The agreement / NTF / disbursement split by platform.** Every rate in this pack divides by an application count from a billing sheet that nothing corroborates, whose LORA column swings 0.03×–1.27× against the Temporal meter, and which probably double-counts a LORA loan in Bravo at go-live. The CTO office's Rp 50.2bn / Rp 2.4bn figures say applications are the wrong unit by a factor of ~47 — **that needs to come from a system, with a stated period and basis.**
-2. **`Surveyor Platform - Release reject` mapped to a code path — now **hours**, not days.** 28.4% of Bravo's ticket load, growing 4.8×. **Narrowed 2026-09-10** to six named candidates by opening the console repositories the pack had never held: four `release-assignment` handlers in `OperationAssignmentController` plus `voidAssignment`/`reprocess`, and `cancel-reject-notes` routes in `bravo-surveyor-console`; owning squad `LN`. Remove the category and Bravo's intervention rate is 0.134% against LORA's 0.126% — level. Days of work.
-3. **LORA's per-family production readiness.** Six of seven families are un-deployed and nothing records whether that is a business decision, a readiness gap, or drift. If the intent is that LORA hosts the next family, the question is what it actually costs to launch one there — and three of the six do not have a production deploy workflow.
+Bravo brings a tier that costs 5–6.5× less. It needs one or two repositories per change, against LORA's five. Its console tier has 829 tests gating every front-end merge. It carries the business and the money, and four live product families against LORA's one. It answers fleet questions in SQL, attributes errors per upstream, keeps durable reprocess generations, fails in a bounded and classified way, and hires from a commodity pool.
 
-**One instruction that does not wait for any of them.** Bravo carries the majority of the book and the majority of the money. **Whatever is decided about new products, Bravo must be resourced and treated as a strategically important platform**, not as a system being wound down. Its runtime is out of support today, its orchestration is unobservable, and its journey tests do not run — and it will be originating the majority of BFI's business value throughout whatever migration is or is not chosen.
+**Neither list wins on the evidence we have. The evidence that would decide it does not exist yet.**
+
+**Three measurements gate Decision B.** Each takes weeks or less. None has been taken:
+
+1. **The agreement, NTF and disbursement split by platform.** Every rate in this pack divides by an application count that comes from a billing sheet. Nothing corroborates that sheet. Its LORA column swings between 0.03× and 1.27× against the Temporal meter. And it probably counts a LORA loan twice, once in Bravo, at go-live. The CTO office's Rp 50.2bn and Rp 2.4bn figures say applications are the wrong unit by a factor of about 47. **These numbers need to come from a system, with a stated period and basis.**
+2. **`Surveyor Platform - Release reject` mapped to a code path. This is now **hours** of work, not days.** The category is 28.4% of Bravo's ticket load and has grown 4.8×. **Narrowed on 2026-09-10** to six named candidates, by opening the console repositories the pack had never held: four `release-assignment` handlers in `OperationAssignmentController`, plus `voidAssignment` and `reprocess`, plus the `cancel-reject-notes` routes in `bravo-surveyor-console`. The owning squad is `LN`. Remove the category and Bravo's intervention rate is 0.134% against LORA's 0.126%, which is level.
+3. **LORA's per-family production readiness.** Six of the seven families are not deployed. Nothing records whether that is a business decision, a readiness gap, or simple drift. If the plan is for LORA to host the next family, then the question is what it actually costs to launch one there. Three of the six do not even have a production deploy workflow.
+
+**One instruction does not wait for any of them.** Bravo carries the majority of the book, and the majority of the money. **So whatever is decided about new products, Bravo must be resourced and treated as a strategically important platform.** It must not be treated as a system being wound down.
+
+Today its runtime is out of support, its orchestration is unobservable, and its journey tests do not run. And it will be originating the majority of BFI's business value throughout whatever migration is or is not chosen.
 
 **Two qualifications that survive unchanged.**
 
-1. **This is not an architecture verdict.** [compare-architecture.md §7](compare-architecture.md) concludes the paradigm decided the shape of ~6% of Bravo's codebase and ~10% of LORA's — the automated pipeline — and decided it in LORA's favour, while the other ~90% looks structurally similar and differs by engineering discipline. Nothing here overturns that, and nothing here rests on it.
-2. **Nothing here justifies rushing the remaining migration.** Bravo runs 118,253 applications a month, has bounded failure, and is the cheapest orchestration tier of the three options. The migration should finish because running two platforms costs two teams — not because Bravo is failing.
+1. **This is not an architecture verdict.** [compare-architecture.md §7](compare-architecture.md) concludes that the paradigm decided the shape of about 6% of Bravo's codebase, and about 10% of LORA's. That part is the automated pipeline, and the paradigm decided it in LORA's favour. The other 90% or so looks structurally similar, and differs by engineering discipline. Nothing here overturns that. And nothing here rests on it.
+2. **Nothing here justifies rushing the remaining migration.** Bravo runs 118,253 applications a month. Its failures are bounded. And it is the cheapest orchestration tier of the three options. The migration should finish because running two platforms costs two teams. It should not finish because Bravo is failing.
 
 ### Port these four things from Bravo into LORA
 
@@ -247,15 +290,19 @@ The comparison produces a shopping list, and it is not one-directional.
 | **Durable generations** — `prevApplication` / `currentIndex`, every attempt a row | Answers "what happened on day 120" without replay | rewind loses the prior generation |
 | **Per-upstream attribution by construction** | "Which BFI service is degrading" is one query | 21k undifferentiated 500s/week; the fix is merged and undeployed |
 
-And keep the degrade decision out of the exception handler: Bravo's `customErrorHandle` bypassing anti-fraud after three failures is a credit-policy decision hidden in error handling. If LORA adds terminal errors, decide explicitly whether terminal means *reject*, *park* or *skip*.
+And keep the degrade decision out of the exception handler. Bravo's `customErrorHandle` bypasses anti-fraud after three failures, which is a credit-policy decision hidden inside error handling. So if LORA adds terminal errors, decide explicitly what terminal means: *reject*, *park* or *skip*.
 
-> **Port the design, not the assurance.** Every row above is a *design* Bravo got right, and the evidence for each is behavioural — Bravo has no zombie-loan class in production. But [testing §7.4](bravo-testing.md) establishes that **no Bravo test can make an upstream fail**, because `bravo-mock-service` is static and shared. Bravo's **50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths have never been executed by a test**. LORA should copy the shape and **write the negative tests Bravo never had** — its mock interceptor can already fail any upstream on demand.
+> **Port the design, not the assurance.** Every row above is a *design* Bravo got right. And the evidence for each is behavioural: Bravo has no zombie-loan class in production.
+>
+> But [testing §7.4](bravo-testing.md) establishes that **no Bravo test can make an upstream fail**, because `bravo-mock-service` is static and shared. So Bravo's **50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths have never been run by a test**.
+>
+> LORA should copy the shape, and then **write the negative tests Bravo never had**. Its mock interceptor can already fail any upstream on demand.
 
 ---
 
 ## 6. What would settle Decision B
 
-The three gating measurements are in [§5](#5-strategic-recommendation). This table says what each *outcome* would mean, so the decision is decidable rather than arguable.
+The three gating measurements are in [§5](#5-strategic-recommendation). This table says what each *outcome* would mean. That way the decision becomes decidable, rather than arguable.
 
 | Finding | Effect |
 |---|---|
@@ -276,21 +323,49 @@ The three gating measurements are in [§5](#5-strategic-recommendation). This ta
 
 ## 7. What to do next
 
-**Decision A first — items 1–2 are unconditional under every strategic path.** Then the three measurements that gate Decision B. Then work that is worth doing whichever way B goes.
+**Decision A comes first. Items 1 and 2 are unconditional under every strategic path.** Then come the three measurements that gate Decision B. Then the work that is worth doing whichever way B goes.
 
-1. **Fix the Camunda RCE (this week) — and note the vector was corrected 2026-09-10.** The deploy path is `/engine-rest/**`, which already requires a credential; the injected definitions therefore came from **a held Keycloak token or the shared `INTERNAL_SERVICE_KEY`**, not from an open door. So: **rotate `INTERNAL_SERVICE_KEY` first** (it grants `ROLE_SYSTEM_SERVICE` and full engine rights, making it RCE-equivalent), rotate the plaintext secrets committed in `bravo-e2e-test/cypress.config.js`, pull access logs for `POST /engine-rest/deployment/create` across 2026-05-23 → 06-30 to identify the caller, register a `ProcessEngineAuthenticationFilter` so the engine's own authorization actually applies, purge the 61 injected definitions, remove `permitAll()` on `/camunda/**` as hardening, and check for lateral movement using the pod's service account and datasource credentials. Live, confirmed code execution in production, on an engine with no patch channel. Required under every option.
-2. **Fund Option 1 Path B (18–33 engineer-days, Rp45–125M, no licence).** Swap Camunda 7.23.0 CE for Operaton 2.1.4 or CIB seven 2.2.0 *and* upgrade Spring Boot to 4.0.x in one change. Answer the fork question first — is a contractual support agreement required, and purchasable for a BFI entity? Yes → CIB seven, no → Operaton. Run the `ACT_GE_SCHEMA_LOG` diagnostics in every environment before setting a cutover date; that is hours of work and it is the one finding that can change the plan.
-3. **Get the agreement / NTF / disbursement split by platform from a system (days).** Gating measurement #1. The Rp 50.2bn / Rp 2.4bn figures are a CTO-office estimate; the decision needs them with a stated period and basis, alongside the `Bravo total app` / `Lora total app` definitions.
-4. **~~Map `Surveyor Platform - Release reject` to a code path~~ — fixed and deployed 2026-09-10. Re-export September–October tickets and confirm the category has gone to zero (hours).** Instrument the four `release-assignment` handlers in `OperationAssignmentController`, `voidAssignment`, `reprocess` and the surveyor console's `cancel-reject-notes` routes, then join to the OTRS dates. **Note the queue is named *Surveyor* Platform while every endpoint is `OPERATION_*` — that mismatch may be why it was never found.** 28.4% of Bravo's ticket load, growing 4.8×. It decides whether Bravo's intervention rate is 3.1× LORA's or level with it. **Fixed and deployed 2026-09-10** per the Bravo team, so the answer should arrive in the next ticket export rather than from code archaeology.
-5. **Define `Bravo total app` and `Lora total app` with the billing owner (days).** Every per-application number in this pack — cost, intervention rate, zero-intervention completion — is provisional until this exists.
-6. **Read the `feature-configuration` 404 (hours to look, days to fix).** 266,767 a week on the busiest handler in `ms-bpm`, reaching 69% of surveyor sessions, invisible to every monitor. Live defect or benign probe — either way it should not be unknown.
-7. **Delete every `|| true` from `OPERATION_PLATFORM.yml`, and open the Actions tab (one hour, plus five minutes).** Bravo's only scheduled journey run cannot report a failure. Fixing that is a two-character deletion per line. Finding out whether it has fired since 2023 is a five-minute look that this pack could not do from a checkout — and the answer decides whether Bravo has had *no* journey signal or a *false* one.
-8. **Cut Bravo's Cloud Logging bill (weeks, Rp50–90M/month).** Larger than the saving from retiring the Bravo LOS tier entirely, available now, configuration only, and it also removes upstream request bodies containing customer data from Cloud Logging.
-9. **Give both platforms a 4xx-aware health gate and a front-end error budget (weeks).** Both currently define health as the absence of the one failure mode they do not have.
-10. **Build LORA's schema-first scaffolding generator (weeks).** Turns `BL-9528..9532` — five repositories, six tickets — into one ticket and a generated PR set. It removes the strongest argument for Bravo, on the merits.
-11. **Write LORA's retry policy and dead-letter path (weeks).** Port the four items in §5 — the design, not the assurance: write the negative tests Bravo never had. This is the largest single reliability item on LORA's list and Bravo already shows what the answer looks like.
-12. **Set each platform's standing allocation, and name the bus factor (a meeting).** The allocation is an input the other four documents' plans are sized against; the bus factor — the Story layer running through one account — is a live operational risk, and it is **Bravo-specific**: LORA runs three sub-teams with end-to-end task execution, which is a structural answer to the same risk (bravo-people.md §5, updated 2026-09-11). **The allocation is not evidence about where new products should go; the concentration risk now mildly favours LORA.**
-13. **Instrument Bravo's job executor and add two end-to-end process tests (weeks).** Bravo runs 118,253 applications a month and the majority of BFI's business value, for years to come. It should be observable and testable while it does.
+1. **Fix the Camunda RCE, this week. And note that the vector was corrected on 2026-09-10.** The deploy path is `/engine-rest/**`, and that already requires a credential. So the injected definitions came from **a held Keycloak token, or the shared `INTERNAL_SERVICE_KEY`**. They did not come through an open door.
+
+    So do this, in order:
+
+    - **Rotate `INTERNAL_SERVICE_KEY` first.** It grants `ROLE_SYSTEM_SERVICE` and full engine rights, which makes it RCE-equivalent.
+    - Rotate the plaintext secrets committed in `bravo-e2e-test/cypress.config.js`.
+    - Pull the access logs for `POST /engine-rest/deployment/create` across 2026-05-23 to 06-30, and identify the caller.
+    - Register a `ProcessEngineAuthenticationFilter`, so the engine's own authorization actually applies.
+    - Purge the 61 injected definitions.
+    - Remove `permitAll()` on `/camunda/**`, as hardening.
+    - Check for lateral movement, using the pod's service account and datasource credentials.
+
+    This is live, confirmed code execution in production, on an engine with no patch channel. It is required under every option.
+2. **Fund Option 1 Path B. That is 18–33 engineer-days, Rp45–125M, and no licence.** Swap Camunda 7.23.0 CE for Operaton 2.1.4 or CIB seven 2.2.0, *and* upgrade Spring Boot to 4.0.x, in one change.
+
+    Answer the fork question first. Is a contractual support agreement required, and can BFI buy one for a BFI entity? Yes → CIB seven. No → Operaton.
+
+    Then run the `ACT_GE_SCHEMA_LOG` diagnostics in every environment, before setting a cutover date. That is hours of work, and it is the one finding that can change the plan.
+3. **Get the agreement, NTF and disbursement split by platform out of a system. Days of work.** This is gating measurement #1. The Rp 50.2bn and Rp 2.4bn figures are a CTO-office estimate. The decision needs them with a stated period and basis, alongside definitions for `Bravo total app` and `Lora total app`.
+4. **~~Map `Surveyor Platform - Release reject` to a code path~~ — fixed and deployed 2026-09-10. Instead, re-export the September and October tickets, and confirm the category has gone to zero. Hours of work.**
+
+    If you still want the mapping: instrument the four `release-assignment` handlers in `OperationAssignmentController`, plus `voidAssignment`, `reprocess` and the surveyor console's `cancel-reject-notes` routes. Then join to the OTRS dates.
+
+    **Note that the queue is named *Surveyor* Platform, while every endpoint is `OPERATION_*`.** That mismatch may be why nobody ever found it.
+
+    The category is 28.4% of Bravo's ticket load, and growing 4.8×. It decides whether Bravo's intervention rate is 3.1× LORA's, or level with it. The Bravo team reports it **fixed and deployed on 2026-09-10**. So the answer should arrive in the next ticket export, rather than from code archaeology.
+5. **Define `Bravo total app` and `Lora total app` with the billing owner. Days of work.** Every per-application number in this pack is provisional until this exists. That includes cost, the intervention rate, and zero-intervention completion.
+6. **Read the `feature-configuration` 404. Hours to look, days to fix.** It runs 266,767 times a week, on the busiest handler in `ms-bpm`, reaching 69% of surveyor sessions. And it is invisible to every monitor. It is either a live defect or a benign probe. Either way, it should not be unknown.
+7. **Delete every `|| true` from `OPERATION_PLATFORM.yml`, and open the Actions tab. One hour, plus five minutes.** Bravo's only scheduled journey run cannot report a failure, and fixing that is a trivial edit on each line.
+
+    Then find out whether it has fired since 2023. That is a five-minute look, and this pack could not do it from a checkout. The answer decides whether Bravo has had *no* journey signal, or a *false* one.
+8. **Cut Bravo's Cloud Logging bill. Weeks of work, worth Rp50–90M a month.** That is larger than the saving from retiring the Bravo LOS tier entirely. It is available now. It is configuration only. And it also removes upstream request bodies containing customer data from Cloud Logging.
+9. **Give both platforms a 4xx-aware health gate, and a front-end error budget. Weeks of work.** Today both define health as the absence of the one failure mode they do not have.
+10. **Build LORA's schema-first scaffolding generator. Weeks of work.** It turns `BL-9528` through `BL-9532` — five repositories and six tickets — into one ticket and a generated set of pull requests. It removes the strongest argument for Bravo, on the merits.
+11. **Write LORA's retry policy and dead-letter path. Weeks of work.** Port the four items in §5 — the design, not the assurance. That means writing the negative tests Bravo never had. This is the largest single reliability item on LORA's list, and Bravo already shows what the answer looks like.
+12. **Set each platform's standing allocation, and name the bus factor. This is a meeting.** The allocation is an input that the other four documents' plans are sized against.
+
+    The bus factor is the Story layer running through one account. It is a live operational risk, and it is **specific to Bravo**. LORA runs three sub-teams with end-to-end task execution, which is a structural answer to the same risk (bravo-people.md §5, updated 2026-09-11).
+
+    **The allocation is not evidence about where new products should go. The concentration risk now mildly favours LORA.**
+13. **Instrument Bravo's job executor, and add two end-to-end process tests. Weeks of work.** Bravo runs 118,253 applications a month, and the majority of BFI's business value, for years to come. It should be observable and testable while it does.
 
 ---
 
@@ -300,6 +375,6 @@ The three gating measurements are in [§5](#5-strategic-recommendation). This ta
 - [bravo-people.md](bravo-people.md) · [bravo-testing.md](bravo-testing.md) · [bravo-observability.md](bravo-observability.md) · [bravo-cost.md](bravo-cost.md) · [bravo-delivery.md](bravo-delivery.md) — the five findings this synthesises
 - [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md) — the symmetric reliability measurement
 - [workflow-gap.md](workflow-gap.md) — the production volume split between Bravo's two generations
-- **[option-summary.md](option-summary.md)** — **read this alongside §0.** Bravo's end-of-support position and the three responses to it, with the Decision A / Decision B split this document now adopts · [option-1.md](option-1.md) the fork comparison · [option-2.md](option-2.md) Temporal · [option-3.md](option-3.md) LORA migration
+- **[option-summary.md](option-summary.md)** — **read this alongside §0.** It covers Bravo's end-of-support position, the three responses to it, and the Decision A / Decision B split this document now adopts. Then: [option-1.md](option-1.md) for the fork comparison, [option-2.md](option-2.md) for Temporal, and [option-3.md](option-3.md) for the LORA migration
 - [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) — an unrelated critical finding that is independent of this decision and should not wait for it
 - LORA production findings: [people](../../lora-workspace/docs/production-findings/people.md) · [testing](../../lora-workspace/docs/production-findings/testing.md) · [observability](../../lora-workspace/docs/production-findings/observability.md) · [cost](../../lora-workspace/docs/production-findings/cost.md) · [delivery](../../lora-workspace/docs/production-findings/delivery.md) · [reliability](../../lora-workspace/docs/production-findings/reliability.md)

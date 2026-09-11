@@ -3,7 +3,7 @@
 
 > **Corrected 2026-09-11, from the team.** Three changes, and the first moves every per-application figure below.
 >
-> 1. **Bravo's August application count is 118,253, not 76,446** — the old number was a partial-month extract (76,446/118,253 = 0.646, against a 0.601 cost-completeness factor on the same row). August volume was therefore **flat**, not −35%. All derived rates here have been recomputed. The corrected count now agrees with Bravo's engine meter (≈113k) to within 5%, where the two previously differed by 48%.
+> 1. **Bravo's August application count is 118,253, not 76,446.** The old number came from a partial-month extract. 76,446/118,253 = 0.646, against a 0.601 cost-completeness factor on the same row. So August volume was **flat**, not −35%. Every rate derived from it has been recomputed here. The corrected count now agrees with Bravo's engine meter (≈113k) to within 5%. The two used to differ by 48%.
 > 2. **`Surveyor Platform - Release reject` was fixed and deployed 2026-09-10.** Everything measured here predates the fix.
 > 3. **LORA runs as three sub-teams (LORA 1, 2, 3)** with end-to-end task execution, per the VMP LORA plan — so the bus-factor risk is Bravo-specific.
 >
@@ -14,23 +14,33 @@
 > [bravo-people.md](bravo-people.md), [bravo-testing.md](bravo-testing.md), [bravo-observability.md](bravo-observability.md),
 > [bravo-cost.md](bravo-cost.md) and [bravo-delivery.md](bravo-delivery.md).
 
-**Question answered:** the LORA design rationale ([gsm-vs-workflow-approach.md](../../lora-workspace/docs/design-rationale/gsm-vs-workflow-approach.md), [hybrid-approach-gsm-workflow.md](../../lora-workspace/docs/design-rationale/hybrid-approach-gsm-workflow.md)) argued that a data-centric Guard-Stage-Milestone brain on a Temporal execution layer would beat "drawing branching flowchart arrows for every edge case". BFI already runs the same Loan Origination System the other way: `bravo-bpm-service` is a pure workflow-engine implementation on Camunda 7 BPMN. This document reads both codebases and compares what each approach actually produced.
+**Question answered.** The LORA design rationale argued for a data-centric Guard-Stage-Milestone brain on a Temporal execution layer. It said that would beat "drawing branching flowchart arrows for every edge case". See [gsm-vs-workflow-approach.md](../../lora-workspace/docs/design-rationale/gsm-vs-workflow-approach.md) and [hybrid-approach-gsm-workflow.md](../../lora-workspace/docs/design-rationale/hybrid-approach-gsm-workflow.md).
 
-**Method.** Code and configuration verification of `squads/Scoring and Underwriting/bravo-bpm-service` (checkout at `v2.93.43`, last commit 2026-09-07) against the LORA documentation set (`lora-workspace/docs`: design-rationale, assessment, architecture, production-findings, August to September 2026). Every Bravo claim below cites a file. LORA claims cite the LORA docs, which in turn cite LORA code and production data. Counts are `grep`/`find` over the checkout.
+But BFI already runs the same Loan Origination System the other way. `bravo-bpm-service` is a pure workflow-engine implementation on Camunda 7 BPMN. So this document reads both codebases and compares what each approach actually produced.
 
-**Revision 2026-09-10.** The OTRS ticket export closed the pack's largest measurement gap; §3.14 is new and §3.6, §3.7, §4, §5 and §6 are amended where they said "not measured".
+**Method.** We verified code and configuration in `squads/Scoring and Underwriting/bravo-bpm-service`, at checkout `v2.93.43`, last commit 2026-09-07. We compared it against the LORA documentation set in `lora-workspace/docs`: design-rationale, assessment, architecture and production-findings, covering August to September 2026.
 
-> **Scope correction, 2026-09-10.** This document's method reads **one** Bravo repository, `bravo-bpm-service`. Team Bravo pointed out that the Bravo LOS estate also includes **`bravo-operation-console`, `bravo-surveyor-console` and `bravo-underwriting-console`** — 763,861 lines of React/TypeScript, 829 test files, delivered from the **`LN`** Jira project — and that the pack had counted none of it. Verified and correct.
+Every Bravo claim below cites a file. LORA claims cite the LORA docs, which in turn cite LORA code and production data. Counts come from `grep` and `find` over the checkout.
+
+**Revision 2026-09-10.** The OTRS ticket export closed the pack's largest measurement gap. §3.14 is new. §3.6, §3.7, §4, §5 and §6 are amended wherever they said "not measured".
+
+> **Scope correction, 2026-09-10.** This document's method reads **one** Bravo repository: `bravo-bpm-service`. Team Bravo pointed out that the Bravo LOS estate also includes **`bravo-operation-console`, `bravo-surveyor-console` and `bravo-underwriting-console`**. Those are 763,861 lines of React and TypeScript with 829 test files, delivered from the **`LN`** Jira project. The pack had counted none of it. We verified the objection, and it is correct.
 >
-> **The paradigm comparison itself is unaffected**, because it is about how orchestration is expressed: BPMN diagrams and delegates against a GSM planner and Temporal workers. The consoles are clients of that orchestration and contain none of it. What *was* affected is every place this document characterised Bravo's estate by its single repository — the runtime, age-and-churn, UI-contract and team-shape rows above, now corrected — and the claim in [bravo-testing.md](bravo-testing.md) that Bravo "has one repository, one build", which was false. **§5's structural point survives and is worth restating precisely:** LORA needs five repositories in a mandated order for one integration change; Bravo needs one, or two when a console is involved. Two is still not five.
+> **The paradigm comparison itself is unaffected.** It is about how orchestration is expressed: BPMN diagrams and delegates, against a GSM planner and Temporal workers. The consoles are clients of that orchestration, and contain none of it.
+>
+> What *was* affected is every place this document described Bravo's estate by its single repository. That is the runtime, age-and-churn, UI-contract and team-shape rows above, all now corrected. It also affected the claim in [bravo-testing.md](bravo-testing.md) that Bravo "has one repository, one build", which was false.
+>
+> **§5's structural point survives, and it is worth restating precisely.** LORA needs five repositories in a mandated order for one integration change. Bravo needs one, or two when a console is involved. Two is still not five.
 
-**Revision 2026-09-09.** The Bravo team responded to rows 1–3 of §2. Each response was checked against the code; the rows were revised and §8 records the arguments, the evidence and what changed. Production-share figures come from the 90-day PostgreSQL and Datadog measurements in [workflow-gap.md §8](workflow-gap.md).
+**Revision 2026-09-09.** The Bravo team responded to rows 1 to 3 of §2. We checked each response against the code and revised the rows. §8 records the arguments, the evidence and what changed. Production-share figures come from the 90-day PostgreSQL and Datadog measurements in [workflow-gap.md §8](workflow-gap.md).
 
 **Scope caveats, read first.**
 
-- LORA's production-findings pack measured LORA in production (Temporal Cloud billing, Datadog). For Bravo we have code, git history and the GCP bill as recorded by the LORA cost document. **Superseded in part on 2026-09-10:** the OTRS support-ticket export ([production-findings/ticket-analysis.md](production-findings/ticket-analysis.md)) now gives Bravo's manual-intervention rate, incident counts and per-activity failure data on the same basis as LORA's — the first symmetric reliability measurement in the pack. Its rates rest on the billing sheet's disputed application counts, so they are provisional; its counts and trends are not. Where LORA still has a measured number and Bravo has only a code-level mechanism, the table says so.
-- "Bravo" in the LORA cost figures means the whole Bravo estate (Cloud SQL, ~50 upstream services, non-prod projects), not `bravo-bpm-service` alone. On 2026-09-09 the Bravo team objected that this makes the cost comparison unfair because LORA itself calls most of that estate; the objection was checked and upheld, and §3.12 and §8.5 now carry a like-for-like orchestration-tier comparison in which Bravo's tier is the cheaper one.
-- Bravo is being drained into LORA (applications fell from ~118k to ~76k per month between July and August 2026), so its unit economics are inflating for reasons unrelated to architecture.
+- LORA's production-findings pack measured LORA in production, through Temporal Cloud billing and Datadog. For Bravo we have code, git history and the GCP bill as recorded by the LORA cost document.
+
+  **Superseded in part on 2026-09-10.** The OTRS support-ticket export ([production-findings/ticket-analysis.md](production-findings/ticket-analysis.md)) now gives Bravo's manual-intervention rate, incident counts and per-activity failure data on the same basis as LORA's. That is the first symmetric reliability measurement in the pack. Its rates rest on the billing sheet's disputed application counts, so they are provisional. Its counts and trends are not. Where LORA still has a measured number and Bravo has only a code-level mechanism, the table says so.
+- "Bravo" in the LORA cost figures means the whole Bravo estate — Cloud SQL, about 50 upstream services, and non-prod projects. It does not mean `bravo-bpm-service` alone. On 2026-09-09 the Bravo team objected that this makes the cost comparison unfair, because LORA itself calls most of that estate. We checked the objection and upheld it. §3.12 and §8.5 now carry a like-for-like orchestration-tier comparison, and on that basis Bravo's tier is the cheaper one.
+- Bravo is being drained into LORA. Applications fell from about 118,000 to about 76,000 a month between July and August 2026. So its unit economics are inflating for reasons that have nothing to do with architecture.
 
 ---
 
@@ -64,7 +74,7 @@ The LORA rationale made five arguments against the workflow approach. Bravo is t
 | 4 | Temporal gives retries, durable waits and event loops "natively"; workflow engines need plumbing | Bravo built a lot of plumbing: 186 `failedJobRetryTimeCycle` declarations with 30 distinct values, a custom last-attempt degrade framework (`OutboundAutoErrorHandlerEngineServiceImpl`, 62 call sites, 50 `customErrorHandle` implementations), a DB-backed retry counter (`RetryLog`), a transactional outbox (`event_store`), an inbox for out-of-order messages (`event_retry`), a work/wait/dead queue triple per binding, 15 ShedLock schedulers, and ~25 manual retry/reprocess/revive/cancel endpoints. | **Confirmed on plumbing volume.** But see §3.6: Bravo's retries are *bounded* and degrade gracefully, which is precisely the retry *policy* LORA never wrote |
 | 5 | Saga compensation for failed disbursement is the execution layer's job | Bravo has 0 `compensateEventDefinition`, 0 `bpmn:transaction`, 0 terminate events. Failed go-live is handled by a 5-minute sweeper (`OperationAssignmentScheduler.checkFailedGoLiveDigiSign`) that re-requests and asks CONFINS to republish. LORA has document-field rollback only | **Neither system built it.** The rationale was right that it is needed and wrong that either execution layer would supply it for free |
 
-The one claim the rationale did not make, and should have: **human tasks re-create flowchart complexity regardless of paradigm.** Bravo spends 44% of its code on human work; LORA's assessment found ~12k lines of hand-written FSMs "inside the declarative outer shell". Both are the same phenomenon. See §4.
+There is one claim the rationale did not make, and should have. **Human tasks re-create flowchart complexity whatever the paradigm.** Bravo spends 44% of its code on human work. LORA's assessment found about 12,000 lines of hand-written state machines "inside the declarative outer shell". Both are the same phenomenon. See §4.
 
 ---
 
@@ -72,7 +82,7 @@ The one claim the rationale did not make, and should have: **human tasks re-crea
 
 ### 3.1 Process model and orchestration
 
-**Bravo.** There is no single process; there are three generations of top-level processes deployed side by side.
+**Bravo.** There is no single process. There are three generations of top-level processes, deployed side by side.
 
 | Generation | Root process key(s) | Started from |
 |---|---|---|
@@ -98,15 +108,27 @@ Unified_Process_Main_Workflow
       → Branch Data Enrichment, HO Data Enrichment, HO Request Go Live, Go Live, Pending Take Over
 ```
 
-Chaining is `callActivity` (56) plus BPMN **escalation** as the child-to-parent return channel (190 escalation event definitions) plus BPMN **link** events as intra-process "goto" to shared terminal handlers (194). Every `callActivity` passes `<camunda:in variables="all"/>`; 49 of 56 also declare `<camunda:out variables="all"/>`, and the seven that do not include all five call activities in `unified-workflow-survey.bpmn` plus Create CIF and Document Submission in the main workflow, so child results such as `surveyResult` and `negotiationStatus` never propagate upward through the mapping. None of the 56 sets `camunda:calledElementBinding`, so each child resolves to the **latest deployed version** at call time (see §3.11). The legacy files (`ndf4w.bpmn`, `ndf2w.bpmn`, `unsecured.bpmn`) use BPMN **errors** instead of escalations (210 error definitions, e.g. `Customer Profile - HighRisk` ×15, `Customer Profile - Rejected` ×12), and `ndf2w.bpmn` bridges into the unified underwriting sub-process, so a legacy instance can end up running unified code.
+Chaining uses three mechanisms. There are 56 `callActivity` elements. There are 190 BPMN **escalation** event definitions, which act as the child-to-parent return channel. And there are 194 BPMN **link** events, which act as an intra-process "goto" to shared terminal handlers.
 
-In production the two generations are not equals. Over the 90 days to 2026-09-09 the unified spine started 18,806 applications, all DF4W, against about 321,000 on the legacy monoliths (NDF2W 248,685, NDF4W and RO 71,995); the spine is 5.5% of volume, flat week over week, and DF2W is fully configured with zero applications ([workflow-gap.md §8](workflow-gap.md)). Every comparison of "Bravo's BPMN" with LORA in this document is therefore mostly a comparison with the monoliths, because that is what carries the book.
+Every `callActivity` passes `<camunda:in variables="all"/>`. 49 of the 56 also declare `<camunda:out variables="all"/>`. The seven that do not are all five call activities in `unified-workflow-survey.bpmn`, plus Create CIF and Document Submission in the main workflow. So child results such as `surveyResult` and `negotiationStatus` never propagate upward through the mapping.
 
-Service tasks bind to Spring beans exclusively via `camunda:delegateExpression` (483 bindings, 274 distinct bean names, 276 `JavaDelegate` classes all under `com.bfi.bravo.activity`); there are 0 `camunda:class`, 0 `camunda:expression`, 0 external-task workers, 0 execution or task listeners. All 483 service tasks execute inside the engine's job-executor threads, which are left at the Spring Boot starter defaults (core pool 3). The 3 DMN files are reachable only from the pre-MVP unsecured flow; one is referenced by nothing.
+None of the 56 sets `camunda:calledElementBinding`. So each child resolves to the **latest deployed version** at call time — see §3.11.
 
-**LORA.** No master process. `GSMBELExecutor.Workflow` runs a Temporal `Selector` loop; on every document change `Planner.Next()` recomputes which of the 172 ProcessSteps have their ReadSet available, WriteSet writable and precondition true, and schedules them as parallel Temporal activities. There are zero imperative `ExecuteActivity` chains and only 3 hard precursors. Order is emergent from data dependencies.
+The legacy files `ndf4w.bpmn`, `ndf2w.bpmn` and `unsecured.bpmn` use BPMN **errors** instead of escalations. There are 210 error definitions, for example `Customer Profile - HighRisk` 15 times and `Customer Profile - Rejected` 12 times. And `ndf2w.bpmn` bridges into the unified underwriting sub-process, so a legacy instance can end up running unified code.
 
-**Assessment.** Bravo's order is explicit and readable by a business analyst in Camunda Modeler; LORA's order is implicit and, per LORA's own production findings, "hard to map back" for people who think in workflow terms (a spreadsheet is being built to visualise the readiness matrix). Bravo pays for legibility with 53 files whose gateways encode product, feature-flag and risk-type branching as strings; LORA pays for decoupling with a readiness matrix that lives in 154 Go files.
+In production the two generations are not equals. Over the 90 days to 2026-09-09, the unified spine started 18,806 applications, all DF4W. The legacy monoliths started about 321,000 — NDF2W 248,685, plus NDF4W and RO at 71,995. So the spine is 5.5% of volume, and flat week over week. DF2W is fully configured with zero applications ([workflow-gap.md §8](workflow-gap.md)).
+
+So whenever this document compares "Bravo's BPMN" with LORA, it is mostly comparing the monoliths. That is what carries the book.
+
+Service tasks bind to Spring beans only through `camunda:delegateExpression`. There are 483 bindings over 274 distinct bean names, and 276 `JavaDelegate` classes, all under `com.bfi.bravo.activity`. There are no `camunda:class` bindings, no `camunda:expression` bindings, no external-task workers, and no execution or task listeners.
+
+All 483 service tasks run inside the engine's job-executor threads, which are left at the Spring Boot starter defaults — a core pool of 3. The 3 DMN files are reachable only from the pre-MVP unsecured flow, and one of them is referenced by nothing at all.
+
+**LORA.** There is no master process. `GSMBELExecutor.Workflow` runs a Temporal `Selector` loop. On every document change, `Planner.Next()` recomputes which of the 172 ProcessSteps have their ReadSet available, their WriteSet writable and their precondition true. It then schedules those as parallel Temporal activities. There are no imperative `ExecuteActivity` chains, and only 3 hard precursors. Order emerges from data dependencies.
+
+**Assessment.** Bravo's order is explicit, and a business analyst can read it in Camunda Modeler. LORA's order is implicit. LORA's own production findings call it "hard to map back" for people who think in workflow terms, and a spreadsheet is being built to visualise the readiness matrix.
+
+Both pay for what they get. Bravo pays for legibility with 53 files whose gateways encode product, feature-flag and risk-type branching as strings. LORA pays for decoupling with a readiness matrix spread across 154 Go files.
 
 ### 3.2 Where the loan lives (the "artefact")
 
@@ -118,7 +140,7 @@ Service tasks bind to Spring beans exclusively via `camunda:delegateExpression` 
 | Audit trail | 31 history/audit tables; `application_status_log` written by a PostgreSQL trigger (`log_status`), generic jsonb-diff shadow tables via `history_update()` trigger; Camunda history purged after 90 days | Append-only field version chain in the document; Temporal history; NATS event stream |
 | Idempotency | `@Version` optimistic locking on every `BaseEntity`; read-then-check duplicate guards with **no unique index on `application(lead_id)`**; `businessKey` not used on the main process | NATS KV idempotency for proxy calls; `mutable: false` write-once fields; `StoreInitialDocRevision` PK conflict is one of the wedge causes |
 
-**Assessment.** LORA realised the GSM "one artefact" idea fully and it is the part of the design the assessment rated highest. Bravo has an aggregate root but the lifecycle is smeared across the entity, several assignment tables and the engine's runtime tables; after 90 days only the trigger-written status log can tell you what happened.
+**Assessment.** LORA realised the GSM "one artefact" idea fully, and the assessment rated it the strongest part of the design. Bravo has an aggregate root, but the lifecycle is spread across the entity, several assignment tables and the engine's runtime tables. After 90 days, only the trigger-written status log can tell you what happened.
 
 ### 3.3 Milestones and status enforcement
 
@@ -129,17 +151,33 @@ Service tasks bind to Spring beans exclusively via `camunda:delegateExpression` 
 | Central transition validator | A working graph state machine exists (`service/statemachine/AbstractSM.java`, Guava `ImmutableGraph`) but has **one** subclass, for `UnsecuredBooking`; and its `updateStateIgnoreException` swallows the violation | `AsStateValidator()` rejects unknown enum values only; the declared FSM table is not checked on write |
 | Observed illegal transitions | Not measured | None observed in production |
 
-**Assessment.** Both systems declare a lifecycle and neither enforces it at write time. LORA's is smaller (9 states) and lives on one field; Bravo's is larger and lives on at least four entities at once. This is the GSM leg the LORA assessment called "weakest", and Bravo shows the pure-workflow approach does not fix it either: the BPMN diagram *looks* like the transition graph, but 53 of the write sites bypass it.
+**Assessment.** Both systems declare a lifecycle, and neither enforces it at write time. LORA's is smaller — 9 states on one field. Bravo's is larger, and lives on at least four entities at once.
+
+The LORA assessment called this the "weakest" GSM leg. Bravo shows the pure-workflow approach does not fix it either. The BPMN diagram *looks* like the transition graph, but 53 of the write sites bypass it.
 
 ### 3.4 Guards and the cost of adding a step
 
-**Bravo.** Adding an automated check means: a new `JavaDelegate` in `activity/`, a new `serviceTask` plus a "Checkpoint" gateway in the right BPMN file, a `failedJobRetryTimeCycle` choice, usually a new `WorkflowConstants` key and a gateway condition, and, for the unified flow, a row in the `WorkflowSelectorActivity` configuration tables so the per-application on/off map (`ApplicationWorkflowConfig.workflowConfig` jsonb, `{"CI": {"PilotBranchCheckActivity": [true,false]}}`) knows about it. In-flight instances keep the old parent definition but pick up the latest child (§3.11).
+**Bravo.** Adding an automated check means all of this:
 
-The unified rewrite did add one genuinely data-driven element. `BaseActivity.execute()` (`activity/BaseActivity.java:79-129`) is a **skip gate**: before running, every unified activity looks up the per-application jsonb matrix in `ApplicationWorkflowConfig` (`{"CI": {"PilotBranchCheckActivity": [true,false]}, "SUO": {"SurveyActivity": [true,false]}}`) and runs only if its own flag is true for the current repetition index; the matrix is resolved from the six-column selector tables at start and re-resolved mid-flight for the "SUO" phase. So Bravo already has a boolean-per-activity guard layer sitting on top of the flowchart. It differs from LORA's guards in two ways: it can only *skip* a step the diagram already contains, never introduce or reorder one, and the flags are static per application rather than computed from data readiness. Versions of this matrix are shipped as SQL data migrations (`V2_0_2024040*__insert-*-workflow-config.sql`, `V2_0_202409101208__update-is-active-workflow-master-config.sql`, …).
+- a new `JavaDelegate` in `activity/`
+- a new `serviceTask`, plus a "Checkpoint" gateway, in the right BPMN file
+- a `failedJobRetryTimeCycle` choice
+- usually a new `WorkflowConstants` key and a gateway condition
+- for the unified flow, a row in the `WorkflowSelectorActivity` configuration tables, so the per-application on/off map knows about it. That map is the `ApplicationWorkflowConfig.workflowConfig` jsonb, shaped like `{"CI": {"PilotBranchCheckActivity": [true,false]}}`.
 
-**LORA.** A new Constructor with ReadSet/WriteSet and optional `SetPrecondition`; register it; the planner slots it in. No orchestration edit. The assessment verified this with 172 activities and 3 precursors. The production cost is the flip side: a new shared-planner activity hits every matching in-flight loan unless gated by `$.experiments.*`.
+In-flight instances keep the old parent definition, but pick up the latest child (§3.11).
 
-**Assessment.** This is the clearest LORA win and the reason the assessment says "do not revert to BPMN for scoring/checks". Bravo's `activity/` package being only 6.4% of the codebase suggests the automated pipeline was never the expensive part in either system.
+The unified rewrite did add one genuinely data-driven element. `BaseActivity.execute()`, at `activity/BaseActivity.java:79-129`, is a **skip gate**. Before running, every unified activity looks up the per-application jsonb matrix in `ApplicationWorkflowConfig` — shaped like `{"CI": {"PilotBranchCheckActivity": [true,false]}, "SUO": {"SurveyActivity": [true,false]}}`. The activity runs only if its own flag is true for the current repetition index. The matrix is resolved from the six-column selector tables at start, and re-resolved mid-flight for the "SUO" phase.
+
+So Bravo already has a boolean-per-activity guard layer sitting on top of the flowchart. It differs from LORA's guards in two ways. It can only *skip* a step the diagram already contains — it can never introduce or reorder one. And the flags are static per application, rather than computed from data readiness.
+
+Versions of this matrix ship as SQL data migrations: `V2_0_2024040*__insert-*-workflow-config.sql`, `V2_0_202409101208__update-is-active-workflow-master-config.sql`, and so on.
+
+**LORA.** Write a new Constructor with a ReadSet, a WriteSet and an optional `SetPrecondition`. Register it. The planner slots it in. There is no orchestration edit. The assessment verified this across 172 activities and 3 precursors.
+
+The production cost is the flip side. A new shared-planner activity hits every matching in-flight loan, unless `$.experiments.*` gates it.
+
+**Assessment.** This is the clearest LORA win. It is why the assessment says "do not revert to BPMN for scoring/checks". And Bravo's `activity/` package is only 6.4% of the codebase, which suggests the automated pipeline was never the expensive part in either system.
 
 ### 3.5 Human tasks
 
@@ -155,9 +193,11 @@ This is where the two systems look most alike underneath.
 | Code footprint | ~217k LOC, 44% of the service | ~12k LOC FSMs + 77 form builders + task-service |
 | UI contract | Three React consoles — **`bravo-surveyor-console`, `bravo-operation-console`, `bravo-underwriting-console`** — call domain verbs (`PATCH /v1/underwritings/{id}/approval/bm-decision`, `PUT …/approver-decision`); the UI never sees a Camunda task id. Delivered from the **`LN`** Jira project, ~6,600 keys since Sep 2024; 829 Vitest files gate their PRs | Backoffice renders `FormDefinition` via templ; task inbox with `limit`; 416k RUM errors/week measured |
 
-**Assessment.** Bravo did not use Camunda's task list, identity or timer features for human work; it built a CRUD application beside the engine and used user tasks as gates. LORA did not use `Workflow.await`; it built a second workflow and hand-written FSMs. In both, the orchestration paradigm turned out to be nearly irrelevant to the human-task layer, and that layer is the dominant maintenance cost. The LORA assessment's recommendation ("extract form routing into declarative config") applies to Bravo's 10k-line service classes just as well.
+**Assessment.** Bravo did not use Camunda's task list, identity or timer features for human work. It built a CRUD application beside the engine, and used user tasks as gates. LORA did not use `Workflow.await`. It built a second workflow and hand-written state machines.
 
-One Bravo-specific hazard: `SurveyorAssignmentServiceImpl.java:2547` completes a task by comparing against the modeller-generated literal `"Activity_0hqjmnn"`; renaming the element in the diagram silently breaks physical-document submission.
+In both systems, the orchestration paradigm turned out to be nearly irrelevant to the human-task layer. And that layer is the dominant maintenance cost. The LORA assessment's recommendation — "extract form routing into declarative config" — applies just as well to Bravo's 10,000-line service classes.
+
+One hazard is specific to Bravo. `SurveyorAssignmentServiceImpl.java:2547` completes a task by comparing against the modeller-generated literal `"Activity_0hqjmnn"`. So renaming that element in the diagram silently breaks physical-document submission.
 
 ### 3.6 Failure handling, retry and compensation
 
@@ -174,7 +214,13 @@ This is where the comparison inverts the rationale's expectation.
 | Compensation for external side effects | None. Create CIF has no pre-check for an existing `cifId` inside the activity, so a timeout-but-succeeded CONFINS call can create a second CIF; go-live failure is re-synced by a 5-minute sweeper | None. `golive_update_agreement` and `ro_update_cif` are among the wedged activities: external operations that could neither complete nor be reversed |
 | Messaging reliability | `event_store` outbox (swept every minute, but only 2 of 7 publishers), `event_retry` inbox for messages that arrive before the application reaches the matching state, retry with `x-retries-count ≤ 5` held in an in-JVM scheduler (lost on pod restart); several listeners swallow exceptions with `log.error` only | 25 RMQ subscribers completing activities or pushing updates |
 
-**Assessment.** The rationale said Temporal "handles backoff retries" and treated that as closing the topic. Bravo shows what a retry *policy* looks like when the engine forces you to write one: bounded attempts, fail-fast checkpoints, business-vs-transient error separation, graceful degrade, an operator queue. It is inconsistent (30 retry vocabularies, `PT4M` with no repeat count in 5 places, `retryFailedJob` uses `singleResult()` and grants one retry) and it is plumbing the rationale wanted to avoid, but it does not produce zombie loans. LORA's uncapped default is simpler and is the single largest source of its ops load. The LORA pack's own conclusion, "Temporal removes retry plumbing; it does not remove the need for a retry policy", is exactly the Bravo lesson.
+**Assessment.** The rationale said Temporal "handles backoff retries", and treated that as closing the topic.
+
+Bravo shows what a retry *policy* looks like when the engine forces you to write one: bounded attempts, fail-fast checkpoints, business errors separated from transient ones, graceful degrade, and an operator queue.
+
+It is inconsistent. There are 30 retry vocabularies. `PT4M` appears with no repeat count in 5 places. And `retryFailedJob` uses `singleResult()` and grants one retry. It is also exactly the plumbing the rationale wanted to avoid. But it does not produce zombie loans.
+
+LORA's uncapped default is simpler, and it is the single largest source of its operations load. The LORA pack's own conclusion says it best: "Temporal removes retry plumbing; it does not remove the need for a retry policy". That is the Bravo lesson.
 
 The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after three failures keeps the pipeline moving but is a credit-policy decision made by an exception handler.
 
@@ -186,7 +232,7 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 | Engine involvement | `ProcessInstanceModification` used live in one place, and only to force-terminate to hardcoded event ids (`"Event_1hx9v4v"`, `"Event_0z554j6"`, `"Event_0r02gct"`) inside a swallowing `catch`; 4 of 7 uses are commented out. Reprocess otherwise resets JPA fields and sets statuses backwards (`UnderwritingReprocessServiceImpl.java:42-88`) | Native to the planner |
 | Production cost | **413 `Rescoring / Reproses` tickets Jan–Aug 2026** (OTRS), peaking at 91 in March; a further 145 `Reassign Application` and 128 `Request Take Application` (§3.14) | 287 rewind incidents at the survey/task-master seam ("event 15"); rewind and force-cancel tickets ≈705 rows |
 
-**Assessment.** LORA's rollback is more principled for computed fields (the assessment's "milestone invalidation" praise stands). Bravo's "new row per generation" is crude but has a virtue LORA lacks: every generation is a durable, queryable record, and nothing has to replay Temporal history to reconstruct it.
+**Assessment.** LORA's rollback is more principled for computed fields, and the assessment's praise for "milestone invalidation" stands. Bravo's "new row per generation" is crude. But it has a virtue LORA lacks: every generation is a durable, queryable record, and nothing has to replay Temporal history to reconstruct it.
 
 ### 3.8 Multi-product handling
 
@@ -196,7 +242,9 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 | Discrimination mechanism | Five at once: numeric literals in `Application` (`isNDF4W() { return productId == 1L; }`, 18 predicates), YAML `productId → BPMN key` map, a 6-column DB selector (`WorkflowProductConfig(productId, type, customerType, userType, businessType, riskType)` → `WorkflowMasterConfig` → per-application jsonb on/off map), 31 Java factories, and string-typed gateway expressions in BPMN. Adding DF2W Sharia (product 15) touched all five behind per-product feature flags | Queue and workflow type derived from schema name; SKU logic in `…/ndf4w` / `…/ndf2w` packages; `$.experiments.*` for flags |
 | Isolation cost | One service, one deployment, one job executor for every product; a BPMN change ships for all | 56 duplicated activity packages, 3 SDK versions, 4 zero-test repos; 6 of 7 families have no production APM presence |
 
-**Assessment.** Bravo's per-product legacy BPMNs (`ndf4w.bpmn`, `ndf2w.bpmn`, `ndf4w-sharia.bpmn`, `ndf4w-ro.bpmn`) are the "flowchart explosion" the rationale predicted, and the unified rewrite replaced it with configuration tables plus gateway string-matching. LORA isolated products at the data layer at the price of fleet divergence. Neither is clean; LORA's problem is engineering consistency, Bravo's is that product identity is a magic number in five places.
+**Assessment.** Bravo's per-product legacy BPMNs — `ndf4w.bpmn`, `ndf2w.bpmn`, `ndf4w-sharia.bpmn`, `ndf4w-ro.bpmn` — are the "flowchart explosion" the rationale predicted. The unified rewrite replaced that with configuration tables plus gateway string-matching. LORA isolated products at the data layer, and paid for it in fleet divergence.
+
+Neither is clean. LORA's problem is engineering consistency. Bravo's is that product identity is a magic number in five places.
 
 ### 3.9 Observability and operability
 
@@ -209,7 +257,7 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 | Upstream attribution | Per Feign client, so attributable | ~300 proxies behind one gateway route; 21k 500s/week unattributable |
 | Logs cost | Cloud Logging for the Bravo estate ≈Rp201M/month (more than LORA's whole GKE line) | Datadog |
 
-**Assessment.** Bravo can answer fleet questions with SQL because state is relational; LORA needs APM. Bravo has essentially no process-level metrics and logs full request bodies; LORA has metrics but narrates its own bookkeeping. Both leak PII into telemetry in different ways.
+**Assessment.** Bravo can answer fleet questions with SQL, because its state is relational. LORA needs APM for the same questions. Bravo has essentially no process-level metrics, and it logs full request bodies. LORA has metrics, but narrates its own bookkeeping. Both leak personal data into telemetry, in different ways.
 
 ### 3.10 Testing
 
@@ -223,11 +271,25 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 | What is untested | No end-to-end walk from start to go-live; no test of retry exhaustion, incident creation, escalation across `callActivity`, or the expiry modification path | Product policy is not a merge gate; error-classification and unbounded-retry gates proposed |
 | Coverage gate | None in `pom.xml` (JaCoCo `report` only, no `check`); Sonar server config only; `makefile` passes `-Dspring-boot.run.profiles` which surefire ignores | Test floor per repo proposed; 4 repos at zero |
 
-**Assessment.** Both suites are large and both leave the orchestration layer itself untested. Bravo's Camunda test tooling (`camunda-bpm-assert`, process-test-coverage, `camunda-bpm-mockito`) is all in the pom and almost unused. The LORA testing complaint ("business logic cannot be tested, only schema at runtime") was assessed as overstated; the Bravo equivalent would be "the BPMN is the logic and nobody tests the BPMN".
+**Assessment.** Both suites are large, and both leave the orchestration layer itself untested. Bravo's Camunda test tooling — `camunda-bpm-assert`, process-test-coverage and `camunda-bpm-mockito` — is all in the pom and almost unused.
 
-**Amended 2026-09-11 — the closest structural parallel in this document.** Both organisations made a large, deliberate investment in journey testing and both ended with an artefact that gates nothing. Bravo wrote **595 Gherkin features across 46 authors** and stopped in November 2023, leaving its one scheduled workflow written so it could not report a failure. LORA wrote `lora-super-test` — a better-engineered harness, with a mock interceptor, derived expectations and a stub-drift check — and has **a CI workflow file with no runner to execute it**. The paradigms differ; this outcome does not, and neither team knew the other had reached it. Both corpora are recoverable assets rather than sunk costs: Bravo's 349 surveyor features describe the journeys behind 28.4% of its ticket load, and LORA's harness needs a machine, not a rewrite. **One amendment, 2026-09-10:** Bravo's corpus needs a style gate in front of the recovery, not just a runner — its UI features name buttons, hard-code waits and use `Then` as a sequencing word, so re-pointing them unchanged reproduces the defect ([bravo-testing §6.1](bravo-testing.md#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first)).
+We assessed the LORA testing complaint, "business logic cannot be tested, only schema at runtime", as overstated. The Bravo equivalent would be: the BPMN is the logic, and nobody tests the BPMN.
 
-**One asymmetry that does follow from the architecture.** Bravo's boundary is 113 typed `@FeignClient` interfaces; LORA's is one gateway envelope naming a JSON schema. So Bravo gets stub-drift detection from `javac` where LORA needs a bespoke `check:stubs` script against a live registry — cheaper for Bravo. But LORA can make any upstream fail per test run and **Bravo cannot make one fail at all**, which is why Bravo's degrade paths, including the anti-fraud `BYPASS` credit decision, have never been executed by a test. A nine-layer remediation ladder for Bravo is worked out in [bravo-testing.md §7](bravo-testing.md).
+**Amended 2026-09-11. This is the closest structural parallel in this document.**
+
+Both organisations made a large, deliberate investment in journey testing. Both ended up with an artefact that gates nothing.
+
+Bravo wrote **595 Gherkin features across 46 authors**, then stopped in November 2023. Its one scheduled workflow is written so it cannot report a failure. LORA wrote `lora-super-test`, which is a better-engineered harness — it has a mock interceptor, derived expectations and a stub-drift check. It also has **a CI workflow file with no runner to execute it**.
+
+The paradigms differ. This outcome does not. And neither team knew the other had reached it.
+
+Both corpora are recoverable assets, not sunk costs. Bravo's 349 surveyor features describe the journeys behind 28.4% of its ticket load. LORA's harness needs a machine, not a rewrite.
+
+**One amendment, 2026-09-10.** Bravo's corpus needs a style gate in front of the recovery, not just a runner. Its UI features name buttons, hard-code waits, and use `Then` as a sequencing word. Re-pointing them unchanged just reproduces the defect ([bravo-testing §6.1](bravo-testing.md#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first)).
+
+**One asymmetry does follow from the architecture.** Bravo's boundary is 113 typed `@FeignClient` interfaces. LORA's is one gateway envelope naming a JSON schema. So Bravo gets stub-drift detection from `javac`, where LORA needs a bespoke `check:stubs` script against a live registry. That is cheaper for Bravo.
+
+But LORA can make any upstream fail, per test run. **Bravo cannot make one fail at all.** That is why Bravo's degrade paths — including the anti-fraud `BYPASS` credit decision — have never been executed by a test. [bravo-testing.md §7](bravo-testing.md) works out a nine-layer remediation ladder for Bravo.
 
 ### 3.11 Versioning and deployment of in-flight instances
 
@@ -236,11 +298,11 @@ The degrade-on-last-attempt pattern is double-edged: bypassing anti-fraud after 
 | Mechanism | Spring Boot auto-deploys all 53 BPMN + 3 DMN at boot (no `deployment-resource-pattern`); Camunda versions each changed definition; an in-flight **parent** finishes on its old version, but because no `callActivity` sets `calledElementBinding`, every **child** it calls next resolves to the latest deployed version. That is the de-facto migration mechanism: redeploying a sub-process changes behaviour for running loans at their next call. 0 `ProcessInstanceMigration`. `camunda:versionTag` unmaintained (`0.0.1` ×23, absent ×26). Behavioural versioning lives in data instead: `WorkflowMasterConfig.workflowConfigVersion` + the per-application on/off matrix (§3.4), toggled by `featRefactorWorkflow` | Schema-versioned task queues (`dp-ndf-vX_Y_Z`); one worker deployment per schema version; 8 versions live at once (`v0-16` … `v0-22`), 5 of them idle but holding 82 cores / 154 GB |
 | Risk | Structural edits to a parent are only safe for new instances, while edits to a child hit in-flight loans immediately with no migration plan; hardcoded activity ids used for forced termination (`"Event_1hx9v4v"`, …) break for instances on versions that lack them, and the failure is swallowed | Deterministic-replay constraints; old versions cannot retire until abandoned loans terminate |
 
-**Assessment.** Both defer the hard problem. Bravo gets Camunda's built-in definition versioning free of infrastructure cost; LORA pays for version coexistence in pods.
+**Assessment.** Both defer the hard problem. Bravo gets Camunda's built-in definition versioning at no infrastructure cost. LORA pays for version coexistence in pods.
 
 ### 3.12 Cost and scale
 
-Numbers from the LORA cost document (GCP billing export + FinOps API, August 2026) and from a like-for-like pull of the Bravo orchestration tier made on 2026-09-09 after the Bravo team's objection (§8.5). All figures are GCP net cost in IDR for the complete month of August 2026.
+The numbers come from two places. The LORA cost document, which uses the GCP billing export and the FinOps API for August 2026. And a like-for-like pull of the Bravo orchestration tier, made on 2026-09-09 after the Bravo team's objection (§8.5). All figures are GCP net cost in IDR, for the complete month of August 2026.
 
 **Like-for-like: orchestration tier against orchestration tier.**
 
@@ -253,9 +315,27 @@ Numbers from the LORA cost document (GCP billing export + FinOps API, August 202
 | **Per application** | **≈Rp490–515** | **≈Rp2,500–3,200** |
 | Not attributable to either | Memorystore Redis (Rp51M), in-cluster RabbitMQ, Keycloak, Cloud Logging (Rp140.5M prod), console hosting, and the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances that **both** platforms call | same |
 
-**The estate view the LORA cost document started from**, kept for reference: the two Bravo GCP projects bill ≈Rp1.87B/month, of which LORA's labels are ≈Rp226M and the remainder ≈Rp1.65B; Cloud SQL is Rp584M, Cloud Logging Rp201M, `bravo-project-nonprod` Rp573M. That remainder is not "Bravo LOS"; it is the shared BFI data plane plus non-prod, and LORA's 300 gateway proxies depend on it (§8.5).
+**The estate view the LORA cost document started from**, kept here for reference. The two Bravo GCP projects bill about Rp1.87B a month. LORA's labels account for about Rp226M of that, leaving about Rp1.65B. Within it, Cloud SQL is Rp584M, Cloud Logging is Rp201M, and `bravo-project-nonprod` is Rp573M.
 
-**Assessment.** On the only fair basis, LORA's orchestration tier costs about 7× Bravo's in absolute terms and 5–6.5× per application. The reasons are not the paradigm: a fixed Temporal commitment, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five are idle. Three of those four are **time-locked rather than merely wasteful**, which bounds how fast the gap can close: about **31% of LORA's node cost sits on a `Commitment v1: N2 Cpu in Jakarta for 3 Year` SKU**, so right-sizing requests releases the on-demand slice immediately and the committed slice only when that commitment is re-planned; the Temporal commitment was bought through the GCP Marketplace in **March 2026**, so it is renegotiable at **~March 2027** and not before; and the five idle worker versions cannot be retired at all while **~half of all loans never reach a terminal state** (a licence-plate reservation renews itself, so the workflow never ends and keeps its version pinned). The idle fleet is therefore a reliability defect presenting as a cost line. Bravo's tier is one deployment and one database, and that database alone costs more than LORA's ArangoDB compute. The migration still pays, because LORA's marginal cost per application is near zero and the Bravo LOS tier (≈Rp58–100M/month plus a second platform to staff) goes away, but the earlier claim that retiring Bravo saves ≈Rp1.6B/month is withdrawn: the data plane stays because LORA needs it. Two Bravo-specific costs remain worth noting: Camunda `full` history and 90-day retention on Cloud SQL are part of that Rp52.7M, and `ms-bpm` logs full request bodies into a Cloud Logging line that is not attributable but is large.
+That remainder is not "Bravo LOS". It is the shared BFI data plane plus non-prod, and LORA's 300 gateway proxies depend on it (§8.5).
+
+**Assessment.** On the only fair basis, LORA's orchestration tier costs about 7× Bravo's in absolute terms, and 5–6.5× per application.
+
+The reasons have nothing to do with the paradigm. They are a fixed Temporal commitment, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five sit idle.
+
+Three of those four are **time-locked, not merely wasteful**, and that bounds how fast the gap can close:
+
+- About **31% of LORA's node cost sits on a `Commitment v1: N2 Cpu in Jakarta for 3 Year` SKU.** So right-sizing requests releases the on-demand slice immediately, and the committed slice only when that commitment is re-planned.
+- The Temporal commitment was bought through the GCP Marketplace in **March 2026**. So it can be renegotiated around **March 2027**, and not before.
+- The five idle worker versions cannot be retired at all while **about half of all loans never reach a terminal state**. A licence-plate reservation renews itself, so the workflow never ends and keeps its version pinned.
+
+So the idle fleet is a reliability defect presenting as a cost line.
+
+Bravo's tier is one deployment and one database. That database alone costs more than LORA's ArangoDB compute.
+
+The migration still pays. LORA's marginal cost per application is near zero, and the Bravo LOS tier goes away — that is about Rp58–100M a month, plus a second platform to staff. But the earlier claim that retiring Bravo saves about Rp1.6B a month is withdrawn. The data plane stays, because LORA needs it.
+
+Two Bravo-specific costs are still worth noting. Camunda `full` history with 90-day retention on Cloud SQL is part of that Rp52.7M. And `ms-bpm` logs full request bodies into a Cloud Logging line that is large and not attributable.
 
 ### 3.13 People and cognition
 
@@ -269,9 +349,15 @@ Numbers from the LORA cost document (GCP billing export + FinOps API, August 202
 
 ### 3.14 Production ticket load and manual-intervention rate
 
-*Added 2026-09-10 from the OTRS export `Compare_LOS_LORA.xlsx` (5,677 LOS + 4,184 LORA tickets, 2026-01-01 to 2026-09-09). Full derivation, category membership and caveats: [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md).*
+*Added 2026-09-10, from the OTRS export `Compare_LOS_LORA.xlsx`: 5,677 LOS tickets and 4,184 LORA tickets, 2026-01-01 to 2026-09-09. The full derivation, category membership and caveats are in [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md).*
 
-This is the first dataset in the pack that measures the same thing, in the same system, over the same window, for both platforms. Two warnings carry into every row below. **August was a re-categorisation month on both queues** — LORA lost four ticket streams worth 248/month, which is more than its entire July→August decline, so its August total is a floor rather than a measurement. And **the rates divide a verified numerator by the billing sheet's disputed application counts**; the counts and trends need no denominator and are the firmer half.
+This is the first dataset in the pack that measures the same thing, in the same system, over the same window, for both platforms.
+
+Two warnings carry into every row below.
+
+First, **August was a re-categorisation month on both queues.** LORA lost four ticket streams worth 248 a month, which is more than its entire July-to-August decline. So its August total is a floor, not a measurement.
+
+Second, **the rates divide a verified numerator by the billing sheet's disputed application counts.** The counts and trends need no denominator, and they are the firmer half.
 
 | | Bravo (LOS) | LORA |
 |---|---|---|
@@ -284,11 +370,17 @@ This is the first dataset in the pack that measures the same thing, in the same 
 | Load shape | Secular growth, no spikes | Single-month spikes that recover — a defect shipped and fixed |
 | Concentration | 60 categories, top 5 = 53.9% | 42 categories, top 5 = 55.2% |
 
-**Assessment.** Bravo's rate is about 3.1× LORA's, and the errors that are easiest to identify all push the same way: the billing sheet plausibly counts LORA-originated applications again in Bravo at go-live, which inflates Bravo's denominator; and Bravo's operator console lets staff unstick an application without ever raising a ticket, so its numerator is undercounted too. The one confound that flatters LORA is real — a platform being drained keeps the residual hard cases — and it is not controlled for.
+**Assessment.** Bravo's rate is about 3.1× LORA's. The errors that are easiest to identify all push the same way. The billing sheet plausibly counts LORA-originated applications again in Bravo at go-live, which inflates Bravo's denominator. And Bravo's operator console lets staff unstick an application without ever raising a ticket, so its numerator is undercounted too.
 
-**This does not overturn §3.6 or §5; it completes them.** Bravo has bounded, classified failure and no zombie-loan class, *and* it puts three and a half times as many applications in front of a human. Those are consistent: fail-fast checkpoints convert an invisible wedge into a visible ticket, which is a better operational posture and is exactly what a ticket queue counts. LORA's defect class is loans nobody sees; Bravo's is loans everybody sees, more often.
+The one confound that flatters LORA is real: a platform being drained keeps the hard cases. We have not controlled for it.
 
-**And it turns on one unexplained category.** `Release reject` is 1,542 of Bravo's 2,514 stuck-application tickets. Remove it and Bravo's rate falls to 0.134%, level with LORA's 0.126%. No code path of that name has been mapped to a BPMN element or endpoint — `bravo-analysis` holds documents, not source. **Whether Bravo's intervention rate is 3.1× LORA's or level with it turned on this single category — and the Bravo team reports it fixed and deployed on 2026-09-10.** The open question is no longer a code hunt; it is a September–October ticket re-export.
+**This does not overturn §3.6 or §5. It completes them.** Bravo has bounded, classified failure and no zombie-loan class. It *also* puts three and a half times as many applications in front of a human.
+
+Those two facts are consistent. Fail-fast checkpoints turn an invisible wedge into a visible ticket. That is a better operational posture, and it is exactly what a ticket queue counts. LORA's defect class is loans nobody sees. Bravo's is loans everybody sees, more often.
+
+**And it turns on one unexplained category.** `Release reject` accounts for 1,542 of Bravo's 2,514 stuck-application tickets. Remove it and Bravo's rate falls to 0.134%, level with LORA's 0.126%. Nobody has mapped a code path of that name to a BPMN element or endpoint, because `bravo-analysis` holds documents, not source.
+
+**So the whole question of whether Bravo's intervention rate is 3.1× LORA's or level with it turned on this single category. The Bravo team reports it fixed and deployed on 2026-09-10.** The open question is no longer a code hunt. It is a September–October ticket re-export.
 
 ---
 
@@ -296,13 +388,17 @@ This is the first dataset in the pack that measures the same thing, in the same 
 
 Read side by side, the paradigms differ less than the rationale expected. The same five problems appear in both, in different clothes.
 
-1. **Human-task complexity is paradigm-independent.** Bravo: 44% of code, three service classes over 4,600 lines each. LORA: ~12k lines of FSM inside the declarative shell. Neither engine's native task model was used.
-2. **The lifecycle FSM is declared but not enforced.** Bravo has a state-machine class used once; LORA has an FSM table validated for enum membership only.
+1. **Human-task complexity does not depend on the paradigm.** Bravo spends 44% of its code on it, including three service classes over 4,600 lines each. LORA has about 12,000 lines of state machine inside the declarative shell. Neither engine's built-in task model was used.
+2. **Both declare a lifecycle state machine, and neither enforces it.** Bravo has a state-machine class that is used once. LORA has a state-machine table that is only checked for enum membership.
 3. **No saga compensation.** Both rely on sweepers, re-sync and humans for failed external commits (CIF, agreement, go-live).
-4. **Operations absorb the design gaps as tickets.** Bravo: `ApplicationErrorTracking` console, ~25 retry/reprocess/revive endpoints, Cockpit, and **2,514 stuck-application tickets Jan–Aug 2026**. LORA: 1,269 force-cancels, 705 rewinds, **1,453 stuck-application tickets over the same window**. Bravo designed its queue; LORA's emerged; both are the same order of magnitude and both are growing out of the human-task layer, not the engine (§3.14).
-5. **The orchestration layer is untested in both — and both built a journey suite that no longer gates anything.** 4 of 1,457 Bravo tests run a process; LORA's nightly is red and its product-policy tests are not a gate. Beyond that, Bravo's 595-file Cypress corpus has been frozen since 2023-11-21 with its one scheduled workflow unable to fail, and LORA's `lora-super-test` has a CI workflow with nowhere to run ([§3.10](#310-testing)).
-6. **The surveyor-assignment seam is the top ops complaint on both, in the same words.** 1,182 Bravo tickets (21.8% of load) and 1,021 LORA tickets (25.0%) are "assignment does not appear / cannot reassign / cannot take / cannot cancel". A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer — `SurveyorAssignmentServiceImpl` at 10,419 lines, `survey.go` at 5,473 — and inherited that layer's failure modes at nearly the same rate. This is convergence #1 measured on both sides rather than inferred from code size (§3.14).
-7. **Bravo drifted toward LORA on its own.** The 2024 unified rewrite replaced per-product flowcharts with one superset flowchart plus a per-application boolean matrix that decides which activities run (§3.4). That matrix is a static, hand-configured cousin of LORA's computed guards. The team arrived at "the data decides whether a step runs" without leaving BPMN; what it could not get from BPMN was "the data decides *when*", which is the part LORA's planner adds.
+4. **Operations absorb the design gaps as tickets.** Bravo has the `ApplicationErrorTracking` console, about 25 retry, reprocess and revive endpoints, Cockpit, and **2,514 stuck-application tickets from January to August 2026**. LORA has 1,269 force-cancels, 705 rewinds, and **1,453 stuck-application tickets over the same window**. Bravo designed its queue. LORA's emerged. Both are the same order of magnitude, and both grow out of the human-task layer rather than the engine (§3.14).
+5. **Neither tests its orchestration layer, and both built a journey suite that no longer gates anything.** Only 4 of 1,457 Bravo tests run a process. LORA's nightly is red, and its product-policy tests are not a gate. Beyond that, Bravo's 595-file Cypress corpus has been frozen since 2023-11-21, with its one scheduled workflow unable to fail. And LORA's `lora-super-test` has a CI workflow with nowhere to run ([§3.10](#310-testing)).
+6. **The surveyor-assignment seam is the top operations complaint on both platforms, in the same words.** That is 1,182 Bravo tickets, 21.8% of its load, and 1,021 LORA tickets, 25.0% of its load. All of them say some version of "assignment does not appear, cannot reassign, cannot take, cannot cancel".
+
+    A BPMN flowchart and a GSM planner each modelled assignment around a hand-written service layer — `SurveyorAssignmentServiceImpl` at 10,419 lines, `survey.go` at 5,473 — and each inherited that layer's failure modes, at nearly the same rate. This is convergence #1, measured on both sides rather than inferred from code size (§3.14).
+7. **Bravo drifted toward LORA on its own.** The 2024 unified rewrite replaced per-product flowcharts with one superset flowchart, plus a per-application boolean matrix that decides which activities run (§3.4). That matrix is a static, hand-configured cousin of LORA's computed guards.
+
+    So the team arrived at "the data decides whether a step runs" without leaving BPMN. What it could not get from BPMN was "the data decides *when*". That is the part LORA's planner adds.
 
 ---
 
@@ -310,7 +406,7 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 
 **Bravo (pure workflow) did better at:**
 
-- **Bounded, classified failure.** Fail-fast checkpoints, business errors as BPMN errors, transient errors retried a finite number of times, degrade on last attempt, alert on last attempt, park in an operator console. Inconsistent, but no zombie loans by construction. **This is a claim about the *shape* of failure, not its frequency** — Bravo's measured manual-intervention rate is ≈3.1× LORA's (§3.14). Bounded failure means the wedge is visible and recoverable, not that it is rare.
+- **Bounded, classified failure.** Fail-fast checkpoints. Business errors expressed as BPMN errors. Transient errors retried a finite number of times. Degrade on the last attempt, alert on the last attempt, and park in an operator console. It is inconsistent, but it produces no zombie loans by construction. **This is a claim about the *shape* of failure, not its frequency.** Bravo's measured manual-intervention rate is about 3.1× LORA's (§3.14). Bounded failure means the wedge is visible and recoverable. It does not mean it is rare.
 - **A designed dead-letter path.** `ApplicationErrorTracking` plus `setVariable` + `setJobRetries` is the "visible failure" LORA's reliability document asks for.
 - **Fleet queries.** Relational state means "all loans stuck at survey" is a `WHERE` clause.
 - **Durable reprocess generations.** `prevApplication`/`currentIndex` keeps every attempt as a row.
@@ -322,12 +418,12 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 
 - **Adding automated steps.** 172 activities, 3 precursors, no orchestration edits. The clearest validated win.
 - **One artefact.** The whole loan in one schema-validated document with a version chain; 777 leaf fields with generated constants.
-- **Parallelism for free.** ReadSet/WriteSet locking runs independent checks concurrently; Bravo has 5 parallel gateways in 53 files.
+- **Parallelism for free.** ReadSet and WriteSet locking runs independent checks concurrently. Bravo has 5 parallel gateways across 53 files.
 - **Principled rework for computed fields.** Rollback by dependency, not by resetting columns.
 - **Product isolation at the data layer.** Separate documents and queues; Bravo has one job executor for everything.
-- **Marginal cost.** Near-zero cost per additional application once the fixed footprint is paid; volume moved from Bravo to LORA adds almost nothing to LORA's bill. (The earlier bullet claiming ≈Rp2,300 vs ≈Rp21,900 per application is withdrawn; like-for-like, Bravo's orchestration tier is the cheaper one, §3.12.)
+- **Marginal cost.** Near zero per additional application, once the fixed footprint is paid. Volume moved from Bravo to LORA adds almost nothing to LORA's bill. (The earlier bullet claiming ≈Rp2,300 against ≈Rp21,900 per application is withdrawn. Like for like, Bravo's orchestration tier is the cheaper one — see §3.12.)
 - **Observability of the automated pipeline.** Spans per activity attempt; Bravo has no process metrics.
-- **Measured intervention rate.** ≈0.126% of applications need a person, against Bravo's ≈0.389% — 1 in 790 against 1 in 257 — and LORA's ticket load fell a third over eight months while Bravo's rose 82% (§3.14). Both figures rest on disputed application counts, and Bravo's excludes silent operator-console recoveries; the gap also turns entirely on one unexplained Bravo category.
+- **Measured intervention rate.** About 0.126% of LORA's applications need a person, against Bravo's ≈0.389%. That is 1 in 790 against 1 in 257. Over eight months LORA's ticket load fell by a third while Bravo's rose 82% (§3.14). Both figures rest on disputed application counts. Bravo's excludes silent operator-console recoveries. And the gap turns entirely on one unexplained Bravo category.
 
 ---
 
@@ -335,14 +431,16 @@ Read side by side, the paradigms differ less than the rationale expected. The sa
 
 For LORA, from Bravo:
 
-1. **Write the retry policy Bravo was forced to write.** Bounded attempts or `ScheduleToCloseTimeout`, a terminal-error class for 4xx, and an explicit parked state with an operator surface. Bravo's `R0/PT0M` checkpoint idiom is the same idea as "convert an invisible wedge into a visible failure".
-2. **Keep the degrade decision out of the exception handler.** Bravo's `customErrorHandle` bypassing anti-fraud after three failures is a credit decision hidden in error handling. If LORA adds terminal errors, decide explicitly whether a terminal error means "reject", "park" or "skip".
+1. **Write the retry policy Bravo was forced to write.** That means bounded attempts or a `ScheduleToCloseTimeout`, a terminal-error class for 4xx, and an explicit parked state with an operator surface. Bravo's `R0/PT0M` checkpoint idiom is the same idea: turn an invisible wedge into a visible failure.
+2. **Keep the degrade decision out of the exception handler.** Bravo's `customErrorHandle` bypasses anti-fraud after three failures. That is a credit decision hidden inside error handling. If LORA adds terminal errors, decide explicitly what a terminal error means: reject, park, or skip.
 3. **Persist generations.** LORA's rewind-then-re-originate practice loses the history that Bravo keeps in chained `Application` rows.
-4. **Measure the same KPI on both — done, and it is now the pack's sharpest comparison.** ≈99.87% zero-intervention for LORA against ≈99.56% for Bravo (§3.14). The remaining work is on the Bravo side and is worth days: `application_error_tracking` rows, reprocess and revive endpoint hits and Cockpit incident history would capture the interventions that never became tickets, giving Bravo the same two-source cross-check LORA already has.
+4. **Measure the same KPI on both platforms. Done, and it is now the pack's sharpest comparison.** LORA runs at about 99.87% zero-intervention, against Bravo's ≈99.56% (§3.14).
+
+    The remaining work is on the Bravo side, and it is worth days. Pull `application_error_tracking` rows, reprocess and revive endpoint hits, and Cockpit incident history. Those would capture the interventions that never became tickets, and give Bravo the same two-source cross-check LORA already has.
 
 For Bravo (or any future BPMN work), from LORA:
 
-1. **One artefact, one status field.** Bravo's four overlapping status vocabularies are the real "scattered state" problem. A single lifecycle field with a write-time transition validator would be cheaper than the BPMN it duplicates.
+1. **One artefact, one status field.** Bravo's four overlapping status vocabularies are the real "scattered state" problem. A single lifecycle field, with a write-time transition validator, would be cheaper than the BPMN it duplicates.
 2. **Stop encoding product and flags in gateway expressions.** LORA's schema-derived queues show product identity can be structural rather than a string compared in XML.
 3. **Test the orchestration.** Bravo has `camunda-bpm-assert` and process-test-coverage in the pom and uses them in four files.
 4. **Retire `full` history or shorten it.** Every variable write on 483 service tasks lands in `ACT_HI_DETAIL` on Cloud SQL, the single largest Bravo bill line.
@@ -351,21 +449,31 @@ For Bravo (or any future BPMN work), from LORA:
 
 ## 7. Verdict on the rationale
 
-The rationale's central claim, that GSM and Temporal are complementary layers and that a data-centric model beats a flowchart for the automated pipeline, is **supported** by the comparison: Bravo's flowcharts did explode, are sequential, and mix product routing into XML; LORA's planner adds steps without orchestration edits. The Bravo team's review (§8) establishes that the first two findings are consequences of how Bravo was modelled rather than laws of BPMN, and that the standard remedies exist. It does not change the finding, because the remedies are respectively 5.5% deployed, not started, and not enforced, and a paradigm is fairly judged by what teams build with it under delivery pressure.
+The rationale made a central claim: GSM and Temporal are complementary layers, and a data-centric model beats a flowchart for the automated pipeline. The comparison **supports** it. Bravo's flowcharts did explode. They are sequential. And they mix product routing into XML. LORA's planner adds steps without orchestration edits.
 
-Two of its assumptions are **not supported**. It assumed the execution layer would make retries and long waits a solved problem; Bravo shows a workflow engine that forces you to write a retry policy ends up with a better one than an engine that lets you skip it. And it did not anticipate that human-task complexity would return in either paradigm, which is where both systems spend most of their code.
+The Bravo team's review (§8) establishes two things. The first two findings are consequences of how Bravo was modelled, not laws of BPMN. And the standard remedies exist.
 
-The honest summary is that the paradigm choice decided the shape of roughly 6% (Bravo) to 10% (LORA) of the codebase, the automated pipeline, and decided it in LORA's favour. The remaining 90% (human tasks, integrations, status handling, operations) looks structurally similar in both, and the differences there come from engineering discipline, not from GSM versus BPMN.
+That does not change the finding. The three remedies are, respectively, 5.5% deployed, not started, and not enforced. And a paradigm is fairly judged by what teams build with it under delivery pressure.
+
+Two of its assumptions are **not supported**.
+
+It assumed the execution layer would make retries and long waits a solved problem. Bravo shows the opposite. A workflow engine that forces you to write a retry policy ends up with a better one than an engine that lets you skip it.
+
+And it did not anticipate that human-task complexity would come back in either paradigm. That is where both systems spend most of their code.
+
+So here is the honest summary. The paradigm choice decided the shape of roughly 6% of the codebase in Bravo, and 10% in LORA. That part is the automated pipeline, and the choice decided it in LORA's favour.
+
+The remaining 90% — human tasks, integrations, status handling, operations — looks structurally similar in both. The differences there come from engineering discipline, not from GSM against BPMN.
 
 ---
 
 ## 8. Bravo team responses, reviewed (2026-09-09)
 
-The Bravo team replied to rows 1–3 of §2. Each response was checked against the code; the rows were revised where the check supported the response. This section records the argument, the evidence, what changed, and what still stands.
+The Bravo team replied to rows 1 to 3 of §2. We checked each response against the code, and revised the rows where the check supported the response. This section records the argument, the evidence, what changed, and what still stands.
 
 ### 8.1 "Flowchart explosion is an anti-pattern, not a paradigm flaw; keep the spine thin and delegate to modular children"
 
-**The argument is correct as a statement about BPMN.** Nothing in the paradigm requires a 9,494-line file, and spine-plus-children is the standard mitigation. It is also not hypothetical for Bravo: the 2024 unified rewrite *is* this mitigation, an eight-step spine with 36 child processes.
+**The argument is correct as a statement about BPMN.** Nothing in the paradigm requires a 9,494-line file, and spine-plus-children is the standard mitigation. It is also not hypothetical for Bravo. The 2024 unified rewrite *is* this mitigation: an eight-step spine with 36 child processes.
 
 **What the code says about whether it worked:**
 
@@ -381,49 +489,87 @@ The Bravo team replied to rows 1–3 of §2. Each response was checked against t
 | Production share of started applications, 90 days to 2026-09-09 | ≈94% (NDF2W, NDF4W, RO, Sharia) | 5.5% (DF4W only; DF2W configured but **not yet released — in UAT and pen test**, zero volume) |
 | Commits touching the files in 2026 | 57 | 39 |
 
-Three readings follow. Modularisation cut the absolute size by 3.4× and the flag lookups by 7×, which is a real gain. It did not cut the *density* of branching: a unified service task still sits next to 0.7 business decisions and 1.3 conditions, the same as in the monolith, so the edge cases were partitioned, not removed. And it added a new kind of plumbing: the escalation return channel costs 1.67 escalation definitions per service task, 13× the legacy rate, plus the seven missing `camunda:out` mappings in Appendix C, a defect that can only exist once there are child processes to map from.
+Three readings follow.
 
-The larger point is operational. The mitigation has been in the codebase for two years and carries 5.5% of production volume, one product. The monoliths were changed more often in 2026 than the spine. The Bravo team's remedy is right and is being applied; the evidence that it scales to the whole book does not exist yet, and the present state is two generations running in parallel: two flowcharts, two error idioms, and a bridge from `ndf2w.bpmn` into unified underwriting.
+First, modularisation cut the absolute size by 3.4× and the flag lookups by 7×. That is a real gain.
 
-**What changed in the document.** §2 row 1 now reads "observed in Bravo; a consequence of modelling practice, not a law of the paradigm; the mitigation exists and is unproven at scale". The earlier wording "the count of decision points did not fall" is replaced by the density figures above, and the 122 gateways named "Checkpoint" are no longer counted as decision points: 102 of them have a single outgoing flow and are transaction boundaries, not branches.
+Second, it did not cut the *density* of branching. A unified service task still sits next to 0.7 business decisions and 1.3 conditions, the same as in the monolith. So the edge cases were partitioned, not removed.
 
-**What still stands.** "Constraining the spine to high-level orchestration" moves complexity down into children; it does not say where product and risk-type variation goes. In Bravo it went into the six-column selector tables, the per-activity on/off matrix and gateway strings (§3.4, §3.8). LORA's answer is a separate document and worker per product family. Both are legitimate; neither is "the flowchart stays simple".
+Third, it added a new kind of plumbing. The escalation return channel costs 1.67 escalation definitions per service task, which is 13× the legacy rate. It also produced the seven missing `camunda:out` mappings in Appendix C — a defect that can only exist once there are child processes to map from.
+
+The larger point is operational. The mitigation has been in the codebase for two years, and it carries 5.5% of production volume, on one product. The monoliths changed more often in 2026 than the spine did.
+
+The Bravo team's remedy is right, and it is being applied. But the evidence that it scales to the whole book does not exist yet. What exists today is two generations running in parallel: two flowcharts, two error idioms, and a bridge from `ndf2w.bpmn` into unified underwriting.
+
+**What changed in the document.** §2 row 1 now reads: "observed in Bravo; a consequence of modelling practice, not a law of the paradigm; the mitigation exists and is unproven at scale".
+
+The density figures above replace the earlier wording, "the count of decision points did not fall". And the 122 gateways named "Checkpoint" no longer count as decision points. 102 of them have a single outgoing flow, which makes them transaction boundaries rather than branches.
+
+**What still stands.** "Constraining the spine to high-level orchestration" moves complexity down into children. It does not say where product and risk-type variation goes. In Bravo it went into the six-column selector tables, the per-activity on/off matrix, and gateway strings (§3.4, §3.8). LORA's answer is a separate document and worker per product family. Both are legitimate. Neither is "the flowchart stays simple".
 
 ### 8.2 "Camunda fully supports parallel execution; unlocking it is a product and engineering collaboration problem"
 
-**The argument is correct about the engine.** Camunda 7 has parallel and inclusive gateways, message and signal events, event sub-processes and non-interrupting boundary events, all of which express concurrency and out-of-order arrival. Bravo's 14 parallel gateways and 4 inclusive gateways are a modelling choice, not an engine limit. The unified surveyor assignment already runs two human tasks concurrently through an inclusive gateway (`unified-surveyor-assignment.bpmn`), and the KYC, Pefindo, anti-fraud and dedupe checks in `unified-workflow-check.bpmn` are data-independent and could be forked today.
+**The argument is correct about the engine.** Camunda 7 has parallel and inclusive gateways, message and signal events, event sub-processes, and non-interrupting boundary events. All of those express concurrency and out-of-order arrival. So Bravo's 14 parallel gateways and 4 inclusive gateways are a modelling choice, not an engine limit.
 
-**Where the argument stops short.** The rationale's claim was not about fork/join parallelism but about *unplanned* order: data arriving whenever it arrives, and work starting whenever its inputs exist. BPMN can model that, but every interleaving has to be drawn: a message event or event sub-process per external signal, a non-interrupting boundary per "this may arrive while that is running". Bravo has zero of each, which is the plain reason the flows are sequential: nobody wanted to draw it. GSM does not draw it; the planner derives it from ReadSet/WriteSet. That is a paradigm difference. The "Speaking Engineer" method the Bravo team cites (LORA `people.md`, steps 1 to 8: classify every arrow as a data dependency, a human decision or an external event) is exactly the exercise that produces a readiness matrix rather than a wider flowchart, so adopting it would pull Bravo's modelling toward LORA's, not merely add gateways.
+The unified surveyor assignment already runs two human tasks concurrently, through an inclusive gateway in `unified-surveyor-assignment.bpmn`. And the KYC, Pefindo, anti-fraud and dedupe checks in `unified-workflow-check.bpmn` are data-independent, so they could be forked today.
 
-Two engine caveats apply to Bravo specifically if parallelism is adopted. Parallel branches become concurrent jobs on a job executor left at the starter default of three threads (§3.6). And none of the 14 existing parallel gateways carries `asyncBefore` on the join, the usual Camunda 7 guard against optimistic-locking failures when concurrent branches converge. Both would need fixing first.
+**Where the argument stops short.** The rationale's claim was not about fork and join parallelism. It was about *unplanned* order: data arriving whenever it arrives, and work starting whenever its inputs exist.
 
-Fairness to Bravo: LORA's parallelism benefit is asserted in its design and assessment, not measured. No LORA production document reports a latency or throughput gain from concurrent activities. The comparison is "Bravo does not model it" against "LORA gets it structurally", not "LORA measured a win".
+BPMN can model that. But every interleaving has to be drawn — a message event or event sub-process per external signal, and a non-interrupting boundary for every "this may arrive while that is running". Bravo has none of either. That is the plain reason the flows are sequential: nobody wanted to draw it.
+
+GSM does not draw it. The planner derives it from ReadSet and WriteSet. That is a paradigm difference.
+
+The Bravo team cites the "Speaking Engineer" method from LORA's `people.md`, steps 1 to 8: classify every arrow as a data dependency, a human decision or an external event. That is exactly the exercise that produces a readiness matrix rather than a wider flowchart. So adopting it would pull Bravo's modelling toward LORA's, not just add gateways.
+
+Two engine caveats apply to Bravo specifically, if it adopts parallelism. First, parallel branches become concurrent jobs on a job executor left at the starter default of three threads (§3.6). Second, none of the 14 existing parallel gateways carries `asyncBefore` on the join. That is the usual Camunda 7 guard against optimistic-locking failures when concurrent branches converge. Both would need fixing first.
+
+In fairness to Bravo: LORA's parallelism benefit is asserted in its design and assessment. It is not measured. No LORA production document reports a latency or throughput gain from concurrent activities. So the comparison is "Bravo does not model it" against "LORA gets it structurally". It is not "LORA measured a win".
 
 **What changed in the document.** §2 row 2 now distinguishes the two claims: fork/join is a modelling choice Bravo could adopt; data-driven order is a paradigm difference.
 
 ### 8.3 "Relational DDD aggregate versus one document is a philosophy difference, not scattered data"
 
-**The argument is correct as far as it goes**, and §2 row 3 already said the rationale's "scattered process variables" criticism does not describe Bravo. The relational aggregate has concrete advantages recorded in §3.9 and §5: fleet questions are SQL, sub-entities evolve independently (1,350 migrations), and there is no schema-version fleet to retire. The field count the Bravo team quotes for LORA is fair: `dp-ndf-v0_23_0` has 1,196 properties when nested object nodes are counted and about 910 leaf fields; the LORA assessment's "777 fields" counts leaves in v0_24_0 by a stricter rule. Whichever count is used, it is one large schema *per product family*, seven families in 13 repos, not one form for everything, so "forces all data into one giant form" overstates the LORA side as well.
+**The argument is correct as far as it goes.** §2 row 3 already said the rationale's "scattered process variables" criticism does not describe Bravo.
 
-**Where the argument turns against itself.** In Domain-Driven Design the aggregate root exists to enforce invariants: state changes go through it, and it refuses illegal ones. Bravo's `Application` is a Lombok `@Data` entity with generated setters, no hand-written behaviour and no transition method (`entity/Application.java:45-52`, zero domain methods). The lifecycle invariants live in BPMN string literals and 197 `setStatus` call sites across 73 files, including an HTTP controller (§3.3). A graph state machine exists in the codebase and is wired to one peripheral entity. That is the pattern the DDD literature calls an anemic domain model, and it is the actual finding behind "scattered": not that data is in 238 tables, but that the loan's lifecycle has no owner. Describing the model as DDD raises the bar the code is measured against rather than lowering it.
+The relational aggregate has concrete advantages, recorded in §3.9 and §5. Fleet questions are SQL. Sub-entities evolve independently, across 1,350 migrations. And there is no schema-version fleet to retire.
 
-The document model does not automatically fix this either. LORA's status field is validated for enum membership only (§3.3). The difference is that LORA has one field to put a validator on; Bravo has four status vocabularies on four entities.
+The field count the Bravo team quotes for LORA is fair. `dp-ndf-v0_23_0` has 1,196 properties if you count nested object nodes, and about 910 leaf fields. The LORA assessment's "777 fields" counts leaves in v0_24_0 by a stricter rule. Whichever count you use, it is one large schema *per product family* — seven families across 13 repositories, not one form for everything. So "forces all data into one giant form" overstates the LORA side too.
 
-**What changed in the document.** §2 row 3 keeps the "partly refuted" verdict, now credits the relational aggregate explicitly, and names the anemic-aggregate point as the residual criticism. §1 and §3.2 give the field count as a range with both counting rules.
+**Where the argument turns against itself.** In Domain-Driven Design, the aggregate root exists to enforce invariants. State changes go through it, and it refuses illegal ones.
+
+Bravo's `Application` is a Lombok `@Data` entity with generated setters. It has no hand-written behaviour and no transition method — see `entity/Application.java:45-52`, which has no domain methods at all. The lifecycle invariants live in BPMN string literals and in 197 `setStatus` call sites across 73 files, one of which is an HTTP controller (§3.3). A graph state machine does exist in the codebase, wired to one peripheral entity.
+
+That is the pattern the DDD literature calls an anemic domain model. And it is the real finding behind "scattered". The problem is not that data sits in 238 tables. It is that the loan's lifecycle has no owner. So describing the model as DDD raises the bar the code is measured against, rather than lowering it.
+
+The document model does not fix this automatically either. LORA's status field is only checked for enum membership (§3.3). The difference is that LORA has one field to put a validator on. Bravo has four status vocabularies, on four entities.
+
+**What changed in the document.** §2 row 3 keeps the "partly refuted" verdict. It now credits the relational aggregate explicitly, and names the anemic-aggregate point as the residual criticism. §1 and §3.2 give the field count as a range, with both counting rules.
 
 ### 8.4 "LORA is just orchestration; comparing its cost with the whole Bravo estate is unfair"
 
-**The argument is upheld, with one factual correction.** The LORA cost document compared LORA's all-in platform bill (≈Rp431M) with the "Bravo remainder" of the two GCP projects (≈Rp1.65B) and concluded LORA was 13–16× cheaper per application and that retiring Bravo was worth ≈Rp1.6B/month. Checking what LORA calls shows why that is not like-for-like: `lora-gateway-service` has 40 client packages behind ~300 proxy handlers, 26 of them Bravo platform services (agreement, master data, branch, customer/CIF, product, calculation, asset pricing, collateral, document, e-doc, document hub, doc renderer, agent, scheduling, notification, backoffice, partnership, insurance, KYC proxy, KYC sign, CNV, integration, rule engine, portfolio management, payment), plus the same Apigee scoring chain `bravo-bpm-service` uses with byte-identical paths (StrategyOne, one-obligor, AliCloud models, anti-fraud, BFI Connect). Production spans confirm it: `prod-ms-master` alone takes 620k LORA calls a week. The Bravo estate is mostly a shared data plane, and it does not retire when the Bravo LOS does.
+**The argument is upheld, with one factual correction.**
 
-**The factual correction.** LORA does not call `ms-bpm`, and it does not call any Bravo surveyor, operation, underwriting or approval service: zero references to `bpm` in any LORA repo, `ms-bpm` absent from the production upstream table, and the surveyor, operation and CA hosts appear only in BPM's own CORS allow-list. Those functions live inside `ms-bpm` and its consoles, and LORA re-implements them in `lora-partnership-task-ndf`, `lora-task-service` and `lora-backoffice-fe`. So the examples in the objection are wrong, and the principle is right.
+The LORA cost document compared LORA's all-in platform bill of about Rp431M with the "Bravo remainder" of the two GCP projects, about Rp1.65B. It concluded that LORA was 13–16× cheaper per application, and that retiring Bravo was worth about Rp1.6B a month.
 
-**The like-for-like number.** Pulling only Bravo's orchestration tier from the FinOps API for August 2026: `ms-bpm` pods Rp5.3M in prod (Rp12.1M more in SIT/UAT) and the `prod-postgres-bpm-d2bpm` Cloud SQL instance Rp52.7M, so ≈Rp58M prod against LORA's ≈Rp431M all-in. Per application, ≈Rp490–515 against ≈Rp2,500–3,200. LORA's orchestration costs roughly 7× more in absolute terms and 5–6.5× more per application, for reasons the LORA documents already list: fixed Temporal and ArangoDB contracts, 15.5% utilisation of 448 GB of requests, and five idle worker versions.
+Checking what LORA actually calls shows why that is not like for like. `lora-gateway-service` has 40 client packages behind about 300 proxy handlers. 26 of those are Bravo platform services: agreement, master data, branch, customer and CIF, product, calculation, asset pricing, collateral, document, e-doc, document hub, doc renderer, agent, scheduling, notification, backoffice, partnership, insurance, KYC proxy, KYC sign, CNV, integration, rule engine, portfolio management, and payment. On top of that, LORA uses the same Apigee scoring chain as `bravo-bpm-service`, with byte-identical paths: StrategyOne, one-obligor, AliCloud models, anti-fraud and BFI Connect.
 
-**What changed in the documents.** LORA's `cost.md` gained a section "Orchestration against orchestration", its verdict table and recommendations were amended, the production-findings README rows were rewritten, and §1, §3.12 and §5 of this document now carry the tier-level figures. The 227× "retire Bravo" lever is re-sized to 8–14× (≈Rp58–100M/month). The slide decks derived from `cost.md` (CTO, developer and holistic-health decks) were regenerated with the tier-level figures the same day.
+Production spans confirm it. `prod-ms-master` alone takes 620,000 LORA calls a week. So the Bravo estate is mostly a shared data plane, and it does not retire when the Bravo LOS does.
 
-**What still stands.** LORA's cost is flat with volume, so finishing the migration still costs nothing at the margin and removes one platform. Temporal is still ≈5 cents per loan. And the comparison says nothing about the paradigm: the gap is provisioning and contracts, not GSM versus BPMN.
+**The factual correction.** LORA does not call `ms-bpm`. It does not call any Bravo surveyor, operation, underwriting or approval service either. The evidence: no LORA repository references `bpm` at all; `ms-bpm` is absent from the production upstream table; and the surveyor, operation and CA hosts appear only in BPM's own CORS allow-list.
 
-**How much of the gap is actually reachable, and when.** "A right-sized LORA could close it substantially" is true but slower than it sounds, and the levers are smaller than the one they are being compared against:
+Those functions live inside `ms-bpm` and its consoles. LORA re-implements them in `lora-partnership-task-ndf`, `lora-task-service` and `lora-backoffice-fe`. So the examples in the objection are wrong, and the principle behind it is right.
+
+**The like-for-like number.** We pulled only Bravo's orchestration tier from the FinOps API for August 2026. `ms-bpm` pods cost Rp5.3M in production, plus Rp12.1M more in SIT and UAT. The `prod-postgres-bpm-d2bpm` Cloud SQL instance costs Rp52.7M. So that is about Rp58M in production, against LORA's ≈Rp431M all-in. Per application it is ≈Rp490–515 against ≈Rp2,500–3,200.
+
+So LORA's orchestration costs roughly 7× more in absolute terms, and 5–6.5× more per application. The LORA documents already list the reasons: fixed Temporal and ArangoDB contracts, 15.5% utilisation of 448 GB of requests, and five idle worker versions.
+
+**What changed in the documents.** LORA's `cost.md` gained a section called "Orchestration against orchestration". Its verdict table and recommendations were amended. The production-findings README rows were rewritten. And §1, §3.12 and §5 of this document now carry the tier-level figures.
+
+The 227× "retire Bravo" lever is re-sized to 8–14×, or about Rp58–100M a month. The slide decks derived from `cost.md` — the CTO, developer and holistic-health decks — were regenerated with the tier-level figures the same day.
+
+**What still stands.** LORA's cost is flat with volume. So finishing the migration still costs nothing at the margin, and it removes one platform. Temporal is still about 5 cents per loan. And the comparison says nothing about the paradigm. The gap is provisioning and contracts, not GSM against BPMN.
+
+**How much of the gap is actually reachable, and when.** "A right-sized LORA could close it substantially" is true. But it is slower than it sounds, and the levers are smaller than the one they are being compared against:
 
 | Lever | Worth | Available |
 |---|---|---|
@@ -433,11 +579,17 @@ The document model does not automatically fix this either. LORA's status field i
 | Re-size the Temporal commitment | commit is ~52% larger than needed | **~March 2027** renewal |
 | The whole Temporal Actions programme | **≈Rp7.2M/month** (~1.7% of LORA's bill) | now |
 
-So the single largest cost action available to either team is still finishing the migration — but it is **8–14×** the Temporal work, not 227×, and LORA's own tier does not become cheaper than Bravo's by doing it. The Actions programme is worth doing for the renewal negotiation, not for this month's invoice.
+So the single largest cost action available to either team is still finishing the migration. But it is **8–14×** the Temporal work, not 227×. And LORA's own tier does not become cheaper than Bravo's by doing it. The Actions programme is worth doing for the renewal negotiation, not for this month's invoice.
 
 ### 8.5 Net effect on the verdict
 
-None of the four responses moves the §7 conclusion on architecture, and two of them sharpen it. The fourth reverses a cost claim that was never part of the architectural verdict but was being quoted alongside it: on a like-for-like tier, Bravo's orchestration is the cheaper one today. The "flowchart explosion" and "sequential" findings are true of Bravo and are consequences of how Bravo was modelled, not laws of BPMN; the Bravo team's own remedies (thin spine, parallel gateways, an aggregate that owns its invariants) are the right ones and are, respectively, 5.5% deployed, not started, and not enforced. The pure-workflow approach *could* have avoided most of what §2 rows 1 and 2 describe, and did not. That is itself evidence about how the two paradigms behave under real delivery pressure, which is the only condition under which either will ever run.
+None of the four responses moves the §7 conclusion on architecture. Two of them sharpen it.
+
+The fourth reverses a cost claim. That claim was never part of the architectural verdict, but it was being quoted alongside it. On a like-for-like tier, Bravo's orchestration is the cheaper one today.
+
+The "flowchart explosion" and "sequential" findings are true of Bravo. They are consequences of how Bravo was modelled, not laws of BPMN. The Bravo team's own remedies — a thin spine, parallel gateways, and an aggregate that owns its invariants — are the right ones. They are, respectively, 5.5% deployed, not started, and not enforced.
+
+So the pure-workflow approach *could* have avoided most of what §2 rows 1 and 2 describe, and did not. That is itself evidence about how the two paradigms behave under real delivery pressure. And real delivery pressure is the only condition under which either will ever run.
 
 ---
 
@@ -470,7 +622,7 @@ None of the four responses moves the §7 conclusion on architecture, and two of 
 
 ## Appendix A2. Bravo production sources
 
-- `docs/production-findings/Compare_LOS_LORA.xlsx` — OTRS support tickets, both platforms, 2026-01-01 to 2026-09-09 (5,677 LOS + 4,184 LORA rows). Analysed in [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md).
+- `docs/production-findings/Compare_LOS_LORA.xlsx` — OTRS support tickets for both platforms, 2026-01-01 to 2026-09-09. That is 5,677 LOS rows plus 4,184 LORA rows. Analysed in [production-findings/ticket-analysis.md](production-findings/ticket-analysis.md).
 - `docs/production-findings/Trend_Tiket_OTRS_LOS(BPM Bravo).pdf`
 - 90-day `ms-bpm` PostgreSQL and Datadog measurements, per [workflow-gap.md §8](workflow-gap.md)
 

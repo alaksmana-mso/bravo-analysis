@@ -8,11 +8,22 @@ Evidence is from `bravo-bpm-service` (`src/main/resources/bpmn`, `src/main/java/
 
 ## 1. Verdict in short
 
-1. **"Single workflow for all products" is true. "Giant" is not.** The unified spine is small: 43 top-level nodes, 8 call activities, no user tasks, spread over 33 files. The giant workflows in this codebase are the *per-product* ones: `NDF4W` (223 top-level nodes, 392 commits) and `NDF2W` (174 nodes, 359 commits). The legacy generation is exactly the per-product design being proposed, and it is where the complexity accumulated.
-2. **The real gap is not "one spine". It is that product variation is invisible.** In the unified generation a product's behaviour is assembled from four places: three BPMN gateway conditions, a database configuration that silently no-ops service tasks (64 migrations so far), `if (application.isDF4W())` branches inside 19 of the 68 unified Java activities, and 9 feature flags read from the BPMN. No artifact shows what DF2W actually executes.
-3. **Per-product copies of every domain child would recreate the legacy problem.** `NDF4W` and `NDF2W` share only 20 of about 125 delegate beans; the rest are largely the same steps re-implemented under product-suffixed names (`createCifActivity` vs `createCif2wActivity`, `preFatalRacActivity` vs `preFatalRac2wActivity`, `pushApplicationToSalesTraxActivity` vs `pushApplicationToSalesTrax2wActivity`, and so on). Full duplication is how the two products drifted apart.
-4. **In production the shared spine is a minority path.** Datadog APM for the 30 days to 2026-09-08 shows the shared spine runs one product: 18,806 DF4W applications in 90 days versus 321,000 on the legacy monoliths (NDF2W 248,685, NDF4W 71,995). The spine is 5.5% of volume and serves DF4W only; DF2W is fully configured but unused; NDF2W, NDF4W, RO and Sharia run the giant per-product processes. Section 8 has the verified numbers.
-5. **Recommended target: product-owned spines, domain-owned children, explicit variation.** One thin spine per product (cheap, and it is the diagram stakeholders read), shared domain children by default, a product-specific child only where structure really differs, and no silent skipping. The codebase already contains the precedent: `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-specific child called from the shared underwriting orchestrator.
+1. **"Single workflow for all products" is true. "Giant" is not.** The unified spine is small: 43 top-level nodes, 8 call activities, no user tasks, spread over 33 files. The giant workflows in this codebase are the *per-product* ones. `NDF4W` has 223 top-level nodes and 392 commits. `NDF2W` has 174 nodes and 359 commits. So the legacy generation is exactly the per-product design being proposed, and it is where the complexity piled up.
+2. **The real gap is not "one spine". It is that product variation is invisible.** In the unified generation, a product's behaviour is assembled from four places:
+
+    - three BPMN gateway conditions
+    - a database configuration that silently no-ops service tasks, with 64 migrations so far
+    - `if (application.isDF4W())` branches inside 19 of the 68 unified Java activities
+    - 9 feature flags read from the BPMN
+
+    No artefact anywhere shows what DF2W actually executes.
+3. **Per-product copies of every domain child would recreate the legacy problem.** `NDF4W` and `NDF2W` share only 20 of about 125 delegate beans. The rest are largely the same steps, re-implemented under product-suffixed names: `createCifActivity` against `createCif2wActivity`, `preFatalRacActivity` against `preFatalRac2wActivity`, `pushApplicationToSalesTraxActivity` against `pushApplicationToSalesTrax2wActivity`, and so on. Full duplication is how the two products drifted apart.
+4. **In production the shared spine is a minority path.** Datadog APM for the 30 days to 2026-09-08 shows the shared spine running one product. Over 90 days it took 18,806 DF4W applications, against 321,000 on the legacy monoliths — NDF2W 248,685 and NDF4W 71,995.
+
+    So the spine is 5.5% of volume, and it serves DF4W only. DF2W is fully configured but unused. NDF2W, NDF4W, RO and Sharia all run the giant per-product processes. Section 8 has the verified numbers.
+5. **Recommended target: product-owned spines, domain-owned children, and explicit variation.** That means one thin spine per product — they are cheap, and they are the diagram stakeholders actually read. Then shared domain children by default, with a product-specific child only where the structure really differs. And no silent skipping.
+
+    The codebase already has the precedent. `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-specific child, called from the shared underwriting orchestrator.
 
 ## 2. Checking the premise: which workflows are giant?
 
@@ -24,7 +35,7 @@ Evidence is from `bravo-bpm-service` (`src/main/resources/bpmn`, `src/main/java/
 | `Unified_Process_Main_Workflow` | unified, shared | NDF4W, DF4W, NDF2W, DF2W, DF2W Sharia | 43 | 0 | 9 | 0 | 36 |
 | largest unified child (`Unified_Process_Workflow_Survey`) | unified, shared | all of the above | 22 | 0 | 1 | 0 | 14 |
 
-The unified design moved complexity out of the diagram. The spine and its 32 children together hold 69 distinct delegate beans for five products; the two legacy monoliths hold 145 for two products.
+The unified design moved complexity out of the diagram. The spine and its 32 children hold 69 distinct delegate beans between them, for five products. The two legacy monoliths hold 145, for two products.
 
 ## 3. What per-product separation produced in practice (legacy evidence)
 
@@ -38,11 +49,13 @@ The legacy generation *is* separated by product: one root process per product, c
 | shared between the two | 20 | 20 |
 | used by this product only | 49 | 52 |
 
-Most of the "product-only" beans are the same domain step under a suffixed name: `dedupeCustomerCheckActivity` / `dedupeCustomerCheck2wActivity`, `getBranchLeadSurveyActivity` / `getBranchLeadSurvey2wActivity`, `highRiskCallPefindoActivity` / `highRiskCallPefindo2wActivity`, `pilotBranchCheckActivity` / `pilotBranchCheckRegular2wActivity`, `escalateRejectedApplicationActivity` / `escalateRejected2WActivity`, `addressVerificationActivity` / `addressVerification2WActivity`, `phoneCheckingActivity` / `phoneChecking2WActivity`. Only 7 of 36 embedded-subprocess names are common to both files. Products do differ, but far less than the two diagrams suggest; the diagrams differ mostly because two teams drew the same stages twice.
+Most of the "product-only" beans are the same domain step under a suffixed name. For example: `dedupeCustomerCheckActivity` and `dedupeCustomerCheck2wActivity`; `getBranchLeadSurveyActivity` and `getBranchLeadSurvey2wActivity`; `highRiskCallPefindoActivity` and `highRiskCallPefindo2wActivity`; `pilotBranchCheckActivity` and `pilotBranchCheckRegular2wActivity`; `escalateRejectedApplicationActivity` and `escalateRejected2WActivity`; `addressVerificationActivity` and `addressVerification2WActivity`; `phoneCheckingActivity` and `phoneChecking2WActivity`.
 
-**Variants of one product were mostly the parent product again.** `NDF4W_RO` uses 19 delegates, 17 of them also in `NDF4W`. `NDF4W_Sharia` uses 23, 14 also in `NDF4W`. `NDF4W_RO` even calls the whole `NDF4W` process as a child when the RO shortcut does not apply.
+Only 7 of the 36 embedded-subprocess names appear in both files. Products do differ, but far less than the two diagrams suggest. The diagrams differ mostly because two teams drew the same stages twice.
 
-**Configuration leaked into the diagrams anyway.** The four legacy root files contain 53 `environment.getProperty(...)` reads across 23 distinct feature flags. Product separation did not remove runtime switches; it added them per copy.
+**Variants of one product turned out to be mostly the parent product again.** `NDF4W_RO` uses 19 delegates, and 17 of them are also in `NDF4W`. `NDF4W_Sharia` uses 23, of which 14 are also in `NDF4W`. `NDF4W_RO` even calls the whole `NDF4W` process as a child, when the RO shortcut does not apply.
+
+**Configuration leaked into the diagrams anyway.** The four legacy root files contain 53 `environment.getProperty(...)` reads, across 23 distinct feature flags. So product separation did not remove runtime switches. It added them to every copy.
 
 ## 4. What the unified design does with product variation (the actual gap)
 
@@ -71,10 +84,10 @@ flowchart LR
 
 Consequences that follow directly:
 
-- **Blast radius.** Commit subjects on `unified-main-workflow.bpmn` name DF4W (4), DF2W (3), Sharia, RO, NDF4W and Company. Every one of those changes redeployed the spine that all five products run. On `unified-workflow-survey.bpmn`, DF4W work (3 commits) changed the survey orchestration NDF2W also runs.
-- **No owner-readable artifact.** A product stakeholder cannot be handed a diagram of their product; the diagram is shared and the differences are in SQL and Java.
-- **Test matrix.** Correctness of one BPMN file depends on products × config rows × flags. The 64 migrations include repeated "set-active" / "set-inactive" corrections (for example `...pd-model-df4w-set-active`, `...pre-fatal-rac-df4w-set-active`, `...underwriting-return-set-inactive-except-df4w`), which is what a hidden matrix looks like in practice.
-- **Silent divergence risk.** With `BaseActivity` returning quietly, a missing config row does not fail a deployment or a process; it removes a check from a loan product.
+- **Blast radius.** Commit subjects on `unified-main-workflow.bpmn` name DF4W 4 times, DF2W 3 times, plus Sharia, RO, NDF4W and Company. Every one of those changes redeployed the spine that all five products run. And on `unified-workflow-survey.bpmn`, DF4W work across 3 commits changed the survey orchestration that NDF2W also runs.
+- **No owner-readable artefact.** You cannot hand a product stakeholder a diagram of their product. The diagram is shared, and the differences live in SQL and Java.
+- **Test matrix.** Whether one BPMN file is correct depends on products, times config rows, times flags. The 64 migrations include repeated "set-active" and "set-inactive" corrections — for example `...pd-model-df4w-set-active`, `...pre-fatal-rac-df4w-set-active`, `...underwriting-return-set-inactive-except-df4w`. That is what a hidden matrix looks like in practice.
+- **Silent divergence risk.** `BaseActivity` returns quietly. So a missing config row does not fail a deployment or a process. It removes a check from a loan product.
 
 What the unified design got right, and should be kept:
 
@@ -84,7 +97,7 @@ What the unified design got right, and should be kept:
 
 ## 5. Assessing the proposed target: a spine per product and children per product and domain
 
-The proposal is `survey_ndf4w`, `survey_ndf2w`, `underwriting_ndf4w`, `underwriting_ndf2w`, `scoring_ndf4w`, `scoring_ndf2w`, and so on: five products × five domains, so roughly 25 children plus 5 spines.
+The proposal is `survey_ndf4w`, `survey_ndf2w`, `underwriting_ndf4w`, `underwriting_ndf2w`, `scoring_ndf4w`, `scoring_ndf2w`, and so on. That is five products times five domains: roughly 25 children, plus 5 spines.
 
 | Claim in the proposal | What the code says |
 |---|---|
@@ -93,7 +106,7 @@ The proposal is `survey_ndf4w`, `survey_ndf2w`, `underwriting_ndf4w`, `underwrit
 | Complexity is too high in one workflow | The complexity is not in the workflow, which is small; it is in the invisible config and Java branches. Splitting the BPMN by product without removing those would leave the hard part where it is. |
 | Domain children per product | Recreates the legacy pattern that produced 145 delegates for two products. Prefer domain children shared by default, forked per product only where the *structure* differs (order of steps, different human roles), which is what `Unified_Process_Workflow_Underwriting_Regular` already does for DF2W. |
 
-Camunda 7 makes the middle path cheap: a call activity's `calledElement` can be an expression, so a product spine can dispatch to `Unified_Process_Workflow_Survey` for most products and to `survey_df2w_sharia` for one, without a gateway.
+Camunda 7 makes the middle path cheap. A call activity's `calledElement` can be an expression. So a product spine can dispatch to `Unified_Process_Workflow_Survey` for most products, and to `survey_df2w_sharia` for one, with no gateway at all.
 
 ## 6. Recommended shape
 
@@ -123,11 +136,11 @@ flowchart TB
 
 Rules that close the gap, in order of payoff:
 
-1. **One spine per product, generated or hand-drawn, that is the source of truth for stage order and for which child key each stage calls.** Retire `applicationWorkflowSelectorType` gateways from BPMN; the spine *is* the selector.
-2. **No silent skipping.** A service task that is not applicable to a product must not exist on that product's path. Replace `BaseActivity.isNeedToProceed` no-ops with either a gateway in the child (when the choice is data-driven, such as risk type) or a product-specific child (when the choice is product-driven). Skipped-by-config should at minimum fail loudly when a config row is missing.
+1. **One spine per product, generated or hand-drawn.** It is the source of truth for stage order, and for which child key each stage calls. Retire the `applicationWorkflowSelectorType` gateways from BPMN. The spine *is* the selector.
+2. **No silent skipping.** If a service task does not apply to a product, it must not exist on that product's path. Replace the `BaseActivity.isNeedToProceed` no-ops with one of two things: a gateway in the child, when the choice is data-driven, such as risk type; or a product-specific child, when the choice is product-driven. At a minimum, skipping by config should fail loudly when a config row is missing.
 3. **Remove `application.isXxx()` from the 19 unified activities.** Product behaviour belongs in the spine or in a product-specific child, never inside a shared bean.
-4. **Fork a domain child only on structural difference.** Order of steps, different human roles, or different external partners justify `underwriting_regular`; a different threshold does not.
-5. **Publish the effective flow per product.** Until the above lands, generate it: join `workflow_master_config_detail`, `workflow_selector_order` and `workflow_selector_type` per product and overlay on the BPMN (the parse scripts behind workflow-analysis.md can do this). This is the cheapest immediate fix for the stakeholder-visibility problem.
+4. **Fork a domain child only on a structural difference.** A different order of steps, different human roles, or different external partners all justify `underwriting_regular`. A different threshold does not.
+5. **Publish the effective flow for each product.** Until the changes above land, generate it. Join `workflow_master_config_detail`, `workflow_selector_order` and `workflow_selector_type` per product, and overlay the result on the BPMN. The parse scripts behind workflow-analysis.md can already do this. It is the cheapest immediate fix for the stakeholder-visibility problem.
 6. **Keep the DB config for what it is good at:** per-branch, per-customer-type or per-risk-type toggles that change often and do not change structure.
 
 ## 7. Gap register
@@ -145,7 +158,7 @@ Rules that close the gap, in order of payoff:
 
 ## 8. Verified production data (BPM PostgreSQL, 90 days to 2026-09-09)
 
-The earlier Datadog estimates in this section were replaced on 2026-09-09 with direct queries against the production `ms-bpm` database (read-only session, `default_transaction_read_only = on`). Camunda history is retained 90 days, so windows are 90 days unless noted. The application tables and the Camunda `act_*` tables share one schema, so no cross-database work was needed.
+On 2026-09-09 we replaced the earlier Datadog estimates in this section with direct queries against the production `ms-bpm` database. The session was read-only, with `default_transaction_read_only = on`. Camunda history is kept for 90 days, so every window is 90 days unless stated otherwise. The application tables and the Camunda `act_*` tables share one schema, so no cross-database work was needed.
 
 ### 8.1 Which spine actually runs, by volume
 
@@ -158,7 +171,7 @@ Root workflow instances started (`act_hi_procinst`, `super_process_instance_id_ 
 | `NDF4W_RO` (legacy RO) | 11,458 | 4,008 |
 | `Unified_Process_Main_Workflow` | 18,809 | 6,826 |
 
-Of the four loan-entry roots, the unified spine is **5.5%** of started applications (18,809 of 338,858). The weekly series is flat across all 90 days: no migration trend. `NDF4W_Sharia` and `UNSECURED` had zero starts in this engine in 90 days (Sharia runs in its own deployment; unsecured is elsewhere or dormant).
+Of the four loan-entry roots, the unified spine is **5.5%** of started applications — 18,809 out of 338,858. The weekly series is flat across all 90 days, so there is no migration trend. `NDF4W_Sharia` and `UNSECURED` had zero starts in this engine over 90 days. Sharia runs in its own deployment. Unsecured is either elsewhere or dormant.
 
 ### 8.2 Which products the unified spine serves — the sharp finding
 
@@ -172,11 +185,15 @@ Of the four loan-entry roots, the unified spine is **5.5%** of started applicati
 | 4 | **DF4W** | `Unified_Process_Main_Workflow` | 18,806 |
 | 1 | NDF4W (company pilot) | `Unified_Process_Main_Workflow` | 4 |
 
-Confirmed by the selector variable on the unified roots: 18,806 carried `applicationWorkflowSelectorType = OPTION_DF4W`, 3 were `OPTION_NDF4W`. **The "single workflow for all products" is, in production, the DF4W workflow.** DF2W (product 11) has a complete configuration seeded (8.4) but zero applications in 90 days — **because it has not been released: verified 2026-09-10 as in UAT with an LOS penetration test running and its go-live epics still open** ([bravo-people.md §2](bravo-people.md)). Read the zero as *pre-launch*, not as *abandoned*. NDF2W, NDF4W, RO and Sharia — the entire live retail book — run legacy per-product monoliths. The shared spine is not carrying "all products"; it carries one product plus a 3-application pilot.
+The selector variable on the unified roots confirms it. 18,806 carried `applicationWorkflowSelectorType = OPTION_DF4W`, and 3 were `OPTION_NDF4W`. **So in production, the "single workflow for all products" is the DF4W workflow.**
+
+DF2W, product 11, has a complete configuration seeded (see 8.4) and zero applications in 90 days. That is **because it has not been released.** We verified on 2026-09-10 that it is in UAT, with an LOS penetration test running and its go-live epics still open ([bravo-people.md §2](bravo-people.md)). So read the zero as *pre-launch*, not *abandoned*.
+
+NDF2W, NDF4W, RO and Sharia — the entire live retail book — run legacy per-product monoliths. The shared spine is not carrying "all products". It carries one product, plus a 3-application pilot.
 
 ### 8.3 The config-skip mechanism is real and heavy (gap G2, measured)
 
-`act_hi_actinst` service-task durations (7 days) confirm activities no-op by configuration. In `Unified_Process_KYC_Check` three sub-checks are inactive for most products; their durations collapse to below the network floor:
+Service-task durations in `act_hi_actinst`, over 7 days, confirm that activities no-op by configuration. In `Unified_Process_KYC_Check`, three sub-checks are inactive for most products, and their durations collapse to below the network floor:
 
 | Activity (KYC Check) | Active for (8.4) | Execs (7d) | % under 50 ms | p50 |
 |---|---|--:|--:|--:|
@@ -186,7 +203,7 @@ Confirmed by the selector variable on the unified roots: 18,806 carried `applica
 | Pefindo Customer (real call) | DF4W, NDF2W | 3,177 | 42% | 898 ms |
 | External Data Check (real call) | DF-family, NDF2W | 1,645 | 0% | 1,874 ms |
 
-Activities that call Pefindo, the PD model or external data sit at hundreds to thousands of ms; the config-skipped ones sit under 50 ms. The phantom-activity problem is measured, not hypothetical: even for the one product on the spine, a large share of the tasks drawn in the BPMN complete as no-ops that still appear in history.
+Activities that call Pefindo, the PD model or external data sit at hundreds to thousands of milliseconds. The config-skipped ones sit under 50 milliseconds. So the phantom-activity problem is measured, not hypothetical. Even for the one product on the spine, a large share of the tasks drawn in the BPMN complete as no-ops. And they still appear in history.
 
 ### 8.4 Effective per-product configuration (Q1 — the fact static analysis could not recover)
 
@@ -203,80 +220,88 @@ Activities that call Pefindo, the PD model or external data sit at hundreds to t
 | NST data, CA doc checklist (CA) | Y | | Y | | |
 | Approval Engine, Life Insurance | Y | | Y | | |
 
-Initial-scoring for `OPTION_NDF4W` has 0 active / 18 inactive classes: NDF4W scoring does not run through the unified spine at all, consistent with 8.2. This table is the artifact that did not exist before — the actual per-product flow, from the database rather than the BPMN.
+Initial scoring for `OPTION_NDF4W` has 0 active classes and 18 inactive ones. So NDF4W scoring does not run through the unified spine at all, which is consistent with 8.2. This table is the artefact that did not exist before: the actual per-product flow, taken from the database rather than the BPMN.
 
 ### 8.5 Config fragmentation is modest (mutes an earlier risk)
 
-`application_workflow_config` (Q5): `OPTION_DF4W` has 41,537 lead-group rows but only 9 distinct effective config blobs; `OPTION_NDF4W` has 3 rows, 1 config. Behaviour is parameterised by ~9 variants, not fragmented per lead. The variation problem is about *where* it is expressed (config + Java + gateways), not runaway per-instance divergence.
+Now `application_workflow_config`, from Q5. `OPTION_DF4W` has 41,537 lead-group rows, but only 9 distinct effective config blobs. `OPTION_NDF4W` has 3 rows and 1 config. So behaviour is parameterised by about 9 variants. It is not fragmented per lead. The variation problem is about *where* variation is expressed — config, Java and gateways — not about runaway per-instance divergence.
 
 ### 8.6 Human work per workflow (Q6)
 
-`act_hi_taskinst`, 90 days, largest queues: `NDF2W` User Survey Task 185,574 (avg 58 h open); `NDF4W` High Risk Survey Task 50,650 (55 h); `Unified_Process_Surveyor_Assignment` Survey Form 15,334 (124 h) and External Survey Form 14,688 (131 h); `Process_Long_Scoring_Survey` CA checklist 36,671. Human work is heavy in both generations, and in the unified generation it stays in the leaf children exactly as section 3 predicted: the orchestrators recorded zero user-task instances.
+The largest queues in `act_hi_taskinst` over 90 days are these. `NDF2W` User Survey Task: 185,574, open 58 hours on average. `NDF4W` High Risk Survey Task: 50,650, 55 hours. `Unified_Process_Surveyor_Assignment` Survey Form: 15,334, 124 hours. External Survey Form: 14,688, 131 hours. `Process_Long_Scoring_Survey` CA checklist: 36,671.
+
+So human work is heavy in both generations. And in the unified generation it stays in the leaf children, exactly as section 3 predicted. The orchestrators recorded no user-task instances at all.
 
 ### 8.7 What this does to the verdict
 
-- "A single giant workflow handles all products" is **false in production**. Five legacy monoliths carry ~94% of applications and the entire retail book; the shared spine carries DF4W (5.5%) plus a 3-application pilot.
+- "A single giant workflow handles all products" is **false in production**. Five legacy monoliths carry about 94% of applications, and the entire retail book. The shared spine carries DF4W, at 5.5%, plus a 3-application pilot.
 - The complexity being paid *now* is the legacy per-product one: the NDF2W and NDF4W monoliths, 359 and 392 commits, 248k and 60k loans a quarter.
-- The unified gaps G1 to G3 are real and measured, but are paid on one product. The decision in front of the team is not "unwind a giant shared workflow" — it is "the spine has proven itself on DF4W; do we migrate the legacy products onto it, and if so with product-owned spines and explicit variation rather than today's hidden config."
+- The unified gaps G1 to G3 are real and measured. But they are paid on one product. So the decision in front of the team is not "unwind a giant shared workflow". It is: the spine has proven itself on DF4W, so do we migrate the legacy products onto it? And if we do, do we use product-owned spines and explicit variation, rather than today's hidden config?
 
 ## 9. Data obtained and the queries used
 
-All six planned queries ran against the BPM database; results are in section 8. Connection was the proxy `sqlproxy.prod.bravo.bfi.co.id:15434`, database `postgres`, via psql, read-only.
+All six planned queries ran against the BPM database, and the results are in section 8. We connected through the proxy `sqlproxy.prod.bravo.bfi.co.id:15434`, to database `postgres`, using psql, read-only.
 
 - **Q1** effective activity list per option — `workflow_master_config_detail` ⋈ `workflow_selector_order` ⋈ `workflow_selector_type` ⋈ `workflow_selector_activity_sub_process` ⋈ `workflow_selector_activity`. (8.4)
 - **Q2** instances per definition per week — `act_hi_procinst`. (8.1)
 - **Q3** products per root definition — `application` ⋈ `loan` ⋈ `act_hi_procinst` on `process_id::text = id_`; selector cross-checked in `act_hi_varinst`. (8.2)
-- **Q4** config-skipped service tasks — `act_hi_actinst` duration distribution, unified keys, 7-day window (30/90-day windows exceed the statement timeout; the table holds ~50 M rows per 90 days). (8.3)
+- **Q4** config-skipped service tasks — the `act_hi_actinst` duration distribution over unified keys, in a 7-day window. 30-day and 90-day windows exceed the statement timeout, because the table holds about 50 million rows per 90 days. (8.3)
 - **Q5** distinct effective configs — `application_workflow_config`, hashing `workflow_config::text`. (8.5)
 - **Q6** human tasks per definition — `act_hi_taskinst`. (8.6)
 
-Full SQL is in `workflow-analysis.md` and in this file's git history; only Q4 was narrowed (7-day window, explicit unified-key list) to fit the timeout.
+The full SQL is in `workflow-analysis.md` and in this file's git history. Only Q4 was narrowed to fit the timeout, using a 7-day window and an explicit unified-key list.
 
 ### Still not obtainable from the database
 
-- **Business ownership per product** — not modelled anywhere; `candidateGroups` is empty on every user task, assignment happens in Java.
+- **Business ownership per product** — not modelled anywhere. `candidateGroups` is empty on every user task, and assignment happens in Java.
 - **The per-product branches inside the 19 Java activities that switch on `application.isDF4W()`** — only code review shows these; no runtime row distinguishes the branches.
 
 ### Found while querying, recorded separately
 
-While running Q2/Q3 I found 61 injected remote-code-execution process definitions in the BPM Camunda engine, one confirmed to have executed inside the production pod. That is a security exposure, not a workflow matter; it is written up in `SECURITY-FINDING-camunda-rce.md`. The Sharia engine was checked and is clean.
+While running Q2 and Q3, we found 61 injected remote-code-execution process definitions in the BPM Camunda engine. One of them ran inside the production pod. That is a security exposure, not a workflow matter, and it is written up in `SECURITY-FINDING-camunda-rce.md`. We checked the Sharia engine, and it is clean.
 
 ## 10. Best practice: the recommended strategy
 
-The target is not a preference; it is the settled shape for multi-product process orchestration on an engine like Camunda 7. Four principles, each with the industry pattern it comes from and what it means concretely for Bravo.
+The target is not a preference. It is the settled shape for multi-product process orchestration on an engine like Camunda 7. There are four principles. For each one, we name the industry pattern it comes from and what it means concretely for Bravo.
 
 ### 10.1 The model is the source of truth; data only parameterises it
 
 The effective path a loan takes must be derivable **from the process model alone**. Two kinds of variation must be told apart and placed differently:
 
-- **Structural variation** — which steps run, in what order, and which humans act — belongs *in the model*: a gateway, or a different sub-process. It is versioned, diffable, and shown on a diagram.
-- **Data variation** — a threshold, a branch/risk toggle, a rate — belongs *in configuration*. It changes often and does not change the shape of the journey.
+- **Structural variation** belongs *in the model*, as a gateway or a different sub-process. Structural variation means which steps run, in what order, and which humans act. Put it in the model and it is versioned, diffable, and visible on a diagram.
+- **Data variation** belongs *in configuration*. That means a threshold, a branch or risk toggle, or a rate. It changes often, and it does not change the shape of the journey.
 
-The failure mode Bravo is in is that structural variation ("DF4W runs Address Verification, NDF2W does not") is expressed as **data** — a `workflow_master_config_detail.is_active` row that makes a modelled task silently no-op. That inverts the rule: the model shows a step that does not run, and the truth lives in five join tables. Best practice: a step that does not run for a product is **not on that product's model**.
+Bravo's failure mode is that it expresses structural variation as **data**. "DF4W runs Address Verification, NDF2W does not" is structural. But it is expressed as a `workflow_master_config_detail.is_active` row, which makes a modelled task silently no-op.
+
+That inverts the rule. The model shows a step that does not run, and the truth lives in five join tables. Best practice is simple: a step that does not run for a product is **not on that product's model**.
 
 ### 10.2 Product-owned spines, domain-owned shared children (orchestrator / worker)
 
 This is the Camunda "one process per business-relevant journey, reusable sub-processes for shared capability" pattern, and the DDD bounded-context split applied to process:
 
-- **One thin executable spine per product** (`spine_ndf4w`, `spine_ndf2w`, …): 30–40 nodes, no domain logic, its only job is to name the ordered stages and call the right child for each. This is the artifact a product owner reads and signs.
+- **One thin executable spine per product** — `spine_ndf4w`, `spine_ndf2w`, and so on. Each is 30–40 nodes with no domain logic. Its only job is to name the ordered stages and call the right child for each one. This is the artefact a product owner reads and signs.
 - **Domain children shared by default** (`check`, `initial_scoring`, `survey`, `underwriting`, `operation`), each owned by the domain that understands it, with **no product `if/else` inside**.
-- **Fork a child only on structural difference.** Bravo already has the correct precedent: `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-family underwriting fork called from the shared underwriting orchestrator. That is the pattern; it is simply not applied consistently.
+- **Fork a child only on a structural difference.** Bravo already has the right precedent. `Unified_Process_Workflow_Underwriting_Regular` is a DF2W-family underwriting fork, called from the shared underwriting orchestrator. That is the pattern. It is simply not applied consistently.
 
-Camunda 7 makes this cheap: a call activity's `calledElement` can be an expression, so a spine dispatches to `survey` for most products and `survey_sharia` for one, with no gateway and no flag.
+Camunda 7 makes this cheap. A call activity's `calledElement` can be an expression. So a spine dispatches to `survey` for most products and `survey_sharia` for one, with no gateway and no flag.
 
 ### 10.3 Keep product out of the domain code (stable service contracts)
 
-Domain activities are workers behind a stable interface. Product-specific behaviour is chosen by the spine (which child it calls) or by explicit configuration passed in, **never** by `application.isDF4W()` inside a shared bean. A shared `KYCCheckActivity` should do KYC the same way for everyone; if DF4W needs an extra check, that is a different step on the DF4W spine, not a hidden branch in the shared one.
+Domain activities are workers behind a stable interface. Product-specific behaviour is chosen in one of two ways: by the spine, through which child it calls, or by explicit configuration passed in. It is **never** chosen by `application.isDF4W()` inside a shared bean.
+
+A shared `KYCCheckActivity` should do KYC the same way for everyone. If DF4W needs an extra check, that is a different step on the DF4W spine. It is not a hidden branch in the shared one.
 
 ### 10.4 Platform governance: least privilege, migration, and a per-product test matrix
 
-- **Least-privilege engine.** The workflow engine's REST/cockpit surface must be authenticated and network-restricted. (Bravo's `/camunda` is `permitAll`, though **corrected 2026-09-10 that is not how the 61 hostile process definitions arrived** — the deploy path `/engine-rest/**` required a credential. Both still need closing. 61 hostile process definitions were deployed — see `SECURITY-FINDING-camunda-rce.md`. Hardening this is a prerequisite for any of the below, not an optional extra.)
-- **Explicit versioning and instance migration.** Changing one product must not redeploy the shared graph that four other products are mid-flight on. Product-owned spines give each product its own deployment unit and its own `processDefinitionKey` to migrate.
-- **Per-product observability.** Each product's effective flow is generated on every build and published; the CI pipeline diffs it so a change to a shared child that alters a product's path is visible in review.
+- **Least-privilege engine.** The workflow engine's REST and Cockpit surface must be authenticated and network-restricted. Bravo's `/camunda` is `permitAll`. **Corrected 2026-09-10: that is not how the 61 hostile process definitions arrived** — the deploy path `/engine-rest/**` required a credential. Both still need closing. See `SECURITY-FINDING-camunda-rce.md`. Hardening this is a prerequisite for everything below, not an optional extra.
+- **Explicit versioning and instance migration.** Changing one product must not redeploy the shared graph that four other products are mid-flight on. Product-owned spines give each product its own deployment unit, and its own `processDefinitionKey` to migrate.
+- **Per-product observability.** Generate each product's effective flow on every build, and publish it. Have the CI pipeline diff it. Then a change to a shared child that alters a product's path is visible in review.
 
 ### 10.5 Migrate by strangler, never big-bang
 
-Stand the new shape up beside the old, route new volume product-by-product, and retire each monolith only once its replacement carries production traffic cleanly. Bravo has already, accidentally, proven this is safe: the unified spine has run **DF4W** in production for months at 5.5% of volume (§8.2). That is a working strangler beachhead — the strategy is to make it deliberate.
+Stand the new shape up beside the old. Route new volume product by product. Retire each monolith only once its replacement carries production traffic cleanly.
+
+Bravo has already proved this is safe, by accident. The unified spine has run **DF4W** in production for months, at 5.5% of volume (§8.2). That is a working strangler beachhead. The strategy is simply to make it deliberate.
 
 ## 11. The gap from current Bravo to best practice
 
@@ -293,11 +318,11 @@ Each principle above, versus what production and the code actually show (§8, §
 | G | Migrate by strangler | Happening by accident (DF4W on spine, 5.5%), flat, undeliberate | No migration plan; legacy carries ~94% and the whole retail book | Medium |
 | H | Dead/duplicated assets removed | `PREAPPROVAL`/`DF4W`/`DF2W`/`DF2W_Sharia` map keys with no process; `…Scoring_1_Mock_Ro` unreferenced; 145 delegates for 2 legacy products | Cleanup backlog; duplication is how NDF4W/NDF2W drifted | Low–Medium |
 
-**The one-sentence gap.** Bravo has the right *building blocks* — an orchestrator/worker split, shared domain children, and one correct fork — but expresses product variation in three places the model cannot show (config no-ops, Java `isXxx()`, feature flags), so no product has a readable, owned, independently-deployable spine, and the legacy monoliths that still carry 94% of volume were never migrated at all.
+**The gap, stated plainly.** Bravo has the right *building blocks*: an orchestrator and worker split, shared domain children, and one correct fork. But it expresses product variation in three places the model cannot show — config no-ops, Java `isXxx()` calls, and feature flags. So no product has a readable, owned, independently deployable spine. And the legacy monoliths that still carry 94% of volume were never migrated at all.
 
 ## 12. Plan: 30 / 60 / 90 days
 
-Sequenced by risk and payoff. Phase 1 buys visibility and stops the bleeding without moving a workflow; phase 2 proves the target shape on the product already on the spine (DF4W, lowest risk); phase 3 attacks the highest-volume legacy product (NDF2W, 248k/quarter). Each phase has an exit metric.
+This is sequenced by risk and payoff. Phase 1 buys visibility and stops the bleeding, without moving a workflow. Phase 2 proves the target shape on the product already on the spine, DF4W, which is the lowest risk. Phase 3 attacks the highest-volume legacy product, NDF2W, at 248,000 a quarter. Each phase has an exit metric.
 
 ```mermaid
 flowchart LR
@@ -340,10 +365,10 @@ flowchart LR
 
 **Programme-level metrics** (report monthly):
 
-- % of new-application volume running on explicit product spines (today: 0; DF4W-on-shared-spine 5.5% does not count until it is `spine_df4w`).
+- The percentage of new-application volume running on explicit product spines. Today that is 0. DF4W on the shared spine, at 5.5%, does not count until it is `spine_df4w`.
 - Count of `application.isXxx()` sites in `activity/unified/**` (today: 19; target: 0).
-- Config-gated no-op service-task executions per day (today: heavy on the KYC path per §8.3; target: near-zero as gating becomes model structure).
+- Config-gated no-op service-task executions per day. Today this is heavy on the KYC path, per §8.3. The target is near zero, as gating becomes model structure.
 - Distinct delegate beans per legacy product pair (today: 145 for 2W+4W; target: falling).
 - Products with a current owner-readable spine diagram (today: 0; target: all live products).
 
-**Explicitly out of scope for 90 days.** Rewriting the survey/underwriting *domain logic*; migrating Sharia's separate deployment; and any change to the LORA/Temporal track — those are separate programmes (see `compare.md`). This plan is only about the *shape* of the Bravo workflows and moving product variation out of hiding and onto owned, readable spines.
+**Explicitly out of scope for 90 days.** Rewriting the survey or underwriting *domain logic*. Migrating Sharia's separate deployment. And any change to the LORA or Temporal track. Those are separate programmes — see `compare.md`. This plan is only about the *shape* of the Bravo workflows, and about moving product variation out of hiding and onto owned, readable spines.

@@ -3,11 +3,13 @@
 **Audience:** Platform, finance, the CTO office sizing the migration
 **Questions:** What does Bravo cost on a like-for-like basis with LORA? What drives it? Which levers are real, how much are they worth, and when are they available?
 
-**Method.** GCP billing read live through the FinOps dashboard API ([`bfi-finops-dashboard`](https://github.com/bfi-finance/bfi-finops-dashboard) MCP server) on 2026-09-10 for the **complete month of August 2026**: per-project totals, the `bravo-project-331802` service breakdown, and Cloud SQL line items filtered to the BPM instance. Application counts and the LORA tier figures are carried from [LORA cost.md](../../lora-workspace/docs/production-findings/cost.md) and [compare-architecture.md §3.12, §8.4](compare-architecture.md); the engine-meter application count is from [workflow-gap.md §8](workflow-gap.md). All figures are GCP **net cost in IDR**.
+**Method.** We read GCP billing live through the FinOps dashboard API (the [`bfi-finops-dashboard`](https://github.com/bfi-finance/bfi-finops-dashboard) MCP server) on 2026-09-10, for the **complete month of August 2026**. That gave us per-project totals, the `bravo-project-331802` service breakdown, and Cloud SQL line items filtered to the BPM instance.
+
+Application counts and the LORA tier figures are carried from [LORA cost.md](../../lora-workspace/docs/production-findings/cost.md) and [compare-architecture.md §3.12, §8.4](compare-architecture.md). The engine-meter application count comes from [workflow-gap.md §8](workflow-gap.md). All figures are GCP **net cost in IDR**.
 
 > **Corrected 2026-09-11, from the team.** Three changes, and the first moves every per-application figure below.
 >
-> 1. **Bravo's August application count is 118,253, not 76,446** — the old number was a partial-month extract (76,446/118,253 = 0.646, against a 0.601 cost-completeness factor on the same row). August volume was therefore **flat**, not −35%. All derived rates here have been recomputed. The corrected count now agrees with Bravo's engine meter (≈113k) to within 5%, where the two previously differed by 48%.
+> 1. **Bravo's August application count is 118,253, not 76,446.** The old number came from a partial-month extract. 76,446/118,253 = 0.646, against a 0.601 cost-completeness factor on the same row. So August volume was **flat**, not −35%. Every rate derived from it has been recomputed here. The corrected count now agrees with Bravo's engine meter (≈113k) to within 5%. The two used to differ by 48%.
 > 2. **`Surveyor Platform - Release reject` was fixed and deployed 2026-09-10.** Everything measured here predates the fix.
 > 3. **LORA runs as three sub-teams (LORA 1, 2, 3)** with end-to-end task execution, per the VMP LORA plan — so the bus-factor risk is Bravo-specific.
 >
@@ -34,13 +36,13 @@
 | The cost work worth doing is on the engine | **Refuted, and three larger levers are named here.** Cloud Logging at **Rp140.5M/month** — 2.4× the whole orchestration tier — sits behind a globally enabled `loggerLevel: full` and an error stream that is 47% stack-trace frames. The Maps API stack is **Rp64.0M/month**. Non-production is **Rp573.5M**, 31% of all Bravo spend. |
 | Bravo's cost is a reason to keep it | **Partly, and it is the strongest argument on Bravo's side of the ledger.** But the tier that would retire is small (≈Rp58M) and the platform it would retire *to* costs more per application today. The cost case for migration is that LORA's marginal cost is near zero and one platform goes away — not that Bravo is expensive. |
 
-**The through-line:** Bravo's LOS orchestration is genuinely cheap, and almost none of Bravo's bill is orchestration. The money is in a database, a log pipeline and a non-production estate, and two of those three are misconfiguration rather than workload.
+**The through-line.** Bravo's LOS orchestration really is cheap. And almost none of Bravo's bill is orchestration. The money sits in a database, a log pipeline and a non-production estate. Two of those three are misconfiguration, not workload.
 
 ---
 
 ## 1. What Bravo bills, and what that means
 
-Bravo has no metered orchestration invoice. There is no Actions counter, no per-workflow storage line, nothing analogous to Temporal Cloud. Camunda 7 is an **embedded library** inside a Spring Boot service, so every cost it creates lands somewhere else on the GCP bill:
+Nobody sends us a bill for running Bravo's workflows. There is no Actions counter and no per-workflow storage line. There is nothing like Temporal Cloud. Camunda 7 is an **embedded library** inside a Spring Boot service. So every cost it creates lands somewhere else on the GCP bill:
 
 | Where the engine's cost shows up | Line | Notes |
 |---|---|---|
@@ -49,7 +51,9 @@ Bravo has no metered orchestration invoice. There is no Actions counter, no per-
 | Every log line the engine and its controllers emit | **Cloud Logging** | 1,116,135 lines/week from `prod-ms-bpm` alone |
 | Outbound calls to 25 upstreams | those services' own bills | |
 
-**The comparison this makes possible, and the trap in it.** Because the engine is embedded, "the cost of Bravo's orchestration" is not separable from "the cost of Bravo's human-task application" — they are the same deployment. `ms-bpm` contains the BPMN engine *and* the ~217k LOC of surveyor, operation, underwriting and approval services (44% of the codebase). So the ≈Rp58M tier below is **orchestration plus all human-task handling**, which is the correct like-for-like against LORA's ≈Rp431M (workers + gateway + task service + schema service + Temporal + ArangoDB). Both sides include the human-task layer. That is what makes the ratio meaningful.
+**What this makes possible, and the trap in it.** The engine is embedded, so you cannot separate "the cost of Bravo's orchestration" from "the cost of Bravo's human-task application". They are the same deployment. `ms-bpm` contains the BPMN engine *and* about 217,000 lines of surveyor, operation, underwriting and approval services — 44% of the codebase.
+
+So the ≈Rp58M tier below covers **orchestration plus all human-task handling**. That is the correct like-for-like against LORA's ≈Rp431M, which covers workers, gateway, task service, schema service, Temporal and ArangoDB. Both sides include the human-task layer. That is what makes the ratio meaningful.
 
 ---
 
@@ -66,7 +70,7 @@ Per-project, complete month, read 2026-09-10:
 | **Bravo total** | **Rp 1,887,525,286** |
 | *BFI GCP estate, all 34 projects* | *Rp 3,708,544,980* |
 
-**Bravo is 50.9% of BFI's entire GCP bill.** That number is arresting and it is the one most likely to be misread, so state it precisely: it is the bill for the platform that hosts most of BFI's origination *and* the ~26 shared `ms-*` data-plane services that both platforms depend on. It is not the price of the workflow engine.
+**Bravo is 50.9% of BFI's entire GCP bill.** That number is striking, and it is the one most likely to be misread. So state it precisely. It is the bill for the platform that hosts most of BFI's origination. It also covers the roughly 26 shared `ms-*` data-plane services that both platforms depend on. It is not the price of the workflow engine.
 
 Service breakdown of the production project:
 
@@ -109,9 +113,11 @@ Two groupings worth naming because neither appears as a line:
 | `ms-bpm` pods, SIT + UAT | ≈ Rp 12,100,000 | |
 | **With non-prod pods** | **≈ Rp 70,100,000** | SIT/UAT/Sharia *databases* not separately pulled; true figure is higher |
 
-**The corroboration matters.** The Rp52.7M instance figure was previously derived once; an independent line-item pull today puts vCPU + RAM alone at **Rp40.93M across 30 days**, which is consistent and rules out an order-of-magnitude error. The BPM instance is **11.7% of the production project's Cloud SQL bill** — it is a significant database, but it is one of many (`prod-postgres-onboarding-d2onb`, `prod-postgres-asset-pricing-d2apc`, `prod-postgres-repeat-order-d2rod`, `prod-postgres-document-d2doc` and the Sharia variants all appear in the same sample).
+**The corroboration matters.** We derived the Rp52.7M instance figure once before. An independent line-item pull today puts vCPU plus RAM alone at **Rp40.93M across 30 days**. That is consistent, and it rules out an order-of-magnitude error.
 
-**The tier is 4.5% of its own production project and 3.1% of Bravo's total GCP spend.** Whatever else is true, the workflow engine is not where Bravo's money goes.
+The BPM instance is **11.7% of the production project's Cloud SQL bill**. It is a significant database, but it is one of many. `prod-postgres-onboarding-d2onb`, `prod-postgres-asset-pricing-d2apc`, `prod-postgres-repeat-order-d2rod`, `prod-postgres-document-d2doc` and the Sharia variants all appear in the same sample.
+
+**The tier is 4.5% of its own production project, and 3.1% of Bravo's total GCP spend.** Whatever else is true, the workflow engine is not where Bravo's money goes.
 
 ### Against LORA, like for like
 
@@ -123,9 +129,11 @@ Two groupings worth naming because neither appears as a line:
 | **Per application** | **≈ Rp 490–515** | **≈ Rp 2,500–3,200** |
 | Cost shape | ~variable with pods, ~fixed on the database | ~86% fixed: contracts and over-provisioned capacity |
 
-**LORA's orchestration costs ≈7× more in absolute terms and 5–6.5× more per application.** The reasons are not the paradigm — a fixed Temporal commitment bought in March 2026, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five are idle. Bravo's tier is one deployment and one database.
+**LORA's orchestration costs about 7× more in absolute terms, and 5–6.5× more per application.** The reasons have nothing to do with the paradigm. They are a fixed Temporal commitment bought in March 2026, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five sit idle. Bravo's tier is one deployment and one database.
 
-**The denominators are the weakest part of both columns**, exactly as [ticket-analysis.md §4.3](production-findings/ticket-analysis.md) warns: the billing sheet's platform totals go 109.5k → 237.5k → 247.9k in two months, which nothing else supports, and the likeliest reading is that a LORA-originated application is counted again in Bravo when it books at go-live. If that is right, **Bravo's denominator is inflated and its true per-application cost is higher than Rp490–515** — but not by enough to close a 5–6.5× gap. **Corrected 2026-09-11:** the sheet's Bravo count was also *too low* (a partial month), and at 118,253 it now agrees with the engine meter to within 5%, so this denominator is better evidenced than when the caveat was written.
+**The denominators are the weakest part of both columns.** [ticket-analysis.md §4.3](production-findings/ticket-analysis.md) warns about exactly this. The billing sheet's platform totals run 109,500 → 237,500 → 247,900 in two months, and nothing else supports that. The likeliest explanation is that a LORA-originated application gets counted again in Bravo when it books at go-live. If that is right, **Bravo's denominator is inflated and its true per-application cost is higher than Rp490–515.** It is not inflated by enough to close a 5–6.5× gap.
+
+**Corrected 2026-09-11.** The sheet's Bravo count was also *too low*, because it covered a partial month. At 118,253 it now agrees with the engine meter to within 5%. So this denominator is better evidenced than it was when the caveat was written.
 
 ---
 
@@ -138,13 +146,13 @@ Two groupings worth naming because neither appears as a line:
 | Bravo stuck-application rate | 0.364% | 0.348% | **0.452%** | worsening |
 | LOS tier cost | ~flat — one deployment, one database | | | flat |
 
-**Bravo's platform cost is essentially fixed, and its volume falls as the migration proceeds — though August was flat.** Cost per application therefore rises for every application migrated away, with no engineering cause. Meanwhile the *ops* cost per application is rising faster: the stuck-application rate rose about 30% between July and August (0.348% → 0.452%), on flat volume.
+**Bravo's platform cost is essentially fixed, and its volume falls as the migration proceeds. August was flat, though.** So cost per application rises for every application migrated away, with no engineering cause at all. Meanwhile the *ops* cost per application is rising faster. The stuck-application rate rose about 30% between July and August, from 0.348% to 0.452%, on flat volume.
 
-The pack's standing explanation applies and should be held loosely: a draining platform keeps the residual hard cases — the products, branches and edge cases migrated last. That is a real confound and it is not controlled for. It is also consistent with a fixed-flowchart architecture under continuing product change, which is what [ticket-analysis.md §3](production-findings/ticket-analysis.md) argues.
+The pack's standing explanation applies here, and it should be held loosely. A draining platform keeps the hard cases: the products, branches and edge cases that migrate last. That is a real confound, and we have not controlled for it. It is also consistent with a fixed-flowchart architecture under continuing product change, which is what [ticket-analysis.md §3](production-findings/ticket-analysis.md) argues.
 
-**What this means for a decision.** Bravo's per-application cost advantage is real today and is eroding on its own. It is not a floor to plan against: at 40k applications a month the same ≈Rp58M is ≈Rp1,450 each, and the gap to LORA halves without either team doing anything.
+**What this means for a decision.** Bravo's per-application cost advantage is real today, and it is eroding on its own. Do not plan against it as a floor. At 40,000 applications a month the same ≈Rp58M works out at ≈Rp1,450 each, and the gap to LORA halves without either team doing anything.
 
-**LORA's direction is the opposite and this is the load-bearing fact for the migration case:** LORA's cost is ~86% fixed, so it absorbed **+23% Temporal-metered volume for +3% spend** between June and August. Its marginal cost per additional application is near zero. Bravo's is not zero — it is pods and database — but it is small.
+**LORA is moving the other way, and this is the load-bearing fact for the migration case.** LORA's cost is about 86% fixed. Between June and August it absorbed **23% more Temporal-metered volume for 3% more spend**. Its marginal cost per additional application is near zero. Bravo's is not zero — it is pods and database — but it is small.
 
 ---
 
@@ -165,26 +173,30 @@ The pack's standing explanation applies and should be held loosely: a draining p
 
 `prod-ms-bpm` alone emits **1,116,135 log lines a week**, of which **525,181 (47%) are ERROR**. Two configuration choices explain most of that, and both are recorded in the code:
 
-- **`loggerLevel: full` is set globally on Feign** ([compare-architecture.md Appendix C](compare-architecture.md)), so every one of the 113 clients logs complete request and response bodies. That is PEFINDO, SLIK, Dukcapil and CONFINS payloads going into Cloud Logging as JSON — a cost line and a data-protection exposure in the same breath.
-- **Stack traces are logged one frame per line.** The top error "patterns" in the log stream are literally `at org.springframework.…` (874/week) and `at java.base/…`. One exception becomes dozens of billable lines. And one Camunda job failure produces **two** lines at **two severities** (`ENGINE-14006` at `warn`, `ENGINE-16004` at `error`).
+- **`loggerLevel: full` is set globally on Feign** ([compare-architecture.md Appendix C](compare-architecture.md)). So all 113 clients log complete request and response bodies. That means PEFINDO, SLIK, Dukcapil and CONFINS payloads go into Cloud Logging as JSON. It is a cost line and a data-protection exposure at the same time.
+- **Stack traces are logged one frame per line.** The top error "patterns" in the log stream are literally `at org.springframework.…`, at 874 a week, and `at java.base/…`. One exception becomes dozens of billable lines. And one Camunda job failure produces **two** lines at **two severities**: `ENGINE-14006` at `warn` and `ENGINE-16004` at `error`.
 
 Add **38,198 `ENGINE-09004` BPMN parse warnings a week** ([bravo-testing.md §4](bravo-testing.md)) — pods re-parsing all 53 model files on every boot.
 
-**This is the largest single addressable line in Bravo's bill, it is larger than the thing the migration would retire, and the fix is configuration.** Even a conservative 40% reduction is ≈Rp56M/month — the whole LOS orchestration tier, recovered without migrating anything.
+**This is the largest single line in Bravo's bill that anyone can act on.** It is bigger than the thing the migration would retire, and the fix is configuration. Even a conservative 40% cut is ≈Rp56M a month. That is the whole LOS orchestration tier, recovered without migrating anything.
 
 ### Defect 2 — Rp64.0M of Maps against 20,690 geolocation failures a week
 
-The Geocoding, Places and Maps APIs are surveyor-platform costs: a field surveyor's device resolving addresses and capturing position. **The console is `bravo-surveyor-console` (`@react-google-maps/api`, 307k LOC, delivered by squad `LN` — repository identified 2026-09-10, [bravo-testing.md §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)), so there is now a named repository and squad to take this defect to.** Meanwhile RUM on the Surveyor Platform records `Error getting location: "[GeolocationPositionError]"` **10,365 times** and `Unable to get current position` **10,325 times** in seven days ([bravo-observability.md §6](bravo-observability.md)).
+The Geocoding, Places and Maps APIs are surveyor-platform costs. They are a field surveyor's device resolving addresses and capturing position. **The console is `bravo-surveyor-console`** — it uses `@react-google-maps/api`, runs to 307,000 lines, and is delivered by squad `LN`. We identified the repository on 2026-09-10 ([bravo-testing.md §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)). So there is now a named repository and a named squad to take this defect to.
 
-These two facts have not been connected before and this document does not claim the connection is causal — a browser geolocation failure and a Maps API call are different layers. But **Rp64M/month is being spent on location services on a console where location capture fails ~20,700 times a week**, and nobody has checked whether the failed attempts are also billed attempts. That is a day of work with a real number attached.
+Meanwhile RUM on the Surveyor Platform records `Error getting location: "[GeolocationPositionError]"` **10,365 times** and `Unable to get current position` **10,325 times** in seven days ([bravo-observability.md §6](bravo-observability.md)).
+
+Nobody has connected these two facts before, and this document does not claim the connection is causal. A browser geolocation failure and a Maps API call sit at different layers. But **we are spending Rp64M a month on location services, on a console where location capture fails about 20,700 times a week.** And nobody has checked whether the failed attempts are also billed attempts. That is a day of work with a real number attached.
 
 ### Defect 3 — non-production is 31% of Bravo's spend
 
-`bravo-project-nonprod` bills **Rp573.5M/month**, against Rp1,300.3M in production — a **0.44 non-prod-to-prod ratio**. For comparison, roughly half of LORA's task-service and ArangoDB GKE lines are SIT/UAT, but LORA's non-prod is inside a much smaller total. Nothing in this analysis establishes what is running in `bravo-project-nonprod` or whether it should be. At this size it is the second-largest lever available and it has never been examined.
+`bravo-project-nonprod` bills **Rp573.5M a month**, against Rp1,300.3M in production. That is a **0.44 non-prod-to-prod ratio**. For comparison, roughly half of LORA's task-service and ArangoDB GKE lines are SIT or UAT, but LORA's non-prod sits inside a much smaller total.
+
+Nothing in this analysis establishes what is running in `bravo-project-nonprod`, or whether it should be. At this size it is the second-largest lever available, and nobody has ever examined it.
 
 ### The 404 storm has a cost tail
 
-`/bpm/v1/partnership-configuration/feature-configuration` returns 404 **266,767 times a week** and `PartnershipConfigurationController.getByApplicationId` is the **single busiest handler in the service** (73,056 spans in 48 hours). Every one of those is a servlet request, a JPA `repository.operation` against `prod-postgres-bpm-d2bpm`, and at least one log line. It is a small slice of a large database bill — but it is a slice being spent to produce an error, on two-thirds of surveyor sessions.
+`/bpm/v1/partnership-configuration/feature-configuration` returns 404 **266,767 times a week**. And `PartnershipConfigurationController.getByApplicationId` is the **single busiest handler in the service**, with 73,056 spans in 48 hours. Every one of those is a servlet request, a JPA `repository.operation` against `prod-postgres-bpm-d2bpm`, and at least one log line. It is a small slice of a large database bill. But it is a slice being spent to produce an error, on two-thirds of surveyor sessions.
 
 ---
 
@@ -202,22 +214,24 @@ These two facts have not been connected before and this document does not claim 
 
 Two conclusions follow, and they are uncomfortable together.
 
-**The migration is still the single largest structural lever (8–14× the Temporal Actions programme), and it is not the largest lever available this quarter.** Cloud Logging is bigger, available now, and does not depend on anything. A team that fixed logging configuration alone would save more in September than retiring the entire Bravo LOS tier will save when the migration completes.
+**The migration is still the single largest structural lever, at 8–14× the Temporal Actions programme. It is not the largest lever available this quarter.** Cloud Logging is bigger, it is available now, and it depends on nothing. A team that fixed logging configuration alone would save more in September than retiring the entire Bravo LOS tier will save when the migration completes.
 
-**And retiring Bravo does not make LORA's tier cheaper.** LORA's ≈Rp431M is 86% fixed, and three of its four cost levers are time-locked: ~31% of node cost sits on a 3-year N2 CPU commitment; the Temporal commitment is renegotiable at **~March 2027**; and the five idle worker versions cannot retire while ~half of LORA's loans never reach a terminal state — a reliability defect presenting as a cost line. The migration's cost case is *one platform instead of two, at near-zero marginal cost per application*, not *the cheaper platform wins*.
+**And retiring Bravo does not make LORA's tier cheaper.** LORA's ≈Rp431M is 86% fixed, and three of its four cost levers are time-locked. About 31% of node cost sits on a 3-year N2 CPU commitment. The Temporal commitment cannot be renegotiated until **around March 2027**. And the five idle worker versions cannot retire while about half of LORA's loans never reach a terminal state — a reliability defect showing up as a cost line.
+
+So the migration's cost case is *one platform instead of two, at near-zero marginal cost per application*. It is not *the cheaper platform wins*.
 
 ---
 
 ## Recommended actions
 
-1. **Cut the Cloud Logging bill (S, do this first — Rp50–90M/month).** Turn off Feign `loggerLevel: full` globally and enable it per-client only where needed; this also removes upstream request bodies containing customer data from Cloud Logging. Log exceptions as a single structured event rather than one line per stack frame. Stop `ENGINE-09004` recurring by fixing the models ([bravo-testing.md](bravo-testing.md) recommendation 2). This is the largest, fastest, lowest-risk saving in the document.
-2. **Open `bravo-project-nonprod` (S to look, unknown to fix — up to Rp573.5M/month).** 31% of Bravo's spend has never been examined in this pack. Produce a service-level breakdown and a list of what is running and why. Even a 20% reduction outbids the migration lever.
-3. **Check whether failed geolocation attempts are billed (S — up to Rp64.0M/month).** Rp64M of Maps APIs on a console with 20,690 geolocation failures a week. Establish whether the two are related before deciding anything. **Owner identified 2026-09-10:** the call sites are in `bravo-surveyor-console` (`@react-google-maps/api`), squad **`LN` — Team Surveyor & Verificator**; the repository has 286 PR-gating tests to add a regression to once the behaviour is fixed.
-4. **Decide the Camunda history question explicitly (S–M).** History level `full` with `P90D` on Cloud SQL is a real cost and, after day 91, the only remaining record of what happened to a loan is the trigger-written `application_status_log`. Either shorten the TTL and accept that, or keep it and stop calling it a cost problem — but make it a decision rather than a default.
-5. **Fix the `feature-configuration` 404 (S).** 266,767 wasted round trips a week through the busiest handler in the service. Small money, real load, and it is a live defect regardless ([bravo-observability.md](bravo-observability.md) recommendation 1).
-6. **Get the billing owner to define the application counts (Days — this is the single largest source of error in the whole pack).** Every per-application figure here and in [ticket-analysis.md](production-findings/ticket-analysis.md) is a verified numerator over a disputed denominator. The `Bravo total app` and `Lora total app` columns need definitions, specifically on whether a LORA-originated application is counted again in Bravo at go-live.
-7. **Publish the LOS tier as a standing line (S).** ≈Rp58M is the number that matters for the migration decision, and it currently has to be reassembled by hand from line items each time. A saved FinOps view of `ms-bpm` pods plus `prod-postgres-bpm-d2bpm` makes the migration's value trackable month to month.
-8. **Do not quote Rp1.6B as the migration saving (S, documentation).** The Bravo estate is Rp1.887B and most of it is the shared data plane LORA depends on and which does not retire. The figure is **Rp58M prod, Rp70–100M with non-prod**. That claim was already withdrawn once; it should not come back.
+1. **Cut the Cloud Logging bill. Small effort, do this first. Worth Rp50–90M a month.** Turn off Feign `loggerLevel: full` globally, and enable it per client only where it is needed. That also takes upstream request bodies containing customer data out of Cloud Logging. Log exceptions as a single structured event instead of one line per stack frame. And stop `ENGINE-09004` recurring by fixing the models ([bravo-testing.md](bravo-testing.md) recommendation 2). This is the largest, fastest, lowest-risk saving in the document.
+2. **Open `bravo-project-nonprod`. Small effort to look, unknown to fix. Worth up to Rp573.5M a month.** This pack has never examined 31% of Bravo's spend. Produce a service-level breakdown, and a list of what is running and why. Even a 20% cut beats the migration lever.
+3. **Check whether failed geolocation attempts are billed. Small effort. Worth up to Rp64.0M a month.** We spend Rp64M on Maps APIs, on a console with 20,690 geolocation failures a week. Find out whether the two are related before deciding anything. **Owner identified 2026-09-10.** The call sites are in `bravo-surveyor-console`, using `@react-google-maps/api`, owned by squad **`LN`, Team Surveyor & Verificator**. That repository has 286 PR-gating tests, so there is somewhere to add a regression once the behaviour is fixed.
+4. **Decide the Camunda history question explicitly. Small to medium effort.** History level `full` with `P90D` on Cloud SQL is a real cost. And after day 91, the only remaining record of what happened to a loan is the trigger-written `application_status_log`. So either shorten the TTL and accept that, or keep it and stop calling it a cost problem. Either way, make it a decision rather than a default.
+5. **Fix the `feature-configuration` 404. Small effort.** That is 266,767 wasted round trips a week, through the busiest handler in the service. The money is small and the load is real. It is a live defect either way ([bravo-observability.md](bravo-observability.md) recommendation 1).
+6. **Get the billing owner to define the application counts. Days of work, and this is the single largest source of error in the whole pack.** Every per-application figure here and in [ticket-analysis.md](production-findings/ticket-analysis.md) is a verified numerator over a disputed denominator. The `Bravo total app` and `Lora total app` columns need definitions. In particular, we need to know whether a LORA-originated application is counted again in Bravo at go-live.
+7. **Publish the LOS tier as a standing line. Small effort.** ≈Rp58M is the number that matters for the migration decision. Today it has to be reassembled by hand from line items every time. A saved FinOps view of `ms-bpm` pods plus `prod-postgres-bpm-d2bpm` would make the migration's value trackable month to month.
+8. **Do not quote Rp1.6B as the migration saving. Small effort, documentation only.** The Bravo estate is Rp1.887B, and most of that is the shared data plane. LORA depends on it, and it does not retire. The real figure is **Rp58M in production, or Rp70–100M including non-prod**. That claim was withdrawn once already. It should not come back.
 
 ---
 
@@ -225,9 +239,9 @@ Two conclusions follow, and they are uncomfortable together.
 
 Eight recommendations, phased. Most of this is FinOps and Platform time, not Squad S&U engineering — which matters, because the largest saving here is configuration, not migration.
 
-**Sequencing rule for this document: money that is configuration comes before money that is migration.** Cloud Logging at **Rp140.5M/month is 2.4× the entire ≈Rp58M tier the migration would retire**, and it is a config change available now. It starts in week 1. The migration lever is not in this plan at all — it lands when the migration finishes, and nothing here accelerates it.
+**The rule for ordering this work: money that is configuration comes before money that is migration.** Cloud Logging costs **Rp140.5M a month, which is 2.4× the entire ≈Rp58M tier the migration would retire.** And it is a config change available now. So it starts in week 1. The migration lever is not in this plan at all. It lands when the migration finishes, and nothing here speeds that up.
 
-**Shared with other documents.** Recommendation 5 is also [bravo-observability.md](bravo-observability.md) rec 1 and [bravo-delivery.md](bravo-delivery.md) rec 1; recommendation 3 pairs with [bravo-delivery.md](bravo-delivery.md) rec 2. Phased identically — do them once.
+**Shared with other documents.** Recommendation 5 is also recommendation 1 in [bravo-observability.md](bravo-observability.md) and recommendation 1 in [bravo-delivery.md](bravo-delivery.md). Recommendation 3 pairs with recommendation 2 in [bravo-delivery.md](bravo-delivery.md). They are phased the same way, so do them once.
 
 ### Days 0–30 — start the largest saving, and fix the denominators
 

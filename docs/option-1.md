@@ -4,9 +4,13 @@
 
 **Status of the wider decision.** No decision has been taken about Bravo's long-term platform. This document assesses Option 1 on its own merits.
 
-> **Correction, 2026-09-10.** An earlier version of this document concluded that the free upgrade path ended at Camunda 7.24.0 Community Edition, that Spring Boot 4 therefore required a Camunda 7 **Enterprise licence**, and that the work was **11–19 engineer-months**. All three were wrong. The Camunda 7 **community forks** — Operaton and CIB seven, both Apache 2.0 — run on Spring Boot 4, keep the `ACT_` schema unchanged and ship automated migration recipes. The measured work is **18–33 engineer-days**, and **no licence is required**. The correction comes from the Bravo team's decision memo, [Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf) (2026-09-09), whose counts were re-verified against the tree for this revision (§8).
+> **Correction, 2026-09-10.** An earlier version of this document said three things. That the free upgrade path ended at Camunda 7.24.0 Community Edition. That Spring Boot 4 therefore needed a Camunda 7 **Enterprise licence**. And that the work was **11–19 engineer-months**. All three were wrong.
+>
+> The Camunda 7 **community forks**, Operaton and CIB seven, are both Apache 2.0. Both run on Spring Boot 4. Both keep the `ACT_` schema unchanged and ship automated migration recipes. The measured work is **18–33 engineer-days**, and **no licence is required**.
+>
+> The correction comes from the Bravo team's decision memo, [Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf) (2026-09-09). We re-verified its counts against the tree for this revision (§8).
 
-**Verdict in one line.** Option 1 is roughly **1–1.5 engineer-months** and lands Bravo on a fully supported engine *and* a supported Spring Boot, with no licence, no data migration and a clean rollback — which makes it the cheapest of the three options by an order of magnitude and removes the end-of-support exposure outright rather than deferring it.
+**Verdict in one line.** Option 1 costs roughly **1–1.5 engineer-months**. It lands Bravo on a fully supported engine *and* a supported Spring Boot. There is no licence to buy, no data migration, and rollback is clean. That makes it the cheapest of the three options by an order of magnitude, and it removes the end-of-support exposure outright rather than postponing it.
 
 ---
 
@@ -21,11 +25,15 @@ Bravo's runtime, as pinned in [`pom.xml`](../../squads/Scoring%20and%20Underwrit
 | Spring Cloud | 2025.0.1 (Northfields) | Tied to Boot 3.5 |
 | Java | 17 (`gcr.io/distroless/java17-debian12`) | **Stays.** Boot 4 supports JDK 17–26 and both forks build against 17 — no JDK change required |
 
-Neither of these was a decision. Camunda 7 went end-of-life underneath the service, and Spring Boot 3.5 reached its published cut-off. Bravo receives no security patches for either, and sits one minor version behind even the final Community Edition release.
+Neither of these was a decision. Camunda 7 went end-of-life underneath the service. Spring Boot 3.5 reached its published cut-off. Bravo gets no security patches for either. It also sits one minor version behind even the final Community Edition release.
 
-This matters more here than it would elsewhere: `bravo-bpm-service` is the system of record for loan applications in flight at a regulated lender, and it orchestrates roughly thirty microservices.
+This matters more here than it would elsewhere. `bravo-bpm-service` is the system of record for loan applications in flight at a regulated lender. It also orchestrates roughly thirty microservices.
 
-**One thing that is not a version problem but shares the blast radius.** [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) records 61 injected remote-code-execution process definitions in the production engine, one confirmed executed. **Vector corrected 2026-09-10:** it is *not* the `permitAll()` on `/camunda/**` — the deploy path `/engine-rest/**` requires a credential, so **someone held a valid Keycloak token or the shared `INTERNAL_SERVICE_KEY`**, and that shared secret grants full engine rights because no `ProcessEngineAuthenticationFilter` establishes a Camunda identity on that path. So it is **a credential-compromise problem with a configuration component**, not a configuration defect alone: rotation and per-caller secrets, plus the auth filter, plus the `permitAll` cleanup. It must be fixed under **every** option in this pack, and it is the reason an unpatchable engine is not a theoretical concern.
+**One thing here is not a version problem, but it shares the blast radius.** [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) records 61 injected remote-code-execution process definitions in the production engine. One of them ran.
+
+**Vector corrected 2026-09-10.** The way in was *not* the `permitAll()` on `/camunda/**`. The deploy path `/engine-rest/**` requires a credential. So **someone held a valid Keycloak token, or the shared `INTERNAL_SERVICE_KEY`**. That shared secret grants full engine rights, because no `ProcessEngineAuthenticationFilter` establishes a Camunda identity on that path.
+
+So this is **a compromised-credential problem with a configuration component**, not a configuration defect on its own. The fix has three parts: rotate the secret and issue per-caller secrets, add the auth filter, and clean up the `permitAll`. It must be done under **every** option in this pack. It is also why an unpatchable engine is not a theoretical concern.
 
 ---
 
@@ -38,19 +46,19 @@ The coupling runs in exactly one direction:
 - Moving to Spring Boot 4 **forces** a decision about the engine.
 - Swapping the engine does **not** force Spring Boot 4.
 
-The consequence removes the most intuitive plan from the table: **"do the Spring Boot upgrade first and decide about Camunda later" is not available.** Any Spring Boot 4 work is blocked behind an engine decision.
+That removes the most intuitive plan from the table. **"Do the Spring Boot upgrade first and decide about Camunda later" is not available.** Any Spring Boot 4 work is blocked behind an engine decision.
 
-The reverse is available — swap the engine and stay on Spring Boot 3 — but as §3 shows, that leaves Bravo on an end-of-life Spring Boot regardless of which fork is chosen.
+The reverse is available: swap the engine and stay on Spring Boot 3. But as §3 shows, that leaves Bravo on an end-of-life Spring Boot whichever fork it picks.
 
 ---
 
 ## 3. The options
 
-Camunda 7 has several community forks. Two are credible for a service of this criticality: **Operaton** and **CIB seven**. Both are **Apache 2.0**. Both keep the `ACT_` database schema, accept the legacy `camunda:` BPMN namespace, and publish an automated OpenRewrite migration recipe.
+Camunda 7 has several community forks. Two are credible for a service this critical: **Operaton** and **CIB seven**. Both are **Apache 2.0**. Both keep the `ACT_` database schema. Both accept the legacy `camunda:` BPMN namespace. And both publish an automated OpenRewrite migration recipe.
 
-Both are published on Maven Central and were confirmed for this revision: `org.operaton.bpm:operaton-engine` at **2.1.4** (2.2.0-M1…M3 are milestones), and `org.cibseven.bpm:cibseven-engine` at **2.2.0** (31 May 2026), each with a Spring Boot starter.
+Both are published on Maven Central, and we confirmed both for this revision. `org.operaton.bpm:operaton-engine` is at **2.1.4** — 2.2.0-M1 through M3 are milestones. `org.cibseven.bpm:cibseven-engine` is at **2.2.0**, released 31 May 2026. Each ships a Spring Boot starter.
 
-**Camunda 8 is not an upgrade path and is out of scope.** It removes the embedded engine, replaces all 272 `JavaDelegate` classes with external job workers, drops the `ACT_` tables from the database, and requires a paid licence for self-managed production use. It is a multi-quarter rewrite programme with its own budget line, not a version bump — comparable in size to [option-2.md](option-2.md), and it should be evaluated there rather than here.
+**Camunda 8 is not an upgrade path, and it is out of scope here.** It removes the embedded engine. It replaces all 272 `JavaDelegate` classes with external job workers. It drops the `ACT_` tables from the database. And it requires a paid licence for self-managed production use. That is a multi-quarter rewrite programme with its own budget line, not a version bump. It is comparable in size to [option-2.md](option-2.md), and it should be evaluated there.
 
 | | **A — Sequenced** | **B1 — Combined, Operaton** | **B2 — Combined, CIB seven** |
 |---|---|---|---|
@@ -61,11 +69,13 @@ Both are published on Maven Central and were confirmed for this revision: `org.o
 | Ends on a supported stack | **No** — engine yes, Spring Boot no | **Yes** | **Yes** |
 | Effort | **25–40 days** | **20–33 days** | **18–30 days** |
 
-**Approach A** is the only way to separate the two migrations in time, and CIB seven is the only fork that permits it because it is the only one still shipping a Spring Boot 3 line. Its honest value is spreading risk across two smaller changes. Its cost is real: it pays the full regression bill twice, it moves Spring Boot *backwards* from 3.5.16 to 3.5.14, it leaves Bravo on an end-of-life Spring Boot for however long the second step takes, and it commits to CIB seven before the fork question has been weighed — because no other fork offers this route. It is a way-station, not a destination.
+**Approach A** is the only way to separate the two migrations in time. CIB seven is the only fork that allows it, because it is the only one still shipping a Spring Boot 3 line. Its honest value is that it spreads risk across two smaller changes.
+
+Its cost is real. It pays the full regression bill twice. It moves Spring Boot *backwards*, from 3.5.16 to 3.5.14. It leaves Bravo on an end-of-life Spring Boot for as long as the second step takes. And it commits to CIB seven before anyone has weighed the fork question, because no other fork offers this route. It is a way-station, not a destination.
 
 **Approaches B1 and B2** are the same shape and differ only in which fork is adopted. Both land on a supported engine and a supported Spring Boot in a single regression cycle.
 
-**Target Spring Boot 4.0.x, not 4.1.x.** `spring-cloud` Oakwood (2025.1.x) is the only GA release train and it pins `spring-boot.version` to 4.0.8. Boot 4.1 is deferred until a `spring-cloud` train targets it. *(This corrects the earlier version of this document, which proposed 4.1.x.)*
+**Target Spring Boot 4.0.x, not 4.1.x.** `spring-cloud` Oakwood (2025.1.x) is the only GA release train, and it pins `spring-boot.version` to 4.0.8. So Boot 4.1 waits until a `spring-cloud` train targets it. *(This corrects the earlier version of this document, which proposed 4.1.x.)*
 
 ---
 
@@ -87,33 +97,37 @@ The Bravo team's memo deliberately declines to pick, and the reasoning holds up.
 | `engine.impl.util.CollectionUtil` | **absent** — breaks 2 files | present |
 | Cockpit webjar path | moves to `webjars/operaton/` | **unchanged** |
 
-**CIB seven is cheaper to migrate to.** It avoids five concrete frictions: the 7.24 hop, the `CollectionUtil` compile break, relocating seven Cockpit plugin bundles, and two missing test dependencies. It employs two engineers who wrote large parts of the original engine, and a support contract is at least theoretically purchasable.
+**CIB seven is cheaper to migrate to.** It avoids five concrete frictions: the 7.24 hop, the `CollectionUtil` compile break, relocating seven Cockpit plugin bundles, and two missing test dependencies. It also employs two engineers who wrote large parts of the original engine. And a support contract is at least in principle purchasable.
 
-**Operaton is the more vital project.** Nine times the commit volume, two-thirds more distinct contributors, a broader ecosystem under one organisation, and an explicit commitment to Apache 2.0 with no paid tier and no open core.
+**Operaton is the healthier project.** It has nine times the commit volume and two-thirds more distinct contributors. It has a broader ecosystem under one organisation. And it commits explicitly to Apache 2.0, with no paid tier and no open core.
 
 > **The question that decides it:** do we require a contractual support agreement for the workflow engine, and can one actually be purchased for a BFI entity?
 >
 > **If yes → CIB seven.** Company-backed, deep original-engine expertise, cheaper migration, a purchasable relationship.
-> **If no → Operaton.** Over a five-to-ten-year horizon on a core engine, sustained project activity is worth more than a one-off migration saving, and Operaton leads on that by a wide margin.
+> **If no → Operaton.** On a core engine over five to ten years, sustained project activity is worth more than a one-off migration saving. Operaton leads on that by a wide margin.
 
-**Unresolved:** CIB seven's actual support terms are **not published** — length, service levels and pricing are all sales-contact-only. If the decision leans that way, that enquiry should start *before* the choice is finalised, not after.
+**Unresolved.** CIB seven's actual support terms are **not published**. Length, service levels and pricing are all sales-contact-only. If the decision leans that way, start that enquiry *before* finalising the choice, not after.
 
-**A note on risk posture.** Bravo already runs two end-of-life foundations in production and no control has stopped it, so there is no hard enforced gate here. But two situations that look similar are worth distinguishing: what exists **now** is drift — Camunda 7 went end-of-life underneath the team. What would be **chosen** is a project with a six-month support window, a concentrated maintainer base and, for Operaton, no legal entity yet. Those attract different scrutiny. Today's silence should not be read as pre-approval for tomorrow's deliberate choice.
+**A note on risk posture.** Bravo already runs two end-of-life foundations in production, and no control has stopped it. So there is no hard gate here.
 
-The counterweight argues for moving rather than waiting: **Camunda 7 Community Edition had the long support window, and it still ended in an archived repository with no upgrade path.** A six-month line with monthly patches is, in practice, more responsive to security issues than a multi-year line that stops dead.
+But two situations that look alike are worth separating. What exists **now** is drift: Camunda 7 went end-of-life underneath the team. What would be **chosen** is a project with a six-month support window, a concentrated maintainer base, and — for Operaton — no legal entity yet. Those two things attract different scrutiny. Do not read today's silence as pre-approval for tomorrow's deliberate choice.
+
+The counterweight argues for moving rather than waiting. **Camunda 7 Community Edition had the long support window, and it still ended in an archived repository with no upgrade path.** In practice, a six-month line with monthly patches responds to security issues faster than a multi-year line that stops dead.
 
 ---
 
 
 ### 4a. The consoles are insulated from this change
 
-**Added 2026-09-10.** Bravo LOS includes three React/TypeScript operator consoles — `bravo-surveyor-console`, `bravo-operation-console`, `bravo-underwriting-console`, **763,861 lines of source and 829 test files** — which this document had not counted ([bravo-people.md §2](bravo-people.md), [bravo-testing.md §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)). They matter to a fork swap in exactly two ways, and both are favourable:
+**Added 2026-09-10.** Bravo LOS includes three React/TypeScript operator consoles: `bravo-surveyor-console`, `bravo-operation-console` and `bravo-underwriting-console`. Together they hold **763,861 lines of source and 829 test files**. This document had not counted them ([bravo-people.md §2](bravo-people.md), [bravo-testing.md §1.1](bravo-testing.md#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)). They matter to a fork swap in exactly two ways, and both are favourable:
 
-**They are not in scope.** Searched for engine coupling: **zero references to Camunda anywhere in console source.** They call domain verbs behind a `/bpm` prefix — `/v1/head-surveyor/assignment-request/reprocess`, `/v1/operation-assignment/release-assignment`, `PATCH /v1/underwritings/{id}/approval/bm-decision` — and never see a Camunda task id. Operaton and CIB seven keep the `ACT_` schema, the engine API and the Spring REST surface, so **no console line changes and no console redeploy is required by the swap itself.** The 18–33 engineer-day estimate does not need widening.
+**They are not in scope.** We searched the console source for engine coupling and found **zero references to Camunda anywhere**. The consoles call domain verbs behind a `/bpm` prefix — `/v1/head-surveyor/assignment-request/reprocess`, `/v1/operation-assignment/release-assignment`, `PATCH /v1/underwritings/{id}/approval/bm-decision` — and never see a Camunda task id. Operaton and CIB seven keep the `ACT_` schema, the engine API and the Spring REST surface. So **the swap itself changes no console line and needs no console redeploy.** The 18–33 engineer-day estimate does not need widening.
 
-**They are a regression net the estimate did not credit.** Those 829 tests run as a blocking job on every console PR. They assert the response shapes of the `ms-bpm` endpoints the consoles depend on, which is precisely the surface a cutover could break invisibly. Running the three console suites against a staging instance on the forked engine is a **cheap, existing, high-coverage smoke test of the API boundary** — the closest thing Bravo has to the parity harness this document says it lacks. It does not test the engine's internals; it does test that the application still answers correctly.
+**They are a regression net the estimate did not credit.** Those 829 tests run as a blocking job on every console pull request. They assert the response shapes of the `ms-bpm` endpoints the consoles depend on. That is exactly the surface a cutover could break invisibly. So running the three console suites against a staging instance on the forked engine gives you a **cheap, existing, high-coverage smoke test of the API boundary**. It is the closest thing Bravo has to the parity harness this document says it lacks. It does not test the engine's internals. It does test that the application still answers correctly.
 
-**Two caveats.** The three consoles are **three toolchains, not one** — React 17 vs 18, Vite 4 vs 7, Node 18 vs 20, ESLint vs Biome, and three different versions of the shared `@bfi-finance/frontend-ui` ([bravo-delivery.md §2](bravo-delivery.md#2-custom-front-end-easy-per-page-hard-per-system)) — so "run the console suites" is three separate setups to stand up. And console coverage is measured and **not enforced** — thresholds sit at 0% (surveyor, operation) and 1% (underwriting) — so the suites prove *the tests that exist still pass*, not that the boundary is comprehensively covered. Turn the thresholds on before relying on them as a cutover gate ([bravo-testing.md recommendation 15](bravo-testing.md#recommended-actions)).
+**Two caveats.** First, the three consoles are **three toolchains, not one**: React 17 against 18, Vite 4 against 7, Node 18 against 20, ESLint against Biome, and three different versions of the shared `@bfi-finance/frontend-ui` ([bravo-delivery.md §2](bravo-delivery.md#2-custom-front-end-easy-per-page-hard-per-system)). So "run the console suites" means standing up three separate setups.
+
+Second, console coverage is measured and **not enforced**. The thresholds sit at 0% for surveyor and operation, and 1% for underwriting. So the suites prove that *the tests that exist still pass*. They do not prove the boundary is covered. Turn the thresholds on before relying on them as a cutover gate ([bravo-testing.md recommendation 15](bravo-testing.md#recommended-actions)).
 
 ## 5. Effort
 
@@ -133,17 +147,19 @@ One engineer, excluding review, deployment soak and any work arising from the op
 | **B1 — Operaton combined** | **20–33 days** | one |
 | A — sequenced | 25–40 days | two |
 
-**Note the shape: the engine swap is the small half.** Spring Boot 4 is 12–20 of the 18–33 days and is owed regardless of which engine Bravo ends up on — including under [Option 2](option-2.md), where the framework upgrade does not disappear just because Camunda does.
+**Note the shape. The engine swap is the small half.** Spring Boot 4 is 12–20 of the 18–33 days. That half is owed whichever engine Bravo ends up on, including under [Option 2](option-2.md). The framework upgrade does not disappear just because Camunda does.
 
-**Reconciled to this pack's units:** roughly **1–1.5 engineer-months** of build, or **1.5–2.5 engineer-months** once review, deployment soak and open-question fallout are added — against 31–57 for Option 2 and 30–57 for Option 3. At an assumed Rp30–50M fully-loaded per engineer-month, **Rp45M – Rp125M**, and **no licence to buy**.
+**Reconciled to this pack's units:** roughly **1–1.5 engineer-months** to build, or **1.5–2.5 engineer-months** once you add review, deployment soak and fallout from open questions. Option 2 is 31–57 and Option 3 is 30–57. At an assumed Rp30–50M fully loaded per engineer-month, that is **Rp45M – Rp125M**, with **no licence to buy**.
 
-**Run-rate is unchanged:** the orchestration tier stays at ≈Rp58M/month prod (`ms-bpm` pods Rp5.3M + Cloud SQL Rp52.7M), the cheapest of the three options ([compare.md §3.12](compare.md)). One reduction is available independently: Camunda history is at `full` level with `historyTimeToLive: P90D`, and every variable write on 483 service tasks lands in `ACT_HI_DETAIL` — a material slice of the Rp52.7M database line.
+**Run-rate is unchanged.** The orchestration tier stays at ≈Rp58M a month in production — `ms-bpm` pods at Rp5.3M plus Cloud SQL at Rp52.7M. That is the cheapest of the three options ([compare.md §3.12](compare.md)).
+
+One reduction is available on its own. Camunda history is at `full` level with `historyTimeToLive: P90D`, so every variable write on 483 service tasks lands in `ACT_HI_DETAIL`. That is a material slice of the Rp52.7M database line.
 
 ---
 
 ## 6. Work that lands now, independent of the decision
 
-Six items. None depends on which path or fork is chosen; all shrink the eventual migration diff. Four are pure deletion. **1–2 days, and it can start immediately.**
+Six items. None of them depends on which path or fork you choose, and all of them shrink the eventual migration diff. Four are pure deletion. **This is 1–2 days of work, and it can start immediately.**
 
 | # | Change | Why now | Risk |
 |---|---|---|---|
@@ -154,7 +170,7 @@ Six items. None depends on which path or fork is chosen; all shrink the eventual
 | 5 | Remove the OpenTracing / Jaeger stack and `config/TraceConfig.java` | Both upstream projects are retired; the pinned versions are the last ever published. The sole consumer returns a no-op tracer behind a normally-false condition | Sign-off — removes a dormant tracing hook |
 | 6 | Delete `config/OldSecurityConfig.java` | Entirely commented-out `KeycloakWebSecurityConfigurerAdapter` | None |
 
-Items 1 and 2 are migration-relevant; 3–6 are hygiene that happens to reduce the Spring Boot 4 surface.
+Items 1 and 2 matter to the migration. Items 3 to 6 are hygiene that happens to reduce the Spring Boot 4 surface.
 
 ---
 
@@ -173,13 +189,13 @@ V2_0_202412300429__alter-camunda-table.sql       -- 4 columns, all "add column i
 V2_0_202412301022__alter-camunda-table-add-index.sql  -- 2 indexes, "create index concurrently if not exists"
 ```
 
-Confirmed contents: `act_ru_job.batch_id_`, `act_ru_job.root_proc_inst_id_`, `act_hi_job_log.batch_id_`, `act_hi_procinst.restarted_proc_inst_id_`, plus indexes `act_idx_job_root_procinst` and `act_idx_hi_pro_rst_pro_inst_id`. These are **verbatim replays of Camunda's own upgrade DDL** — the 7.20 → 7.21 and 7.21 → 7.22 scripts shipped inside the engine jar add exactly these four columns and these two indexes, matching index names included.
+Confirmed contents: `act_ru_job.batch_id_`, `act_ru_job.root_proc_inst_id_`, `act_hi_job_log.batch_id_`, `act_hi_procinst.restarted_proc_inst_id_`, plus the indexes `act_idx_job_root_procinst` and `act_idx_hi_pro_rst_pro_inst_id`. These are **verbatim replays of Camunda's own upgrade DDL**. The 7.20 → 7.21 and 7.21 → 7.22 scripts shipped inside the engine jar add exactly these four columns and these two indexes, index names included.
 
 > **Inference — strong, not verified.** The database was never engine-upgraded through the 7.21 and 7.22 steps. Someone hand-replayed the official DDL through Flyway instead. The columns arrived; the engine's own record of *what version the schema is at* may not have moved with them.
 
-That matters because engine upgrade scripts use bare `add column` with **no `IF NOT EXISTS`** — unlike the defensive Flyway copies. If `ACT_GE_SCHEMA_LOG` reports a version below 7.22 while those columns already exist, the engine will attempt an upgrade that cannot succeed, and startup fails with `column "batch_id_" of relation "act_ru_job" already exists`.
+That matters because engine upgrade scripts use bare `add column`, with **no `IF NOT EXISTS`**. The Flyway copies were defensive; the engine's own scripts are not. So if `ACT_GE_SCHEMA_LOG` reports a version below 7.22 while those columns already exist, the engine will attempt an upgrade that cannot succeed. Startup then fails with `column "batch_id_" of relation "act_ru_job" already exists`.
 
-The `IF NOT EXISTS` guards made the migrations idempotent, which was correct — and also made the drift **silent**, because nothing ever failed loudly enough to reveal it.
+The `IF NOT EXISTS` guards made the migrations idempotent. That was the right call. It also made the drift **silent**, because nothing ever failed loudly enough to reveal it.
 
 **Run the diagnostics against SIT, UAT and PROD independently. Do not infer PROD from SIT.**
 
@@ -189,17 +205,23 @@ The `IF NOT EXISTS` guards made the migrations idempotent, which was correct —
 | Version below 7.22, columns present | **Drift confirmed** | Insert the missing `ACT_GE_SCHEMA_LOG` rows to reconcile the label **before** cutover |
 | Version at or above 7.22, columns missing | Inverse drift | Investigate — not expected, and would invalidate assumptions |
 
-For reference, the entire Camunda 7.23 → 7.24 Postgres upgrade script is one row — `insert into ACT_GE_SCHEMA_LOG values ('1300', CURRENT_TIMESTAMP, '7.24.0');`. **Zero DDL.** The documented 7.24 prerequisite (Path B1) costs nothing at the database layer.
+For reference, the entire Camunda 7.23 → 7.24 Postgres upgrade script is one row: `insert into ACT_GE_SCHEMA_LOG values ('1300', CURRENT_TIMESTAMP, '7.24.0');`. **There is no DDL at all.** So the documented 7.24 prerequisite, Path B1, costs nothing at the database layer.
 
 ### 7.2 Process-variable census
 
-In-flight variables are expected to be safe: nothing in `src/main/java` uses Spin or the `ObjectValue` API, and stored values are String, Boolean, Double and `java.util.UUID` — a JDK class untouched by the package rename. Confirm against real data with `SELECT type_, COUNT(*) FROM act_ru_variable GROUP BY type_`. Any `serializable` rows carrying an `org.camunda.*` class name would be the single blocker to a hot cutover; no code path was found that creates one.
+In-flight variables should be safe. Nothing in `src/main/java` uses Spin or the `ObjectValue` API. Stored values are String, Boolean, Double and `java.util.UUID`, and `UUID` is a JDK class the package rename does not touch. Confirm this against real data with `SELECT type_, COUNT(*) FROM act_ru_variable GROUP BY type_`. Any `serializable` rows carrying an `org.camunda.*` class name would be the one blocker to a hot cutover. We found no code path that creates one.
 
 ### 7.3 Production-clone rehearsal
 
-Non-negotiable. Restore a PROD clone, run the full cutover against it, and verify the engine starts and applies no unexpected DDL, in-flight instances resume and advance, user tasks remain claimable with existing assignments, Cockpit plugins load and render, and pending jobs and timers fire.
+This step is non-negotiable. Restore a PROD clone and run the full cutover against it. Then verify five things:
 
-> **Where to spend the rehearsal budget:** running two engine versions against the same `ACT_RU_JOB` table during a rolling deployment is the one genuinely untested area of this migration.
+- the engine starts and applies no unexpected DDL
+- in-flight instances resume and advance
+- user tasks stay claimable, with their existing assignments
+- Cockpit plugins load and render
+- pending jobs and timers fire
+
+> **Where to spend the rehearsal budget.** During a rolling deployment, two engine versions run against the same `ACT_RU_JOB` table. That is the one genuinely untested area of this migration.
 
 ---
 
@@ -221,7 +243,7 @@ Every count below was re-measured against the working tree for this revision and
 | Total test files, `ms-bpm` | 1,457 | Full regression required |
 | Test files in the three operator consoles | **829** (188,389 LOC) | **Untouched by the swap** — zero Camunda references in console source; they call domain verbs behind `/bpm`. They gate every console PR, so they are a **free regression net at the API boundary** ([§4a](#4a-the-consoles-are-insulated-from-this-change)) |
 
-**Despite 687 touched files, the coupling is shallow** — overwhelmingly public API. `engine.delegate` alone accounts for **531 of the main-source imports**, and 813 across main and test together. That is precisely the profile an automated recipe handles well, and it is the same conclusion [option-2.md §3](option-2.md) reached by a different route: only ~2,004 lines out of 497,970 actually touch an engine API.
+**687 files are touched, but the coupling is shallow.** It is almost all public API. `engine.delegate` alone accounts for **531 of the main-source imports**, and 813 across main and test together. That is exactly the profile an automated recipe handles well. [option-2.md §3](option-2.md) reached the same conclusion by a different route: only about 2,004 lines out of 497,970 actually touch an engine API.
 
 **The Spring Boot 4 half, owed regardless of engine:**
 
@@ -239,7 +261,7 @@ Every count below was re-measured against the working tree for this revision and
 
 ## 9. Rollback, and why it is unusually good
 
-It rests on one fact: **both forks keep Camunda 7.24's database schema unchanged**, `ACT_` prefix included. Operaton seeds `ACT_GE_SCHEMA_LOG` with `7.24.0` and terminates its upgrade chain at the same id `1300` Camunda uses. Neither fork renumbers.
+It rests on one fact: **both forks keep Camunda 7.24's database schema unchanged**, `ACT_` prefix included. Operaton seeds `ACT_GE_SCHEMA_LOG` with `7.24.0`, and it ends its upgrade chain at the same id, `1300`, that Camunda uses. Neither fork renumbers.
 
 | Stage | Rollback | Notes |
 |---|---|---|
@@ -249,40 +271,40 @@ It rests on one fact: **both forks keep Camunda 7.24's database schema unchanged
 | SIT / UAT | Redeploy previous artifact | Standard |
 | **PROD cutover** | **Redeploy the previous artifact against the same database** | Viable *because no DDL runs*. This is the load-bearing claim and must be proven in the §7.3 rehearsal, not assumed |
 
-**The one thing that does not roll back cleanly** is the schema-log reconciliation in §7.1, if it proves necessary — those inserted rows correct a real drift and should stay. Take a database backup immediately before.
+**One thing does not roll back cleanly:** the schema-log reconciliation in §7.1, if it turns out to be necessary. Those inserted rows correct a real drift and should stay. Take a database backup immediately before.
 
-**Point of no return: none at the database layer**, which is the unusual and welcome part. The practical point of no return is organisational — once PROD has run on the new engine long enough to accumulate history, reverting means running an unpatched engine again, not a data problem.
+**There is no point of no return at the database layer.** That is the unusual and welcome part. The practical point of no return is organisational. Once PROD has run on the new engine long enough to accumulate history, reverting means running an unpatched engine again. It is not a data problem.
 
 ### Cutover shape
 
-> **A rolling restart, not a drain.** Draining is not available in any case: **96 `userTask` elements across 26 of the 53 BPMN files** mean instances park on human action indefinitely. In-flight instances resume because deployed BPMN re-parses from `ACT_GE_BYTEARRAY` — verified at bytecode level that both forks register the legacy `camunda:` namespace alongside their own.
+> **A rolling restart, not a drain.** Draining is not available anyway. **96 `userTask` elements sit across 26 of the 53 BPMN files**, so instances park on human action indefinitely. In-flight instances resume because deployed BPMN re-parses from `ACT_GE_BYTEARRAY`. We verified at bytecode level that both forks register the legacy `camunda:` namespace alongside their own.
 
-Two conditions attach: **quiesce the job executor during the swap** (two engine versions competing for the same `ACT_RU_JOB` rows is the untested area), and **rehearse on a PROD clone first**.
+Two conditions attach. **Quiesce the job executor during the swap** — two engine versions competing for the same `ACT_RU_JOB` rows is the untested area. And **rehearse on a PROD clone first**.
 
-Standard promotion is SIT → soak → UAT → soak → PROD, with the §7.1 diagnostics run independently against each environment, since their schema-log state may differ.
+Standard promotion is SIT → soak → UAT → soak → PROD. Run the §7.1 diagnostics separately against each environment, because their schema-log state may differ.
 
-*(One counting nit, recorded for accuracy: the memo states 192 `userTask` elements. 192 is the open-plus-close tag count; the element count is **96**, across the 26 files the memo correctly identifies. The conclusion — that draining is unavailable — is unaffected.)*
+*(One counting nit, recorded for accuracy. The memo states 192 `userTask` elements. That is the open-plus-close tag count. The element count is **96**, across the 26 files the memo correctly identifies. The conclusion, that draining is unavailable, is unaffected.)*
 
 ---
 
 ## 10. What this option does and does not solve
 
-**Solves:** the end-of-support finding, outright and cheaply. Bravo lands on a maintained engine and a supported Spring Boot in one change, with no licence, **no data migration, no paradigm change and no retraining**. It preserves everything the comparison found Bravo genuinely does better than LORA — bounded and classified failure handling with a designed dead-letter path, relational fleet queries, durable reprocess generations, an analyst-readable BPMN model, cheap version coexistence, commodity skills, and the cheapest orchestration tier of the three ([compare.md §5](compare.md)).
+**Solves:** the end-of-support finding, outright and cheaply. Bravo lands on a maintained engine and a supported Spring Boot in one change. There is no licence, **no data migration, no paradigm change and no retraining**. It also keeps everything the comparison found Bravo genuinely does better than LORA: bounded, classified failure handling with a designed dead-letter path; relational fleet queries; durable reprocess generations; an analyst-readable BPMN model; cheap version coexistence; commodity skills; and the cheapest orchestration tier of the three ([compare.md §5](compare.md)).
 
 **Does not solve:**
 
-- Five legacy per-product monoliths still carry **~94% of production volume** — NDF2W 248,682, NDF4W 59,909, NDF4W_RO 11,458 process starts per 90 days against the unified spine's 18,809 ([workflow-gap.md §8.1](workflow-gap.md)).
-- Product identity is still a magic number in five places; lifecycle state is still spread across 30 `ApplicationStatus` values plus ~105 other status enums and 197 `setStatus` call sites ([compare.md §3.3](compare.md)).
-- No process metrics, no saga compensation, no per-product visibility, and 4 of `ms-bpm`'s 1,457 tests exercise a process. (Bravo's estate has 2,286 test files across four repositories, but the other 829 are console tests that never reach the engine.)
+- Five legacy per-product monoliths still carry **about 94% of production volume**. Over 90 days that is NDF2W 248,682, NDF4W 59,909 and NDF4W_RO 11,458 process starts, against the unified spine's 18,809 ([workflow-gap.md §8.1](workflow-gap.md)).
+- Product identity is still a magic number in five places. Lifecycle state is still spread across 30 `ApplicationStatus` values, about 105 other status enums, and 197 `setStatus` call sites ([compare.md §3.3](compare.md)).
+- There are no process metrics, no saga compensation and no per-product visibility. Only 4 of `ms-bpm`'s 1,457 tests exercise a process. (Bravo's estate has 2,286 test files across four repositories. The other 829 are console tests that never reach the engine.)
 - **It does not answer the platform question** — it removes the deadline from it.
 
 ### What is lost or deferred
 
-- **On Operaton only:** BPMN path-coverage HTML reports on four functional tests (`DMNFunctionalTest`, `UnsecuredLMSIntegrationFunctionalTest`, `AdvanceAIKYCActivityFunctionalTest`, `AntiFraudEngineCheckpointFunctionalTest`). Test *correctness* is unaffected; only the coverage reporting goes. CIB seven ships the library and loses nothing.
-- **Latent, both paths:** the seven Cockpit plugin bundles are committed as **built artefacts whose TypeScript sources are not in this repository** — `rollup.config.mjs` references a `src/` directory that does not exist and there is no `package.json`. They survive this migration untouched because both forks preserve the plugin contract. They **cannot** survive a future change that alters it. Locating those sources is worth doing on its own merits.
-- **Deferred deliberately:** Operaton's `webapp-neo` and CIB seven's `webclient` both ship *alongside* the classic webapp, so no action now; Camunda 8 as a separate programme; Spring Boot 4.1 until a `spring-cloud` train targets it.
+- **On Operaton only:** you lose the BPMN path-coverage HTML reports on four functional tests — `DMNFunctionalTest`, `UnsecuredLMSIntegrationFunctionalTest`, `AdvanceAIKYCActivityFunctionalTest` and `AntiFraudEngineCheckpointFunctionalTest`. Test *correctness* is unaffected. Only the coverage reporting goes. CIB seven ships the library and loses nothing.
+- **Latent, on both paths:** the seven Cockpit plugin bundles are committed as **built artefacts whose TypeScript sources are not in this repository**. `rollup.config.mjs` references a `src/` directory that does not exist, and there is no `package.json`. They survive this migration untouched, because both forks preserve the plugin contract. They **cannot** survive a future change that alters it. Finding those sources is worth doing on its own merits.
+- **Deferred deliberately:** Operaton's `webapp-neo` and CIB seven's `webclient` both ship *alongside* the classic webapp, so no action is needed now. Camunda 8 is a separate programme. Spring Boot 4.1 waits until a `spring-cloud` train targets it.
 
-**Do not rename the environment variables** as part of this migration. `CAMUNDA_HISTORY_*` are BFI's own placeholders, not engine-defined; the deployed values are what matter, and touching them multiplies what can go wrong at cutover for no functional gain.
+**Do not rename the environment variables** as part of this migration. `CAMUNDA_HISTORY_*` are BFI's own placeholders, not engine-defined. What matters is the deployed values. Touching the names multiplies what can go wrong at cutover, for no functional gain.
 
 ---
 
@@ -317,22 +339,22 @@ Standard promotion is SIT → soak → UAT → soak → PROD, with the §7.1 dia
 
 ## 13. When Option 1 is the right answer
 
-Option 1 is now the right answer under a **much wider** set of beliefs than the earlier version of this document implied, because it is no longer a licence purchase and it is no longer 11–19 engineer-months.
+Option 1 is now the right answer under a **much wider** set of beliefs than the earlier version of this document implied. It is no longer a licence purchase, and it is no longer 11–19 engineer-months.
 
 - **If Bravo has any future at all beyond the next year** — it lands on a supported stack for ~1–1.5 engineer-months and stops the exposure. Nothing else in the pack does that at that price.
-- **If the platform question is still open** — this is the option that buys the *right* to take that decision on its merits rather than under a security deadline, and none of the work is wasted under Options 2 or 3. The Spring Boot 4 half (12–20 of the 18–33 days) is owed under Option 2 as well, since the framework upgrade does not disappear when Camunda does.
+- **If the platform question is still open**, this is the option that buys the *right* to take that decision on its merits rather than under a security deadline. None of the work is wasted under Options 2 or 3. The Spring Boot 4 half, 12–20 of the 18–33 days, is owed under Option 2 as well, because the framework upgrade does not disappear when Camunda does.
 - **If Bravo is strategic long-term** — it is the destination, not a way-station, and the fork question in §4 deserves the full weight described there.
 
-The one belief under which Option 1 is *not* sufficient is that Bravo's **architecture** is the problem — five monoliths, product identity in five places, four status vocabularies. Option 1 changes the runtime and preserves the architecture exactly. That is a real limitation, and it is the argument [option-2.md](option-2.md) and [option-3.md](option-3.md) exist to make.
+There is one belief under which Option 1 is *not* enough: that Bravo's **architecture** is the problem — five monoliths, product identity in five places, four status vocabularies. Option 1 changes the runtime and keeps the architecture exactly as it is. That is a real limitation. It is the argument [option-2.md](option-2.md) and [option-3.md](option-3.md) exist to make.
 
-**Recommended path: B (combined), fork subject to §4.** Sequencing does not let the hard question be deferred — it only delays the benefit while paying the regression cost twice, and Path A still ends on an end-of-life Spring Boot, so it does not resolve the exposure that makes this urgent.
+**Recommended path: B, the combined one, with the fork subject to §4.** Sequencing does not let you defer the hard question. It only delays the benefit while paying the regression cost twice. And Path A still ends on an end-of-life Spring Boot, so it does not resolve the exposure that makes this urgent.
 
 ---
 
 ## Sources
 
-- **[Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf)** — Bravo team decision memo, 2026-09-09. The substance of §2–§9 above. Its version and artefact facts were verified against `repo1.maven.org` directory listings and release-tag POMs; project health via the GitHub API; schema and namespace behaviour by extracting and inspecting the published engine and webapp jars; repository counts measured against the working tree
-- Re-verification for this revision (2026-09-10): 351 main + 336 test files importing `org.camunda`; 308 `@MockBean` across 186 files; both Flyway migration filenames and their exact DDL; `CollectionUtil` in exactly 2 files; 96 `userTask` elements across 26 of 53 BPMN files; Maven Central metadata for `org.operaton.bpm:operaton-engine` (2.1.4 GA) and `org.cibseven.bpm:cibseven-engine` (2.2.0 GA) and both Spring Boot starters
+- **[Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf)** — Bravo team decision memo, 2026-09-09. It is the substance of §2 to §9 above. We verified its version and artefact facts against `repo1.maven.org` directory listings and release-tag POMs. Project health came from the GitHub API. Schema and namespace behaviour came from extracting and inspecting the published engine and webapp jars. Repository counts were measured against the working tree
+- Re-verification for this revision, 2026-09-10. We checked: 351 main and 336 test files importing `org.camunda`; 308 `@MockBean` across 186 files; both Flyway migration filenames and their exact DDL; `CollectionUtil` in exactly 2 files; 96 `userTask` elements across 26 of the 53 BPMN files; and Maven Central metadata for `org.operaton.bpm:operaton-engine` (2.1.4 GA), `org.cibseven.bpm:cibseven-engine` (2.2.0 GA) and both Spring Boot starters
 - [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) — the live RCE exposure
 - [compare.md](compare.md) — cost tier, capability comparison, where product and lifecycle logic live
 - [workflow-gap.md §8](workflow-gap.md) — production volumes by root definition

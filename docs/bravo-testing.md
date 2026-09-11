@@ -1,22 +1,38 @@
 # Testing: what CI covers, and why nothing says "this change hits NDF2W"
 
 **Audience:** Engineering, QA, release managers on Squad LOS and Squad Scoring and Underwriting
-**Findings under test:** Business logic cannot be unit-tested effectively. Tests and CI cannot say whether a change affects NDF4W underwriting or NDF2W. Validation is applied only after the service is already serving traffic. "Still running" is treated as "healthy". And the role of a nightly end-to-end run in proving the contract.
+**Findings under test.** Business logic cannot be unit-tested effectively. Tests and CI cannot say whether a change affects NDF4W underwriting or NDF2W. Validation only happens after the service is already serving traffic. "Still running" is treated as "healthy". And finally, the role a nightly end-to-end run plays in proving the contract.
 
-**Method.** Test inventory and build configuration from **four** Bravo LOS repositories: `bravo-bpm-service` at `v2.93.43` (`src/test/java`, `pom.xml`, `makefile`), as recorded in [compare-architecture.md §3.10](compare-architecture.md); `bravo-e2e-test` ([§6](#6-the-journey-suite-bravo-built-and-stopped-running)); and the three operator consoles `bravo-surveyor-console` `v2.83.12`, `bravo-operation-console` `v2.80.18` and `bravo-underwriting-console` `v1.63.13`, measured 2026-09-10 (`src/`, `package.json`, `makefile`, `vite.config.ts`, `.github/workflows/`, `sonar-project.properties`). Production evidence measured live in Datadog `us5` on 2026-09-10: BPMN parse warnings on `env:prod service:prod-ms-bpm`, the Synthetics inventory, the CI Visibility inventory, and the RUM and monitor findings carried over from [bravo-observability.md](bravo-observability.md). Production volume shares are from [workflow-gap.md §8](workflow-gap.md).
+**Method.** The test inventory and build configuration come from **four** Bravo LOS repositories:
 
-> **Correction, 2026-09-11.** The first version of this document concluded that no Bravo journey suite existed, having checked three surfaces — Datadog Synthetics, Datadog CI Visibility, and `bravo-bpm-service` itself. **It did not check sibling repositories, and there is one:** `squads/<squad>/bravo-e2e-test` holds 595 Cypress/Cucumber `.feature` files and four CI workflows. [§6](#6-the-journey-suite-bravo-built-and-stopped-running) is rewritten around what is actually there. The conclusion moved in an unexpected direction — the corrected finding is *worse* for Bravo than the original, not better.
+- `bravo-bpm-service` at `v2.93.43` — `src/test/java`, `pom.xml`, `makefile`, as recorded in [compare-architecture.md §3.10](compare-architecture.md)
+- `bravo-e2e-test` — see [§6](#6-the-journey-suite-bravo-built-and-stopped-running)
+- the three operator consoles `bravo-surveyor-console` `v2.83.12`, `bravo-operation-console` `v2.80.18` and `bravo-underwriting-console` `v1.63.13`, measured 2026-09-10 — `src/`, `package.json`, `makefile`, `vite.config.ts`, `.github/workflows/`, `sonar-project.properties`
 
-> **Amended 2026-09-10.** The `bravo-e2e-test` corpus has now been measured for *content*, not just existence: keyword distribution, assertion density split by API and UI tier, scenario length, outline parameterisation, step-vocabulary size, widget coupling and orphaned glue. Two things changed. The blanket "the suite does not assert" is **too harsh** — its 130 API feature files assert on 87% of their `Then` steps, so the skill is present and the defect is confined to the 465 UI files. And the triage in [recommendation 12](#recommended-actions) turns out to need a **style gate in front of it** ([§6.1](#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first)), because re-pointing these files without one reproduces the defect. The style argument and the product/QA ritual that produces such files live in [people.md](../../lora-workspace/docs/production-findings/people.md#writing-gherkin-for-the-bfi-loan-business).
+Production evidence was measured live in Datadog `us5` on 2026-09-10: BPMN parse warnings on `env:prod service:prod-ms-bpm`, the Synthetics inventory, and the CI Visibility inventory. The RUM and monitor findings carry over from [bravo-observability.md](bravo-observability.md). Production volume shares come from [workflow-gap.md §8](workflow-gap.md).
+
+> **Correction, 2026-09-11.** The first version of this document concluded that no Bravo journey suite existed. It had checked three surfaces: Datadog Synthetics, Datadog CI Visibility, and `bravo-bpm-service` itself. **It did not check sibling repositories, and there is one.** `squads/<squad>/bravo-e2e-test` holds 595 Cypress/Cucumber `.feature` files and four CI workflows.
+>
+> [§6](#6-the-journey-suite-bravo-built-and-stopped-running) is rewritten around what is actually there. The conclusion moved in an unexpected direction: the corrected finding is *worse* for Bravo than the original, not better.
+
+> **Amended 2026-09-10.** We have now measured the `bravo-e2e-test` corpus for *content*, not just existence. That covered keyword distribution, assertion density split by API and UI tier, scenario length, outline parameterisation, step-vocabulary size, widget coupling and orphaned glue.
+>
+> Two things changed. First, the blanket claim "the suite does not assert" is **too harsh**. Its 130 API feature files assert on 87% of their `Then` steps. So the skill is present, and the defect is confined to the 465 UI files.
+>
+> Second, the triage in [recommendation 12](#recommended-actions) needs a **style gate in front of it** ([§6.1](#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first)). Re-pointing these files without one just reproduces the defect. The style argument, and the product/QA ritual that produces files like this, live in [people.md](../../lora-workspace/docs/production-findings/people.md#writing-gherkin-for-the-bfi-loan-business).
 
 > **Correction, 2026-09-10 — the scope of "Bravo" in this document was too narrow, for the second time.**
-> Team Bravo pointed out that the Bravo LOS estate includes three operator-console repositories — **`bravo-operation-console`, `bravo-surveyor-console`, `bravo-underwriting-console`** — and a Jira project, **`LN` (Surveyor & Verificator, [board 703](https://bfifinance.atlassian.net/jira/software/c/projects/LN/boards/703))**, none of which this pack had counted. Verified: the three repositories hold **763,861 lines of source and 829 test files / 188,389 lines of test code**, they released within three days of this measurement, and **their PR pipelines run unit tests as a blocking job**. This is the objection's strongest form and it is correct.
+> Team Bravo pointed out that the Bravo LOS estate includes three operator-console repositories — **`bravo-operation-console`, `bravo-surveyor-console` and `bravo-underwriting-console`** — plus a Jira project, **`LN`, Surveyor & Verificator ([board 703](https://bfifinance.atlassian.net/jira/software/c/projects/LN/boards/703))**. This pack had counted none of them.
 >
-> Two claims below were wrong as a result. *"Bravo has one repository, one build"* ([§1](#1-inventory-2286-test-files-across-four-repositories-4-of-which-run-a-process)) was false. And the headline test-file count understated Bravo by 57%: **2,286 test files across four repositories, not 1,457 in one.**
+> We verified it. The three repositories hold **763,861 lines of source, and 829 test files totalling 188,389 lines of test code**. They released within three days of this measurement. And **their pull-request pipelines run unit tests as a blocking job.** This is the objection in its strongest form, and it is correct.
 >
-> The correction is not uniformly good for Bravo. Coverage in all three consoles is **measured and not enforced** — thresholds sit at 0% (surveyor, operation) and 1% (underwriting), and `jest-coverage-thresholds-bumper` is a declared, never-invoked dependency, the same shape as `camunda-bpm-mockito`. Nothing here reaches the orchestration tier: the BPMN routing logic still has no test that executes it. See [§1.1](#11-the-console-tier-what-actually-gates-a-bravo-front-end-change).
+> Two claims below were wrong as a result. *"Bravo has one repository, one build"* ([§1](#1-inventory-2286-test-files-across-four-repositories-4-of-which-run-a-process)) was false. And the headline test-file count understated Bravo by 57%. The real figure is **2,286 test files across four repositories, not 1,457 in one.**
 >
-> **The pack was internally inconsistent about this.** [bravo-observability.md §7](bravo-observability.md) and [bravo-delivery.md](bravo-delivery.md) both measure "the four production Bravo LOS consoles" in RUM — 2.4M errors a week. Those consoles were visible in the runtime analysis and absent from the code and test analysis. The same three repositories were being measured in production and not counted in the inventory.
+> The correction is not all good for Bravo. Coverage in all three consoles is **measured and not enforced**. The thresholds sit at 0% for surveyor and operation, and 1% for underwriting. And `jest-coverage-thresholds-bumper` is declared and never invoked — the same shape as `camunda-bpm-mockito`.
+>
+> None of this reaches the orchestration tier. The BPMN routing logic still has no test that executes it. See [§1.1](#11-the-console-tier-what-actually-gates-a-bravo-front-end-change).
+>
+> **The pack contradicted itself about this.** [bravo-observability.md §7](bravo-observability.md) and [bravo-delivery.md](bravo-delivery.md) both measure "the four production Bravo LOS consoles" in RUM, at 2.4 million errors a week. So those consoles were visible in the runtime analysis and missing from the code and test analysis. The same three repositories were being measured in production and left out of the inventory.
 
 **On this page:** the problem → what we found → what to do.
 
@@ -41,7 +57,7 @@
 | The 1,457-file suite is a safety net for the orchestration | **No. Four test files deploy and run a Camunda process**, one of them against a production BPMN. There is no test of retry exhaustion, incident creation, escalation across a `callActivity`, or the forced-termination path. |
 | Coverage is gated | **No gate exists.** `pom.xml` configures JaCoCo `report` and no `check`; there is no threshold. The `makefile` passes `-Dspring-boot.run.profiles`, which surefire ignores, so the profile the tests believe they are running under is not the one they get. |
 
-**The through-line:** Bravo's suite tests the Java it can reach and does not touch the XML, the configuration tables or the engine, which is where the loan's behaviour is decided. The result is a build that can be green for a change that alters the routing of 94% of production volume.
+**The through-line.** Bravo's suite tests the Java it can reach. It does not touch the XML, the configuration tables or the engine. Those are where the loan's behaviour is decided. The result is a build that can be green for a change that alters the routing of 94% of production volume.
 
 ---
 
@@ -65,20 +81,26 @@
 | *In the sibling repo* `bravo-e2e-test`: Cypress/Cucumber `.feature` files | **595** (28,268 steps) — frozen 2023-11-21, see [§6](#6-the-journey-suite-bravo-built-and-stopped-running) |
 | **Bravo LOS total** | **2,286 test files across four repositories** |
 
-The suite is large, well-maintained and conventional. Nothing in it is bad. The problem is what it is pointed at: **0.27% of the test files exercise the orchestration engine**, and the engine is what decides what happens to a loan.
+The suite is large, well maintained and conventional. Nothing in it is bad. The problem is where it is pointed. **0.27% of the test files exercise the orchestration engine**, and the engine is what decides what happens to a loan.
 
-The three Camunda testing libraries in the pom are the tell — and the detail sharpens it. `camunda-bpm-assert` is genuinely used, in 7 files. `camunda-bpm-mockito` was added and **never imported once**. Somebody knew this was the right way to test a BPMN system, added the dependencies, and the practice never took hold — the same shape as LORA's `lora-super-test`, which has 150 scenario tests and no CI runner.
+The three Camunda testing libraries in the pom are the tell, and the detail sharpens it. `camunda-bpm-assert` is genuinely used, in 7 files. `camunda-bpm-mockito` was added and **never imported once**. So somebody knew this was the right way to test a BPMN system and added the dependencies. The practice never took hold. That is the same shape as LORA's `lora-super-test`, which has 150 scenario tests and no CI runner.
 
-**A structural difference worth noting in Bravo's favour — restated, because the first version of it was false.** It read: *"Bravo has one repository, one build, and everything in it runs."* Bravo has **four** repositories in the LOS spine, and one of them (`bravo-e2e-test`) is frozen. What survives is the comparison of totals and of coverage gaps: **Bravo has 2,286 test files across four repositories against LORA's 608 across 13**, and where LORA has four repositories at zero tests and `lora-process-sdk` with no `.github/workflows/` at all, every Bravo repository that is not frozen runs its tests on every pull request. Bravo's problem is coverage of the right thing; LORA's is that some repositories are not covered at all. Bravo's is still the better problem to have — and the corrected numbers make the gap wider, not narrower.
+**A structural difference in Bravo's favour. Restated, because the first version of it was false.**
 
-**The qualifier that keeps this honest:** 829 of those 2,286 files are console component tests, and none of the 2,286 executes a BPMN routing decision. Volume moved in Bravo's favour; [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it) and [§3](#3-no-test-can-say-this-change-hits-ndf2w--and-one-bridge-makes-it-worse) are untouched by it.
+It used to read: *"Bravo has one repository, one build, and everything in it runs."* In fact Bravo has **four** repositories in the LOS spine, and one of them, `bravo-e2e-test`, is frozen.
+
+What survives is the comparison of totals and coverage gaps. **Bravo has 2,286 test files across four repositories, against LORA's 608 across 13.** LORA has four repositories with zero tests, and `lora-process-sdk` has no `.github/workflows/` at all. Every Bravo repository that is not frozen runs its tests on every pull request.
+
+So Bravo's problem is covering the right thing. LORA's problem is that some repositories are not covered at all. Bravo's is still the better problem to have, and the corrected numbers widen the gap rather than narrowing it.
+
+**The qualifier that keeps this honest.** 829 of those 2,286 files are console component tests. And none of the 2,286 executes a BPMN routing decision. So volume moved in Bravo's favour. [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it) and [§3](#3-no-test-can-say-this-change-hits-ndf2w--and-one-bridge-makes-it-worse) are untouched by it.
 
 
 ---
 
 ## 1.1 The console tier: what actually gates a Bravo front-end change
 
-The three operator consoles are where the surveyor, operation and underwriting staff do their work — the same three applications that emit **2.37M of the 2.41M RUM errors a week** in [bravo-observability.md §7](bravo-observability.md). They are not small and they are not dormant.
+The three operator consoles are where the surveyor, operation and underwriting staff do their work. They are the same three applications that emit **2.37 million of the 2.41 million RUM errors a week** in [bravo-observability.md §7](bravo-observability.md). They are not small, and they are not dormant.
 
 | | `bravo-surveyor-console` | `bravo-operation-console` | `bravo-underwriting-console` |
 |---|---:|---:|---:|
@@ -92,22 +114,26 @@ The three operator consoles are where the surveyor, operation and underwriting s
 | First commit | 2021-12-22 | 2022-01-25 | 2022-07-15 |
 | Last commit | 2026-09-08 | 2026-09-08 | 2026-09-07 |
 
-**The PR pipeline is a real gate, and it is the strongest testing artefact in the Bravo estate.** In all three repositories `pr-pipeline.yaml` / `pull-request-pipeline.yml` runs `lint-code` → `unit-test` (or `static-analysis`) → `compile_code`, where the test job executes `make unit-test-and-report` — `yarn test:coverage` — and `compile_code` declares `needs: [unit-test, …]`. There is **no `|| true` and no `continue-on-error`** anywhere in the 28 workflow files. A failing unit test blocks the merge.
+**The pull-request pipeline is a real gate. It is the strongest testing artefact in the Bravo estate.** In all three repositories, `pr-pipeline.yaml` or `pull-request-pipeline.yml` runs `lint-code` → `unit-test` (or `static-analysis`) → `compile_code`. The test job executes `make unit-test-and-report`, which is `yarn test:coverage`. And `compile_code` declares `needs: [unit-test, …]`. There is **no `|| true` and no `continue-on-error`** anywhere in the 28 workflow files. So a failing unit test blocks the merge.
 
-That deserves saying plainly because this document is otherwise hard on Bravo's CI, and because it is the exact opposite of the `OPERATION_PLATFORM.yml` cron in [§6](#6-the-journey-suite-bravo-built-and-stopped-running), where every step ends `|| true` so the job cannot fail. **Both patterns exist in the same estate.** The consoles got the discipline; the journey suite did not.
+That is worth saying plainly. This document is otherwise hard on Bravo's CI. And it is the exact opposite of the `OPERATION_PLATFORM.yml` cron in [§6](#6-the-journey-suite-bravo-built-and-stopped-running), where every step ends `|| true` so the job cannot fail. **Both patterns exist in the same estate.** The consoles got the discipline. The journey suite did not.
 
 **Three qualifiers, all verified, and they matter.**
 
-1. **Coverage is measured, not enforced.** `vite.config.ts` sets `thresholds: {statements: 0, branches: 0, functions: 0, lines: 0}` in the surveyor and operation consoles, and `vitest.pipeline.config.ts` sets all four to `1` — one percent — in underwriting. Coverage is computed, written to `coverage/lcov.info` and shipped to SonarQube, and no number can fail the build. So the gate proves *the tests that exist still pass*; it does not stop coverage falling.
-2. **`jest-coverage-thresholds-bumper` is a dead dependency.** It is declared in `bravo-underwriting-console/package.json` and appears in no script, no `makefile` target and no workflow. Its whole purpose is to ratchet thresholds upward as coverage improves. Somebody intended enforcement and it never landed — **the same shape as `camunda-bpm-mockito` in [§1](#1-inventory-2286-test-files-across-four-repositories-4-of-which-run-a-process), declared and never imported.** Two independent teams, two dead quality dependencies, one cause.
-3. **SonarQube scans but does not block.** Every `sonar-scanner` invocation omits `-Dsonar.qualitygate.wait=true`, so the scan publishes and the job proceeds regardless of the gate. Snyk *is* blocking, at `--severity-threshold=high`.
+1. **Coverage is measured, not enforced.** In the surveyor and operation consoles, `vite.config.ts` sets `thresholds: {statements: 0, branches: 0, functions: 0, lines: 0}`. In underwriting, `vitest.pipeline.config.ts` sets all four to `1` — one percent. Coverage is computed, written to `coverage/lcov.info` and shipped to SonarQube. No number can fail the build. So the gate proves that *the tests that exist still pass*. It does not stop coverage falling.
+2. **`jest-coverage-thresholds-bumper` is a dead dependency.** It is declared in `bravo-underwriting-console/package.json`, and it appears in no script, no `makefile` target and no workflow. Its whole purpose is to ratchet thresholds upward as coverage improves. Somebody intended enforcement, and it never landed. **That is the same shape as `camunda-bpm-mockito` in [§1](#1-inventory-2286-test-files-across-four-repositories-4-of-which-run-a-process): declared, never imported.** Two independent teams, two dead quality dependencies, one cause.
+3. **SonarQube scans but does not block.** Every `sonar-scanner` call omits `-Dsonar.qualitygate.wait=true`. So the scan publishes and the job carries on, whatever the gate says. Snyk *does* block, at `--severity-threshold=high`.
 
-**What this tier does not do.** These are component and hook tests against `happy-dom`, with `axios-mock-adapter` for the HTTP boundary. They assert that a React tree renders and behaves given a mocked response. **None of them crosses into `ms-bpm`, and none executes a BPMN gateway, a DMN table or a product-matrix flag** — the three places [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it) shows Bravo's routing decisions actually live. The console suites are a strong answer to "does the UI work"; they are silent on "does this change hit NDF2W", which is this document's question. The [L0–L8 strategy](#7-a-test-strategy-for-bravo--layers-l0l8) is unchanged by them, and **L7 (console contract) should be re-scoped**: it assumed a console tier with no test infrastructure to build on, and there is 188,389 lines of it.
+**What this tier does not do.** These are component and hook tests against `happy-dom`, with `axios-mock-adapter` at the HTTP boundary. They assert that a React tree renders and behaves, given a mocked response.
+
+**None of them crosses into `ms-bpm`. None executes a BPMN gateway, a DMN table or a product-matrix flag.** Those are the three places [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it) shows Bravo's routing decisions actually live.
+
+So the console suites answer "does the UI work" well. They say nothing about "does this change hit NDF2W", which is this document's question. They leave the [L0–L8 strategy](#7-a-test-strategy-for-bravo--layers-l0l8) unchanged. But **L7, the console contract layer, should be re-scoped.** It assumed a console tier with no test infrastructure to build on. There is 188,389 lines of it.
 ---
 
 ## 2. Where the business logic actually is — and why Mockito cannot reach it
 
-"Business logic cannot be unit-tested" is the complaint. In LORA it was graded *overstated*, because LORA's rules live in Go preconditions that `PreConditionIsMet(nil, data)` can execute directly — 97 test files already do. In Bravo the complaint holds, and the reason is that a large part of the decision surface is **not in Java at all**.
+The complaint is "business logic cannot be unit-tested". For LORA we graded it *overstated*, because LORA's rules live in Go preconditions that `PreConditionIsMet(nil, data)` can execute directly, and 97 test files already do. For Bravo the complaint holds. The reason is that a large part of the decision surface is **not in Java at all**.
 
 | Where a routing decision lives | Form | Can a unit test execute it? |
 |---|---|---|
@@ -122,7 +148,11 @@ So the accurate statement is not *"business logic cannot be tested"* but:
 
 > **Bravo's Java is testable and largely tested. Bravo's decisions are in XML, YAML and database rows, and none of those is executed by any test in the build.**
 
-That has a specific, expensive consequence. The `customErrorHandle` framework contains at least one credit-policy decision — bypassing anti-fraud after three failed attempts keeps the pipeline moving. Whether that path is ever reached depends on `failedJobRetryTimeCycle`, which is a string attribute on a BPMN element (186 declarations, 30 distinct values, including 5 `PT4M` cycles with no repeat count, which do not do what their author intended). **No test asserts that any activity's retry policy is what the modeller meant**, and the one that degrades anti-fraud is the one where being wrong is a credit-risk event rather than an outage.
+That has a specific and expensive consequence. The `customErrorHandle` framework contains at least one credit-policy decision: bypassing anti-fraud after three failed attempts keeps the pipeline moving.
+
+Whether that path is ever reached depends on `failedJobRetryTimeCycle`. That is a string attribute on a BPMN element. There are 186 declarations with 30 distinct values, including 5 `PT4M` cycles with no repeat count, which do not do what their author intended.
+
+**No test asserts that any activity's retry policy is what the modeller meant.** And the one that degrades anti-fraud is the one where being wrong is a credit-risk event, not an outage.
 
 ---
 
@@ -140,13 +170,15 @@ This is the finding with the largest production exposure, and it is the same com
 | Java factories | 31 of them |
 | Gateway string expressions | inside all 53 BPMN files |
 
-A change to any one of these can alter the behaviour of one product, several, or all. Adding DF2W Sharia (product 15) touched **all five**, behind per-product feature flags. There is no artefact in the build — no test name, no tag, no coverage report dimension — that maps a diff to the set of products it affects. A reviewer's only tool is knowing all five mechanisms.
+A change to any one of these can alter the behaviour of one product, several products, or all of them. Adding DF2W Sharia, product 15, touched **all five**, behind per-product feature flags.
 
-LORA's answer to the same problem is structural rather than tested: product families have separate document schemas, separate workers and separate task queues, so a change to `…/ndf2w` cannot reach NDF4W by construction. LORA still cannot tell you *which* product a shared-planner change affects — that is its True verdict — but it has fewer ways to get it wrong.
+Nothing in the build maps a diff to the set of products it affects. There is no test name, no tag and no coverage-report dimension that does it. A reviewer's only tool is knowing all five mechanisms.
+
+LORA's answer to the same problem is structural rather than tested. Product families have separate document schemas, separate workers and separate task queues. So a change to `…/ndf2w` cannot reach NDF4W by construction. LORA still cannot tell you *which* product a shared-planner change affects — that is its True verdict. But it has fewer ways to get this wrong.
 
 ### Reason two: the legacy-to-unified bridge
 
-`ndf2w.bpmn` calls into the **unified underwriting sub-process**. And no `callActivity` in the codebase sets `camunda:calledElementBinding`, so every child resolves to the **latest deployed version at call time**.
+`ndf2w.bpmn` calls into the **unified underwriting sub-process**. And no `callActivity` in the codebase sets `camunda:calledElementBinding`. So every child resolves to the **latest deployed version, at call time**.
 
 Put those two facts together with the production volume split:
 
@@ -165,9 +197,9 @@ The four Camunda-executing test files do not cover this path. Neither does anyth
 
 ## 4. Validation happens in production, 38,198 times a week
 
-The LORA complaint was that validation is "only JSON Schema, applied after the worker is already serving traffic". Bravo has no schema registry at all, so the equivalent question is: *when is a process model checked?*
+The LORA complaint was that validation is "only JSON Schema, applied after the worker is already serving traffic". Bravo has no schema registry at all. So the equivalent question is this: when does anything check a process model?
 
-**At pod startup, in production.** Spring Boot auto-deploys every BPMN and DMN resource on the classpath — there is no `deployment-resource-pattern` narrowing it — and the engine parses and versions each changed definition as it boots. That parse is the validation.
+**At pod startup, in production.** Spring Boot auto-deploys every BPMN and DMN resource on the classpath. No `deployment-resource-pattern` narrows it. The engine then parses and versions each changed definition as it boots. That parse is the validation.
 
 It is not silent. Measured on `env:prod service:prod-ms-bpm`, 7 days:
 
@@ -192,23 +224,23 @@ message: ENGINE-09004 Warnings during parsing:
 @processDefinitionId: 544e3ea0-ab85-11f1-ba59-16deca89b476
 ```
 
-Read that carefully. The engine is telling the team, in production, that a gateway on the **KYC path** has an unconditional outgoing flow that Camunda is *guessing* is the default. That is a routing decision being resolved by an engine assumption rather than by the model. The warning names the file. It has been repeating for at least two deployed versions.
+Read that carefully. In production, the engine is telling the team that a gateway on the **KYC path** has an unconditional outgoing flow, and that Camunda is *guessing* it is the default. So an engine assumption is resolving a routing decision, not the model. The warning names the file. And it has been repeating for at least two deployed versions.
 
 **Three things follow.**
 
-1. **The model is validated after deployment, not before it.** Every one of these warnings is available at build time — `camunda-bpm-assert` and a parse test would surface them in seconds — and none of them is a build failure today.
-2. **The count is a boot-frequency artefact, and that is also informative.** 38,198 warnings in a week across two versions means pods are restarting often and re-parsing all 53 files each time. The *distinct* warning set is small; the volume tells you about pod churn.
-3. **Nothing consumes them.** No monitor matches `ENGINE-09004`. The warnings land in the same log stream as the 525,181 error lines a week ([bravo-observability.md §3](bravo-observability.md)) and are invisible.
+1. **The model is validated after deployment, not before.** Every one of these warnings is available at build time. `camunda-bpm-assert` plus a parse test would surface them in seconds. None of them fails a build today.
+2. **The count is an artefact of how often pods boot, and that is informative too.** 38,198 warnings in a week across two versions means pods restart often, and re-parse all 53 files each time. The *distinct* warning set is small. The volume tells you about pod churn.
+3. **Nothing reads them.** No monitor matches `ENGINE-09004`. The warnings land in the same log stream as the 525,181 error lines a week ([bravo-observability.md §3](bravo-observability.md)), where they are invisible.
 
-The honest comparison: LORA's `docFieldCheck` panics the **worker at startup** if a schema path is missing, which is late but is at least fatal and per-deployment. Bravo's equivalent check emits a warning, assumes a default, and serves traffic.
+The honest comparison. LORA's `docFieldCheck` panics the **worker at startup** if a schema path is missing. That is late, but it is at least fatal, and it happens per deployment. Bravo's equivalent check emits a warning, assumes a default, and serves traffic.
 
 ---
 
 ## 5. "Not 5xx" = healthy
 
-The assumption named in the finding — *"still running" is treated as "healthy"* — is LORA's failure mode: about half of LORA's loans never reach a terminal status while producing zero errors and zero failed attempts, and every signal reads healthy.
+The finding names an assumption: *"still running" is treated as "healthy"*. That is LORA's failure mode. About half of LORA's loans never reach a terminal status. They produce zero errors and zero failed attempts, and every signal reads healthy.
 
-Bravo does not have that failure class. Its BPMN checkpoints fail fast into an incident and park ([compare-architecture.md §3.6](compare-architecture.md)), so a wedged Bravo loan becomes a visible ticket rather than an invisible running workflow. That is a real advantage and it is why Bravo's stuck-application rate is *measurable* at ≈0.39% while LORA's silent half went unnoticed for months.
+Bravo does not have that failure class. Its BPMN checkpoints fail fast into an incident and park ([compare-architecture.md §3.6](compare-architecture.md)). So a wedged Bravo loan becomes a visible ticket, not an invisible running workflow. That is a real advantage. It is why Bravo's stuck-application rate is *measurable*, at about 0.39%, while LORA's silent half went unnoticed for months.
 
 **Bravo's version of the same mistake is one layer up.** Every health signal it owns is defined as the absence of a 5xx:
 
@@ -229,15 +261,17 @@ So:
 
 Evidence and queries in [bravo-observability.md](bravo-observability.md) §4–6.
 
-**Stated as a testing finding:** Bravo's release gate is *it deployed and it is not returning 500*. That is the same category of statement as *the workflow is still Running*, and it is wrong for the same reason — it defines health as the absence of the one failure mode the system does not have.
+**Stated as a testing finding.** Bravo's release gate is *it deployed, and it is not returning 500*. That is the same kind of statement as *the workflow is still Running*. And it is wrong for the same reason. It defines health as the absence of the one failure mode the system does not have.
 
 ---
 
 ## 6. The journey suite Bravo built, and stopped running
 
-The role a nightly end-to-end run plays for LORA is to prove the Digital Partnership contract: 11 partner journeys through DP → LORA, with a terminal assertion (the agreement number comes back on DP tracking status). LORA's own [testing.md](../../lora-workspace/docs/production-findings/testing.md) grades that run harshly — 59 of 83 web cases have never passed in 31 nightly runs, and the API run fails the same 199 cases every night — but the run exists, asserts, and is fixable.
+For LORA, a nightly end-to-end run proves the Digital Partnership contract. It runs 11 partner journeys through DP into LORA, with a terminal assertion: the agreement number comes back on DP tracking status.
 
-**Bravo's equivalent exists too.** It is not in `bravo-bpm-service`, which is why the first version of this document missed it. It is in a sibling repository, checked out twice under different squads:
+LORA's own [testing.md](../../lora-workspace/docs/production-findings/testing.md) grades that run harshly. 59 of 83 web cases have never passed in 31 nightly runs, and the API run fails the same 199 cases every night. But the run exists, it asserts, and it can be fixed.
+
+**Bravo's equivalent exists too.** It is not in `bravo-bpm-service`, which is why the first version of this document missed it. It sits in a sibling repository, checked out twice under different squads:
 
 | | `squads/<squad>/bravo-e2e-test` |
 |---|---|
@@ -262,9 +296,9 @@ The role a nightly end-to-end run plays for LORA is to prove the Digital Partner
 | `ndf4w` | 3 | |
 | `unsecured` | 2 | |
 
-So the finding is not that nobody built a journey suite. **Somebody built 595 of them, aimed 349 at Bravo's worst-performing console, wired four CI workflows, and then three things happened.**
+So the finding is not that nobody built a journey suite. **Somebody built 595 of them. They aimed 349 at Bravo's worst-performing console and wired four CI workflows. Then three things happened.**
 
-**One: only one workflow is scheduled, and it cannot fail.** `OPERATION_PLATFORM.yml` runs weekly — `cron: "00 23 * * MON"`. The other three are `workflow_dispatch` only: manual, never automatic. And every step of the scheduled one is written like this:
+**One: only one workflow is scheduled, and it cannot fail.** `OPERATION_PLATFORM.yml` runs weekly, on `cron: "00 23 * * MON"`. The other three are `workflow_dispatch` only, so they are manual and never automatic. And every step of the scheduled one is written like this:
 
 ```yaml
 on:
@@ -277,9 +311,11 @@ on:
           # …nine more specs, every one of them ending in  || true
 ```
 
-`|| true` swallows the exit code. **The workflow reports success whether the loan journey worked or not**, and it covers **10 of the 595** files. This is the same defect as [§5](#5-not-5xx--healthy), one layer further out: Bravo's release gate treats "not 5xx" as healthy, and Bravo's CI gate treats "the runner finished" as healthy.
+`|| true` swallows the exit code. **So the workflow reports success whether the loan journey worked or not.** And it covers **10 of the 595** files.
 
-**Two: the UI half of the suite does not assert — and the API half does.** *(Re-measured 2026-09-10 with a wider verb list and a hand-read sample of each bucket; the earlier "82% carry no assertion verb" figure stands at **80%** on the wider list, but splitting it by tier is what makes it actionable.)*
+This is the same defect as [§5](#5-not-5xx--healthy), one layer further out. Bravo's release gate treats "not 5xx" as healthy. Bravo's CI gate treats "the runner finished" as healthy.
+
+**Two: the UI half of the suite does not assert. The API half does.** *(Re-measured 2026-09-10, with a wider verb list and a hand-read sample of each bucket. On the wider list, the earlier "82% carry no assertion verb" figure comes out at **80%**. Splitting it by tier is what makes it actionable.)*
 
 | `Then` steps | Count | Assertion-shaped | Pure UI action |
 |---|---:|---:|---:|
@@ -289,11 +325,17 @@ on:
 
 *(873 steps carry both kinds of word — mostly `Then Click Button < Visible` — and 1,182 neither.)*
 
-**This is the more useful form of the finding, and it is partly in Bravo's favour.** Where the assertion was obvious — a status code and a response body — BFI's QA wrote it: `Then the response status should be 200`, `Then Verify the API status code is 500`. **They know how to do this.** It broke in the UI tier, where there was no obvious thing to assert, so the keyword became a sequencing word: `Then Input username with text "…"`, `Then Click on button "#kc-login"`, `Then Continue to personal information`. A `Then` that types into a field detects a crash and nothing else.
+**This is the more useful form of the finding, and part of it favours Bravo.**
 
-And **463 of 595 files (78%) are named by test polarity** rather than by business capability — `Positive TestCase` 366, `Positive Test Case` 48, `Negative TestCase` 38, `Negative Case` 8, `Positive Case` 2 — with only **101 distinct `Feature:` names across 595 files.** The `Feature:` line is where a reader learns what the system does; this corpus's file list is not a table of contents of the loan business.
+Where the assertion was obvious — a status code and a response body — BFI's QA wrote it. `Then the response status should be 200`. `Then Verify the API status code is 500`. **They know how to do this.**
 
-**The rest of the corpus's shape, measured.** These are the properties that decide whether the 349 surveyor files can be re-pointed cheaply or not, and they are the argument for a style guide *before* the triage rather than after it:
+It broke in the UI tier, where there was no obvious thing to assert. There the keyword became a sequencing word: `Then Input username with text "…"`, `Then Click on button "#kc-login"`, `Then Continue to personal information`. A `Then` that types into a field detects a crash and nothing else.
+
+And **463 of the 595 files, or 78%, are named by test polarity** rather than by business capability. The names are `Positive TestCase` 366 times, `Positive Test Case` 48, `Negative TestCase` 38, `Negative Case` 8 and `Positive Case` 2. Across all 595 files there are only **101 distinct `Feature:` names.**
+
+The `Feature:` line is where a reader learns what the system does. This corpus's file list is not a table of contents of the loan business.
+
+**The rest of the corpus's shape, measured.** These properties decide whether the 349 surveyor files can be re-pointed cheaply. They are also the argument for writing a style guide *before* the triage, not after it:
 
 | Property | Measured | Why it matters for the triage |
 |---|---:|---|
@@ -308,9 +350,15 @@ And **463 of 595 files (78%) are named by test polarity** rather than by busines
 | Indonesian UI labels inside English step text | **1,349 steps** (`Click on button Selanjutnya` ×523) | The sentence is a locator, not a specification; it cannot be reused across products |
 | Orphaned glue | `underwriting/` holds **3 step-definition files and zero feature files** | Glue outliving its specification |
 
-Two details are worth more than the totals. The three most-used phrasings in the whole corpus are `User Click on Search Button` (710×), `User click "<p>" button` (624×) and `User can wait <n> seconds` (538×) — and the second is a lower-cased duplicate of `click on "<p>" button` (304×), so one intent has at least three spellings. And a branch on the remote is named **`B4WH-5851-qa-split-object-and-action`**: QA diagnosed the page-object/step-mixing problem themselves and the fix never landed. Which is [§5](#5-not-5xx--healthy) again in a third place — **nothing broke when the file was wrong.**
+Two details are worth more than the totals.
 
-**Three: it has been frozen for nearly three years, and the schedule has almost certainly lapsed.** Last commit 2023-11-21. GitHub disables scheduled workflows after 60 days of repository inactivity, so the weekly cron is very likely not firing — and **zero CI pipeline events for any repository in 30 days** ([the Datadog check](#verdicts)) is consistent with that. *This document cannot confirm it from a local checkout; it needs someone to open the Actions tab.* That is a five-minute task and it is the first item in the plan.
+First, the three most-used phrasings in the whole corpus are `User Click on Search Button` at 710 uses, `User click "<p>" button` at 624, and `User can wait <n> seconds` at 538. The second is a lower-cased duplicate of `click on "<p>" button`, which appears 304 times. So one intent has at least three spellings.
+
+Second, there is a branch on the remote named **`B4WH-5851-qa-split-object-and-action`**. QA diagnosed the page-object and step-mixing problem themselves, and the fix never landed. That is [§5](#5-not-5xx--healthy) again, in a third place: **nothing broke when the file was wrong.**
+
+**Three: it has been frozen for nearly three years, and the schedule has almost certainly lapsed.** The last commit was 2023-11-21. GitHub disables scheduled workflows after 60 days of repository inactivity, so the weekly cron is very likely not firing. **Zero CI pipeline events for any repository in 30 days** ([the Datadog check](#verdicts)) is consistent with that.
+
+*This document cannot confirm it from a local checkout. Somebody needs to open the Actions tab.* That is a five-minute task, and it is the first item in the plan.
 
 | Surface | What is there |
 |---|---|
@@ -319,15 +367,25 @@ Two details are worth more than the totals. The three most-used phrasings in the
 | `bravo-bpm-service` | 4 test files execute a Camunda process; no start-to-go-live walk ([§1](#1-inventory-2286-test-files-across-four-repositories-4-of-which-run-a-process)) |
 | **`bravo-e2e-test`** | **595 feature files, 4 workflows, 1 weekly schedule that cannot fail, frozen 2023-11-21** |
 
-**What this changes, and it is not in Bravo's favour.** The original finding was an absence, and absences are cheap to excuse — nobody got round to it. The corrected finding is an **abandonment**: the investment was made, at scale, by 46 people, and it was allowed to decay while the console it covers became the largest single source of production tickets. Worse, the one part still nominally running was written so that it could not report a failure. **An absent test cannot mislead anyone. A permanently green one can**, and for as long as that workflow was firing it was evidence of nothing while looking like evidence of something.
+**What this changes, and it does not favour Bravo.** The original finding was an absence, and absences are cheap to excuse — nobody got round to it.
 
-**So the continuous evidence that a Bravo loan can still be originated end to end remains: the production ticket queue.** `Surveyor Platform - Release reject` at 315 tickets in August, growing 4.8× since January, is the regression detector.
+The corrected finding is an **abandonment**. The investment was made at scale, by 46 people. Then it was allowed to decay, while the console it covers became the largest single source of production tickets. Worse, the one part still nominally running was written so it could not report a failure.
 
-**One caveat in Bravo's favour, and one asset.** Bravo's volume is its own smoke test: 118,253 applications in August means a total break in the main path is visible within minutes. That works for outages; it does not work for the failure Bravo actually has — a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls. And the 595 files are a genuine **asset**, not just a reproach: 349 of them describe the surveyor journeys that [§7.3](#73-the-regression-suite-t1t12) wants regression cases for. They are Gherkin, so they are readable by QA and product; the L8 canary in [§7.2](#72-the-nine-layers) does not need writing from scratch so much as **triaging, re-pointing and given an exit code that means something.**
+**An absent test cannot mislead anyone. A permanently green one can.** For as long as that workflow was firing, it was evidence of nothing while looking like evidence of something.
+
+**So the continuous evidence that a Bravo loan can still be originated end to end is still the production ticket queue.** `Surveyor Platform - Release reject` ran at 315 tickets in August and has grown 4.8× since January. That is the regression detector.
+
+**One caveat in Bravo's favour, and one asset.**
+
+Bravo's volume is its own smoke test. At 118,253 applications in August, a total break in the main path is visible within minutes. That works for outages. It does not work for the failure Bravo actually has: a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls.
+
+And the 595 files are a genuine **asset**, not just a reproach. 349 of them describe the surveyor journeys that [§7.3](#73-the-regression-suite-t1t12) wants regression cases for. They are Gherkin, so QA and product can read them. The L8 canary in [§7.2](#72-the-nine-layers) does not need writing from scratch. It needs **triaging, re-pointing, and an exit code that means something.**
 
 ### 6.1 If the 349 surveyor files are being re-pointed, fix the style first
 
-The triage in [§7.3](#73-the-regression-suite-t1t12) and [recommendation 12](#recommended-actions) both assume the 595 files are an asset to be re-aimed rather than rewritten. That holds — but re-pointing a file that names buttons, waits five seconds and ends every `Then` with a click produces a re-pointed file with the same defect. **Eight rules, each one answering a number measured above**, and the first three are mechanically checkable:
+The triage in [§7.3](#73-the-regression-suite-t1t12) and [recommendation 12](#recommended-actions) both assume the 595 files are an asset to re-aim, not rewrite. That holds. But re-pointing a file that names buttons, waits five seconds and ends every `Then` with a click just gives you a re-pointed file with the same defect.
+
+So here are **eight rules. Each one answers a number measured above**, and the first three can be checked mechanically:
 
 | # | Rule | Measured violation |
 |---|---|---:|
@@ -340,22 +398,34 @@ The triage in [§7.3](#73-the-regression-suite-t1t12) and [recommendation 12](#r
 | 7 | **Step text is English; Indonesian only inside quoted values** | 1,349 steps |
 | 8 | **A capped, reviewed step vocabulary** — one list per repo, with the `When` list closed. A new `When` needs a reviewer, because a new trigger is a new claim about the system | 2,438 phrasings, half single-use |
 
-Rules 1–4 are roughly **50 lines over a Gherkin AST** and would have failed most of this corpus on the day it was written. They are worth more than the triage itself: without them the triage is a one-off, and with them the corpus cannot decay the same way twice.
+Rules 1 to 4 are roughly **50 lines over a Gherkin AST**. They would have failed most of this corpus on the day it was written. They are worth more than the triage itself: without them the triage is a one-off, and with them the corpus cannot decay the same way twice.
 
-**Two tiers, and the ratio is the structural fix.** The corpus collapsed rule specification and UI journey into one artefact, which is how a scenario reaches 319 steps. Separate them: **many** small rule scenarios that assert a state, a status or a rejection reason (these belong at [L3–L5](#72-the-nine-layers)), and **single digits** of full UI journeys per product (L7–L8). Bravo's own API features are already tier one done correctly; that is the model to copy, and it is in the same repository.
+**Two tiers, and the ratio is the structural fix.** The corpus collapsed rule specification and UI journey into one artefact. That is how a scenario reaches 319 steps.
 
-**Keep one thing unchanged: the tags.** Every scenario carries a Zephyr key — `@BLOS-T3424`, `@B4WH-T808`, `@BR2W-T178` — under a `@ProjectKey-<KEY>` feature tag. That is the same scheme LORA's harnesses enforce as `@BL-T<n>`, it is the join from a requirement to an execution, and it is the one practice in this corpus that needs no correction. The full style argument, with the LORA-side collaboration ritual that produces these files in the first place, is in [people.md → Writing Gherkin for the BFI loan business](../../lora-workspace/docs/production-findings/people.md#writing-gherkin-for-the-bfi-loan-business).
+Separate them. Write **many** small rule scenarios that assert a state, a status or a rejection reason — those belong at [L3–L5](#72-the-nine-layers). Write **single digits** of full UI journeys per product, at L7–L8.
+
+Bravo's own API features are already the first tier done correctly. That is the model to copy, and it is in the same repository.
+
+**Keep one thing unchanged: the tags.** Every scenario carries a Zephyr key — `@BLOS-T3424`, `@B4WH-T808`, `@BR2W-T178` — under a `@ProjectKey-<KEY>` feature tag. That is the same scheme LORA's harnesses enforce as `@BL-T<n>`. It is the join from a requirement to an execution, and it is the one practice in this corpus that needs no correction.
+
+The full style argument, together with the LORA-side collaboration ritual that produces these files in the first place, is in [people.md → Writing Gherkin for the BFI loan business](../../lora-workspace/docs/production-findings/people.md#writing-gherkin-for-the-bfi-loan-business).
 
 ---
 
 ## 7. A test strategy for Bravo — layers L0–L8
 
-Sections 1–6 are a diagnosis. This section is the architecture, because the diagnosis on its own has a failure mode: nine recommendations with no ladder to hang them on become nine tickets that each get argued separately. LORA's [lora-super-test](../../lora-workspace/docs/production-findings/testing/lora-super-test.html) does have a ladder — five `_`-prefixed layers (`_whitebox`, `_canary`, `_contract`, `_widgets`, `_utility`), a four-row cost budget, and a Zephyr tag per case — and its own account of *why*: full-SIT E2E "tested their uptime, not our code". Bravo has no equivalent structure at all. What follows is the Bravo version, derived from Bravo's own decision surface rather than copied from LORA's.
+Sections 1 to 6 are a diagnosis. This section is the architecture.
+
+The diagnosis on its own has a failure mode. Nine recommendations with no ladder to hang them on become nine tickets, each argued separately.
+
+LORA's [lora-super-test](../../lora-workspace/docs/production-findings/testing/lora-super-test.html) does have a ladder: five `_`-prefixed layers (`_whitebox`, `_canary`, `_contract`, `_widgets`, `_utility`), a four-row cost budget, and a Zephyr tag per case. It also has its own account of *why*: full-SIT end-to-end tests "tested their uptime, not our code".
+
+Bravo has no equivalent structure at all. What follows is the Bravo version. It is derived from Bravo's own decision surface, not copied from LORA's.
 
 **Two design rules, both taken from LORA and both still true here.**
 
 1. **Test only what you control; own the answers at the boundary.** LORA's boundary is one gateway envelope. Bravo's is different, and §7.1 works out where it actually sits.
-2. **A change must fail in the cheapest layer that can see it.** LORA states this as a rule of thumb; for Bravo it is the whole point, because Bravo's expensive layer — a Camunda process test — is the *only* layer that exists for orchestration today, and it exists four times.
+2. **A change must fail in the cheapest layer that can see it.** LORA states this as a rule of thumb. For Bravo it is the whole point. Bravo's expensive layer, a Camunda process test, is the *only* layer that exists for orchestration today. And it exists four times.
 
 ### 7.1 Where Bravo's test boundary is
 
@@ -366,7 +436,11 @@ Sections 1–6 are a diagnosis. This section is the architecture, because the di
 | Stub drift caught by | `check:stubs` against the live LSS schema registry | **the compiler.** Bravo has no schema registry ([§4](#4-validation-happens-in-production-38198-times-a-week)) — but a stub built from the Feign DTO *cannot* drift without failing the build |
 | Fail-on-demand today | per-run, a spec steers one answer with a 2-line delta | **not possible.** `bravo-mock-service` (Mockoon, `*.mock.bravo.bfi.co.id`) is static and shared — the same weakness LORA names when it explains why it built its own |
 
-**The finding in that table is the last two rows, and they run in opposite directions.** Bravo's boundary is wider than LORA's and needs no schema registry to stay honest, because 113 typed interfaces are checked by `javac` where LORA's 300 JSON envelopes need a bespoke `check:stubs` script. That is a real, unearned advantage. But Bravo has **no way to make an upstream fail on demand**, and §7.3 is the list of things that costs.
+**The finding in that table is in the last two rows, and they run in opposite directions.**
+
+Bravo's boundary is wider than LORA's, and it needs no schema registry to stay honest. `javac` checks its 113 typed interfaces, where LORA's 300 JSON envelopes need a bespoke `check:stubs` script. That is a real advantage, and Bravo got it for free.
+
+But Bravo has **no way to make an upstream fail on demand**. §7.3 lists what that costs.
 
 ### 7.2 The nine layers
 
@@ -384,7 +458,9 @@ Ordered by cost. Each row states what only that layer can catch — a layer that
 | **L7** · console contract + widget | Snapshot the response shape of the **9+ `FormTab` sub-resources** each console pane depends on; one live test per shared component. **Build this inside the consoles' existing Vitest suites — 829 files and a blocking PR gate already exist ([§1.1](#11-the-console-tier-what-actually-gates-a-bravo-front-end-change)); this layer is an addition, not a new harness** | A console change that 404s a pane; the shape drift behind `Cannot read properties of null` (6,445/wk) | **~2 s** | **829 console test files, Vitest + Testing Library + `axios-mock-adapter`, gating every PR** |
 | **L8** · production canary | A Synthetics multi-step API test that creates a real application; the per-console RUM error-per-view SLO | That origination works *right now*, on real infrastructure, with real upstreams | **minutes, scheduled** | **8 DNS/SSL checks** |
 
-**Six of the nine layers do not exist.** L2 is healthy and L5 exists four times. The two layers that would have caught the most — **L0 and L3, both of which run in milliseconds** — are the two Bravo has never built, and between them they cover every finding in [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it): the XML, the YAML and the config rows that Mockito cannot reach are all reachable *without the engine*.
+**Six of the nine layers do not exist.** L2 is healthy, and L5 exists four times.
+
+The two layers that would have caught the most are **L0 and L3**, and both run in milliseconds. They are also the two Bravo has never built. Between them they cover every finding in [§2](#2-where-the-business-logic-actually-is--and-why-mockito-cannot-reach-it). The XML, the YAML and the config rows that Mockito cannot reach are all reachable *without the engine*.
 
 **The routing rule, as a table.** When something breaks, this is the layer that should have caught it.
 
@@ -425,7 +501,7 @@ A regression test exists because something happened. Every case below is anchore
 
 ### 7.4 The negative suite, N0–N12
 
-**This is the largest single gap, and it is the one thing on the ladder Bravo cannot build without new infrastructure.** LORA can make any upstream fail per run with a two-line delta. Bravo cannot make an upstream fail at all: `bravo-mock-service` is static and shared, so *"ask anti-fraud to reject"* is not a thing a Bravo test can do. That is why 50 `customErrorHandle` implementations, 70 error definitions and 190 escalations are entirely unexercised.
+**This is the largest single gap. It is also the one thing on the ladder Bravo cannot build without new infrastructure.** LORA can make any upstream fail, per run, with a two-line delta. Bravo cannot make an upstream fail at all. `bravo-mock-service` is static and shared, so *"ask anti-fraud to reject"* is not something a Bravo test can do. That is why 50 `customErrorHandle` implementations, 70 error definitions and 190 escalations go entirely unexercised.
 
 | # | Force this | Assert | Layer |
 |---|---|---|---|
@@ -443,11 +519,11 @@ A regression test exists because something happened. Every case below is anchore
 | **N11** | The same application starts twice | idempotent — one process instance, `RetryLog` unambiguous | L4 |
 | **N12** | Two approvers decide concurrently | one wins; the ladder does not skip a tier | L2 |
 
-**N0–N12 need one piece of infrastructure**, and it is the same piece LORA built: a **per-run stub layer in front of the 113 Feign clients** where a test steers one answer and everything else comes from a shared baseline. Bravo's version is cheaper than LORA's, for the reason in §7.1 — the stubs are generated from typed interfaces, so there is no schema registry to keep in sync and no `check:stubs` script to write.
+**N0 through N12 need one piece of infrastructure**, and it is the same piece LORA built: a **per-run stub layer in front of the 113 Feign clients**, where a test steers one answer and everything else comes from a shared baseline. Bravo's version is cheaper than LORA's, for the reason in §7.1. The stubs are generated from typed interfaces. So there is no schema registry to keep in sync, and no `check:stubs` script to write.
 
 ### 7.5 The budget: 400 cases must not mean 400 process runs
 
-LORA's arithmetic applies unchanged: 400 cases × a 2-minute walk is 13 hours, and a suite nobody can run in a sprint is a suite nobody runs. The same 400 cases distributed down the ladder:
+LORA's arithmetic applies unchanged. 400 cases at a 2-minute walk each is 13 hours. And a suite nobody can run in a sprint is a suite nobody runs. Here are the same 400 cases spread down the ladder:
 
 | Layer band | Cases | Each | When | Wall clock |
 |---|---:|---:|---|---:|
@@ -459,17 +535,17 @@ LORA's arithmetic applies unchanged: 400 cases × a 2-minute walk is 13 hours, a
 | L8 — canary | 1 | ~3 min | hourly | — |
 | | | | **per-merge total** | **≈4 min** |
 
-Five L6 journeys is the whole product matrix: NDF2W, NDF4W, RO, unified DF4W, DF2W. **Five tests would cover the paradigm's happy path across 100% of production volume**, against the zero that cover it today — and they are the *expensive* layer, deliberately kept to five, because L0–L4 catch everything that does not need the engine.
+Five L6 journeys covers the whole product matrix: NDF2W, NDF4W, RO, unified DF4W and DF2W. **Five tests would cover the paradigm's happy path across 100% of production volume.** Today, zero tests cover it. They are also the *expensive* layer, deliberately kept to five, because L0 to L4 catch everything that does not need the engine.
 
 ### 7.6 Three rules that keep it from rotting
 
 Taken from LORA's review criteria, which reject exactly three things in a spec diff. Bravo's equivalents:
 
-1. **No hand-written expectation lists.** LORA derives its 24-stage activity plan from real traces because hand-written lists "were proven wrong twice". Bravo's equivalent is the activity set per product: **derive it from `act_hi_actinst`, never type it.** This depends on the job-executor spans in [bravo-observability.md](bravo-observability.md) rec 8 — without them, a derived Bravo expectation has no source.
-2. **No selectors or field paths in a test.** Bravo's version: no `productId == 1L` literal in a test. A test asks the config layer which product it is, so a test cannot encode the sixth discrimination mechanism.
+1. **No hand-written expectation lists.** LORA derives its 24-stage activity plan from real traces, because hand-written lists "were proven wrong twice". Bravo's equivalent is the activity set per product: **derive it from `act_hi_actinst`. Never type it.** This depends on the job-executor spans in [bravo-observability.md](bravo-observability.md) recommendation 8. Without them, a derived Bravo expectation has no source.
+2. **No selectors or field paths in a test.** Bravo's version of this rule: no `productId == 1L` literal in a test. A test asks the config layer which product it is. That way a test cannot become the sixth discrimination mechanism.
 3. **No stub copied into a case.** Name a baseline bundle, state only the delta. This is what makes N0–N12 two lines each instead of a fixture per case.
 
-**And one rule that is Bravo's alone:** a snapshot is never auto-recorded. LORA states the reason precisely — if the first passing run records the baseline, "that day's form — bugs included — would silently become the truth". For Bravo the same trap is larger, because L0 would otherwise record 38,198 parse warnings a week as the approved state of the models.
+**And one rule that is Bravo's alone:** never auto-record a snapshot. LORA states the reason precisely. If the first passing run records the baseline, "that day's form — bugs included — would silently become the truth". For Bravo the trap is larger. L0 would otherwise record 38,198 parse warnings a week as the approved state of the models.
 
 ---
 
@@ -477,27 +553,43 @@ Taken from LORA's review criteria, which reject exactly three things in a spec d
 
 Ordered by what would have caught something. Items 1–3 are days of work each.
 
-1. **Pin `calledElementBinding` on every `callActivity`, or write the one test that proves the bridge (S–M, highest value).** 56 call activities, none version-pinned, and `ndf2w.bpmn` calls into unified underwriting. Either pin the binding so a unified edit cannot reach 73% of volume mid-flight, or add a Camunda process test that starts an NDF2W instance and asserts which underwriting definition version it enters. Today neither exists.
-2. **Fail the build on `ENGINE-09004` (S).** The warnings are already produced; they are simply produced in the wrong place. A parse test over all 53 BPMN files with `camunda-bpm-assert` — the dependency is already in the pom — turns 38,198 production warnings a week into a red build. Start by fixing the KYC gateway the engine is currently guessing about.
-3. **Add a 4xx clause to the release health gate (S).** "Not 5xx" is not health. At minimum, per-resource 404 and 401 rates on the four surveyor endpoints and the IAM permission call. See [bravo-observability.md](bravo-observability.md) recommendation 2.
-4. **Build one end-to-end process test per generation (M).** Two tests: an NDF2W instance and a unified DF4W instance, each walked from start to go-live with upstreams stubbed, asserting the terminal status and the set of activities executed. `camunda-bpm-assert` and `camunda-bpm-mockito` are already dependencies. Two tests would cover the paradigm's entire happy path, which is currently covered by none.
-5. **Test the retry and degrade policies (M).** Assert that `failedJobRetryTimeCycle` is a valid `Rn/PTn` on every service task — the 5 bare `PT4M` cycles are a latent defect — and add a test that drives an activity to last-attempt and asserts which `customErrorHandle` fires. The anti-fraud `BYPASS` path is a credit-policy decision reached by an exception handler and nothing verifies when.
-6. **Make the product blast radius visible in the diff (M).** Tag every test with the products it covers and emit, per PR, the set of `productId`s reachable from the changed BPMN files, config rows and factories. A reviewer should not have to know five discrimination mechanisms to know whether a change reaches NDF2W.
-7. **Turn on a coverage gate in `ms-bpm`, and correct the `makefile` (S).** JaCoCo `check` with a floor at the current level, ratcheting. Fix `-Dspring-boot.run.profiles`, which surefire ignores — the tests are not running under the profile the build claims.
-8. **Add one Synthetics multi-step API test for the origination journey (S–M).** Not a replacement for a process test; a canary. Today the only continuous evidence that Bravo works is a support-ticket queue. **And it need not be written from scratch** — 349 of the 595 `bravo-e2e-test` feature files already describe the surveyor journeys ([§6](#6-the-journey-suite-bravo-built-and-stopped-running)).
-9. **Send CI events to Datadog (S).** Zero pipeline events exist for either platform, so no one can answer "is the build getting slower, flakier, redder". This is a configuration change and it benefits both teams.
-10. **Build the per-run stub layer in front of the 113 Feign clients (M — this unblocks N0–N12).** Today no Bravo test can make an upstream fail, so 50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths are unexercised. `bravo-mock-service` (Mockoon) does not solve it: it is static and shared, which is precisely why LORA built its own interceptor rather than use it. Bravo's version is the cheaper one to build — stubs generate from typed Feign interfaces, so there is no schema registry to sync and no `check:stubs` script to write ([§7.1](#71-where-bravos-test-boundary-is)).
-11. **Derive expectations, never type them (S, and it is a policy not a task).** LORA derives its activity plan from real traces because hand-written lists were proven wrong twice. Bravo's equivalent is the per-product activity set, derived from `act_hi_actinst` — which needs the job-executor spans in [bravo-observability.md](bravo-observability.md) recommendation 8 first. Until then, an L6 journey's expected activity set has no trustworthy source, and that is the one dependency this document has on another.
+1. **Pin `calledElementBinding` on every `callActivity`, or write the one test that proves the bridge. Small to medium effort, highest value.** There are 56 call activities and none is version-pinned, and `ndf2w.bpmn` calls into unified underwriting. So do one of two things. Pin the binding, so a unified edit cannot reach 73% of volume mid-flight. Or add a Camunda process test that starts an NDF2W instance and asserts which underwriting definition version it enters. Today neither exists.
+2. **Fail the build on `ENGINE-09004`. Small effort.** The warnings are already produced. They are just produced in the wrong place. A parse test over all 53 BPMN files with `camunda-bpm-assert` — the dependency is already in the pom — turns 38,198 production warnings a week into a red build. Start by fixing the KYC gateway the engine is currently guessing about.
+3. **Add a 4xx clause to the release health gate. Small effort.** "Not 5xx" is not health. At minimum, add per-resource 404 and 401 rates on the four surveyor endpoints and the IAM permission call. See [bravo-observability.md](bravo-observability.md) recommendation 2.
+4. **Build one end-to-end process test per generation. Medium effort.** That is two tests: an NDF2W instance and a unified DF4W instance. Walk each from start to go-live with upstreams stubbed, and assert the terminal status and the set of activities executed. `camunda-bpm-assert` and `camunda-bpm-mockito` are already dependencies. Two tests would cover the paradigm's entire happy path. No test covers it today.
+5. **Test the retry and degrade policies. Medium effort.** Assert that `failedJobRetryTimeCycle` is a valid `Rn/PTn` on every service task — the 5 bare `PT4M` cycles are a latent defect. Then add a test that drives an activity to its last attempt and asserts which `customErrorHandle` fires. The anti-fraud `BYPASS` path is a credit-policy decision reached through an exception handler, and nothing verifies when it fires.
+6. **Make the product blast radius visible in the diff. Medium effort.** Tag every test with the products it covers. Then emit, for each pull request, the set of `productId`s reachable from the changed BPMN files, config rows and factories. A reviewer should not have to know five discrimination mechanisms to know whether a change reaches NDF2W.
+7. **Turn on a coverage gate in `ms-bpm`, and fix the `makefile`. Small effort.** Use JaCoCo `check`, with a floor at the current level, ratcheting upward. And fix `-Dspring-boot.run.profiles`, which surefire ignores. The tests are not running under the profile the build claims.
+8. **Add one Synthetics multi-step API test for the origination journey. Small to medium effort.** This is a canary, not a replacement for a process test. Today the only continuous evidence that Bravo works is a support-ticket queue. **And it need not be written from scratch.** 349 of the 595 `bravo-e2e-test` feature files already describe the surveyor journeys ([§6](#6-the-journey-suite-bravo-built-and-stopped-running)).
+9. **Send CI events to Datadog. Small effort.** Neither platform has any pipeline events, so nobody can answer whether the build is getting slower, flakier or redder. This is a configuration change, and it benefits both teams.
+10. **Build the per-run stub layer in front of the 113 Feign clients. Medium effort, and it unblocks N0 through N12.** Today no Bravo test can make an upstream fail. So 50 `customErrorHandle` implementations, 70 error definitions and 190 escalation paths go unexercised. `bravo-mock-service`, which is Mockoon, does not solve this: it is static and shared. That is exactly why LORA built its own interceptor instead of using it. Bravo's version is the cheaper one to build, because stubs generate from typed Feign interfaces. There is no schema registry to sync and no `check:stubs` script to write ([§7.1](#71-where-bravos-test-boundary-is)).
+11. **Derive expectations. Never type them. Small effort, and it is a policy rather than a task.** LORA derives its activity plan from real traces, because hand-written lists were proven wrong twice. Bravo's equivalent is the per-product activity set, derived from `act_hi_actinst`. That needs the job-executor spans in [bravo-observability.md](bravo-observability.md) recommendation 8 first. Until those land, an L6 journey's expected activity set has no trustworthy source. This is the one dependency this document has on another.
 
-12. **Delete every `|| true` from `OPERATION_PLATFORM.yml`, then decide the corpus's fate (S to fix, M to triage — do the fix today).** The one scheduled Bravo E2E workflow cannot report a failure. That is a two-character deletion per line and it converts a decorative run into a real one. Then answer the question this document cannot answer from a checkout: **open the Actions tab and find out whether the weekly cron has fired since 2023.** After that, the 595 files are a triage job, not a rewrite — 349 of them cover the console generating 28.4% of Bravo's tickets, they carry Zephyr tags already, and the 57% of UI `Then` steps that only click need an assertion added. Re-point them at L7 and L8; do not start again — but **land the four mechanical style rules in [§6.1](#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first) first**, or the triage produces re-pointed files with the same defect.
+12. **Delete every `|| true` from `OPERATION_PLATFORM.yml`, then decide what happens to the corpus. Small effort to fix, medium to triage. Do the fix today.**
 
-13. **Ship the four mechanical Gherkin rules as CI before the triage starts (S).** No action verb in a `Then`; no UI widget in a rule scenario; no `wait`; no `Scenario Outline` with fewer than two `Examples` rows. ~50 lines over a Gherkin AST, and they fail most of the existing corpus on contact — which is the point: the triage in item 12 is a one-off without them, and the corpus already decayed this way once ([§6.1](#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first)).
+    The one scheduled Bravo end-to-end workflow cannot report a failure. Deleting `|| true` is a trivial edit on each line, and it turns a decorative run into a real one.
 
-14. **Rotate the credentials committed in `bravo-e2e-test/cypress.config.js` (S, and not a testing task — a security one).** Found while measuring the corpus: the file carries a Jira user API token for `qa@bfi.co.id`, a Zephyr Scale API key, an LMS username and password in plaintext, an agreement `apiSecret` and a lead token, in a repository with 46 contributors and two squad checkouts. The JWTs decode to 2024 expiries; **the plaintext LMS credentials carry no expiry.** Rotate, move to repository secrets, and assume full-history exposure — the values are in 600 commits of git history, not just the working tree. This is unrelated to whether the suite is ever revived.
+    Then answer the question this document cannot answer from a checkout: **open the Actions tab and find out whether the weekly cron has fired since 2023.**
 
-    > **Escalated 2026-09-10 — this is no longer hygiene, it is a candidate root cause.** The production Camunda engine contains **61 injected remote-code-execution process definitions, one confirmed executed**, and the vector was corrected on 2026-09-10: the deploy path `/engine-rest/**` **requires a credential**, so whoever did it held a valid Keycloak token or the shared internal service secret ([SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md)). **A repository with 46 contributors, two checkouts and plaintext service secrets in 600 commits of history is the most plausible source anyone has identified.** Not established — no ticket or log ties this file to those deployments — but it moves this item from *"rotate on principle"* to **the second action in an active security incident**, and the intrusion window (2026-05-23 → 06-30) is inside the period these credentials were exposed.
+    After that, the 595 files are a triage job, not a rewrite. 349 of them cover the console generating 28.4% of Bravo's tickets. They already carry Zephyr tags. And the 57% of UI `Then` steps that only click need an assertion added. So re-point them at L7 and L8 rather than starting again. But **land the four mechanical style rules in [§6.1](#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first) first**, or the triage will produce re-pointed files with the same defect.
 
-15. **Enforce the coverage the three consoles already measure (S), and wire up the bumper that is already installed.** All three compute coverage on every PR and ship it to SonarQube; all three set the failing threshold to 0% or 1%, so it cannot fail. Read the current lcov figure per repo, set the threshold just below it, and let `jest-coverage-thresholds-bumper` — **already a dependency in `bravo-underwriting-console` and invoked nowhere** — ratchet it. This is the cheapest quality win in the estate: the tests, the runner, the coverage report and the blocking job all exist, and one number in three config files is the difference between measuring and enforcing. Add `-Dsonar.qualitygate.wait=true` in the same change so the Sonar gate stops being advisory.
+13. **Ship the four mechanical Gherkin rules as CI before the triage starts. Small effort.** The rules are: no action verb in a `Then`; no UI widget in a rule scenario; no `wait`; and no `Scenario Outline` with fewer than two `Examples` rows. That is about 50 lines over a Gherkin AST. They fail most of the existing corpus on contact, which is the point. Without them the triage in item 12 is a one-off, and the corpus already decayed this way once ([§6.1](#61-if-the-349-surveyor-files-are-being-re-pointed-fix-the-style-first)).
+
+14. **Rotate the credentials committed in `bravo-e2e-test/cypress.config.js`. Small effort, and it is a security task rather than a testing one.** We found this while measuring the corpus. The file carries a Jira user API token for `qa@bfi.co.id`, a Zephyr Scale API key, an LMS username and password in plaintext, an agreement `apiSecret`, and a lead token. The repository has 46 contributors and two squad checkouts.
+
+    The JWTs decode to 2024 expiries. **The plaintext LMS credentials carry no expiry at all.** So rotate them, move them to repository secrets, and assume the full history is exposed. The values sit in 600 commits of git history, not just the working tree. None of this depends on whether the suite is ever revived.
+
+    > **Escalated 2026-09-10. This is no longer hygiene. It is a candidate root cause.**
+    >
+    > The production Camunda engine contains **61 injected remote-code-execution process definitions, and one of them ran**. We corrected the vector on 2026-09-10: the deploy path `/engine-rest/**` **requires a credential**. So whoever did it held a valid Keycloak token, or the shared internal service secret ([SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md)).
+    >
+    > **A repository with 46 contributors, two checkouts and plaintext service secrets in 600 commits of history is the most plausible source anyone has identified.** This is not established — no ticket or log ties this file to those deployments. But it moves the item from *"rotate on principle"* to **the second action in an active security incident**. And the intrusion window, 2026-05-23 to 06-30, sits inside the period these credentials were exposed.
+
+15. **Enforce the coverage the three consoles already measure, and wire up the bumper that is already installed. Small effort.** All three compute coverage on every pull request and ship it to SonarQube. All three set the failing threshold to 0% or 1%, so it cannot fail.
+
+    Read the current lcov figure for each repository, set the threshold just below it, and let `jest-coverage-thresholds-bumper` ratchet it up. That package is **already a dependency in `bravo-underwriting-console`, and invoked nowhere.**
+
+    This is the cheapest quality win in the estate. The tests, the runner, the coverage report and the blocking job all exist. One number in three config files is the difference between measuring and enforcing. Add `-Dsonar.qualitygate.wait=true` in the same change, so the Sonar gate stops being advisory.
 
 ### Where each recommendation lands on the ladder
 
@@ -515,17 +607,19 @@ Ordered by what would have caught something. Items 1–3 are days of work each.
 | **10 — per-run stub layer** | **enables L4, L5** | The whole of N0–N12 |
 | **11 — derive, don't type** | **policy for L6** | Blocked on observability rec 8 |
 
-**The ordering this implies is different from the list above, and better.** Recommendation 2 is written as "fail the build on `ENGINE-09004`" — but the harness it needs *is* L0, and once L0 exists it also delivers T1, T3, T12 and the detection half of recommendation 1, in the same few days. **L0 and L1 are the cheapest work in this document and they close the largest number of findings.** They should be first, ahead of the item currently marked highest-value.
+**The ordering this implies differs from the list above, and it is better.** Recommendation 2 is written as "fail the build on `ENGINE-09004`". But the harness it needs *is* L0. And once L0 exists, it also delivers T1, T3, T12 and the detection half of recommendation 1, in the same few days. **L0 and L1 are the cheapest work in this document, and they close the largest number of findings.** They should come first, ahead of the item currently marked highest-value.
 
 ---
 
 ## Plan: 30, 60, 90 days
 
-Eleven recommendations, phased against ~25 person-days a month of Squad S&U time (the allocation set by [bravo-people.md](bravo-people.md) recommendation 4). **The phases are the ladder in [§7.2](#72-the-nine-layers), built cheapest-first** — L0 and L1 in month 1, L3 and L4 in month 2, L5 and L6 in month 3. That ordering is not a preference: L6 is the only layer that can prove the `calledElementBinding` fix, and L0 is the only layer that can find all 56 call sites in seconds.
+Eleven recommendations, phased against about 25 person-days a month of Squad S&U time. That allocation is set by [bravo-people.md](bravo-people.md) recommendation 4.
 
-**Sequencing rule for this document: investigate before touching anything that reaches in-flight loans.** Recommendation 1 is the highest-value item here and the most dangerous to rush — unpinned `callActivity` binding affects **248,685 NDF2W applications per 90 days**. It is therefore read-only in month 1, a decision in month 2, and a change in month 3. Nothing else in this plan alters in-flight behaviour at all.
+**The phases are the ladder in [§7.2](#72-the-nine-layers), built cheapest first:** L0 and L1 in month 1, L3 and L4 in month 2, L5 and L6 in month 3. That ordering is not a preference. L6 is the only layer that can prove the `calledElementBinding` fix, and L0 is the only layer that can find all 56 call sites in seconds.
 
-**Shared with other documents.** Recommendation 1 is also [bravo-delivery.md](bravo-delivery.md) rec 6, and recommendation 3 is also [bravo-observability.md](bravo-observability.md) rec 2. Both are phased identically in all documents — do them once.
+**The rule for ordering this work: investigate before touching anything that reaches in-flight loans.** Recommendation 1 is the highest-value item here, and the most dangerous to rush. Unpinned `callActivity` binding affects **248,685 NDF2W applications per 90 days**. So it is read-only in month 1, a decision in month 2, and a change in month 3. Nothing else in this plan alters in-flight behaviour at all.
+
+**Shared with other documents.** Recommendation 1 is also recommendation 6 in [bravo-delivery.md](bravo-delivery.md). Recommendation 3 is also recommendation 2 in [bravo-observability.md](bravo-observability.md). Both are phased the same way in every document, so do them once.
 
 ### Days 0–30 — look, and start reporting
 
@@ -597,5 +691,5 @@ Eleven recommendations, phased against ~25 person-days a month of Squad S&U time
 - [compare-architecture.md](compare-architecture.md) §3.10, §3.11 — the test inventory and in-flight versioning in code terms
 - [workflow-gap.md](workflow-gap.md) §8 — the 5.5% / 94% volume split between the two generations
 - LORA [testing.md](../../lora-workspace/docs/production-findings/testing.md) — the same questions asked of the other platform
-- LORA [people.md § Writing Gherkin for the BFI loan business](../../lora-workspace/docs/production-findings/people.md#writing-gherkin-for-the-bfi-loan-business) — **the style guide and the product/QA ritual derived from this corpus**: the ten rules, the two tiers, the capped step vocabulary and the CI gates that stop a `.feature` file decaying the way these 595 did
+- LORA [people.md § Writing Gherkin for the BFI loan business](../../lora-workspace/docs/production-findings/people.md#writing-gherkin-for-the-bfi-loan-business) — **the style guide and the product/QA ritual derived from this corpus.** It covers the ten rules, the two tiers, the capped step vocabulary, and the CI gates that stop a `.feature` file decaying the way these 595 did
 - LORA [lora-super-test](../../lora-workspace/docs/production-findings/testing/lora-super-test.html) — **the strategy [§7](#7-a-test-strategy-for-bravo--layers-l0l8) is derived from**: five `_`-prefixed layers, the mock interceptor, derived expectations, and the test-volume budget

@@ -2,9 +2,9 @@
 
 **Companion to** [option-1.md](option-1.md) (version upgrade), [option-2.md](option-2.md) (Temporal) and [option-summary.md](option-summary.md) (comparison and decision framework).
 
-**Status of the wider decision.** No decision has been taken about Bravo's long-term platform, and this document does not assume one. LORA runs in production alongside Bravo; whether it becomes BFI's single loan origination system is exactly the question this pack exists to inform.
+**Status of the wider decision.** No decision has been taken about Bravo's long-term platform, and this document does not assume one. LORA runs in production alongside Bravo today. Whether it becomes BFI's single loan origination system is exactly the question this pack exists to inform.
 
-**Verdict in one line.** The only option that ends with one platform instead of two — and the only one that asks the organisation to change paradigm as well as runtime, which is where its most-cited objection lives and where this document spends its longest section.
+**Verdict in one line.** This is the only option that ends with one platform instead of two. It is also the only one that asks the organisation to change paradigm as well as runtime. That is where the most-cited objection to it lives, and it is where this document spends its longest section.
 
 ---
 
@@ -22,9 +22,9 @@
 
 Source: [compare.md §3.12](compare-architecture.md), [LORA cost findings](../../lora-workspace/docs/production-findings/cost.md).
 
-**Two caveats on the volume figures, both from the LORA cost document itself.** The application counts in the billing sheet are the least-verified numbers in the pack — an application originated in LORA is plausibly counted again in Bravo when it is booked at go-live — and Bravo's engine meter reports ~120k process starts/month against the sheet's 118,253. The split is directionally clear and numerically soft. It should not be the sole basis for a platform decision, and the billing owner should be asked to define both columns before it is.
+**Two caveats on the volume figures. Both come from the LORA cost document itself.** First, the billing sheet's application counts are the least-verified numbers in the pack. An application originated in LORA is plausibly counted a second time in Bravo when it is booked at go-live. Second, Bravo's engine meter reports about 120,000 process starts a month against the sheet's 118,253. So the split is clear in direction and soft in number. It should not be the sole basis for a platform decision. Ask the billing owner to define both columns first.
 
-LORA already runs the NDF product family on the `dp-ndf` document schema, with `ndf4w` and `ndf2w` SKU packages. So Option 3 is not "build an LOS on LORA" — it is **close the coverage gap, prove parity, cut the remaining book over, and switch Bravo off.** That materially reduces the technical risk relative to a green-field build, and it is the strongest structural argument for this option.
+LORA already runs the NDF product family on the `dp-ndf` document schema, with `ndf4w` and `ndf2w` SKU packages. So Option 3 is not "build an LOS on LORA". It is **close the coverage gap, prove parity, cut the remaining book over, and switch Bravo off.** That is much less risky than a green-field build, and it is the strongest structural argument for this option.
 
 ---
 
@@ -41,19 +41,19 @@ Counted from the production database, 90 days to 2026-09-09 ([workflow-gap.md §
 | `NDF4W_Sharia` | Sharia | separate engine | — | Own deployment; must be scoped separately |
 | `UNSECURED`, pre-approval, multi-asset | | 0 in 90d | — | Dormant or elsewhere; confirm before scoping |
 
-**The sharp finding from [workflow-gap.md §8.2](workflow-gap.md):** "a single workflow for all products" is false in production. The unified spine carries DF4W plus a 3-application NDF4W pilot. The legacy per-product monoliths carry **~94% of applications and the entire retail book**. So migrating Bravo to LORA is overwhelmingly a *legacy monolith* migration — and those monoliths are 9,494 and 8,464 lines of BPMN with product logic also living in Java `isNDF4W()` predicates, YAML maps, six-column selector tables and gateway string comparisons.
+**The sharp finding from [workflow-gap.md §8.2](workflow-gap.md):** "a single workflow for all products" is false in production. The unified spine carries DF4W plus a 3-application NDF4W pilot. The legacy per-product monoliths carry **about 94% of applications and the entire retail book**. So migrating Bravo to LORA is overwhelmingly a *legacy monolith* migration. Those monoliths are 9,494 and 8,464 lines of BPMN. Their product logic also lives in Java `isNDF4W()` predicates, YAML maps, six-column selector tables and gateway string comparisons.
 
 Beyond the workflows, three Bravo capability blocks need a LORA home:
 
-1. **Human work** — 217k LOC, 43.6% of the service. `SurveyorAssignmentServiceImpl` (10,419 lines), `OperationAssignmentServiceImpl` (8,177), `BaseUnderwritingApprovalServiceImpl` (4,604), plus the data-driven approver ladder in `underwriting_job_level_lov_detail`. LORA has counterparts (`lora-task-service` 89k LOC, `survey.go` 5,473 lines / 125 transitions, `underwriting.go` 3,041 / 72) but coverage parity per product and risk tier is unproven.
+1. **Human work.** 217,000 lines, 43.6% of the service. The big pieces are `SurveyorAssignmentServiceImpl` (10,419 lines), `OperationAssignmentServiceImpl` (8,177) and `BaseUnderwritingApprovalServiceImpl` (4,604), plus the data-driven approver ladder in `underwriting_job_level_lov_detail`. LORA has counterparts: `lora-task-service` at 89,000 lines, `survey.go` at 5,473 lines and 125 transitions, `underwriting.go` at 3,041 lines and 72 transitions. But nobody has proved coverage parity per product and risk tier.
 2. **Operator surfaces** — `ApplicationErrorTracking` console, ~25 retry/reprocess/revive/cancel endpoints, Camunda Cockpit, and `bravo-underwriting-console`.
-3. **Durable reprocess generations** — Bravo's `prevApplication`/`currentIndex` chain keeps every attempt as a queryable row. LORA rewinds and re-originates, which loses that history ([compare.md §3.7](compare-architecture.md), §6 lesson 3).
+3. **Durable reprocess generations.** Bravo's `prevApplication` and `currentIndex` chain keeps every attempt as a queryable row. LORA rewinds and re-originates instead, which loses that history ([compare.md §3.7](compare-architecture.md), §6 lesson 3).
 
 ---
 
 ## 3. The paradigm objection, examined
 
-This is the most-cited objection to Option 3 and it deserves to be assessed rather than dismissed or accepted. The complaint, in the LORA team's own words ([Current LORA challenges in Production](../../lora-workspace/docs/production-findings/Current%20LORA%20challenges%20in%20Production.md)):
+This is the objection to Option 3 people cite most often. It deserves to be assessed, not dismissed and not simply accepted. Here is the complaint in the LORA team's own words ([Current LORA challenges in Production](../../lora-workspace/docs/production-findings/Current%20LORA%20challenges%20in%20Production.md)):
 
 > "Workflow (imperative) to be translated to (declarative) data readiness as a trigger to run Activity using Golang and LORA SDK. Human tendency is to think in terms of Workflow (e.g: Underwriting will start after Survey) rather than remembering if asset list fields and customer address are filled then start Survey."
 
@@ -70,7 +70,7 @@ LORA's own investigation ([people.md](../../lora-workspace/docs/production-findi
 
 ### 3a. The seam LORA lacks is one Bravo is actively running
 
-**Added 2026-09-10.** The fourth complaint above — that a shared document and a shared planner leave no seam to split UW and Surveyor teams — was assessed as *confirmed but abstract*: a constraint on how BFI could organise squads. New evidence makes it concrete on both sides, because **Bravo's LOS is already organised along exactly that seam, and the split is visible in four independent places**:
+**Added 2026-09-10.** The fourth complaint above says a shared document and a shared planner leave no seam along which to split UW and Surveyor teams. We assessed it as *confirmed but abstract* — a constraint on how BFI could organise squads. New evidence makes it concrete. **Bravo's LOS is already organised along exactly that seam, and the split shows up in four independent places:**
 
 | Where | Team Scoring & Underwriting | Team Surveyor & Verificator |
 |---|---|---|
@@ -79,21 +79,25 @@ LORA's own investigation ([people.md](../../lora-workspace/docs/production-findi
 | Console repositories | `bravo-underwriting-console` (249k LOC) | `bravo-surveyor-console` (307k LOC), `bravo-operation-console` (208k LOC) |
 | Sprint testing | `BLCS-4808/4809` "Regression Test Sprint 18" | `LN-6599/6600/6602` "Regression Testing - Sprint 18" |
 
-Cross-project issue links between them: **zero**. Assignee overlap in the sampled issues: **zero**. Two squads, one sprint train, disjoint scope, separate front ends — and each is full-stack within its own domain (`LN` sub-tasks are `[BE]` 18 / `[FE]` 15 / `[QA]` 7). Delivery figures in [bravo-people.md §3–§5](bravo-people.md).
+Cross-project issue links between them: **zero**. Assignee overlap in the sampled issues: **zero**. So: two squads, one sprint train, no shared scope, separate front ends. Each is full-stack inside its own domain — `LN` sub-tasks split `[BE]` 18, `[FE]` 15, `[QA]` 7. Delivery figures are in [bravo-people.md §3–§5](bravo-people.md).
 
-**What this does to the option.** It converts "Bravo's split by LOS stage would not survive the move" from a prediction into a **priced loss**. Option 3 would merge two squads that today ship independently against separate repositories and separate boards, into a shared-document model whose own investigation says it offers no seam to split them back. That is not a reason to reject the option — LORA's [people.md](../../lora-workspace/docs/production-findings/people.md) proposes end-to-end teams per product family as the replacement organisation, which is a coherent answer. But it is the cost, it is **structural and unremediable** unlike the other three complaints, and it should be stated as *"merge two working squads and re-cut them by product family"* rather than as *"a constraint on how BFI can organise"*.
+**What this does to the option.** It turns "Bravo's split by LOS stage would not survive the move" from a prediction into a **priced loss**. Two squads ship independently today, against separate repositories and separate boards. Option 3 would merge them into a shared-document model whose own investigation says there is no seam to split them back.
 
-**The symmetric caution, so this is not read as one-sided:** Bravo's seam is not free either. [compare-architecture.md §3.14](compare-architecture.md) shows the surveyor-assignment boundary is the top ops complaint on **both** platforms at nearly the same rate (Bravo 21.8% of tickets, LORA 25.0%), and `BLCS-4405` *"[DF2W UW] Sync Surveyor Status Underwriting Return"* is exactly the kind of ticket a seam creates — work whose whole purpose is keeping two sides of a boundary consistent. Bravo has a seam that lets two squads ship independently, and it pays for it in cross-boundary synchronisation.
+That is not a reason to reject the option. LORA's [people.md](../../lora-workspace/docs/production-findings/people.md) proposes end-to-end teams per product family as the replacement organisation, and that is a coherent answer. But it is a real cost. Unlike the other three complaints it is **structural and cannot be remediated**. So state it plainly as *"merge two working squads and re-cut them by product family"*, not as *"a constraint on how BFI can organise"*.
 
-**The honest reading.** Three of the four complaints are about missing artefacts — a generated readiness index, a week-1 curriculum, ADRs — and are addressable with weeks of work, not by changing paradigm. The fourth, team ownership, is a genuine property of a shared-document design and does not go away. So the paradigm objection is **real but mostly remediable**, and the remediation is cheap relative to the migration. It should be priced into Option 3 explicitly (it is, in the effort table below) rather than treated as either a blocker or a grumble.
+**One caution, so this is not read as one-sided.** Bravo's seam is not free either. [compare-architecture.md §3.14](compare-architecture.md) shows that the surveyor-assignment boundary is the top operations complaint on **both** platforms, at nearly the same rate: 21.8% of Bravo's tickets and 25.0% of LORA's. And `BLCS-4405`, *"[DF2W UW] Sync Surveyor Status Underwriting Return"*, is exactly the kind of ticket a seam creates. Its whole purpose is keeping two sides of a boundary consistent. So Bravo's seam lets two squads ship independently, and Bravo pays for it in cross-boundary synchronisation.
 
-**The counter-consideration that should not be lost.** [compare.md §3.4](compare-architecture.md) rates GSM's central claim as validated: adding an automated check in LORA is a new Constructor with ReadSet/WriteSet and a precondition — no orchestration edit — verified at 172 activities with only 3 hard precursors. In Bravo the same change touches a `JavaDelegate`, a BPMN file, a gateway, a retry choice, a `WorkflowConstants` key and a configuration table. That is the capability being bought, and it is the thing the paradigm objection is the price of. Whether that trade is worth making is a judgement about which cost the organisation would rather carry — and it is properly the CTO's, not this document's.
+**The honest reading.** Three of the four complaints are about missing artefacts: a generated readiness index, a week-1 curriculum, and ADRs. Weeks of work fixes those. Changing paradigm does not come into it. The fourth complaint, team ownership, is a genuine property of a shared-document design and does not go away. So the paradigm objection is **real but mostly fixable**, and fixing it is cheap next to the migration. Price it into Option 3 explicitly — the effort table below does — rather than treating it as either a blocker or a grumble.
+
+**Do not lose the counter-consideration.** [compare.md §3.4](compare-architecture.md) rates GSM's central claim as validated. In LORA, adding an automated check means writing a new Constructor with a ReadSet, a WriteSet and a precondition. There is no orchestration edit. That was verified at 172 activities with only 3 hard precursors. In Bravo the same change touches a `JavaDelegate`, a BPMN file, a gateway, a retry choice, a `WorkflowConstants` key and a configuration table.
+
+That capability is what Option 3 buys, and the paradigm objection is its price. Whether the trade is worth making is a judgement about which cost the organisation would rather carry. That judgement belongs to the CTO, not to this document.
 
 ---
 
 ## 4. Effort
 
-The lowest-confidence estimate in this pack, because LORA's per-product coverage gap against Bravo has not been measured. Treat the first workstream as the one that makes the rest of the numbers real.
+This is the lowest-confidence estimate in the pack. Nobody has measured LORA's per-product coverage gap against Bravo. So treat the first workstream as the one that makes every other number here real.
 
 | Workstream | Detail | Eng-months |
 |---|---|---|
@@ -108,7 +112,7 @@ The lowest-confidence estimate in this pack, because LORA's per-product coverage
 
 **Elapsed:** 15–24 months. **Indicative one-off** at an assumed Rp30–50M per engineer-month: **Rp900M – Rp2.85B**.
 
-**A material qualification on that total.** Some of this work overlaps with LORA's existing product roadmap and reliability backlog, and would be done whether or not Bravo migrates. The *incremental* cost attributable to a migration decision is therefore lower than the table's total — but by how much has not been quantified, and it should be before the number is used in a business case. The gap inventory is the workstream that produces that figure.
+**One important qualification on that total.** Some of this work overlaps with LORA's existing product roadmap and reliability backlog. It would be done whether or not Bravo migrates. So the *incremental* cost of a migration decision is lower than the table's total. Nobody has quantified by how much. That should happen before the number goes into a business case. The gap inventory is the workstream that produces the figure.
 
 ---
 
@@ -131,10 +135,10 @@ flowchart TB
 
 Two ordering rules, both from evidence already in this repository:
 
-- **Lowest volume and highest existing coverage first.** DF4W is already on the unified spine with config-gated activities; RO is small enough to absorb a mistake. NDF2W is 73% of the book and must be last.
-- **Reliability and legibility before volume.** Moving the retail book onto LORA before steps 2 completes would multiply a measured defect rate by roughly 3×, and would do it while the people operating it still lack the readiness index.
+- **Lowest volume and highest existing coverage first.** DF4W is already on the unified spine with config-gated activities. RO is small enough to absorb a mistake. NDF2W is 73% of the book, so it must go last.
+- **Reliability and legibility before volume.** Moving the retail book onto LORA before step 2 completes would multiply a measured defect rate by roughly 3×. It would also do that while the people operating it still lack the readiness index.
 
-**This sequence is also its own off-ramp.** Steps 1–4 — inventory, remediation, DF4W coverage, shadow run — are ~12–20 engineer-months and produce a *decision-grade* answer to "does LORA actually absorb a Bravo product cleanly?", on 5.5% of volume, without committing the retail book. If the answer is no, the work still leaves LORA measurably better and Bravo untouched.
+**This sequence is also its own off-ramp.** Steps 1 to 4 are inventory, remediation, DF4W coverage and a shadow run. They cost about 12–20 engineer-months. They answer one question to a *decision-grade* standard: does LORA actually absorb a Bravo product cleanly? They answer it on 5.5% of volume, without committing the retail book. If the answer is no, the work still leaves LORA measurably better and Bravo untouched.
 
 ---
 
@@ -150,9 +154,13 @@ LORA's own production findings are the strongest argument for sequencing Option 
 | No per-family observability | 6 of 7 product families have no production APM presence; Temporal has **0 search attributes** | "Which loans are stuck at survey?" is a SQL `WHERE` clause on Bravo today. It is not answerable on LORA without APM |
 | Testing | Nightly red for 5 weeks; `lora-super-test` has no CI runner; 4 repos at zero tests; product policy is not a merge gate | Parity for 16 NDF2W risk-tier configurations cannot be proven by a suite that does not run |
 
-**One counterweight, added 2026-09-10.** Every row above is a LORA defect, and the table reads as a list of reasons to hesitate. The OTRS export supplies the missing comparison: on the only symmetric measurement in the pack, **LORA is the more reliable platform per application today** — ≈99.87% of applications complete with no support ticket against Bravo's ≈99.56%, and LORA's ticket load fell a third over eight months while Bravo's rose 82% against falling volume ([ticket-analysis.md](production-findings/ticket-analysis.md)). Both figures rest on the billing sheet's disputed application counts, Bravo's excludes silent operator-console recoveries, and the gap turns on one unexplained Bravo category — so this is a correction to the framing, not a licence to skip the gates below. But the reliability prerequisite is about *specific defect classes that would compound at 3× volume*, not about LORA being the shakier system.
+**One counterweight, added 2026-09-10.** Every row above is a LORA defect, so the table reads as a list of reasons to hesitate. The OTRS export supplies the comparison that was missing.
 
-None of these is an argument against Option 3 in principle. All are arguments for treating "green nightly, bounded retries, terminal statuses, wedge console, readiness index" as the entry gate to each cutover wave — and for reading the current defect rate as a statement about LORA's *maturity*, not about GSM or Temporal. Bravo's equivalents (§7 of [compare.md](compare-architecture.md)) took four years to reach their current state.
+On the only symmetric measurement in the pack, **LORA is the more reliable platform per application today.** About 99.87% of its applications complete with no support ticket, against Bravo's ≈99.56%. Over eight months LORA's ticket load fell by a third while Bravo's rose 82% against falling volume ([ticket-analysis.md](production-findings/ticket-analysis.md)).
+
+Three things qualify that. Both figures rest on the billing sheet's disputed application counts. Bravo's excludes silent operator-console recoveries. And the gap turns on one unexplained Bravo category. So this corrects the framing. It is not a licence to skip the gates below. The reliability prerequisite is about *specific defect classes that would compound at 3× volume*. It is not a claim that LORA is the shakier system.
+
+None of these is an argument against Option 3 in principle. They are all arguments for one thing: make "green nightly, bounded retries, terminal statuses, wedge console, readiness index" the entry gate to each cutover wave. Read the current defect rate as a statement about LORA's *maturity*, not about GSM or Temporal. Bravo's equivalents took four years to reach their current state (§7 of [compare.md](compare-architecture.md)).
 
 ---
 
@@ -165,9 +173,9 @@ None of these is an argument against Option 3 in principle. All are arguments fo
 | Second platform's staffing and on-call | Retires. Not in any GCP line, and plausibly the largest saving |
 | Cloud Logging on the Bravo estate | Partially retires. `ms-bpm` logs full Feign request bodies (`loggerLevel: full`) into a Rp140.5M/month prod logging line |
 
-**What does not retire, and this correction matters.** The earlier claim that retiring Bravo saves ≈Rp1.6B/month was withdrawn in [compare.md §3.12](compare-architecture.md). Most of the Bravo estate — Cloud SQL Rp584M, the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances, Memorystore, Keycloak — is the shared BFI data plane that **LORA's 301 gateway proxies also call**. It stays. Only the LOS tier retires.
+**What does not retire. This correction matters.** [compare.md §3.12](compare-architecture.md) withdrew the earlier claim that retiring Bravo saves about Rp1.6B a month. Most of the Bravo estate is the shared BFI data plane, and **LORA's 301 gateway proxies call it too**. That includes Cloud SQL at Rp584M, the roughly 26 `ms-*` data-plane services with about 50 Cloud SQL instances, Memorystore and Keycloak. All of it stays. Only the LOS tier retires.
 
-**And on a like-for-like tier LORA is currently the more expensive platform**: ≈Rp2,500–3,200 per application against Bravo's ≈Rp490–515. Option 3 is not justified by unit cost. Its financial case is *not running two loan origination systems* plus LORA's near-zero marginal cost as volume grows, and it strengthens materially if LORA's own right-sizing is done — retiring the five idle worker versions is worth ≈Rp63M/month, more than the entire Bravo LOS tier.
+**And on a like-for-like tier, LORA is the more expensive platform today**: ≈Rp2,500–3,200 per application against Bravo's ≈Rp490–515. So unit cost does not justify Option 3. Its financial case is *not running two loan origination systems*, plus LORA's near-zero marginal cost as volume grows. That case gets much stronger if LORA does its own right-sizing. Retiring the five idle worker versions alone is worth ≈Rp63M a month, which is more than the entire Bravo LOS tier.
 
 ---
 
@@ -190,14 +198,14 @@ None of these is an argument against Option 3 in principle. All are arguments fo
 
 ## 9. When Option 3 is the right answer
 
-It is the right answer when BFI intends to run **one** loan origination system, and judges that the capability GSM buys — adding an automated step without editing an orchestration model, validated in production at 172 activities — is worth the adoption cost documented in §3 and the maturity gap in §6.
+It is the right answer under two conditions. First, BFI intends to run **one** loan origination system. Second, BFI judges that the capability GSM buys is worth its price. That capability is adding an automated step without editing an orchestration model, validated in production at 172 activities. Its price is the adoption cost in §3 and the maturity gap in §6.
 
 The honest qualifications, stated so they are not discovered later:
 
-- It does **not** answer the end-of-support finding by itself. Fifteen to twenty-four months of Bravo runtime still has to be made safe — but that is now cheap: [option-1.md](option-1.md) Path B lands a supported engine and Spring Boot in 18–33 engineer-days with no licence, so the bridge is a small line item rather than a strategic constraint.
+- It does **not** answer the end-of-support finding by itself. Fifteen to twenty-four months of Bravo runtime still has to be made safe. That is now cheap, though: [option-1.md](option-1.md) Path B lands a supported engine and Spring Boot in 18–33 engineer-days with no licence. So the bridge is a small line item, not a strategic constraint.
 - It should **not** start with the retail book. It should start with a gap inventory, the paradigm remediation and the reliability work, and prove itself on DF4W.
 - Its cost case is "stop running two platforms", not "LORA is cheaper per loan". On a like-for-like tier it is not, today.
-- The paradigm objection is real. It is mostly remediable and the remediation is cheap — but it has not been done, and a migration decision that assumes it away will meet it at full strength during cutover.
+- The paradigm objection is real. It is mostly fixable, and fixing it is cheap. But nobody has done it. A migration decision that assumes it away will meet it at full strength during cutover.
 
 ---
 
