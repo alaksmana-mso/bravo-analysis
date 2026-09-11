@@ -1,0 +1,740 @@
+<title>What Best-Practice Workflow Costs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ============================================================
+   Bravo production-findings deck system
+   Shared across the five decks; only --ac* tokens differ.
+   ============================================================ */
+
+:root{
+  --paper:#F1F3F6; --panel:#FFFFFF; --panel2:#E7ECF2; --panel3:#DDE3EB;
+  --ink:#161B23; --ink2:#434D5B; --ink3:#6D7686;
+  --rule:#D1D8E1; --ruleS:#AFBAC7;
+  --ok:#2C6B4C; --bad:#A5372A; --warn:#8E6410; --neu:#5A6472;
+  --okBg:#2C6B4C1a; --badBg:#A5372A1a; --warnBg:#8E64101f; --neuBg:#5A64721a;
+  --ac:#8A6318; --acBg:#8A63181f; --acBg2:#8A63180f;
+  --shadow:0 1px 2px #161b2310, 0 8px 24px -12px #161b2320;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11151B; --panel:#181E26; --panel2:#202834; --panel3:#28313E;
+    --ink:#E7ECF3; --ink2:#ADB8C6; --ink3:#7C8695;
+    --rule:#293240; --ruleS:#3A4553;
+    --ok:#71C096; --bad:#E68B79; --warn:#D9AA4C; --neu:#939DAB;
+    --okBg:#71C09622; --badBg:#E68B7922; --warnBg:#D9AA4C22; --neuBg:#939DAB1c;
+    --ac:#D7A84E; --acBg:#D7A84E24; --acBg2:#D7A84E12;
+    --shadow:0 1px 2px #0006, 0 10px 30px -14px #0008;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11151B; --panel:#181E26; --panel2:#202834; --panel3:#28313E;
+  --ink:#E7ECF3; --ink2:#ADB8C6; --ink3:#7C8695;
+  --rule:#293240; --ruleS:#3A4553;
+  --ok:#71C096; --bad:#E68B79; --warn:#D9AA4C; --neu:#939DAB;
+  --okBg:#71C09622; --badBg:#E68B7922; --warnBg:#D9AA4C22; --neuBg:#939DAB1c;
+  --ac:#D7A84E; --acBg:#D7A84E24; --acBg2:#D7A84E12;
+  --shadow:0 1px 2px #0006, 0 10px 30px -14px #0008;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;margin:0;text-wrap:balance}
+p{margin:0}
+
+/* ---------- deck shell ---------- */
+.deck{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scroll-behavior:smooth;scrollbar-width:none}
+.deck::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion:reduce){.deck{scroll-behavior:auto}}
+
+.slide{
+  min-height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;flex-direction:column;
+  padding:clamp(26px,4vw,58px) clamp(22px,4.4vw,64px) clamp(48px,5vw,64px);
+  border-bottom:1px solid var(--rule);position:relative;
+}
+.inner{width:100%;max-width:1160px;margin:0 auto;display:flex;flex-direction:column;flex:1;gap:clamp(16px,2vw,26px)}
+
+/* ---------- slide head ---------- */
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:500;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;
+}
+.eyebrow b{color:var(--ac);font-weight:600}
+.eyebrow .sep{color:var(--ruleS)}
+h2.st{font-size:clamp(23px,3.1vw,38px);font-weight:700;letter-spacing:-.016em;line-height:1.1;margin-top:6px}
+.lede{font-size:clamp(15px,1.3vw,18.5px);line-height:1.55;color:var(--ink2);max-width:70ch}
+.lede em{color:var(--ink);font-style:italic}
+.lede strong{color:var(--ink);font-weight:600}
+
+/* ---------- cover ---------- */
+.slide--cover{justify-content:center;background:
+  radial-gradient(120% 90% at 88% 8%,var(--acBg2),transparent 60%),var(--paper)}
+.cover-kicker{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ac);font-weight:600;
+}
+h1{font-size:clamp(32px,5.4vw,64px);font-weight:800;letter-spacing:-.028em;line-height:1.02}
+h1 .thin{font-weight:500;color:var(--ink2);letter-spacing:-.02em}
+.claim{
+  font-size:clamp(15px,1.5vw,20px);line-height:1.5;font-style:italic;color:var(--ink2);
+  border-left:3px solid var(--ac);padding:2px 0 2px 18px;max-width:64ch;
+}
+.meta{
+  display:flex;flex-wrap:wrap;gap:6px 26px;font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px;letter-spacing:.05em;color:var(--ink3);padding-top:4px;
+  border-top:1px solid var(--rule);margin-top:4px;
+}
+.meta span b{color:var(--ink2);font-weight:500}
+
+/* ---------- headline stats ---------- */
+.stats{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.stats--4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat{background:var(--panel);padding:16px 18px 15px;display:flex;flex-direction:column;gap:4px}
+.stat__n{
+  font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(24px,3.3vw,42px);
+  line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ac);
+}
+.stat__n.neg{color:var(--bad)} .stat__n.pos{color:var(--ok)} .stat__n.plain{color:var(--ink)}
+.stat__n small{font-size:.5em;font-weight:600;letter-spacing:0;color:var(--ink2)}
+.stat__l{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.45;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink3);
+}
+
+/* ---------- verdict list ---------- */
+.vlist{display:flex;flex-direction:column;border-top:1px solid var(--ruleS)}
+.vrow{
+  display:grid;grid-template-columns:minmax(0,1.05fr) 132px minmax(0,1.25fr);
+  gap:14px 18px;padding:13px 2px;border-bottom:1px solid var(--rule);align-items:start;
+}
+.vrow .cl{font-size:15px;line-height:1.4;color:var(--ink);font-weight:600}
+.vrow .gi{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.vrow .gi code,.vrow .cl code{font-size:.88em}
+@media (max-width:820px){
+  .vrow{grid-template-columns:1fr;gap:7px}
+  .vrow .v{justify-self:start}
+}
+.v{
+  display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 9px 4px;border-radius:2px;white-space:nowrap;line-height:1.2;
+}
+.v::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.v--ref{color:var(--ok);background:var(--okBg)}
+.v--con{color:var(--bad);background:var(--badBg)}
+.v--sup{color:var(--warn);background:var(--warnBg)}
+.v--non{color:var(--neu);background:var(--neuBg)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+thead th{
+  text-align:left;font-weight:600;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);padding:10px 14px;border-bottom:2px solid var(--ac);white-space:nowrap;background:var(--panel);
+}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--rule);color:var(--ink2);vertical-align:top;line-height:1.45}
+tbody tr:nth-child(even) td{background:var(--acBg2)}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td.k{color:var(--ink);font-weight:500}
+tbody tr.tot td{background:var(--panel2);color:var(--ink);font-weight:600;border-top:1px solid var(--ruleS)}
+td b,td strong{color:var(--ink);font-weight:600}
+td .hi{color:var(--ac);font-weight:600}
+td .dn{color:var(--bad);font-weight:600}
+td .up{color:var(--ok);font-weight:600}
+caption{caption-side:bottom;text-align:left;padding:9px 14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink3);line-height:1.5;letter-spacing:.03em}
+
+/* ---------- code ---------- */
+pre{
+  margin:0;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.65;
+  background:var(--panel2);border-left:3px solid var(--ac);border-radius:0 3px 3px 0;
+  padding:14px 16px;overflow-x:auto;color:var(--ink2);
+}
+pre b{color:var(--ink);font-weight:600}
+pre .c{color:var(--ink3)}
+pre .a{color:var(--ac)}
+code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em .34em;border-radius:2px;font-size:.9em;color:var(--ink)}
+
+/* ---------- pull quote ---------- */
+.pull{
+  font-family:Archivo,sans-serif;font-weight:600;font-size:clamp(17px,2.05vw,25px);line-height:1.3;
+  letter-spacing:-.014em;color:var(--ink);border-left:4px solid var(--ac);
+  padding:4px 0 4px 20px;max-width:56ch;
+}
+.pull em{color:var(--ac);font-style:normal}
+.pull small{display:block;font-family:"Source Serif 4",serif;font-weight:400;font-size:15px;
+  line-height:1.5;color:var(--ink2);letter-spacing:0;margin-top:12px;max-width:62ch}
+
+/* ---------- two column ---------- */
+.cols{display:grid;gap:clamp(16px,2.2vw,32px);grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+.cols.b{grid-template-columns:1.15fr .85fr}
+@media (max-width:860px){.cols.b{grid-template-columns:1fr}}
+
+/* ---------- note / box ---------- */
+.note{
+  font-size:13.5px;line-height:1.55;color:var(--ink2);background:var(--panel);
+  border:1px solid var(--rule);border-radius:3px;padding:14px 16px;
+}
+.note h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ac);margin-bottom:7px;font-weight:600}
+.note strong{color:var(--ink);font-weight:600}
+.note--bad{border-left:3px solid var(--bad)} .note--bad h4{color:var(--bad)}
+.note--ok{border-left:3px solid var(--ok)} .note--ok h4{color:var(--ok)}
+
+/* ---------- numbered recommendations ---------- */
+.recs{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.rec{background:var(--panel);padding:13px 15px;display:flex;gap:12px;align-items:flex-start}
+.rec .no{
+  font-family:Archivo,sans-serif;font-weight:800;font-size:16px;color:var(--ac);
+  font-variant-numeric:tabular-nums;line-height:1.3;flex:none;min-width:18px;
+}
+.rec .tx{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.rec .tx b{color:var(--ink);font-weight:600;display:block;margin-bottom:2px;font-family:Archivo,sans-serif;font-size:13.5px;letter-spacing:-.005em}
+.rec .sz{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase}
+.rec.first{background:var(--acBg)}
+
+/* ---------- phases ---------- */
+.phases{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.ph{background:var(--panel);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.ph__h{display:flex;flex-direction:column;gap:3px;padding-bottom:9px;border-bottom:2px solid var(--ac)}
+.ph__d{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ph__t{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.ph ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.ph li{font-size:13px;line-height:1.48;color:var(--ink2);display:flex;gap:9px}
+.ph li .r{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;color:var(--ac);
+  background:var(--acBg);padding:2px 5px;border-radius:2px;flex:none;height:fit-content;letter-spacing:.04em;margin-top:1px}
+.ph li b{color:var(--ink);font-weight:600}
+.ph--last .ph__h{border-bottom-color:var(--ruleS)}
+
+/* ---------- charts ---------- */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.cl-lab{fill:var(--ink3);font-size:10px;letter-spacing:.05em}
+.cl-val{fill:var(--ink);font-size:10.5px;font-weight:600}
+.cl-valA{fill:var(--ac);font-size:10.5px;font-weight:600}
+.cl-ax{stroke:var(--rule);stroke-width:1}
+.bA{fill:var(--ac)} .bB{fill:var(--ruleS)} .bBad{fill:var(--bad)} .bOk{fill:var(--ok)}
+.legend{display:flex;gap:18px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border-radius:1px}
+
+/* ---------- foot ---------- */
+.foot{
+  margin-top:auto;padding-top:14px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.06em;color:var(--ink3);display:flex;justify-content:space-between;gap:16px;
+  border-top:1px solid var(--rule);
+}
+.foot .src{max-width:78%;line-height:1.5}
+
+/* ---------- nav ---------- */
+.rail{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:20}
+.rail button{
+  width:9px;height:9px;padding:0;border:1px solid var(--ruleS);border-radius:50%;
+  background:transparent;cursor:pointer;transition:background .15s,border-color .15s,transform .15s;
+}
+.rail button[aria-current="true"]{background:var(--ac);border-color:var(--ac);transform:scale(1.35)}
+.rail button:hover{border-color:var(--ac)}
+.rail button:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+.hud{
+  position:fixed;left:14px;bottom:12px;z-index:20;font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.12em;color:var(--ink3);background:var(--paper);
+  padding:4px 8px;border:1px solid var(--rule);border-radius:2px;
+}
+.hud b{color:var(--ac);font-weight:600}
+.cue{
+  position:absolute;left:clamp(22px,4.4vw,64px);bottom:20px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;
+}
+.cue{bottom:50px}
+.cue span{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.cue span{animation:none}}
+@media (max-width:700px){.rail{display:none}}
+
+/* ---------- print / PDF: one slide per landscape page ---------- */
+@media print{
+  @page{size:330mm 186mm;margin:0}                 /* 16:9 landscape slide */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rail,.hud,.cue{display:none!important}
+  .deck{height:auto!important;overflow:visible!important;scroll-snap-type:none}
+  .slide{
+    /* fill the page box exactly: 186mm page - 3mm slack for print rounding */
+    height:183mm;min-height:183mm;overflow:hidden;border-bottom:0;
+    padding:11mm 14mm 8mm;
+    break-after:page;page-break-after:always;
+  }
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  /* pin the layouts: no width query may collapse them in print */
+  .cols{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .cols.b{grid-template-columns:1.15fr .85fr}
+  .stats--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .recs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .phases{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .chart{max-height:none}
+  .slide--cover{background:var(--paper)}
+  .inner{max-width:none;gap:10px}
+
+  /* tighten the type scale so a dense slide still fits one page */
+  h1{font-size:42px}
+  h2.st{font-size:25px;margin-top:4px}
+  .lede{font-size:12.5px;max-width:none}
+  .claim{font-size:14px}
+  .pull{font-size:16.5px;max-width:none}
+  .pull small{font-size:12px;margin-top:8px;max-width:none}
+  .eyebrow{font-size:9.5px}
+  .cover-kicker{font-size:10px}
+  .meta{font-size:9.5px}
+  .stat{padding:11px 13px}
+  .stat__n{font-size:28px}
+  .stat__l{font-size:9px}
+  .vrow{padding:8px 2px;grid-template-columns:minmax(0,1.05fr) 120px minmax(0,1.25fr)}
+  .vrow .cl{font-size:12px}
+  .vrow .gi{font-size:10.5px}
+  .v{font-size:9px;padding:4px 7px 3px}
+  .note{font-size:10.5px;padding:10px 12px}
+  .note h4{font-size:9px;margin-bottom:5px}
+  pre{font-size:9.5px;padding:10px 12px;line-height:1.5;white-space:pre-wrap}
+  .rec{padding:9px 11px;gap:9px}
+  .rec .tx{font-size:10.5px}
+  .rec .tx b{font-size:11px}
+  .rec .no{font-size:14px}
+  .ph{padding:11px 12px 12px;gap:8px}
+  .ph li{font-size:10px}
+  .ph__d{font-size:13px}
+  .foot{font-size:8.5px;padding-top:9px}
+
+  /* tables: no inner scroller in print, and never split a row */
+  .tw{overflow:visible;border-radius:0}
+  table{font-size:9.5px}
+  thead th{font-size:8.5px;padding:6px 9px}
+  tbody td{padding:5px 9px;line-height:1.4}
+  tr{break-inside:avoid;page-break-inside:avoid}
+  caption{font-size:8.5px;padding:6px 9px}
+  .legend{font-size:9px}
+  .chart text{font-size:9px}
+}
+
+:root{--ac:#6A3D8F;--acBg:#6A3D8F1f;--acBg2:#6A3D8F0f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ac:#BE9BE0;--acBg:#BE9BE024;--acBg2:#BE9BE012}}
+:root[data-theme="dark"]{--ac:#BE9BE0;--acBg:#BE9BE024;--acBg2:#BE9BE012}
+/* print-fit bravo-workflow-effort-deck: every slide fits the page box unscaled */
+</style>
+<main class="deck" id="deck">
+<style>
+/* Phase identity: P1 visibility, P2 prove, P3 the volume, P4 the rest. */
+:root{--pA:#6A3D8F;--pABg:#6A3D8F1c;--pB:#1F6F8B;--pBBg:#1F6F8B1c;--pC:#8A6318;--pCBg:#8A63181c;--pD:#5A6472;--pDBg:#5A64721c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --pA:#BE9BE0;--pABg:#BE9BE022;--pB:#7FC0D8;--pBBg:#7FC0D822;--pC:#D7A84E;--pCBg:#D7A84E22;--pD:#939DAB;--pDBg:#939DAB22}}
+:root[data-theme="dark"]{--pA:#BE9BE0;--pABg:#BE9BE022;--pB:#7FC0D8;--pBBg:#7FC0D822;--pC:#D7A84E;--pCBg:#D7A84E22;--pD:#939DAB;--pDBg:#939DAB22}
+.e{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;font-size:9.5px;
+   font-weight:600;letter-spacing:.09em;text-transform:uppercase;padding:4px 8px 3px;border-radius:2px;white-space:nowrap}
+.e::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.e--a{color:var(--pA);background:var(--pABg)}
+.e--b{color:var(--pB);background:var(--pBBg)}
+.e--c{color:var(--pC);background:var(--pCBg)}
+.e--d{color:var(--pD);background:var(--pDBg)}
+tfoot td{background:var(--panel2);color:var(--ink);font-weight:600;border-top:1px solid var(--ruleS);padding:9px 14px;font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+tfoot td.n{text-align:right}
+.verdictbox{border:2px solid var(--ac);border-radius:4px;padding:18px 22px;background:var(--acBg2);display:flex;flex-direction:column;gap:9px}
+.verdictbox .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.verdictbox .txt{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(17px,2.2vw,27px);line-height:1.22;letter-spacing:-.018em;color:var(--ink)}
+.verdictbox .txt em{color:var(--ac);font-style:normal;font-weight:800}
+.verdictbox .txt small{display:block;font-family:"Source Serif 4",serif;font-weight:400;font-size:14px;line-height:1.5;color:var(--ink2);letter-spacing:0;margin-top:10px}
+.sideby{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;grid-template-columns:1fr 1fr}
+@media (max-width:860px){.sideby{grid-template-columns:1fr}}
+@media print{.sideby{grid-template-columns:1fr 1fr}}
+.side{background:var(--panel);padding:15px 17px;display:flex;flex-direction:column;gap:10px}
+.side h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;color:var(--ac)}
+.side.bad h4{color:var(--bad)} .side.ok h4{color:var(--ok)}
+.side ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.side li{font-size:13px;line-height:1.5;color:var(--ink2);padding-left:14px;position:relative}
+.side li::before{content:"\2014";position:absolute;left:0;color:var(--ink3)}
+.side li b{color:var(--ink)}
+.ask{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.askrow{background:var(--panel);padding:12px 16px;display:grid;grid-template-columns:24px 1fr 130px;gap:14px;align-items:start}
+.askrow .n{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:var(--ac);font-variant-numeric:tabular-nums}
+.askrow .t{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.askrow .t b{color:var(--ink);font-weight:600}
+.askrow .c{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);text-align:right;line-height:1.5}
+</style>
+
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:20px">
+    <p class="cover-kicker">BFI loan origination &middot; Bravo workflow architecture &middot; Effort brief for the CTO</p>
+    <h1>What best-practice<br><span class="thin">workflow costs</span></h1>
+    <div class="verdictbox" style="max-width:90ch">
+      <span class="lab">The answer, in one line</span>
+      <p class="txt"><em>&asymp;9&ndash;14 engineer-months</em> to take every product to the target shape &mdash; but the first <em>2&ndash;3 engineer-months</em> buy almost all of the governance value and move no workflow at all.
+        <small>Rp265M&ndash;700M for the full programme; <strong>Rp60M&ndash;160M for the part that is unconditional.</strong> Against 30&ndash;57 engineer-months for either platform migration.</small></p>
+    </div>
+    <div class="meta">
+      <span><b>Question asked</b> &nbsp;What is the effort to move Bravo&rsquo;s workflows to best practice?</span>
+      <span><b>Evidence</b> &nbsp;<code>ms-bpm</code> working tree &middot; production BPM Postgres, 90d to 2026-09-09</span>
+      <span><b>As at</b> &nbsp;2026-09-11</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> 14 slides &middot; the phase costings are on 6&ndash;9, the total on 10</p>
+</section>
+
+<section class="slide" data-nav="Where Bravo is">
+  <div class="inner">
+    <p class="eyebrow"><b>01</b><span class="sep">/</span>Starting position</p>
+    <h2 class="st">The premise most people hold about Bravo&rsquo;s workflows is false in production</h2>
+    <p class="lede">&ldquo;A single giant workflow handles all products&rdquo; describes a spine that carries <strong>5.5% of applications and exactly one product.</strong> The complexity being paid today is the <em>legacy per-product</em> design &mdash; which is also, almost exactly, the design usually proposed as the fix.</p>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Root workflow</th><th class="n">Started, 90d</th><th class="n">Share</th><th>Generation</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><code>NDF2W</code></td><td class="n"><b>248,682</b></td><td class="n">73.4%</td><td>legacy monolith &mdash; 174 nodes, 359 commits</td></tr>
+          <tr><td class="k"><code>NDF4W</code></td><td class="n"><b>59,909</b></td><td class="n">17.7%</td><td>legacy monolith &mdash; 223 nodes, 392 commits</td></tr>
+          <tr><td class="k"><code>NDF4W_RO</code></td><td class="n">11,458</td><td class="n">3.4%</td><td>legacy variant</td></tr>
+          <tr><td class="k"><code>Unified_Process_Main_Workflow</code></td><td class="n">18,809</td><td class="n"><span class="hi"><b>5.5%</b></span></td><td><b>the shared spine</b> &mdash; 43 nodes, 0 user tasks</td></tr>
+        </tbody>
+        <caption>Of the 18,806 applications on the shared spine, <b>every one is DF4W</b> &mdash; plus a 4-application NDF4W company pilot. DF2W is fully configured with zero volume because it has not been released: it is in UAT with an LOS penetration test running.</caption>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>The giant workflows are the per-product ones</h4>The unified spine is <strong>43 top-level nodes over 33 files</strong>. <code>NDF4W</code> is <strong>223</strong> and <code>NDF2W</code> is <strong>174</strong>. The legacy generation <em>is</em> the per-product design, and it is where the complexity accumulated: <strong>156 distinct delegate beans</strong> across the legacy roots against <strong>69</strong> for the unified generation&rsquo;s five products.</div>
+        <div class="note note--ok"><h4>There is already a working strangler beachhead</h4>The spine has run DF4W in production <strong>for months, flat, at 5.5%</strong>. Nobody planned it as a migration &mdash; but it proves the target shape carries real volume. The programme below is largely about <strong>making that deliberate.</strong></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;1, &sect;2, &sect;8.1&ndash;8.2 &middot; production BPM Postgres, 90d to 2026-09-09 &middot; delegate counts re-verified in the working tree 2026-09-11</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The real gap">
+  <div class="inner">
+    <p class="eyebrow"><b>02</b><span class="sep">/</span>The real gap</p>
+    <h2 class="st">Product variation is expressed in four places, and the model shows none of them</h2>
+    <p class="lede">This &mdash; not the size of any diagram &mdash; is what the effort below is buying out. <strong>No artifact in the repository shows what a given product actually executes.</strong></p>
+    <div class="tw"><table>
+      <thead><tr><th>Mechanism</th><th>Where</th><th>Measured today</th><th>Why it is a gap</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Gateway conditions on product</td><td><code>unified-main-workflow</code>, <code>-underwriting</code>, <code>-pd-model</code></td><td class="n"><b>3 files</b> carry <code>applicationWorkflowSelectorType</code>; <b>9 distinct feature flags</b> read from BPMN via <code>environment.getProperty</code></td><td>Product routing is mixed with feature flags <b>inside process XML</b>; the diagram reads as one flow but executes as several</td></tr>
+        <tr><td class="k">Config-gated no-op tasks</td><td><code>BaseActivity.isNeedToProceed</code> + the <code>workflow_*</code> tables</td><td class="n"><b>55 classes gated</b>; <b>64 workflow-config migrations</b> since 2024-03</td><td>A skipped task <b>completes normally</b>, so Camunda history, Cockpit and the BPMN all show steps that did nothing. The only way to know a product&rsquo;s real path is a <b>five-table join</b></td></tr>
+        <tr><td class="k">Product branches in Java</td><td><code>activity/unified/**</code></td><td class="n"><b>19 of 68</b> classes; <b>42 call sites</b> &mdash; <code>isDF4W()</code> 21, <code>isDF2W()</code> 7, <code>isNDF2W()</code> 7, <code>isNDF4W()</code> 5, <code>isDF2WSharia()</code> 2</td><td>The same activity behaves differently per product <b>with no trace in BPMN or config</b>. This is the layer that grows silently</td></tr>
+        <tr><td class="k">Feature flags per product</td><td><code>application.yaml</code></td><td class="n"><code>featDF2W</code>, <code>featDF2WSharia</code>, four <code>featBypassScoringProcess*</code> &mdash; inside <b>726 <code>feat*</code> keys</b> in total</td><td>A product can be <b>half-enabled per environment</b>, and the BPMN cannot express that</td></tr>
+      </tbody>
+    </table></div>
+    <div class="note note--bad"><h4>The phantom tasks are measured, not hypothetical</h4>In <code>Unified_Process_KYC_Check</code>, Address Verification, Phone Checking and Shopee Score each ran <strong>4,822 times in 7 days with 86&ndash;89% of executions under 50 ms</strong> &mdash; below the network floor. They are active for DF4W only; for every other product they log &ldquo;Skipping&rdquo; and return, while history records a completed step. The real calls in the same process sit at <strong>898&ndash;1,874 ms</strong>.</div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;7, &sect;8.3&ndash;8.4 &middot; counts re-verified in the working tree 2026-09-11</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Gap to best practice">
+  <div class="inner">
+    <p class="eyebrow"><b>03</b><span class="sep">/</span>Target versus today</p>
+    <h2 class="st">Eight principles define best practice. Bravo meets one and a half.</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Principle</th><th>Current state</th><th class="n">Severity</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>A</b> &nbsp;Model is the source of truth; structure in the model, data in config</td><td>Structure encoded as <code>is_active</code> no-op rows; 55 classes gated; effective path <b>not derivable from the model</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>B</b> &nbsp;A thin product-owned spine per product</td><td>One shared spine for all five; product chosen by gateways and a selector variable. <b>No product owns a readable spine</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>C</b> &nbsp;Domain children shared, with no product logic inside</td><td>19 of 68 unified activities branch on <code>application.isXxx()</code> &mdash; 42 call sites</td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>D</b> &nbsp;Fork a child only on structural difference</td><td><span class="up">Done once correctly</span> &mdash; <code>&hellip;Underwriting_Regular</code>. Everywhere else variation is config no-ops. <b>The good precedent is the exception</b></td><td class="n">Medium</td></tr>
+        <tr><td class="k"><b>E</b> &nbsp;Product kept out of domain code behind stable contracts</td><td>Config + Java + gateways + flags all carry product: <b>four mechanisms to change to alter one product&rsquo;s flow</b></td><td class="n"><span class="dn"><b>High</b></span></td></tr>
+        <tr><td class="k"><b>F</b> &nbsp;Least-privilege engine, per-product deployment unit</td><td><code>/camunda</code> is <code>permitAll</code>; <code>/engine-rest</code> grants full engine rights to any holder of the shared key &mdash; <b>the actual RCE vector</b>. One deployment unit for all products</td><td class="n"><span class="dn"><b>High</b></span> <span style="color:var(--ink3)">(security)</span></td></tr>
+        <tr><td class="k"><b>G</b> &nbsp;Migrate by strangler, never big-bang</td><td><span class="up">Happening</span> &mdash; but <b>by accident</b>, flat at 5.5%, with no migration plan. Legacy carries ~94% and the whole retail book</td><td class="n">Medium</td></tr>
+        <tr><td class="k"><b>H</b> &nbsp;Dead and duplicated assets removed</td><td>Four dead <code>setting.workflow.map</code> keys; one unreferenced mock deployment; <b>10 named 2W/4W delegate pairs</b> doing the same job twice</td><td class="n">Low&ndash;Med</td></tr>
+      </tbody>
+    </table></div>
+    <p class="pull">Bravo has the right building blocks and one correct fork &mdash; it just expresses product variation in three places the model cannot show.
+      <small>So no product has a readable, owned, independently-deployable spine, and the legacy monoliths carrying 94% of volume were never migrated at all.</small></p>
+    <div class="foot"><span class="src">workflow-gap.md &sect;10, &sect;11 &middot; SECURITY-FINDING-camunda-rce.md</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Target shape">
+  <div class="inner">
+    <p class="eyebrow"><b>04</b><span class="sep">/</span>What we would be building</p>
+    <h2 class="st">Product-owned spines, domain-owned children, explicit variation</h2>
+    <div class="sideby">
+      <div class="side ok"><h4>Keep &mdash; what the unified design got right</h4>
+        <ul>
+          <li><b>Orchestrators contain no user tasks.</b> Human work is confined to leaf children &mdash; confirmed in production: the orchestrators recorded <b>zero user-task instances</b> in 90 days</li>
+          <li><b>Domain steps exist once.</b> Onboarding DF2W Sharia in 2026 touched the spine in one commit plus migrations, instead of adding a fourth monolith</li>
+          <li><b>Escalation, cancellation and rejection are centralised</b> as boundary events on the spine, not re-drawn per product</li>
+          <li><b>The correct fork already exists:</b> <code>Unified_Process_Workflow_Underwriting_Regular</code> is a DF2W-family fork called from the shared underwriting orchestrator. The pattern is known &mdash; it is simply not applied consistently</li>
+        </ul>
+      </div>
+      <div class="side"><h4>Change &mdash; the five rules, in order of payoff</h4>
+        <ul>
+          <li><b>1 &middot; One thin spine per product</b> (~40 nodes): the source of truth for stage order and which child each stage calls. The spine <em>is</em> the selector; retire the gateways</li>
+          <li><b>2 &middot; No silent skipping.</b> A task not applicable to a product must not be on that product&rsquo;s path. At minimum, a missing config row must <b>fail loudly</b></li>
+          <li><b>3 &middot; Remove <code>application.isXxx()</code> from the 19 shared activities.</b> Product behaviour belongs in the spine or a product-specific child, never in a shared bean</li>
+          <li><b>4 &middot; Fork a domain child only on structural difference</b> &mdash; order of steps, different human roles, different partners. A different threshold does not qualify</li>
+          <li><b>5 &middot; Publish the effective flow per product</b>, generated on every build and diffed in CI</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note"><h4>Camunda 7 makes the middle path cheap</h4>A call activity&rsquo;s <code>calledElement</code> can be <strong>an expression</strong> &mdash; so a product spine dispatches to the shared <code>survey</code> child for most products and to <code>survey_sharia</code> for one, <strong>with no gateway and no flag</strong>. Five spines of ~40 nodes cost far less than the 25 per-product children a full split would require &mdash; and full duplication is exactly how <code>NDF4W</code> and <code>NDF2W</code> drifted apart.</div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;5, &sect;6, &sect;10.2 &middot; &sect;8.6 (zero orchestrator user tasks)</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="How it was sized">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Estimation basis</p>
+    <h2 class="st">How these numbers were built &mdash; and how much to trust each phase</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note"><h4>Basis</h4>Engineer-<strong>days</strong> of a competent engineer <strong>already familiar with <code>ms-bpm</code></strong>, including that engineer&rsquo;s own testing, <strong>excluding UAT run by business users</strong>. 21 working days to the engineer-month; Rupiah at the pack&rsquo;s standing assumption of <strong>Rp30&ndash;50M fully loaded per engineer-month</strong> &mdash; substitute BFI&rsquo;s rate card. Ranges are <strong>low-to-high, not confidence intervals</strong>.<br><br><strong>Unlike the end-of-support numbers, these are not a team memo.</strong> They are derived here from counted inventory &mdash; delegates, branch sites, gated classes, user tasks, production volumes &mdash; and should be re-estimated by the squads that would do the work.</div>
+        <div class="note note--bad"><h4>The one measurement that would firm up Phases 3&ndash;4</h4>Of <code>NDF2W</code>&rsquo;s <strong>67 delegate beans, exactly one</strong> (<code>checkUnderwritingNeededUnifiedActivity</code>) is also used by the unified children. <strong>So migration is not re-pointing: it is establishing, bean by bean, whether the unified child already does that job.</strong><br><br>A delegate-level mapping &mdash; <strong>5&ndash;8 days</strong> &mdash; would convert the widest range in this deck into a real number. It is the direct analogue of the LORA coverage-gap inventory.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">Confidence, by phase</p>
+        <div class="tw"><table>
+          <thead><tr><th>Phase</th><th>Confidence</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="k"><span class="e e--a">P1 visibility</span></td><td><span class="up"><b>High</b></span></td><td>The queries exist (&sect;8.4) and the parse scripts exist. Tooling work with a known shape</td></tr>
+            <tr><td class="k"><span class="e e--b">P2 prove on DF4W</span></td><td><span class="up"><b>Medium-high</b></span></td><td>Scope is enumerable: one spine, 3 gateways, 21 <code>isDF4W()</code> sites, a known set of gated KYC/RAC steps</td></tr>
+            <tr><td class="k"><span class="e e--c">P3 NDF2W</span></td><td><span class="dn"><b>Low-medium</b></span></td><td>Turns on how much of NDF2W&rsquo;s behaviour the shared children already cover &mdash; <b>unmeasured</b>. The widest range here</td></tr>
+            <tr><td class="k"><span class="e e--d">P4 the rest</span></td><td><span class="dn"><b>Low</b></span></td><td>Scaled from P3 plus counted inventory; Sharia is a separate deployment nobody has scoped</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note note--ok"><h4>What is excluded from every number</h4>Business-run UAT, product-owner workshop time, domain-logic rewrites (survey and underwriting <em>behaviour</em> is out of scope), and any change to the LORA or Temporal track.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">Derived from workflow-gap.md &sect;12 &middot; inventory counted in <code>ms-bpm</code> 2026-09-11 &middot; cost basis per option-summary.md &sect;8</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Phase 1 cost">
+  <div class="inner">
+    <p class="eyebrow"><b>06</b><span class="sep">/</span>Phase 1 &middot; 0&ndash;30 days</p>
+    <h2 class="st">See it and stop the bleeding &mdash; no workflow moves</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Work item</th><th>What it involves</th><th class="n">Eng-days</th><th>Exit criterion</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Publish the effective per-product flow</b></td><td>Join <code>workflow_master_config_detail</code> &#8904; <code>selector_order</code> &#8904; <code>selector_type</code> and overlay on the BPMN; one diagram per product, regenerated on build. <b>The &sect;8.4 query and the parse scripts already exist</b></td><td class="n"><b>8&ndash;13</b></td><td>Every live product has a current, owner-readable flow diagram</td></tr>
+        <tr><td class="k"><b>Freeze new hidden variation</b></td><td>PR check failing a new <code>application.isXxx()</code> in <code>activity/unified/**</code>, and a new config-gated class with no doc entry</td><td class="n"><b>2&ndash;4</b></td><td>CI blocks both; the count of branch sites can only go down from 42</td></tr>
+        <tr><td class="k"><b>Harden the engine</b></td><td>Authenticate and network-restrict <code>/camunda</code> <b>and</b> <code>/engine-rest</code>; rotate <code>INTERNAL_SERVICE_KEY</code>; register a <code>ProcessEngineAuthenticationFilter</code>; purge the 61 injected definitions</td><td class="n"><b>3&ndash;5</b><br><span style="color:var(--ink3)">already in Decision A</span></td><td>Injected definitions purged, verified in prod and Sharia</td></tr>
+        <tr><td class="k"><b>Decide the target</b></td><td>A one-page ADR &mdash; product-owned spines, shared domain children, fork-on-structure &mdash; with product-owner sign-off</td><td class="n"><b>2&ndash;3</b></td><td>ADR merged</td></tr>
+        <tr><td class="k"><b>Cheap cleanup</b></td><td>Delete the four dead <code>setting.workflow.map</code> keys; remove <code>Process_NDF4W_Scoring_1_Mock_Ro</code></td><td class="n"><b>0.5&ndash;1</b></td><td>Map keys map 1:1 to real processes</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">Phase 1 total &mdash; <b>1&ndash;2 engineers, ~1 month elapsed</b></td><td class="n"><span class="hi"><b>15&ndash;26 days</b></span><br>&asymp;0.8&ndash;1.3 eng-months</td><td class="n"><b>Rp 25M &ndash; 65M</b></td></tr></tfoot>
+    </table></div>
+    <div class="note"><h4>What Phase 1 deliberately does not do</h4>No workflow moves, no BPMN is restructured, and no product migrates. Phase 1 changes <strong>what can be seen and what can be added</strong> &mdash; it makes each product&rsquo;s real path visible and stops the count of hidden branches from rising. Every structural change is deferred to Phase 2, behind a signed-off ADR.</div>
+    <div class="note note--ok"><h4>This phase is unconditional &mdash; it survives every Decision B outcome</h4>The per-product effective-flow artifact is <strong>exactly the input the LORA gap inventory needs</strong> (&ldquo;every Bravo delegate, status, assignment rule and approval path mapped to a LORA ProcessStep&rdquo;). If BFI migrates to LORA, this work is <strong>a prerequisite, not a write-off</strong>. If it ports to Temporal, a faithful port of an <em>unreadable</em> model ports the problem &mdash; this makes the port smaller. And if Bravo stays, it is the foundation of everything below.</div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;12 (0&ndash;30d) &middot; option-summary.md &sect;7 item 5 &middot; effort derived 2026-09-11</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Phase 2 cost">
+  <div class="inner">
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>Phase 2 &middot; 30&ndash;60 days</p>
+    <h2 class="st">Prove the pattern on DF4W &mdash; the only product already on the spine</h2>
+    <p class="lede">Lowest-risk possible pilot: <strong>5.5% of volume, one product, already in production on the shared spine.</strong> If the target shape does not work here, it does not work.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Work item</th><th>Counted scope</th><th class="n">Eng-days</th><th>Exit criterion</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Build <code>spine_df4w</code></b></td><td>A thin executable spine naming DF4W&rsquo;s stages and calling each domain child by <code>calledElement</code>; new DF4W volume routed behind a flag</td><td class="n"><b>5&ndash;8</b></td><td>New DF4W loans run <code>spine_df4w</code>; the shared spine no longer receives DF4W</td></tr>
+        <tr><td class="k"><b>Remove DF4W&rsquo;s hidden variation</b></td><td><b>21 <code>isDF4W()</code> call sites</b> in shared beans, plus the <b>3 <code>applicationWorkflowSelectorType</code> gateways</b> on the DF4W path</td><td class="n"><b>6&ndash;10</b></td><td>Zero product gateways and zero <code>isDF4W()</code> on the DF4W path</td></tr>
+        <tr><td class="k"><b>Kill the phantom tasks</b></td><td>Convert the gated KYC and RAC no-ops into explicit model choices &mdash; a gateway where the choice is data-driven, a fork where it is product-driven</td><td class="n"><b>8&ndash;12</b></td><td>No sub-50 ms no-op service tasks in DF4W history for the gated KYC steps</td></tr>
+        <tr><td class="k"><b>Lock in observability</b></td><td>Per-product flow diagram generated and <b>diffed in CI</b>; contract tests per domain child</td><td class="n"><b>4&ndash;6</b></td><td>A change to a shared child that alters DF4W&rsquo;s path appears as a diagram diff in review</td></tr>
+        <tr><td class="k"><b>Route, soak and prove parity</b></td><td>Strangler routing, rollback path, latency and error parity against the shared spine</td><td class="n"><b>4&ndash;6</b></td><td>Parity held over a full soak window at DF4W&rsquo;s ~6,800 applications/month</td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">Phase 2 total &mdash; <b>1&ndash;2 engineers, ~1&ndash;1.5 months elapsed</b></td><td class="n"><span class="hi"><b>27&ndash;42 days</b></span><br>&asymp;1.3&ndash;2.0 eng-months</td><td class="n"><b>Rp 40M &ndash; 100M</b></td></tr></tfoot>
+    </table></div>
+    <div class="note"><h4>What Phase 2 settles that no document can</h4>Whether one thin spine plus shared children really carries a product without the config gating &mdash; and <strong>what the true cost per product is</strong>. Phases 3 and 4 should be re-estimated against Phase 2&rsquo;s actuals rather than the ranges on the next two slides.</div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;12 (30&ndash;60d), &sect;8.2&ndash;8.3 &middot; branch sites counted in the working tree 2026-09-11</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Phase 3 cost">
+  <div class="inner">
+    <p class="eyebrow"><b>08</b><span class="sep">/</span>Phase 3 &middot; the volume</p>
+    <h2 class="st">NDF2W is the prize and the expense &mdash; 248,682 applications a quarter</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Work item</th><th class="n">Eng-days</th><th>Counted scope</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><b>Map NDF2W&rsquo;s delegates onto shared children; build <code>spine_ndf2w</code></b></td><td class="n"><b>10&ndash;15</b></td><td>67 delegate beans, 174 top-level nodes, 45 embedded subprocesses</td></tr>
+          <tr><td class="k"><b>Extend the domain children to cover NDF2W semantics</b></td><td class="n"><span class="dn"><b>25&ndash;40</b></span></td><td><b>66 of the 67 beans have no unified counterpart.</b> The single widest range in the programme</td></tr>
+          <tr><td class="k"><b>Re-home the human work</b></td><td class="n"><b>8&ndash;12</b></td><td>20 user tasks &mdash; including the 185,574-instance User Survey Task &mdash; whose assignment lives in Java, since <code>candidateGroups</code> is empty on every task</td></tr>
+          <tr><td class="k"><b>Strangler routing, dual-run, parity harness, runbook</b></td><td class="n"><b>10&ndash;15</b></td><td>Legacy <code>NDF2W</code> stays live for in-flight instances and rollback</td></tr>
+          <tr><td class="k"><b>Regression and UAT support</b></td><td class="n"><b>8&ndash;12</b></td><td>Engineer-side only; business UAT excluded</td></tr>
+        </tbody>
+        <tfoot><tr><td>Phase 3 total &mdash; <b>2 engineers, ~3&ndash;4 months elapsed</b></td><td class="n"><span class="hi"><b>61&ndash;94 days</b></span><br>&asymp;3.0&ndash;4.5 eng-months</td><td class="n"><b>Rp 90M &ndash; 225M</b></td></tr></tfoot>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="stats stats--4" style="grid-template-columns:1fr 1fr">
+          <div class="stat"><span class="stat__n neg">1<small>&thinsp;of&thinsp;69</small></span><span class="stat__l">Unified delegate beans also used by a legacy root &mdash; the reason migration is not re-pointing</span></div>
+          <div class="stat"><span class="stat__n plain">&asymp;25%</span><span class="stat__l">Exit gate: share of new NDF2W starts on the new spine, at error and latency parity</span></div>
+        </div>
+        <div class="note note--bad"><h4>Why this number is honest but wide</h4>The two generations share <strong>almost no implementation</strong>. Every NDF2W step has to be classified: <em>the shared child already does this</em>, <em>the shared child needs extending</em>, or <em>NDF2W genuinely differs and needs a fork</em>. Nobody has done that classification &mdash; it is the 5&ndash;8 day mapping on slide 6, and it is worth doing <strong>before</strong> committing to this phase.</div>
+        <div class="note note--ok"><h4>The payoff is proportional</h4>NDF2W alone is <strong>73% of Bravo&rsquo;s originations</strong>. Moving it is what converts the programme from a governance improvement into a reduction in the maintenance surface that 359 commits on one file represent.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;12 (60&ndash;90d), &sect;8.1, &sect;8.6, &sect;9 &middot; delegate overlap computed in the working tree 2026-09-11</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Phase 4 + total">
+  <div class="inner">
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>Phase 4 and the programme total</p>
+    <h2 class="st">The rest of the estate, and what the whole thing costs</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Phase 4 work item</th><th class="n">Eng-days</th><th>Scope</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><b><code>NDF4W</code> + <code>NDF4W_RO</code> onto spines</b></td><td class="n"><b>50&ndash;80</b></td><td>68 + 14 delegate beans, 223 top-level nodes, 21 user tasks; RO reuses NDF4W&rsquo;s children (17 of 19 steps identical)</td></tr>
+          <tr><td class="k"><b>Sharia&rsquo;s separate deployment</b></td><td class="n"><b>15&ndash;25</b></td><td>Its own engine and deployment unit; 12 delegates, never scoped</td></tr>
+          <tr><td class="k"><b>De-duplicate the 2W/4W beans</b></td><td class="n"><b>12&ndash;20</b></td><td><b>10 named pairs</b> &mdash; <code>createCif</code>/<code>createCif2w</code>, <code>preFatalRac</code>/<code>&hellip;2w</code>, <code>addressVerification</code>/<code>&hellip;2W</code> and seven more &mdash; behind shared implementations</td></tr>
+          <tr><td class="k"><b>Launch DF2W on <code>spine_df2w</code></b></td><td class="n"><b>5&ndash;8</b></td><td>Incremental only &mdash; it is configured and in UAT, not dead config</td></tr>
+        </tbody>
+        <tfoot><tr><td>Phase 4 total &mdash; <b>2 engineers, ~4&ndash;6 months elapsed</b></td><td class="n"><b>82&ndash;133 days</b><br>&asymp;4.0&ndash;6.3 eng-months</td><td class="n"><b>Rp 120M &ndash; 315M</b></td></tr></tfoot>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">Programme, cumulative</p>
+        <svg class="chart" viewBox="0 0 460 190" role="img" aria-label="Cumulative programme effort by phase, engineer-days">
+          <!-- scale: 300 days -> 300px ; x0=140 -->
+          <g><rect class="bA" x="140" y="8" width="26" height="22"></rect><text class="cl-lab" x="134" y="24" text-anchor="end">P1 visibility</text><text class="cl-valA" x="172" y="24">15&ndash;26 d</text></g>
+          <g><rect class="bA" x="140" y="36" width="42" height="22"></rect><text class="cl-lab" x="134" y="52" text-anchor="end">P2 prove on DF4W</text><text class="cl-valA" x="188" y="52">27&ndash;42 d</text></g>
+          <g><rect class="bB" x="140" y="64" width="94" height="22"></rect><text class="cl-lab" x="134" y="80" text-anchor="end">P3 NDF2W</text><text class="cl-val" x="240" y="80">61&ndash;94 d</text></g>
+          <g><rect class="bB" x="140" y="92" width="133" height="22"></rect><text class="cl-lab" x="134" y="108" text-anchor="end">P4 the rest</text><text class="cl-val" x="279" y="108">82&ndash;133 d</text></g>
+          <g><rect class="bBad" x="140" y="124" width="295" height="22"></rect><text class="cl-lab" x="134" y="140" text-anchor="end">Whole programme</text><text class="cl-val" x="146" y="140" style="fill:var(--paper)">185&ndash;295 engineer-days</text></g>
+          <line class="cl-ax" x1="140" y1="4" x2="140" y2="152"></line>
+          <text class="cl-lab" x="140" y="168">0</text><text class="cl-lab" x="290" y="168" text-anchor="middle">150</text><text class="cl-lab" x="440" y="168" text-anchor="end">300 eng-days</text>
+        </svg>
+        <div class="note"><h4>Staffing assumption behind the elapsed figures</h4>Phases 1&ndash;2 assume <strong>1&ndash;2 engineers</strong>, Phases 3&ndash;4 <strong>2 engineers</strong> running alongside normal delivery. At that shape the programme spans roughly <strong>12&ndash;18 months elapsed</strong>; with three engineers on Phases 3&ndash;4 it compresses toward 9&ndash;12 without changing the engineer-day totals.</div>
+        <div class="verdictbox"><span class="lab">Programme total</span><p class="txt" style="font-size:clamp(16px,1.9vw,23px)"><em>185&ndash;295 engineer-days &asymp; 9&ndash;14 engineer-months &asymp; Rp265M&ndash;700M</em><small>Against <strong>30&ndash;57 engineer-months</strong> for either platform migration, and <strong>18&ndash;33 engineer-days</strong> for the end-of-support fix that must happen first.</small></p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;3, &sect;12 &middot; option-summary.md &sect;3 &middot; effort derived 2026-09-11</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="In proportion">
+  <div class="inner">
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Proportion</p>
+    <h2 class="st">Where this sits against the other things competing for the same engineers</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Programme</th><th class="n">Effort</th><th class="n">Indicative Rp</th><th>What it buys</th><th class="n">Conditional on?</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Decision A &mdash; end-of-support fix</b> <span style="color:var(--ink3)">(fork + Spring Boot 4 + RCE)</span></td><td class="n"><b>18&ndash;33 eng-days</b></td><td class="n"><b>Rp45&ndash;125M</b></td><td>A supported engine and a supported Spring Boot; closes a live code-execution path</td><td class="n"><span class="up"><b>Nothing</b></span><br>do it first</td></tr>
+        <tr><td class="k"><span class="e e--a">Workflow P1</span> <span class="e e--b">P2</span> &mdash; visibility, freeze, prove on DF4W</td><td class="n"><b>42&ndash;68 eng-days</b><br>&asymp;2.0&ndash;3.2 eng-months</td><td class="n"><b>Rp60&ndash;160M</b></td><td>An owner-readable flow per product, CI that stops the hiding, and the target shape proven on live volume</td><td class="n"><span class="up"><b>Nothing</b></span><br>useful under every option</td></tr>
+        <tr><td class="k"><span class="e e--c">Workflow P3</span> <span class="e e--d">P4</span> &mdash; migrate the monoliths</td><td class="n"><b>143&ndash;227 eng-days</b><br>&asymp;6.8&ndash;10.8 eng-months</td><td class="n"><b>Rp205&ndash;540M</b></td><td>Every product on its own readable, independently-deployable spine; the duplication retired</td><td class="n"><span class="dn"><b>Bravo&rsquo;s horizon</b></span><br>and Decision B</td></tr>
+        <tr><td class="k">Option 2 &mdash; migrate Bravo to Temporal</td><td class="n">31&ndash;57 eng-months</td><td class="n">Rp930M&ndash;2.85B</td><td>Removes the workflow-engine vendor permanently; <b>preserves the architecture exactly</b></td><td class="n">Decision B</td></tr>
+        <tr><td class="k">Option 3 &mdash; migrate Bravo to LORA</td><td class="n">30&ndash;57 eng-months</td><td class="n">Rp900M&ndash;2.85B</td><td>One platform; adds an automated step with no orchestration edit</td><td class="n">Decision B</td></tr>
+      </tbody>
+    </table></div>
+    <p class="pull">The whole workflow programme costs about a quarter of either migration &mdash; and it is the only one of the three that improves Bravo&rsquo;s design without changing platform.
+      <small>It is also the only one whose <strong>first half is worth funding even if BFI eventually leaves Bravo</strong>: a per-product effective-flow map is the prerequisite for the LORA gap inventory, and a legible model is what makes a Temporal port smaller rather than a faithful port of the same confusion.</small></p>
+    <div class="foot"><span class="src">option-summary.md &sect;3, &sect;7 &middot; workflow-gap.md &sect;12 &middot; effort derived 2026-09-11</span><span>11</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Cost of doing nothing">
+  <div class="inner">
+    <p class="eyebrow"><b>11</b><span class="sep">/</span>The counterfactual</p>
+    <h2 class="st">What the status quo costs, measured rather than asserted</h2>
+    <div class="cols">
+      <div class="note note--bad"><h4>Blast radius on every change</h4>Commit subjects on <code>unified-main-workflow.bpmn</code> name <strong>DF4W, DF2W, Sharia, RO, NDF4W and Company</strong>. Every one of those redeployed the spine that <strong>all five products</strong> run. On the survey child, DF4W work changed the orchestration NDF2W also uses. One deployment unit means one shared risk on every product edit.</div>
+      <div class="note note--bad"><h4>A test matrix nobody can enumerate</h4>Correctness of one BPMN file depends on <strong>products &times; config rows &times; flags</strong>. The <strong>64 workflow-config migrations</strong> include repeated corrective <code>set-active</code> / <code>set-inactive</code> pairs &mdash; <code>pd-model-df4w-set-active</code>, <code>underwriting-return-set-inactive-except-df4w</code>. That is what a hidden matrix looks like in practice: <strong>~2 corrective migrations a month</strong> since 2024-03.</div>
+      <div class="note note--bad"><h4>Silent divergence, not loud failure</h4>With <code>BaseActivity</code> returning quietly, <strong>a missing config row does not fail a deployment or a process. It removes a check from a loan product</strong> &mdash; and history still shows the step completing. There is no alert for this class of defect today.</div>
+      <div class="note"><h4>No artifact a product owner can be handed</h4>A stakeholder cannot be shown a diagram of their product: the diagram is shared and the differences live in SQL and Java. <strong>Business ownership per product is not modelled anywhere</strong> &mdash; <code>candidateGroups</code> is empty on every user task and assignment happens in code.</div>
+      <div class="note"><h4>Duplication keeps compounding</h4>The legacy generation holds <strong>156 distinct delegate beans</strong> and the two big monoliths share only <strong>20</strong> &mdash; most of the rest is the same domain step under a suffixed name. <strong>Full per-product duplication is how NDF4W and NDF2W drifted apart</strong>, and the pattern continues wherever a product needs one different step.</div>
+      <div class="note note--ok"><h4>What is <em>not</em> a reason to act</h4>Engine cost. Bravo&rsquo;s orchestration tier is the <strong>cheapest of the three platform options at &asymp;Rp58M/month</strong>. This programme is about legibility, blast radius and correctness &mdash; <strong>not savings</strong>. It will not pay for itself in infrastructure.</div>
+    </div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;4, &sect;7, &sect;9, &sect;3 &middot; compare.md &sect;5</span><span>12</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Risks">
+  <div class="inner">
+    <p class="eyebrow"><b>12</b><span class="sep">/</span>Risks and prerequisites</p>
+    <h2 class="st">What could make these numbers wrong, and what must be true before starting</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Risk</th><th>Effect on the estimate</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><b>Shared-child coverage for NDF2W is worse than assumed</b></td><td class="n">Phase 3 is the widest range for exactly this reason; a bad case pushes it past 94 days</td><td>Run the <b>5&ndash;8 day delegate mapping first</b>; re-estimate P3/P4 against Phase 2 actuals</td></tr>
+          <tr><td class="k"><b>No engine-layer safety net</b></td><td>Every phase is riskier than its day count implies</td><td><b>4 of <code>ms-bpm</code>&rsquo;s 1,457 test files run a Camunda process.</b> The parity harness in Decision A is a prerequisite here too, not a nice-to-have</td></tr>
+          <tr><td class="k"><b>In-flight instances during cutover</b></td><td>Adds calendar, not effort, if planned; adds both if not</td><td>Strangler by construction &mdash; legacy roots stay deployed for in-flight work and rollback</td></tr>
+          <tr><td class="k"><b>Decision B lands on LORA mid-programme</b></td><td>Phases 3&ndash;4 become sunk</td><td><b>Gate P3 on a published Bravo horizon.</b> P1&ndash;P2 remain useful either way</td></tr>
+          <tr><td class="k"><b>Product owners cannot be assembled to sign off the target</b></td><td>Blocks the ADR, which gates P2</td><td>Two squads and three consoles already own these products &mdash; the seam exists; use it</td></tr>
+        </tbody>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>One hard prerequisite</h4>The engine hardening is <strong>not optional and not sequenced late</strong>. <code>/camunda</code> is <code>permitAll</code> and <code>/engine-rest</code> grants full engine rights to any holder of the shared key &mdash; the vector by which <strong>61 hostile process definitions</strong> reached production. <strong>Nothing else on this plan should start while a third party can deploy process definitions into the engine being restructured.</strong></div>
+        <div class="note"><h4>Explicitly out of scope</h4>Rewriting survey or underwriting <strong>domain logic</strong>; migrating Sharia&rsquo;s separate deployment beyond the spine work costed in Phase 4; and any change to the LORA or Temporal track. This plan is only about <strong>the shape of Bravo&rsquo;s workflows</strong> and moving product variation out of hiding.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">workflow-gap.md &sect;12 &middot; option-1.md &sect;7 &middot; SECURITY-FINDING-camunda-rce.md</span><span>13</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The ask">
+  <div class="inner">
+    <p class="eyebrow"><b>13</b><span class="sep">/</span>The ask</p>
+    <h2 class="st">Fund the first half now; gate the second half on Bravo&rsquo;s horizon</h2>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Approve Phases 1 and 2 as an unconditional spend.</b> Visibility, a CI freeze on new hidden variation, and the target shape proven on DF4W &mdash; the product already running on the spine. No legacy workflow moves, and the output is a prerequisite under every Decision B outcome.</span><span class="c">42&ndash;68 eng-days<br>&asymp;2&ndash;3 eng-months<br>Rp60&ndash;160M</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Commission the 5&ndash;8 day delegate mapping before deciding on Phase 3.</b> It converts the widest range in this deck &mdash; how much of NDF2W the shared children already cover &mdash; into a real number, and it is the direct analogue of the LORA coverage-gap inventory.</span><span class="c">5&ndash;8 days<br>do it inside P1</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Hold Phases 3 and 4 against the published Bravo horizon.</b> Migrating 94% of volume onto product spines is worth 143&ndash;227 engineer-days only if Bravo has years left. That is the same input Decision B needs, and it is a business call.</span><span class="c">143&ndash;227 eng-days<br>Rp205&ndash;540M<br>gated</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Accept the monthly metrics as the reporting contract</b> &mdash; and re-baseline Phases 3&ndash;4 against Phase 2&rsquo;s actuals rather than the ranges in this deck.</span><span class="c">monthly</span></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Programme metric, reported monthly</th><th class="n">Today</th><th class="n">Target</th></tr></thead>
+      <tbody>
+        <tr><td class="k">% of new-application volume on explicit product spines</td><td class="n"><b>0</b> <span style="color:var(--ink3)">&mdash; DF4W-on-shared-spine does not count</span></td><td class="n">all live products</td></tr>
+        <tr><td class="k"><code>application.isXxx()</code> call sites in <code>activity/unified/**</code></td><td class="n"><b>42</b> across 19 of 68 classes</td><td class="n"><b>0</b></td></tr>
+        <tr><td class="k">Config-gated no-op service-task executions per day</td><td class="n">heavy &mdash; 89% of KYC gated steps under 50 ms</td><td class="n">near-zero</td></tr>
+        <tr><td class="k">Distinct delegate beans across the legacy products</td><td class="n"><b>156</b></td><td class="n">falling</td></tr>
+        <tr><td class="k">Products with a current owner-readable spine diagram</td><td class="n"><b>0</b></td><td class="n">all live products</td></tr>
+      </tbody>
+    </table></div>
+    <div class="foot"><span class="src">Sources: workflow-gap.md (the gap, verified against the production BPM database) &middot; workflow-analysis.md (what exists) &middot; option-summary.md (the platform options and cost basis) &middot; effort derived 2026-09-11 &middot; bravo-analysis/docs</span><span>14</span></div>
+  </div>
+</section>
+
+</main>
+
+<div class="rail" id="rail" role="tablist" aria-label="Slides"></div>
+<div class="hud" id="hud" aria-live="off"><b>01</b> / 01</div>
+<script>
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(deck.querySelectorAll('.slide'));
+  var rail=document.getElementById('rail'), hud=document.getElementById('hud');
+  var pad=function(n){return String(n).padStart(2,'0')};
+  slides.forEach(function(s,i){
+    s.id='s'+(i+1);
+    var b=document.createElement('button');
+    b.type='button';
+    b.setAttribute('aria-label','Slide '+(i+1)+(s.dataset.nav?': '+s.dataset.nav:''));
+    b.addEventListener('click',function(){go(i)});
+    rail.appendChild(b);
+  });
+  var dots=[].slice.call(rail.children), cur=0;
+  function paint(i){
+    cur=i;
+    dots.forEach(function(d,j){d.setAttribute('aria-current',j===i?'true':'false')});
+    hud.innerHTML='<b>'+pad(i+1)+'</b> / '+pad(slides.length);
+  }
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    slides[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+    paint(i);
+  }
+  paint(0);
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting) paint(slides.indexOf(e.target)); });
+    },{root:deck,threshold:0.55});
+    slides.forEach(function(s){io.observe(s)});
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k==='ArrowDown'||k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(cur+1)}
+    else if(k==='ArrowUp'||k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(cur-1)}
+    else if(k==='Home'){e.preventDefault();go(0)}
+    else if(k==='End'){e.preventDefault();go(slides.length-1)}
+  });
+})();
+</script>
