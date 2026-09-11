@@ -8,6 +8,14 @@
 
 ---
 
+> **Corrected 2026-09-11, from the team.** Three changes, and the first moves every per-application figure below.
+>
+> 1. **Bravo's August application count is 118,253, not 76,446** — the old number was a partial-month extract (76,446/118,253 = 0.646, against a 0.601 cost-completeness factor on the same row). August volume was therefore **flat**, not −35%. All derived rates here have been recomputed. The corrected count now agrees with Bravo's engine meter (≈113k) to within 5%, where the two previously differed by 48%.
+> 2. **`Surveyor Platform - Release reject` was fixed and deployed 2026-09-10.** Everything measured here predates the fix.
+> 3. **LORA runs as three sub-teams (LORA 1, 2, 3)** with end-to-end task execution, per the VMP LORA plan — so the bus-factor risk is Bravo-specific.
+>
+> **Open:** LORA's **171,479** comes from the same billing row and has not been re-verified.
+
 ## 1. Read this before any number below: the August taxonomy break
 
 Both queues were re-categorised in August 2026. On LORA it is severe enough to invalidate a naive month-on-month reading.
@@ -61,7 +69,7 @@ Restricting both series to categories that carry at least one ticket in Jan–Ma
 | **Jan→Aug** | **×1.82** | **×0.66** |
 | **Jan–Aug total** | **4,878** | **2,214** |
 
-**This is the finding.** Bravo's ticket load rose 82% over eight months **while its application volume fell** (117,996 in July to 76,446 in August, and being actively drained into LORA). LORA's fell by a third while its volume rose. Per unit of work, the divergence is wider than the raw counts show.
+**This is the finding.** Bravo's ticket load rose 82% over eight months **while its application volume held flat** (117,996 in July, 118,253 in August). LORA's fell by a third while its volume rose. Per unit of work, the divergence is wider than the raw counts show.
 
 The pack has an explanation ready for the Bravo direction and should be sceptical of it: a shrinking platform gets the *residual* population — the products and branches migrated last, the edge cases LORA does not yet cover. That is a real confound and it is not controlled for here. But it cuts both ways: it is also consistent with a system whose ops burden is not falling as its load falls, which is what a fixed-flowchart architecture under continuing product change would look like.
 
@@ -88,28 +96,28 @@ Application counts per month exist for Jun, Jul and Aug only ([cost.md](../../..
 |---|---|---|---|---|---|---|
 | Jun | 106,722 | 389 | 0.364% | ~110,000 | 266 | 0.242% |
 | Jul | 117,996 | 411 | 0.348% | 119,527 | 103 | 0.086% |
-| Aug | 76,446 | 534 | **0.699%** | 171,479 | 137 | 0.080%† |
-| **Jun–Aug** | **301,164** | **1,334** | **0.443%** | **401,006** | **506** | **0.126%** |
+| Aug | 118,253 | 534 | **0.452%** | 171,479 | 137 | 0.080%† |
+| **Jun–Aug** | **342,971** | **1,334** | **0.389%** | **401,006** | **506** | **0.126%** |
 
 † LORA's August rate is understated — the taxonomy break (§1) removed streams worth ~248 tickets/month from the queue.
 
 | | Bravo | LORA |
 |---|---|---|
-| **Applications completing with zero support ticket** | **≈99.2%** (all tickets), **≈99.56%** (stuck only) | **≈99.6%** / **≈99.87%** |
-| **Roughly one in…** | **1 in 225** needs a person to unstick it | **1 in 790** |
-| All-ticket rate per 1,000 applications | 8.02 | 3.59 |
-| Stuck-application rate per 1,000 | 4.43 | 1.26 |
+| **Applications completing with zero support ticket** | **≈99.3%** (all tickets), **≈99.61%** (stuck only) | **≈99.6%** / **≈99.87%** |
+| **Roughly one in…** | **1 in 257** needs a person to unstick it | **1 in 790** |
+| All-ticket rate per 1,000 applications | 7.04 | 3.59 |
+| Stuck-application rate per 1,000 | 3.89 | 1.26 |
 
-**Bravo's manual-intervention rate is ≈0.44%, about 3.5× LORA's ≈0.13%.** LORA's OTRS-derived figure sits just under its own published 0.18–0.22%, which is the expected direction: OTRS sees tickets, Jira's force-cancel/rewind counts see the two specific recovery paths, and the overlap is partial.
+**Bravo's manual-intervention rate is ≈0.39%, about 3.1× LORA's ≈0.13%.** LORA's OTRS-derived figure sits just under its own published 0.18–0.22%, which is the expected direction: OTRS sees tickets, Jira's force-cancel/rewind counts see the two specific recovery paths, and the overlap is partial.
 
 ### 4.3 Four reasons to hold this number loosely
 
-1. **The denominators are the weakest link.** The billing sheet's platform totals go 109.5k → 237.5k → 247.9k in two months, which nothing else supports; the likeliest reading is that a LORA-originated application is counted again in Bravo when it books at go-live. If that is right, **Bravo's denominator is inflated and its true rate is higher than 0.44%**, not lower.
+1. **The denominators are the weakest link.** The billing sheet's platform totals go 109.5k → 237.5k → 247.9k in two months, which nothing else supports; the likeliest reading is that a LORA-originated application is counted again in Bravo when it books at go-live. If that is right, **Bravo's denominator is inflated and its true rate is higher than 0.39%**, not lower.
 2. **A ticket is not an intervention, in either direction.** Bravo's operator console (`/v1/application-error-tracking`: assign-surveyor, assign-branch, cancel, send-salestrax) and its ~25 retry/reprocess/revive endpoints let an operator unstick an application **without raising a ticket at all**. Every silent recovery is a Bravo intervention this measurement cannot see. LORA has the mirror problem in reverse: force-cancel-then-re-originate is disruptive enough that it reliably produces a ticket.
-3. **Three months is a short window** and the monthly rates are volatile (LORA 0.24% → 0.09% → 0.08%; Bravo 0.36% → 0.35% → 0.70%).
+3. **Three months is a short window** and the monthly rates are volatile (LORA 0.24% → 0.09% → 0.08%; Bravo 0.36% → 0.35% → 0.45%).
 4. **The residual-population confound in §3 applies here too.**
 
-**Net direction of the error.** Points 1 and 2 both push the same way — they understate Bravo. Point 4 is the only one that flatters LORA. The 3.5× gap is more likely a floor than a ceiling, but it should be re-derived once the billing owner defines both application columns.
+**Net direction of the error.** Points 1 and 2 both push the same way — they understate Bravo. Point 4 is the only one that flatters LORA. The 3.1× gap is more likely a floor than a ceiling, but it should be re-derived once the billing owner defines both application columns.
 
 ---
 
@@ -155,9 +163,11 @@ Application counts per month exist for Jun, Jul and Aug only ([cost.md](../../..
 
 ### 5.3 Three things the two tables say together
 
-**(a) `Surveyor Platform - Release reject` is Bravo's dominant single failure, and it is accelerating.** 1,542 tickets — **28.4% of Bravo's entire Jan–Aug load**, more than the next three categories combined. It grew **4.8× (65 → 315)** while application volume fell, and normalised against the months where volume is known it still climbs: **2.36 → 2.61 → 4.12 per 1,000 applications** (Jun/Jul/Aug). Nothing else in either platform's data behaves like this.
+**(a) `Surveyor Platform - Release reject` is Bravo's dominant single failure.** 1,542 tickets — **28.4% of Bravo's entire Jan–Aug load**, more than the next three categories combined, and it grew **4.8× (65 → 315)** over eight months. Nothing else in either platform's data behaves like this.
 
-This is the highest-value open item the export produces.
+**One claim here is withdrawn (2026-09-11).** This paragraph previously said the category was *accelerating* even after normalising for volume, on the figures 2.36 → 2.61 → **4.12** per 1,000 applications. The August value was an artefact of the partial-month denominator. On the corrected count it is **2.36 → 2.61 → 2.66** — rising, but gently, and the August jump disappears. The raw growth over eight months is unaffected.
+
+**Fixed and deployed 2026-09-10 — added 2026-09-11.** Per the Bravo team, the defect behind this category has been fixed and the fix went to production overnight on 2026-09-10. Everything measured below covers the period *before* that, and is unchanged. What the fix changes is the forward expectation: if the category goes to zero, Bravo's Jun–Aug rate of 0.389% falls to **≈0.134%** — level with LORA's 0.126%. **That is arithmetic on a deployed fix, not a measurement.** A September–October re-export is what would confirm it, and that is now the highest-value open item this export produces.
 
 > **Narrowed 2026-09-10 — there are now named candidate endpoints.** The earlier version of this paragraph said the pack "cannot currently resolve it" because `bravo-analysis` holds documents only. That was true, but it also missed that **Bravo has console repositories the pack had never opened** ([bravo-people.md §2](../bravo-people.md)). Searching them and `ms-bpm` for "release" and "reject" gives a short, concrete list:
 >
@@ -195,9 +205,9 @@ Until it is mapped it remains a large, growing, unexplained failure concentratio
 | Claim as it stood | Status now |
 |---|---|
 | "We do not have Bravo's manual-intervention rate, incident counts or per-activity failure data" ([compare.md](../compare-architecture.md) scope caveats) | **Withdrawn.** All three now exist for Jan–Sep 2026. |
-| §3.6 *Measured consequence* — Bravo: "Not measured" | **Replaced.** ≈0.44% Jun–Aug, 2,514 stuck-application tickets Jan–Aug. |
+| §3.6 *Measured consequence* — Bravo: "Not measured" | **Replaced.** ≈0.39% Jun–Aug, 2,514 stuck-application tickets Jan–Aug. |
 | §3.7 *Production cost* — Bravo: "Not measured" | **Replaced.** 413 rescoring/reprocess tickets Jan–Aug, against LORA's 705 rewind rows. |
-| §5 "Bravo did better at bounded, classified failure… no zombie loans by construction" | **Qualified, not withdrawn.** Both halves of the pack's picture survive: Bravo has no zombie-loan class, *and* it generates 3.5× LORA's rate of applications needing a human. Bounded failure is not the same as infrequent failure — it converts an invisible wedge into a visible ticket. That is a better operational posture and it is what the ticket queue is counting. |
+| §5 "Bravo did better at bounded, classified failure… no zombie loans by construction" | **Qualified, not withdrawn.** Both halves of the pack's picture survive: Bravo has no zombie-loan class, *and* it generates 3.1× LORA's rate of applications needing a human. Bounded failure is not the same as infrequent failure — it converts an invisible wedge into a visible ticket. That is a better operational posture and it is what the ticket queue is counting. |
 | §6.4 "Measure the same KPI on both… before anyone claims either platform is more reliable" | **Done, with the denominator caveat of §4.3.** The recommendation to compute Bravo's rate from `application_error_tracking` and endpoint hits still stands — it would capture the silent interventions OTRS misses (§4.3 point 2). |
 | [option-summary.md](../option-summary.md) open question 3, "What is Bravo's manual-intervention rate?" | **Answered, provisionally.** No longer blocks the options comparison. |
 | Option 3's case ("retire Bravo") | **Strengthened on reliability, unchanged on cost.** Bravo's tier is still the cheaper one per application (§3.12); it now also carries the higher intervention rate. |
@@ -211,7 +221,7 @@ Until it is mapped it remains a large, growing, unexplained failure concentratio
 | | Effort | Why |
 |---|---|---|
 | Get the billing owner to define `Bravo total app` and `Lora total app` | Days | Every rate in §4 is a verified numerator over an unverified denominator. This is the single largest source of error. |
-| Map `Surveyor Platform - Release reject` to a BPMN element or endpoint | **Hours** | 28.4% of Bravo's ticket load, growing 4.8×. **Six named candidate endpoints as of 2026-09-10** — four `release-assignment` handlers in `OperationAssignmentController` plus `voidAssignment`/`reprocess`, and `cancel-reject-notes` routes in `bravo-surveyor-console` (§5.3a). Owning squad: `LN`. Instrument them and join to the OTRS dates. |
+| ~~Map `Surveyor Platform - Release reject` to a BPMN element or endpoint~~ **Fixed and deployed 2026-09-10.** Re-export Sep–Oct tickets and confirm the category has gone to zero | **Hours** | 28.4% of Bravo's ticket load, growing 4.8×. **Six named candidate endpoints as of 2026-09-10** — four `release-assignment` handlers in `OperationAssignmentController` plus `voidAssignment`/`reprocess`, and `cancel-reject-notes` routes in `bravo-surveyor-console` (§5.3a). Owning squad: `LN`. Instrument them and join to the OTRS dates. |
 | Count `application_error_tracking` rows and reprocess/revive endpoint hits | Days | Captures the Bravo interventions that never became tickets (§4.3 point 2) and gives a second, independent Bravo numerator — the same cross-check LORA already has. |
 | Ask the service desk what changed in August | Hours | Whether the vanished LORA categories were re-routed, merged or genuinely closed determines if §3's divergence is real. |
 | Re-export with resolution time and reopen count | Days | Ticket *count* weights a password reset the same as a wedged loan. Time-to-resolve would separate them. |
@@ -227,4 +237,4 @@ Selected as "an application stopped and a person had to move it". Excluded: ques
 
 **LORA (23 categories, 1,453 tickets Jan–Aug):** `DBP Surveyor -` Kendala / Gagal Reassign · Kendala Assignment Tidak Muncul · Kendala Proses Aplikasi · Assignment Workflow Failed · Kendala Batalkan Assignment · Gagal melakukan revisi · Gagal approve revisi · Kendala Pembagian Assignment; `DBP Operation -` Assignment tidak muncul · Cancellation Request · Gagal kirim revisi · Data tidak berhasil kirim ke ops 2; `DBP Underwriting -` Assignment tidak muncul · Rewind · Return · Tidak masuk staging approval · Tidak berhasil lanjut · Tidak berhasil approve · Tidak berhasil revisi · Tidak berhasil reject · Salah staging · Perpindahan Proses · Perubahan/Reassignment PIC.
 
-**Sensitivity.** The `Release reject` category alone is 1,542 of Bravo's 2,514. Excluding it entirely drops Bravo's Jun–Aug rate from 0.443% to **0.152%** — level with LORA's 0.126%. **Whether Bravo's intervention rate is 3.5× LORA's or level with it turns on one category whose meaning nobody in this pack has yet established.** That is why §7 ranks mapping it second.
+**Sensitivity.** The `Release reject` category alone is 1,542 of Bravo's 2,514. Excluding it entirely drops Bravo's Jun–Aug rate from 0.389% to **0.134%** — level with LORA's 0.126%. **Whether Bravo's intervention rate is 3.1× LORA's or level with it turns on this one category.** As of 2026-09-11 the Bravo team reports it **fixed and deployed** (2026-09-10), so the question should now answer itself in the next export rather than needing the code-path mapping §7 used to rank second. Until that export exists, the measured rate is still 0.389%.

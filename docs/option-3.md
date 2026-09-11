@@ -12,17 +12,17 @@
 
 | | Bravo | LORA |
 |---|---|---|
-| Applications, Aug 2026 (billing sheet) | 76,446 — **31%** | 171,479 — **69%** |
-| Trend Jul → Aug (billing sheet) | 118k → 76k | rising |
+| Applications, Aug 2026 (billing sheet) | 118,253 — **41%** | 171,479 — **59%** |
+| Trend Jul → Aug (billing sheet) | 118k → 118k — flat | rising |
 | Bravo engine meter, same period | ~120k process starts/month | — |
 | Orchestration tier cost | ≈Rp58M/month prod | ≈Rp431M/month all-in |
-| Per application | ≈Rp510–760 | ≈Rp2,500–3,200 |
+| Per application | ≈Rp490–515 | ≈Rp2,500–3,200 |
 | Product families served | 4 live root workflows | 7 families, 13 repos |
 | Paradigm | Imperative BPMN on Camunda | Data-centric GSM planner on Temporal |
 
 Source: [compare.md §3.12](compare-architecture.md), [LORA cost findings](../../lora-workspace/docs/production-findings/cost.md).
 
-**Two caveats on the volume figures, both from the LORA cost document itself.** The application counts in the billing sheet are the least-verified numbers in the pack — an application originated in LORA is plausibly counted again in Bravo when it is booked at go-live — and Bravo's engine meter reports ~120k process starts/month against the sheet's 76,446. The split is directionally clear and numerically soft. It should not be the sole basis for a platform decision, and the billing owner should be asked to define both columns before it is.
+**Two caveats on the volume figures, both from the LORA cost document itself.** The application counts in the billing sheet are the least-verified numbers in the pack — an application originated in LORA is plausibly counted again in Bravo when it is booked at go-live — and Bravo's engine meter reports ~120k process starts/month against the sheet's 118,253. The split is directionally clear and numerically soft. It should not be the sole basis for a platform decision, and the billing owner should be asked to define both columns before it is.
 
 LORA already runs the NDF product family on the `dp-ndf` document schema, with `ndf4w` and `ndf2w` SKU packages. So Option 3 is not "build an LOS on LORA" — it is **close the coverage gap, prove parity, cut the remaining book over, and switch Bravo off.** That materially reduces the technical risk relative to a green-field build, and it is the strongest structural argument for this option.
 
@@ -146,7 +146,7 @@ LORA's own production findings are the strongest argument for sequencing Option 
 |---|---|---|
 | **About half of all loans never reach a terminal state** | `SetTermination` requires terminal status **and** plate released **and** BPKB state; a licence-plate reservation renews itself, so the workflow never ends | Workflow versions can never be retired; 5 idle worker versions hold 82 cores / 154 GB. At 3× volume this compounds |
 | Uncapped retries, no terminal-error class | `MaximumAttempts: 0`, zero `NewNonRetryableApplicationError`; ~50,000 4xx/week retried as transient; 4xx outnumber 5xx 111:1 | 47 loans wedged per 7-day window, one at attempt 1,890; **20–25 permanent wedges/month** at 171k applications |
-| Undesigned dead-letter path | 1,269 force-cancel and ~705 rewind tickets Jan–Aug 2026; ops re-originates from event 1 | Bravo's operators today have `ApplicationErrorTracking` plus `setJobRetries`. They would be moving to a *worse* operator surface — though **not to a busier one**: measured on the same OTRS queue over the same months, Bravo generates 2,514 stuck-application tickets to LORA's 1,453, at ≈0.44% of applications against ≈0.13% ([ticket-analysis.md](production-findings/ticket-analysis.md)) |
+| Undesigned dead-letter path | 1,269 force-cancel and ~705 rewind tickets Jan–Aug 2026; ops re-originates from event 1 | Bravo's operators today have `ApplicationErrorTracking` plus `setJobRetries`. They would be moving to a *worse* operator surface — though **not to a busier one**: measured on the same OTRS queue over the same months, Bravo generates 2,514 stuck-application tickets to LORA's 1,453, at ≈0.39% of applications against ≈0.13% ([ticket-analysis.md](production-findings/ticket-analysis.md)) |
 | No per-family observability | 6 of 7 product families have no production APM presence; Temporal has **0 search attributes** | "Which loans are stuck at survey?" is a SQL `WHERE` clause on Bravo today. It is not answerable on LORA without APM |
 | Testing | Nightly red for 5 weeks; `lora-super-test` has no CI runner; 4 repos at zero tests; product policy is not a merge gate | Parity for 16 NDF2W risk-tier configurations cannot be proven by a suite that does not run |
 
@@ -167,7 +167,7 @@ None of these is an argument against Option 3 in principle. All are arguments fo
 
 **What does not retire, and this correction matters.** The earlier claim that retiring Bravo saves ≈Rp1.6B/month was withdrawn in [compare.md §3.12](compare-architecture.md). Most of the Bravo estate — Cloud SQL Rp584M, the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances, Memorystore, Keycloak — is the shared BFI data plane that **LORA's 301 gateway proxies also call**. It stays. Only the LOS tier retires.
 
-**And on a like-for-like tier LORA is currently the more expensive platform**: ≈Rp2,500–3,200 per application against Bravo's ≈Rp510–760. Option 3 is not justified by unit cost. Its financial case is *not running two loan origination systems* plus LORA's near-zero marginal cost as volume grows, and it strengthens materially if LORA's own right-sizing is done — retiring the five idle worker versions is worth ≈Rp63M/month, more than the entire Bravo LOS tier.
+**And on a like-for-like tier LORA is currently the more expensive platform**: ≈Rp2,500–3,200 per application against Bravo's ≈Rp490–515. Option 3 is not justified by unit cost. Its financial case is *not running two loan origination systems* plus LORA's near-zero marginal cost as volume grows, and it strengthens materially if LORA's own right-sizing is done — retiring the five idle worker versions is worth ≈Rp63M/month, more than the entire Bravo LOS tier.
 
 ---
 

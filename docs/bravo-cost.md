@@ -5,6 +5,14 @@
 
 **Method.** GCP billing read live through the FinOps dashboard API ([`bfi-finops-dashboard`](https://github.com/bfi-finance/bfi-finops-dashboard) MCP server) on 2026-09-10 for the **complete month of August 2026**: per-project totals, the `bravo-project-331802` service breakdown, and Cloud SQL line items filtered to the BPM instance. Application counts and the LORA tier figures are carried from [LORA cost.md](../../lora-workspace/docs/production-findings/cost.md) and [compare-architecture.md §3.12, §8.4](compare-architecture.md); the engine-meter application count is from [workflow-gap.md §8](workflow-gap.md). All figures are GCP **net cost in IDR**.
 
+> **Corrected 2026-09-11, from the team.** Three changes, and the first moves every per-application figure below.
+>
+> 1. **Bravo's August application count is 118,253, not 76,446** — the old number was a partial-month extract (76,446/118,253 = 0.646, against a 0.601 cost-completeness factor on the same row). August volume was therefore **flat**, not −35%. All derived rates here have been recomputed. The corrected count now agrees with Bravo's engine meter (≈113k) to within 5%, where the two previously differed by 48%.
+> 2. **`Surveyor Platform - Release reject` was fixed and deployed 2026-09-10.** Everything measured here predates the fix.
+> 3. **LORA runs as three sub-teams (LORA 1, 2, 3)** with end-to-end task execution, per the VMP LORA plan — so the bus-factor risk is Bravo-specific.
+>
+> **Open:** LORA's **171,479** comes from the same billing row and has not been re-verified.
+
 **On this page:** the problem → what we found → what to do.
 
 | | |
@@ -19,10 +27,10 @@
 
 | Claim | Verdict |
 |-------|---------|
-| Bravo is expensive | **Not as an orchestration tier — it is the cheaper one.** `ms-bpm` pods plus its Cloud SQL instance is **≈Rp58M/month in production** against LORA's **≈Rp431M all-in**: roughly **7× cheaper in absolute terms and 4–5× cheaper per application**. This document does not overturn that; it confirms it with an independent pull. |
+| Bravo is expensive | **Not as an orchestration tier — it is the cheaper one.** `ms-bpm` pods plus its Cloud SQL instance is **≈Rp58M/month in production** against LORA's **≈Rp431M all-in**: roughly **7× cheaper in absolute terms and 5–6.5× cheaper per application**. This document does not overturn that; it confirms it with an independent pull. |
 | Retiring Bravo saves ≈Rp1.6B/month | **Withdrawn, and this document re-confirms the withdrawal.** The Bravo GCP projects bill **Rp1.874B** in August, but the remainder beyond the LOS tier is the shared BFI data plane — ~26 `ms-*` services that **LORA itself calls**. The LOS lever is **≈Rp58M prod, ≈Rp70–100M with non-prod: 8–14×** the entire Temporal Actions programme, not 227×. |
 | Bravo's cost is dominated by the workflow engine | **No. The engine tier is 4.5% of its own production project.** Cloud SQL (Rp450.7M) and Compute Engine (Rp394.4M) are 65% of `bravo-project-331802`, and neither is mostly BPM. |
-| Bravo's unit economics are improving as it drains | **Refuted.** Volume fell 35% (117,996 → 76,446 applications) between July and August while ticket load **rose 82%** over eight months. Fixed platform cost over falling volume means the cost per application is inflating, for reasons unrelated to architecture. |
+| Bravo's unit economics are improving as it drains | **Not settled by the August data — the refutation is withdrawn, 2026-09-11.** This row previously read *Refuted*, on a 35% volume fall between July and August. That fall was an artefact of a partial-month count: August was **118,253**, essentially flat against July's 117,996, so **platform cost per application was flat too**. What still stands is the *ops* side: ticket load **rose 82%** over eight months, so cost per application on the support side is rising. And the structural point stands for the future rather than for August — a fixed platform cost over a volume that falls as the migration proceeds does inflate the unit cost, which is why ≈Rp1,450 per application at 40k/month is the figure to plan against. |
 | The cost work worth doing is on the engine | **Refuted, and three larger levers are named here.** Cloud Logging at **Rp140.5M/month** — 2.4× the whole orchestration tier — sits behind a globally enabled `loggerLevel: full` and an error stream that is 47% stack-trace frames. The Maps API stack is **Rp64.0M/month**. Non-production is **Rp573.5M**, 31% of all Bravo spend. |
 | Bravo's cost is a reason to keep it | **Partly, and it is the strongest argument on Bravo's side of the ledger.** But the tier that would retire is small (≈Rp58M) and the platform it would retire *to* costs more per application today. The cost case for migration is that LORA's marginal cost is near zero and one platform goes away — not that Bravo is expensive. |
 
@@ -111,13 +119,13 @@ Two groupings worth naming because neither appears as a line:
 |---|---|---|
 | What is in it | `ms-bpm` pods (Camunda + all human-task services) + `prod-postgres-bpm-d2bpm` | LPW/LTW workers, gateway, task service, schema service, Temporal Cloud contract, ArangoDB licence + GKE |
 | Monthly, production | **≈ Rp 58M** | **≈ Rp 431M** |
-| Applications, Aug 2026 | 76,446 (billing sheet) to ≈113k (engine meter: 338,858 process starts / 90 d) | 171,479 (billing sheet) to ≈135k (Temporal meter) |
-| **Per application** | **≈ Rp 510–760** | **≈ Rp 2,500–3,200** |
+| Applications, Aug 2026 | 118,253 (billing sheet, corrected 2026-09-11) and ≈113k (engine meter: 338,858 process starts / 90 d) — **the two now agree to within 5%** | 171,479 (billing sheet) to ≈135k (Temporal meter) |
+| **Per application** | **≈ Rp 490–515** | **≈ Rp 2,500–3,200** |
 | Cost shape | ~variable with pods, ~fixed on the database | ~86% fixed: contracts and over-provisioned capacity |
 
-**LORA's orchestration costs ≈7× more in absolute terms and 4–5× more per application.** The reasons are not the paradigm — a fixed Temporal commitment bought in March 2026, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five are idle. Bravo's tier is one deployment and one database.
+**LORA's orchestration costs ≈7× more in absolute terms and 5–6.5× more per application.** The reasons are not the paradigm — a fixed Temporal commitment bought in March 2026, a fixed ArangoDB licence, 44 pods requesting 448 GB at 15.5% utilisation, and eight worker versions of which five are idle. Bravo's tier is one deployment and one database.
 
-**The denominators are the weakest part of both columns**, exactly as [ticket-analysis.md §4.3](production-findings/ticket-analysis.md) warns: the billing sheet's platform totals go 109.5k → 237.5k → 247.9k in two months, which nothing else supports, and the likeliest reading is that a LORA-originated application is counted again in Bravo when it books at go-live. If that is right, **Bravo's denominator is inflated and its true per-application cost is higher than Rp510–760** — but not by enough to close a 4–5× gap.
+**The denominators are the weakest part of both columns**, exactly as [ticket-analysis.md §4.3](production-findings/ticket-analysis.md) warns: the billing sheet's platform totals go 109.5k → 237.5k → 247.9k in two months, which nothing else supports, and the likeliest reading is that a LORA-originated application is counted again in Bravo when it books at go-live. If that is right, **Bravo's denominator is inflated and its true per-application cost is higher than Rp490–515** — but not by enough to close a 5–6.5× gap. **Corrected 2026-09-11:** the sheet's Bravo count was also *too low* (a partial month), and at 118,253 it now agrees with the engine meter to within 5%, so this denominator is better evidenced than when the caveat was written.
 
 ---
 
@@ -125,12 +133,12 @@ Two groupings worth naming because neither appears as a line:
 
 | | Jun 2026 | Jul 2026 | Aug 2026 | Direction |
 |---|---:|---:|---:|---|
-| Bravo applications | 106,722 | 117,996 | **76,446** | **−35% in one month** |
+| Bravo applications | 106,722 | 117,996 | **118,253** | **+0.2% — flat** |
 | Bravo support tickets (stable categories) | 705 | 644 | 751 | **+82% since January** |
-| Bravo stuck-application rate | 0.364% | 0.348% | **0.699%** | worsening |
+| Bravo stuck-application rate | 0.364% | 0.348% | **0.452%** | worsening |
 | LOS tier cost | ~flat — one deployment, one database | | | flat |
 
-**Bravo's platform cost is essentially fixed and its volume is falling by design.** Cost per application therefore rises for every application migrated away, with no engineering cause. Meanwhile the *ops* cost per application is rising faster: the stuck-application rate doubled between July and August on a shrinking book.
+**Bravo's platform cost is essentially fixed, and its volume falls as the migration proceeds — though August was flat.** Cost per application therefore rises for every application migrated away, with no engineering cause. Meanwhile the *ops* cost per application is rising faster: the stuck-application rate rose about 30% between July and August (0.348% → 0.452%), on flat volume.
 
 The pack's standing explanation applies and should be held loosely: a draining platform keeps the residual hard cases — the products, branches and edge cases migrated last. That is a real confound and it is not controlled for. It is also consistent with a fixed-flowchart architecture under continuing product change, which is what [ticket-analysis.md §3](production-findings/ticket-analysis.md) argues.
 

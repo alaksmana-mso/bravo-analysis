@@ -208,7 +208,7 @@ The honest comparison: LORA's `docFieldCheck` panics the **worker at startup** i
 
 The assumption named in the finding — *"still running" is treated as "healthy"* — is LORA's failure mode: about half of LORA's loans never reach a terminal status while producing zero errors and zero failed attempts, and every signal reads healthy.
 
-Bravo does not have that failure class. Its BPMN checkpoints fail fast into an incident and park ([compare-architecture.md §3.6](compare-architecture.md)), so a wedged Bravo loan becomes a visible ticket rather than an invisible running workflow. That is a real advantage and it is why Bravo's stuck-application rate is *measurable* at ≈0.44% while LORA's silent half went unnoticed for months.
+Bravo does not have that failure class. Its BPMN checkpoints fail fast into an incident and park ([compare-architecture.md §3.6](compare-architecture.md)), so a wedged Bravo loan becomes a visible ticket rather than an invisible running workflow. That is a real advantage and it is why Bravo's stuck-application rate is *measurable* at ≈0.39% while LORA's silent half went unnoticed for months.
 
 **Bravo's version of the same mistake is one layer up.** Every health signal it owns is defined as the absence of a 5xx:
 
@@ -323,7 +323,7 @@ Two details are worth more than the totals. The three most-used phrasings in the
 
 **So the continuous evidence that a Bravo loan can still be originated end to end remains: the production ticket queue.** `Surveyor Platform - Release reject` at 315 tickets in August, growing 4.8× since January, is the regression detector.
 
-**One caveat in Bravo's favour, and one asset.** Bravo's volume is its own smoke test: 76,446 applications in August means a total break in the main path is visible within minutes. That works for outages; it does not work for the failure Bravo actually has — a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls. And the 595 files are a genuine **asset**, not just a reproach: 349 of them describe the surveyor journeys that [§7.3](#73-the-regression-suite-t1t12) wants regression cases for. They are Gherkin, so they are readable by QA and product; the L8 canary in [§7.2](#72-the-nine-layers) does not need writing from scratch so much as **triaging, re-pointing and given an exit code that means something.**
+**One caveat in Bravo's favour, and one asset.** Bravo's volume is its own smoke test: 118,253 applications in August means a total break in the main path is visible within minutes. That works for outages; it does not work for the failure Bravo actually has — a slow, product-specific, 4xx-shaped degradation that grows 82% over eight months while volume falls. And the 595 files are a genuine **asset**, not just a reproach: 349 of them describe the surveyor journeys that [§7.3](#73-the-regression-suite-t1t12) wants regression cases for. They are Gherkin, so they are readable by QA and product; the L8 canary in [§7.2](#72-the-nine-layers) does not need writing from scratch so much as **triaging, re-pointing and given an exit code that means something.**
 
 ### 6.1 If the 349 surveyor files are being re-pointed, fix the style first
 

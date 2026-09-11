@@ -577,7 +577,7 @@ message: <b>ENGINE-09004 Warnings during parsing:</b>
     <h2 class="st">&ldquo;Not a 5xx&rdquo; means healthy</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="note note--ok"><h4>Bravo does not have LORA&rsquo;s failure mode</h4>About half of LORA&rsquo;s loans never reach a finished status, while producing no errors and no failed attempts &mdash; every signal reads healthy. Bravo&rsquo;s BPMN checkpoints <strong>fail quickly, raise an incident and park the loan</strong>, so a stuck Bravo loan becomes a visible ticket rather than an invisible running workflow. That is a real advantage, and it is why Bravo&rsquo;s stuck-application rate is <em>measurable</em> at about 0.44%, while LORA&rsquo;s silent half went unnoticed for months.</div>
+        <div class="note note--ok"><h4>Bravo does not have LORA&rsquo;s failure mode</h4>About half of LORA&rsquo;s loans never reach a finished status, while producing no errors and no failed attempts &mdash; every signal reads healthy. Bravo&rsquo;s BPMN checkpoints <strong>fail quickly, raise an incident and park the loan</strong>, so a stuck Bravo loan becomes a visible ticket rather than an invisible running workflow. That is a real advantage, and it is why Bravo&rsquo;s stuck-application rate is <em>measurable</em> at about 0.39%, while LORA&rsquo;s silent half went unnoticed for months.</div>
         <p class="eyebrow">Bravo&rsquo;s version of the same mistake sits one layer up</p>
         <pre>(hits{service:prod-ms-bpm}
  - hits{service:prod-ms-bpm, <b>http.status_code:5*</b>})
@@ -667,7 +667,7 @@ message: <b>ENGINE-09004 Warnings during parsing:</b>
       <p class="pull" style="font-size:clamp(15px,1.55vw,20px)">A missing test cannot mislead anyone. A permanently green one can.
         <small>The original finding was an <em>absence</em>, and absences are easy to excuse &mdash; nobody got round to it. The corrected finding is <strong>abandonment</strong>: 46 people built this at scale, and it decayed while the console it covers became the largest single source of production tickets.</small></p>
       <div class="note note--ok"><h4>And the 595 files are an asset, not just a reproach</h4>349 of them describe the surveyor journeys &sect;7.3 wants regression cases for. They are Gherkin, so QA and product can read them, and they already carry Zephyr tags. <strong>The L8 production test needs sorting and re-pointing, not writing from scratch &mdash; plus an exit code that means something.</strong></div>
-      <div class="note"><h4>What still stands</h4>Bravo&rsquo;s volume is its own smoke test: at 76,446 applications in August, a total break shows up in minutes. That works for outages. It does not work for the failure Bravo actually has &mdash; a slow, product-specific, 4xx-shaped decline, growing 82% over eight months while volume falls. <strong>The continuous evidence is still the ticket queue.</strong></div>
+      <div class="note"><h4>What still stands</h4>Bravo&rsquo;s volume is its own smoke test: at 118,253 applications in August, a total break shows up in minutes. That works for outages. It does not work for the failure Bravo actually has &mdash; a slow, product-specific, 4xx-shaped decline, growing 82% over eight months while volume falls. <strong>The continuous evidence is still the ticket queue.</strong></div>
     </div>
     <div class="foot"><span class="src">bravo-testing.md &sect;6 &middot; workflow YAML and git history read 2026-09-11</span><span>12</span></div>
   </div>
