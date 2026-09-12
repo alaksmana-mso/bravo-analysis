@@ -1,0 +1,333 @@
+<style>
+/* Platform identity for this deck:
+   waste = red, recovered = green, the three log platforms each get a fixed hue. */
+:root{--gcp:#1C5A6B;--gcpBg:#1C5A6B1c;--cor:#8E2F3F;--corBg:#8E2F3F1c;--ddg:#6A3D8F;--ddgBg:#6A3D8F1c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --gcp:#74BDD0;--gcpBg:#74BDD022;--cor:#E4909C;--corBg:#E4909C22;--ddg:#BE9BE0;--ddgBg:#BE9BE022}}
+:root[data-theme="dark"]{--gcp:#74BDD0;--gcpBg:#74BDD022;--cor:#E4909C;--corBg:#E4909C22;--ddg:#BE9BE0;--ddgBg:#BE9BE022}
+
+.verdictbox{border:2px solid var(--ac);border-radius:4px;padding:20px 24px;background:var(--acBg2);display:flex;flex-direction:column;gap:10px}
+.verdictbox .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.verdictbox .txt{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(18px,2.3vw,29px);line-height:1.22;letter-spacing:-.018em;color:var(--ink)}
+.verdictbox .txt em{color:var(--ac);font-style:normal;font-weight:800}
+
+/* Three-platform cards on the cost slide */
+.plats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.plat{background:var(--panel);padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px}
+.plat .nm{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600}
+.plat.g .nm{color:var(--gcp)} .plat.c .nm{color:var(--cor)} .plat.d .nm{color:var(--ddg)}
+.plat .amt{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(19px,2.5vw,30px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.plat .sub{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+
+/* Before / after correction pairs */
+.corr{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.corrow{background:var(--panel);padding:12px 16px;display:grid;grid-template-columns:1fr 150px 150px;gap:14px;align-items:baseline}
+.corrow .w{font-size:13.5px;line-height:1.45;color:var(--ink2)}
+.corrow .w b{color:var(--ink)}
+.corrow .old{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink3);text-align:right;text-decoration:line-through}
+.corrow .new{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--bad);text-align:right}
+.corrow.hd{background:var(--panel2)}
+.corrow.hd span{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);text-decoration:none}
+.corrow.hd .old,.corrow.hd .new{text-align:right;color:var(--ink3);font-weight:600}
+
+/* The five offenders */
+.off{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.offrow{background:var(--panel);padding:11px 15px;display:grid;grid-template-columns:1fr 86px 58px;gap:12px;align-items:center}
+.offrow .s{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink)}
+.offrow .d{font-size:12.5px;line-height:1.4;color:var(--ink2);grid-column:1;grid-row:2}
+.offrow .ct{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.offrow .p{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:var(--bad);text-align:right;font-variant-numeric:tabular-nums}
+.offrow.tot{background:var(--panel2)}
+.offrow.tot .s{font-family:Archivo,sans-serif;font-weight:700;font-size:13.5px}
+
+/* Phase gate */
+.gate{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.gcell{background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:7px}
+.gcell .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.gcell .nums{display:flex;align-items:baseline;gap:10px}
+.gcell .a{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(18px,2.2vw,26px);color:var(--bad);letter-spacing:-.02em}
+.gcell .arw{color:var(--ink3);font-size:15px}
+.gcell .b{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(18px,2.2vw,26px);color:var(--ok);letter-spacing:-.02em}
+.gcell p{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+
+/* Phase strip */
+.phz{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.phzc{background:var(--panel);padding:14px 15px;display:flex;flex-direction:column;gap:7px}
+.phzc.now{background:var(--acBg)}
+.phzc .n{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink3)}
+.phzc.now .n{color:var(--ac)}
+.phzc .t{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink)}
+.phzc .c{font-size:12px;line-height:1.4;color:var(--ink2)}
+.phzc .cost{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-top:auto;padding-top:6px}
+.phzc .cost.z{color:var(--ok)} .phzc .cost.u{color:var(--warn)}
+
+.ask{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.askrow{background:var(--panel);padding:13px 16px;display:grid;grid-template-columns:26px 1fr 124px;gap:14px;align-items:start}
+.askrow .n{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:var(--ac);font-variant-numeric:tabular-nums}
+.askrow .t{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.askrow .t b{color:var(--ink);font-weight:600}
+.askrow .c{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);text-align:right;line-height:1.5}
+
+@media (max-width:860px){
+  .plats,.phz{grid-template-columns:1fr}
+  .gate{grid-template-columns:1fr}
+  .corrow{grid-template-columns:1fr 90px 90px}
+}
+@media print{
+  .plats{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .phz{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .gate{grid-template-columns:1fr 1fr}
+  .plat{padding:11px 13px;gap:4px}
+  .plat .amt{font-size:19px}
+  .plat .sub{font-size:10.5px;line-height:1.34}
+  .corrow{padding:8px 12px}
+  .corrow .w{font-size:11px;line-height:1.36}
+  .corrow .old,.corrow .new{font-size:10.5px}
+  .offrow{padding:7px 11px}
+  .offrow .s{font-size:10.5px}
+  .offrow .d{font-size:10px;line-height:1.32}
+  .offrow .ct,.offrow .p{font-size:10.5px}
+  .gcell{padding:11px 13px;gap:5px}
+  .gcell .a,.gcell .b{font-size:18px}
+  .gcell p{font-size:10.5px;line-height:1.35}
+  .phzc{padding:9px 11px;gap:5px}
+  .phzc .t{font-size:11.5px}
+  .phzc .c{font-size:10px;line-height:1.32}
+  .phzc .cost{font-size:9px}
+  .askrow{padding:8px 12px}
+  .askrow .t{font-size:11px;line-height:1.4}
+}
+</style>
+
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:20px">
+    <p class="cover-kicker">BFI &middot; Logging and observability &middot; For the CTO</p>
+    <h1>We were asked to approve<br><span class="thin">a Rp 50&ndash;90M logging fix.</span></h1>
+    <div class="verdictbox" style="max-width:86ch">
+      <span class="lab">The recommendation &middot; approve</span>
+      <p class="txt">Logging is the largest configuration-only saving we have. <em>Rp 81&ndash;105M a month, available in two weeks.</em></p>
+    </div>
+    <div class="verdictbox" style="max-width:86ch;border-color:var(--bad);background:transparent">
+      <span class="lab" style="color:var(--bad)">The reasoning &middot; do not approve as written</span>
+      <p class="txt" style="font-size:clamp(16px,2vw,23px)">The figure in the deck is stale, the named cause is unproven in production, and the real saving is somewhere else.</p>
+    </div>
+    <div class="meta">
+      <span><b>How to read this</b> &nbsp;What it costs, what we got wrong, what is actually driving it, then the plan.</span>
+      <span><b>As at</b> &nbsp;2026-09-12</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> 11 slides &middot; the correction is on 3&ndash;5 &middot; the plan is on 9&ndash;11</p>
+</section>
+
+<section class="slide" data-nav="The ask">
+  <div class="inner">
+    <p class="eyebrow"><b>01</b><span class="sep">/</span>Orientation</p>
+    <h2 class="st">What was put in front of you, and what we did about it</h2>
+    <p class="lede">One line in the platform decision deck asked for approval. We went and measured it against the billing data, the production logs and all 152 repositories.</p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note"><h4>The claim, as written</h4>&ldquo;Approve the Cloud Logging fix. It saves <strong>Rp 50&ndash;90M a month</strong> and is configuration only. That is more than retiring Bravo&rsquo;s workflow tier would save.&rdquo;<br><br>The mechanism named was <code>loggerLevel: full</code> on Feign, which makes every upstream call log its full request and response body.</div>
+        <div class="note note--ok"><h4>What we checked</h4><strong>FinOps billing</strong> for August 2026, complete month, by project, service and SKU. <strong>Datadog production logs</strong>, two days, every service. <strong>All 152 repositories</strong> under <code>squads/</code>, pulled to master on the day of writing &mdash; 149,729 files scanned.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note note--bad"><h4>What came back</h4>The direction is right and the prize is bigger than claimed. But <strong>three of the supporting facts do not survive contact with the data</strong>, and the fix that was named is not the one that pays.<br><br>We also found a <strong>live API credential sitting in production logs</strong>, which nobody was looking for.</div>
+        <p class="claim">A CTO should not be asked to approve a number that cannot be traced to a measurement. Three of these now can, and one still cannot.</p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">logging-cost.md &middot; bravo-cost.md &sect;5&ndash;6 &middot; bravo-lora-cto-decision deck, slide 08</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What it costs">
+  <div class="inner">
+    <p class="eyebrow"><b>02</b><span class="sep">/</span>The correction</p>
+    <h2 class="st">Logging costs Rp 636M a month, across three platforms</h2>
+    <p class="lede">The deck counts one platform, and counts it low. August 2026, complete month, from the billing data.</p>
+    <div class="plats">
+      <div class="plat g"><span class="nm">Cloud Logging &middot; GCP</span><span class="amt">Rp 271.8M</span><span class="sub">42.8% of the total. Up 38% since February. The only platform the deck mentions.</span></div>
+      <div class="plat c"><span class="nm">Coralogix</span><span class="amt">Rp 253.3M</span><span class="sub">39.8%. Flat since February, billed as one marketplace charge. <strong>No cost document has ever asked what it is for.</strong></span></div>
+      <div class="plat d"><span class="nm">Datadog</span><span class="amt">Rp 110.6M</span><span class="sub">17.4%. The platform we are standardising on. This is the baseline to protect.</span></div>
+    </div>
+    <p class="eyebrow">The figures that need correcting before this goes further</p>
+    <div class="corr">
+      <div class="corrow hd"><span>Claim</span><span class="old">Deck says</span><span class="new">Measured</span></div>
+      <div class="corrow"><span class="w"><b>Cloud Logging, estate</b> &mdash; quoted in four documents and the CTO deck</span><span class="old">Rp 140.5M</span><span class="new">Rp 271.8M</span></div>
+      <div class="corrow"><span class="w"><b>Multiple of the workflow tier</b> a migration would retire (&asymp;Rp 58M)</span><span class="old">2.4&times;</span><span class="new">4.7&times;</span></div>
+      <div class="corrow"><span class="w">Same multiple, <b>counting all three log platforms</b></span><span class="old">&mdash;</span><span class="new">11&times;</span></div>
+    </div>
+    <div class="note note--ok" style="margin-top:2px"><h4>This makes the argument stronger, not weaker</h4>The point the deck was making &mdash; that configuration work beats migration work &mdash; holds more firmly at Rp 636M than at Rp 140.5M. <strong>We are asking to fix the evidence, not to drop the recommendation.</strong></div>
+    <div class="foot"><span class="src">logging-cost.md &sect;1 &middot; FinOps, August 2026 complete month</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Where it goes">
+  <div class="inner">
+    <p class="eyebrow"><b>03</b><span class="sep">/</span>The correction</p>
+    <h2 class="st">A third of it is spent on environments with no customers</h2>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Project</th><th class="n">August 2026</th><th class="n">Volume</th></tr></thead>
+        <tbody>
+          <tr><td class="k"><code>bravo-project-331802</code> &mdash; production</td><td class="n"><b>Rp 125,414,087</b></td><td class="n">18.05 TB</td></tr>
+          <tr><td class="k"><code>bravo-project-nonprod</code> &mdash; dev, SIT, UAT</td><td class="n"><b>Rp 56,360,125</b></td><td class="n">7.66 TB</td></tr>
+          <tr><td class="k"><code>bfi-devsecops</code> &mdash; CI/CD</td><td class="n"><b>Rp 34,898,639</b></td><td class="n">4.77 TB</td></tr>
+          <tr><td class="k"><code>bfi-internal-app-production</code></td><td class="n">Rp 9,012,031</td><td class="n">1.23 TB</td></tr>
+          <tr><td class="k"><code>bfi-internal-app-nonprod</code></td><td class="n">Rp 1,564,409</td><td class="n">0.21 TB</td></tr>
+          <tr><td class="k"><code>core-system-nonprod</code></td><td class="n">Rp 236,516</td><td class="n">0.03 TB</td></tr>
+          <tr class="tot"><td><b>Non-production, added up</b></td><td class="n"><b>Rp 93,059,689</b></td><td class="n">12.7 TB</td></tr>
+        </tbody>
+      </table></div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="stats"><div class="stat"><span class="stat__n neg">34<small>%</small></span><span class="stat__l">of the Cloud Logging bill is dev, SIT, UAT and CI. No customer is served by any of it. This is the largest certain saving in the pack.</span></div></div>
+        <div class="note"><h4>Two lines that belong to nobody&rsquo;s backlog</h4><strong>Cloud SQL audit and slow-query logs in non-production &mdash; Rp 18.4M a month.</strong> That is three times what the production database logs cost.<br><br><strong>VPC flow logs &mdash; Rp 7.9M a month.</strong> Sampling is almost certainly at 100%. Dropping to 10% cuts it to under Rp 1M with no practical loss.</div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">None of this needs a squad, a release, or a line of code. It is a retention setting and an exclusion filter.</p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">logging-cost.md &sect;2 &middot; top 200 August line items, 84% of the month</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The claim fails">
+  <div class="inner">
+    <p class="eyebrow"><b>04</b><span class="sep">/</span>The correction</p>
+    <h2 class="st">The fix that was named cannot be shown to be doing anything</h2>
+    <p class="lede">This is the part that should not go to a board without being settled. It takes one hour.</p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note"><h4>What the code says &mdash; the claim is real in the source</h4>In <code>bravo-bpm-service</code>, <code>application.yaml</code> sets <code>loggerLevel: full</code> on <strong>129</strong> Feign entries including the default, and puts <code>com.bfi.bravo.adapter</code> at <strong>DEBUG</strong>. All <strong>57</strong> Feign clients live under that package. <code>application-prod.yaml</code> sets <code>root: INFO</code> but never overrides it &mdash; different keys in Spring Boot, so DEBUG survives.<br><br>On paper, every call to PEFINDO, SLIK, Dukcapil and CONFINS logs its full body.</div>
+        <div class="note note--bad"><h4>What production says &mdash; nothing</h4>Across two days, every production service:<br><br><strong>Logs at <code>status:debug</code> &mdash; 0.</strong><br><strong>Logs containing <code>END HTTP</code>, the marker Feign writes at the end of every full-logged exchange &mdash; 0.</strong></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note"><h4>Two explanations, and we cannot tell which</h4><strong>1.</strong> A deployment environment variable overrides the log level. None of the 152 repositories contains a deployment manifest &mdash; they live in a GitOps repo we do not have. This is the likelier one.<br><br><strong>2.</strong> Datadog drops DEBUG before indexing, and Cloud Logging still pays for it.</div>
+        <div class="verdictbox" style="border-color:var(--bad);background:transparent;padding:16px 18px">
+          <span class="lab" style="color:var(--bad)">The ask</span>
+          <p class="txt" style="font-size:clamp(15px,1.7vw,20px)">Read the <code>ms-bpm</code> deployment manifest. <em>One hour.</em> It decides whether this fix is worth Rp 0 or Rp 40M a month.</p>
+        </div>
+        <p class="claim">Until that is done, the Rp 50&ndash;90M figure is a code reading with no production signal behind it. It should not be quoted as settled.</p>
+      </div>
+    </div>
+    <div class="note note--ok"><h4>The configuration is still wrong, whatever the answer</h4>A default of <code>full</code> means one environment variable &mdash; or one careless merge &mdash; starts writing customer credit-bureau payloads into logs. <strong>That is a data-protection exposure sitting behind a single line.</strong> Six repositories carry it. Fix it regardless of whether it is currently costing money.</div>
+    <div class="foot"><span class="src">logging-cost.md &sect;3 &middot; bravo-bpm-service.md &sect;1</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What drives it">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>What is actually happening</p>
+    <h2 class="st">Five services produce 64% of every log line we pay for</h2>
+    <p class="lede">Measured in production, not read from code. Almost none of it is telemetry anyone reads.</p>
+    <div class="off">
+      <div class="offrow"><span class="s">confins-prod-ms-lms-ar-be</span><span class="ct">2,640,747</span><span class="p">29%</span><span class="d"><strong>Genuinely blank log lines.</strong> Empty message field, several a second, 9.25 million a week. Shipped, indexed and stored. <strong>This service has no identified owner.</strong></span></div>
+      <div class="offrow"><span class="s">prod-lora-task</span><span class="ct">1,291,274</span><span class="p">14%</span><span class="d">3.8 million warnings a week. A browser tab closing. An optional form field being absent. Nobody will ever act on any of it.</span></div>
+      <div class="offrow"><span class="s">prod-ms-calculation</span><span class="ct">770,394</span><span class="p">9%</span><span class="d">The entire HTTP error object serialised on every 4xx &mdash; roughly 12,000 a day. See the next slide.</span></div>
+      <div class="offrow"><span class="s">prod-ms-cnv</span><span class="ct">752,562</span><span class="p">8%</span><span class="d"><strong>The same error 20,000 times a day.</strong> Employee access records failing to sync and being discarded. A real defect nobody noticed, because it is buried in the noise.</span></div>
+      <div class="offrow"><span class="s">prod-ms-bpm</span><span class="ct">387,332</span><span class="p">4%</span><span class="d">Split JSON fragments and stack traces logged one frame per entry.</span></div>
+      <div class="offrow tot"><span class="s">Top five of 71 services</span><span class="ct">5,842,309</span><span class="p">64%</span></div>
+    </div>
+    <div class="cols b" style="margin-top:2px">
+      <div class="note note--bad"><h4>The discovery that explains the rest</h4>The container runtime <strong>splits any log line over 16 KB</strong> into separate chunks, which arrive as unrelated entries. Neither half is valid JSON, so neither parses.<br><br><strong>93.6% of our production logs cannot be parsed at all</strong> &mdash; 8.46 million of 9.03 million over two days. Large log lines are not just expensive. They are destroying the log pipeline.</div>
+      <div class="note"><h4>Why this matters more than the Feign question</h4>These five are measured, owned and fixable. Between them they are worth more than the disputed fix, and the <code>ms-cnv</code> item is a <strong>correctness defect</strong> &mdash; 20,000 employee access updates a day are being thrown away, possibly including role revocations.<br><br>No monitor noticed, because <strong>no monitor watches an outcome</strong>.</div>
+    </div>
+    <div class="foot"><span class="src">logging-cost.md &sect;4 &middot; Datadog production logs, 2026-09-10 to 09-12</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Credential in logs">
+  <div class="inner">
+    <p class="eyebrow"><b>06</b><span class="sep">/</span>What is actually happening</p>
+    <h2 class="st">A live API credential is being written to production logs</h2>
+    <p class="lede">Found while measuring cost. It is not a cost item and it should not wait for this programme.</p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>One line, in one file</h4><code>lms-calculation-service/src/helpers/HttpHelper.ts:27</code> runs <code>JSON.stringify(error)</code> on every failed HTTP call and logs the result.<br><br>On an Axios error that serialises the entire request config &mdash; headers and body included.</div>
+        <div class="note"><h4>What is in each entry, confirmed in production</h4>&mdash; the <strong><code>api-secret</code> header in plaintext</strong>, in full, on every 4xx or 5xx<br>&mdash; the request body, including customer <code>birth_date</code><br>&mdash; the full stack trace<br>&mdash; terminal colour codes, which is why these are filed as <code>info</code> and never reach an error dashboard</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="stats"><div class="stat"><span class="stat__n neg">12,000</span><span class="stat__l">entries a day carrying the credential. 437 measured in a single 51-minute window. It has been there for as long as this code has shipped.</span></div></div>
+        <div class="note note--ok"><h4>What we are asking for</h4><strong>1.</strong> Replace the interceptor with four structured fields. Two hours.<br><strong>2.</strong> <strong>Rotate the secret.</strong> Treat it as leaked. It is shared with <code>prod-ms-insurance</code>.<br><strong>3.</strong> Tell whoever owns security review.<br><br>Anyone with log read access in the production project has had this credential.</div>
+        <p class="claim">This was not what we were looking for. It is what you find when you read nine million log lines instead of counting them.</p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">lms-calculation-service.md &sect;1 &middot; verified in production logs 2026-09-11</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Datadog today">
+  <div class="inner">
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>The Datadog position</p>
+    <h2 class="st">We own more of Datadog than we use, and parts of it are broken</h2>
+    <p class="lede">We audited every environment. The expensive half is already deployed and working. The cheap half is missing.</p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--ok"><h4>Already working, and better than our own documents claim</h4><strong>APM covers 42 production services</strong> &mdash; 79 million spans over two days, including database and queue spans. Most squads do not know this exists. Earlier packs said Bravo&rsquo;s workflow layer produced no traces; <code>prod-ms-bpm</code> has over a million.</div>
+        <div class="note note--bad"><h4>Logs and traces are not joined up</h4><strong>Zero logs carry a trace id.</strong> Nobody can click from a slow trace to the logs for that request, or from an error to the trace that caused it.<br><br>Only <strong>30 of 71 services send both</strong> logs and traces. Two services have <em>different names</em> in logs and traces, so Datadog treats them as four.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>Monitors that report OK and can never fire</h4>A family of about twenty log monitors targets <code>dev-</code>, <code>sit-</code> and <code>uat-</code> services. <strong>No non-production logs reach Datadog at all</strong>, so none of them can ever trigger.<br><br>Worse, the production sharia monitors query <code>prod-sharia-sharia-bpm-sharia</code> &mdash; note the <strong>doubled word</strong>, a service that does not exist. <strong>They show OK because nothing matches, not because nothing is wrong.</strong></div>
+        <div class="note"><h4>Three more, briefly</h4><strong>8 synthetic tests, all DNS and SSL checks.</strong> Nothing tests whether a customer can submit a loan.<br><br><strong>23 Dockerfiles download the tracer from <code>releases/latest</code></strong> &mdash; unpinned, in production.<br><br>Production alerts route to <code>@googlechat-test</code> and <code>@webhook-testwebhook</code>.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;1&ndash;2 &middot; Datadog us5 org, audited 2026-09-11/12</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The cost trap">
+  <div class="inner">
+    <p class="eyebrow"><b>08</b><span class="sep">/</span>The plan</p>
+    <h2 class="st">The order matters, because Datadog bills on what we send it</h2>
+    <p class="lede">The obvious move is to turn on the Datadog features now. That would make the bill worse.</p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>The trap we nearly walked into</h4>The fix for 16 KB line splitting is to have the Datadog agent rejoin the fragments. Correct &mdash; but applied to <em>today&rsquo;s</em> stream it would faithfully reassemble the 64 KB request bodies and the credential-carrying error dumps into <strong>single large billable events</strong>, and index them.<br><br><strong>We would pay Datadog premium rates to reconstruct exactly the content that should never have been logged.</strong></div>
+        <p class="pull" style="font-size:clamp(15px,1.5vw,19px)">Clean the stream first. Then enable, on half the volume, at half the recurring price.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <p class="eyebrow">The gate SRE holds before enabling anything</p>
+        <div class="gate">
+          <div class="gcell"><span class="k">Production log lines / day</span><div class="nums"><span class="a">4.5M</span><span class="arw">&rarr;</span><span class="b">under 2.5M</span></div><p>Protects the per-GB price of everything downstream. The five services on slide 06 are most of the gap.</p></div>
+          <div class="gcell"><span class="k">Share Datadog can parse</span><div class="nums"><span class="a">6.4%</span><span class="arw">&rarr;</span><span class="b">over 80%</span></div><p>The one people will want to skip. Datadog cost filters work on <strong>parsed attributes</strong> &mdash; on raw text they are guesswork, and will silently drop evidence we needed.</p></div>
+        </div>
+        <div class="note note--ok"><h4>Squads first, SRE second</h4>This is not a queue. The squad work is what makes the SRE work affordable, and it is already written up per repository &mdash; nineteen files, each naming the file and line to change.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;0 and &sect;3 &middot; squads-guide.md</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Four phases">
+  <div class="inner">
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>The plan</p>
+    <h2 class="st">Four phases. The money is in the first one.</h2>
+    <div class="phz">
+      <div class="phzc now"><span class="n">Phase 1 &middot; now</span><span class="t">Platform configuration and defect fixes</span><span class="c">Non-production exclusion filters and retention. Cloud SQL logs off in non-prod. Flow log sampling to 10%. Fix the dead monitors. Pin the tracer. Name an owner for the blank-line service.</span><span class="cost z">No Datadog cost &middot; 2 weeks</span></div>
+      <div class="phzc"><span class="n">Phase 2 &middot; next</span><span class="t">Squads cut log volume</span><span class="c">Nineteen per-repository guides, each naming the file and line. The five services on slide 06 are 64% of it. SRE holds the gate and tracks two numbers weekly.</span><span class="cost z">Reduces cost &middot; 4&ndash;6 weeks</span></div>
+      <div class="phzc"><span class="n">Phase 3 &middot; gated</span><span class="t">Ingestion and correlation</span><span class="c">Line reassembly, trace correlation, per-service cost filters in the same change. Trace the API gateway, with sampling from day one.</span><span class="cost u">Small increase &middot; 1 week</span></div>
+      <div class="phzc"><span class="n">Phase 4 &middot; one at a time</span><span class="t">Paid add-ons</span><span class="c">Runtime metrics, then database monitoring on ten services, then profiling on one. Real synthetic tests. SIT and UAT logs into Datadog &mdash; last, and errors only.</span><span class="cost u">Per product &middot; measure each</span></div>
+    </div>
+    <div class="cols b" style="margin-top:4px">
+      <div class="stats stats--4">
+        <div class="stat"><span class="stat__n pos">Rp 81&ndash;105M</span><span class="stat__l">a month, recovered in Phase 1 alone. No code change, no squad backlog, no release.</span></div>
+        <div class="stat"><span class="stat__n plain">2 wks</span><span class="stat__l">to bank it. Phase 1 is platform configuration and one access review.</span></div>
+      </div>
+      <div class="note"><h4>What we are deliberately not doing yet</h4><strong>Sending non-production logs to Datadog.</strong> It is the item most likely to blow the budget, and it is a convenience improvement with a real recurring cost. It comes last, restricted to SIT and UAT, errors only, three-day retention &mdash; and only after the savings are banked.<br><br><strong>Coralogix stays an open question.</strong> Rp 253M a month, flat since February, and no document we hold explains what it is for. That answer may be worth more than everything else on this slide.</div>
+    </div>
+    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;10 &middot; logging-cost.md &sect;6</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The asks">
+  <div class="inner">
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Decisions</p>
+    <h2 class="st">Six things we need from you</h2>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Approve the logging programme, on the corrected reasoning.</b> Rp 81&ndash;105M a month from platform configuration, available in two weeks, with no code change. The direction in the original recommendation was right; the numbers behind it were not.</span><span class="c">Approve<br>today</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Treat the leaked API credential as an incident, not a backlog item.</b> Rotate the secret shared with <code>prod-ms-insurance</code>, fix the one line in <code>HttpHelper.ts</code>, and tell security. It has been in production logs for as long as the code has shipped.</span><span class="c">Direct<br>today</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Order the one-hour manifest check before any of this is quoted externally.</b> It decides whether the Feign fix is worth Rp 0 or Rp 40M a month. Until it is done, that figure should not appear in a board pack.</span><span class="c">Direct<br>this week</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Hold the sequencing.</b> Squad cleanup gates SRE enablement, on two published numbers. If that gate is waived under delivery pressure, we move the waste from Cloud Logging into Datadog and the bill goes up instead of down.</span><span class="c">Hold<br>the line</span></div>
+      <div class="askrow"><span class="n">5</span><span class="t"><b>Name an owner for <code>confins-prod-ms-lms-ar-be</code>.</b> It is 29% of all production log volume, it emits blank lines, and no squad in our mapping claims it. Nothing else in Phase 2 is worth as much per hour of work.</span><span class="c">Assign<br>this week</span></div>
+      <div class="askrow"><span class="n">6</span><span class="t"><b>Ask someone to justify Coralogix.</b> Rp 253M a month, flat since February, for a third logging platform alongside Cloud Logging and Datadog. We are not recommending cancelling it. We are saying nobody has been asked.</span><span class="c">Ask<br>this month</span></div>
+    </div>
+    <div class="note note--ok" style="margin-top:2px"><h4>What is already written and waiting</h4><strong>logging-cost.md</strong> &mdash; the cost analysis and the corrections owed to four other documents and one deck. <strong>squads-guide.md</strong> &mdash; five rules, and which Datadog feature answers which question. <strong>sre-datadog-recommendations.md</strong> &mdash; the configuration audit and the phased plan. <strong>Nineteen per-repository files</strong>, each naming the file, the line and the fix. No further analysis is needed to start Phase 1.</div>
+    <div class="foot"><span class="src">docs/logging/ &middot; 22 documents &middot; all figures traceable to FinOps, Datadog or a named file and line</span><span>11</span></div>
+  </div>
+</section>
