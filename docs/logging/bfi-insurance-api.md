@@ -130,6 +130,154 @@ About Rp 7–16M a month. The largest single code-level saving outside `bravo-bp
 
 ---
 
+## Request and response bodies in Datadog
+
+No Datadog tracer, in any language, has a supported setting that puts an HTTP body on a
+span. Squads work around that by logging bodies. **This service does log bodies in
+production — but not through the filter that was written for it, and the payloads carry
+customer identity data.**
+
+| | Seven days, production |
+|---|---:|
+| Spans | 305,978 |
+| Log entries | 799,198 |
+| Entries containing a serialised payload | 90,553 |
+
+### The filter built for this is not the one producing bodies
+
+`src/main/java/id/co/bfi/insurance/config/HttpJsonLoggingFilter.java` captures the inbound
+request body as a structured field, truncated at
+`constant.insurance.log-http-request-response-payload-max-size` (default 10,000), at INFO,
+and only when a correlation id is already in the MDC.
+
+In production it produces almost nothing. Zero log entries in seven days start with
+`Request `, which is the message this filter writes, and the service emits only 12,928 INFO
+entries out of 799,198. It is dead weight as configured.
+
+Note also what it does *not* do: it reads `ContentCachingRequestWrapper`, so it captures the
+**request** only. There is no response-body capture anywhere in this repo.
+
+### What is actually writing payloads
+
+Two error paths, both at scale:
+
+- The RabbitMQ consumer dead-letter handler. `Exception(won't retry, direct to dead queue)
+  while executing idempotencyKey ..., consumer: notify-disbursement-status, payload {...}` —
+  and that payload carries `account_no_to`, `account_name_to`, `bank_name_to`,
+  `amount_paid` and the agreement number. 377 of one variant alone in two days.
+- The life-insurance customer update. `life insurance - Update customer data failed -
+  customer data not found, payload : {...}` — that payload carries a 16-digit `id_number`
+  (NIK), four full addresses, `birth_date` and `mobile_phone`. 92 in two days.
+
+Neither is masked. Neither needs the whole payload to be diagnosable.
+
+### What you get back
+
+This service is Java, so Datadog's Live Debugger can set a **method probe**: name a method,
+get its arguments and its return value from the running pod, no redeploy. That covers the
+"what did the consumer actually receive" question far better than a dead-letter log line.
+
+It needs Remote Configuration, and Remote Configuration is failing here — 579 failed polls
+in two days, `empty targets meta in director local store`. Thirteen production services
+report the same error. SRE has to fix that before anything can be switched on.
+
+### What to do
+
+1. Replace the payload in the dead-letter error with identifiers: idempotency key,
+   `reference_id`, `agreement_number`, `branch_id`, and the exception message. The payload
+   itself is already in the dead-letter queue, which is where it belongs.
+2. Same for the life-insurance path: log `guid`, `cif_id` and `confins_customer_id`, not the
+   customer record.
+3. Decide what `HttpJsonLoggingFilter` is for. Today it costs a `ContentCachingRequestWrapper`
+   on every request and emits almost nothing. Either scope it deliberately or remove it. If
+   it is kept, give it field masking — it has none.
+4. Put the identifiers on the span so the call is findable without a body:
+
+   ```java
+   final Span span = GlobalTracer.get().activeSpan();
+   if (span != null) {
+     span.setTag("insurance.agreement_no", agreementNo);
+     span.setTag("insurance.reference_id", referenceId);
+   }
+   ```
+
+---
+
+## Service identity in Datadog
+
+Measured over seven days to 12 September 2026, production.
+
+| | Name | Volume |
+|---|---|---:|
+| Traces | `prod-ms-bfi-insurance-api` | 306,785 spans |
+| Logs | `prod-ms-bfi-insurance-api` | 802,536 entries |
+
+**The names match.** Nothing to fix here today.
+
+Keep it that way. The mismatch happens when someone changes the Kubernetes deployment name
+without changing `DD_SERVICE`, or the other way round. Eight production services are split
+across two identities right now for exactly that reason. The unified tagging block below
+removes the possibility.
+
+### How to fix it
+
+The service name on a **log** comes from the Kubernetes container and deployment name, or
+from a Datadog Agent annotation. The service name on a **trace** comes from `DD_prod-ms-bfi-insurance-api`, or
+from whatever the tracer was initialised with in code. Nothing makes those two agree. When
+they differ, Datadog builds two entities from one workload, and every dashboard, monitor and
+Service Catalog entry silently covers half of it.
+
+The fix is to stop setting the name in two places. Put the Datadog unified tagging labels on
+the **pod template**, and the Agent applies the same identity to logs, traces, metrics and
+profiles together:
+
+```yaml
+# deployment.yaml -> spec.template.metadata.labels
+tags.datadoghq.com/env: "prod"
+tags.datadoghq.com/service: "prod-ms-bfi-insurance-api"
+tags.datadoghq.com/version: "{{ .Values.image.tag }}"
+```
+
+Then set the matching environment variables on the container, sourced from those same
+labels so they cannot drift:
+
+```yaml
+env:
+  - name: DD_ENV
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/env'] } }
+  - name: DD_prod-ms-bfi-insurance-api
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/service'] } }
+  - name: DD_VERSION
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
+```
+
+These files live in the GitOps repo, not here. This repo deploys through
+`bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
+raising as one change to the shared template rather than 104 separate pull requests. Ask the
+Platform team before opening anything.
+
+If the tracer is initialised in code, remove the hardcoded name so `DD_prod-ms-bfi-insurance-api` is the only
+source. In Node.js that means `tracer.init({})` rather than
+`tracer.init({ service: "..." })`; in Spring Boot, drop `dd.service` from `JAVA_OPTS`.
+
+### How to check your own service
+
+Two searches, one minute. Run both in the Datadog **us5** org.
+
+```
+# Logs Explorer
+service:prod-ms-bfi-insurance-api env:prod
+
+# APM Traces
+service:prod-ms-bfi-insurance-api env:prod
+```
+
+If one returns nothing and the other returns plenty, you have either a name mismatch or a
+collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-bfi-insurance-api` to
+tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
 ## Checklist
 
 - [ ] Review the 23 exception logs in `BillingServiceImpl.java`, then the rest of the 624
@@ -138,3 +286,8 @@ About Rp 7–16M a month. The largest single code-level saving outside `bravo-bp
 - [ ] Replace all 14 `printStackTrace()` in `src/main/java` with logger calls
 - [ ] Replace all 10 `System.out.print` in `src/main/java` with logger calls
 - [ ] Check `application-sit.yaml` and `application-uat.yaml` for debug levels
+- [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
+- [ ] Replace the dead-letter payload dump with idempotency key, reference id and agreement number
+- [ ] Replace the life-insurance customer payload with `guid`, `cif_id` and `confins_customer_id`
+- [ ] Decide whether `HttpJsonLoggingFilter` is meant to be live; if kept, give it field masking
+- [ ] Chase SRE on the Remote Configuration failure — 579 failed polls in two days

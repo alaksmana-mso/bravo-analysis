@@ -4,8 +4,12 @@
 **Production service:** `prod-ms-bpm`
 **Stack:** Java, Spring Boot, Camunda 7
 
-This repo carries the largest logging configuration risk in the estate. Whether it is
-currently costing money is **unconfirmed** — see item 1.
+This repo carries the largest logging configuration risk in the estate. Whether *item 1* is
+currently costing money is **unconfirmed** — that still needs a manifest check.
+
+What is confirmed is separate and larger: a second, hand-written Feign logger is writing
+full request and response bodies into production at INFO, 487,146 times a week. See
+[Request and response bodies in Datadog](#request-and-response-bodies-in-datadog).
 
 ---
 
@@ -55,13 +59,25 @@ Nothing matching. Across two days, all production services:
 | `status:debug` | 0 |
 | `END HTTP` (Feign's full-logging terminator) | 0 |
 
+**That does not mean bodies are absent.** Both checks look for the *standard* Feign logger,
+which is gated on DEBUG and terminates each response with `END HTTP`. This repo also has
+`CustomFeignLogger`, which writes bodies through `log.info` and matches neither check.
+It is on in production. That finding is in
+[Request and response bodies in Datadog](#request-and-response-bodies-in-datadog), and it is
+the bigger of the two.
+
 ### So do this first
 
 Somebody needs to read the deployment manifest, which is not in this repo:
 
 ```bash
-kubectl -n prod set env deploy/prod-ms-bpm --list | grep -i logging
+kubectl -n prod set env deploy/prod-ms-bpm --list | grep -i 'logging\|FEIGN'
 ```
+
+Grep for `FEIGN` as well as `LOGGING`. The same command answers the second question:
+whether `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG` is `true` and what
+`FEIGN_CUSTOM_LOG_VERSION` is set to. Production behaviour says `true` and `3`; confirm it
+from the manifest in the same hour.
 
 If it shows `LOGGING_LEVEL_COM_BFI_BRAVO_ADAPTER=INFO` or similar, the body logging is
 already off and there is **no cost saving here at all**. If it shows nothing, the logs are
@@ -232,6 +248,175 @@ logs every two days and a real defect. Worth a ticket to whichever console owns 
 
 ---
 
+## Request and response bodies in Datadog
+
+Squads across BFI say they cannot see request and response bodies in Datadog. They are
+right: no Datadog tracer, in any language, has a supported setting that puts an HTTP body on
+a span. **This service is the one that did something about it, and it is the most expensive
+way to have done it.**
+
+| | Seven days, production |
+|---|---:|
+| Spans | 3,191,886 |
+| Log entries | 1,109,474 |
+| Entries carrying a captured request body | 487,146 |
+| Entries carrying a captured response body | 471,241 |
+
+Forty-four per cent of this service's log volume is captured HTTP bodies.
+
+### What is producing them
+
+`src/main/java/com/bfi/bravo/config/feign/CustomFeignLogger.java` is a hand-written Feign
+logger. It reads the request body, reads the response body, rebuffers the response so the
+call still works, and writes both to `log.info`.
+
+`FeignLoggingConfiguration` only creates the bean when
+`setting.feign-custom-log-config.active` is true, and `application.yaml` defaults that to
+`false` through `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG`. **Production has it switched on.**
+
+The format says which variant. This service emits 547,490 INFO entries in seven days, and
+about 487,000 of them carry `RequestBody=`, `Status=`, `ElapsedTime=` and `BodyLength=` in
+the *same* entry. Only `logAndRebufferResponseV3` builds one entry that way, so
+`FEIGN_CUSTOM_LOG_VERSION=3` as well.
+
+One thing is set correctly: header logging is off. Exactly one entry in seven days carries
+`Headers=`, so `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER` is false and no
+`Authorization` value is being written. Keep it that way.
+
+### What is wrong with it
+
+- **No masking.** Every other hand-written Feign logger in the estate runs bodies through a
+  masker first. `bravo-approval-engine-service` masks the auth headers.
+  `bravo-onboarding-service` masks NIK, email, password, spouse name and access tokens.
+  `CustomFeignLogger` masks nothing at all. Whatever is in the body goes to Datadog and to
+  Cloud Logging in full.
+- **No size limit.** There is no truncation anywhere in the class. Scoring payloads are
+  large, and log lines over 16 KB are split by the container runtime — which is part of why
+  this service's logs are hard to read at all.
+- **Always on.** It fires on every Feign call, successful or not. Almost none of those
+  487,000 entries is ever read by anyone.
+
+### What you get back if you turn it off
+
+This service is Java, and that matters. The Java tracer supports **method probes** in
+Datadog's Live Debugger: name a method, get its arguments and its return value, captured
+from the running pod, with no redeploy and nothing left behind. That is a much closer match
+to what `CustomFeignLogger` does than anything the Node.js services can have.
+
+The catch is that Live Debugger needs Remote Configuration, and **Remote Configuration is
+failing on this service today**:
+
+```
+[dd-remote-config] WARN datadog.remoteconfig.ConfigurationPoller - Failed to retrieve
+remote configuration: unexpected response code Internal Server Error 500 ... empty targets
+meta in director local store
+```
+
+191 of those in two days. Thirteen production services report the same error. Nothing can be
+switched on from the Datadog UI until SRE fixes it.
+
+### What to do
+
+1. **Do not switch `CustomFeignLogger` off yet.** It is the only place response bodies exist
+   in this estate today. Removing it before the replacement works takes away real debugging
+   ability, and that will be resisted — correctly.
+2. Ask SRE for the Remote Configuration fix first. It is item 5a in
+   [sre-datadog-recommendations.md](sre-datadog-recommendations.md).
+3. Meanwhile, cut the volume without losing the capability. Add a size limit and a masking
+   step to `CustomFeignLogger`, and scope it to the clients you actually debug instead of
+   `default`. Copy the masked-field list from `bravo-onboarding-service`'s
+   `FeignSlf4jLogger` — it is the most complete one in the estate.
+4. Put the identifiers on the span, so a failed call is findable without the body at all:
+
+   ```java
+   final Span span = GlobalTracer.get().activeSpan();
+   if (span != null) {
+     span.setTag("bpm.application_id", applicationId);
+     span.setTag("bpm.process_instance_id", processInstanceId);
+     span.setTag("http.downstream_status", response.status());
+   }
+   ```
+
+5. Once Live Debugger works, set a method probe on the client method, capture one example,
+   remove the probe, and delete `CustomFeignLogger`.
+
+---
+
+## Service identity in Datadog
+
+Measured over seven days to 12 September 2026, production.
+
+| | Name | Volume |
+|---|---|---:|
+| Traces | `prod-ms-bpm` | 3,177,971 spans |
+| Logs | `prod-ms-bpm` | 1,113,282 entries |
+
+**The names match.** Nothing to fix here today.
+
+Keep it that way. The mismatch happens when someone changes the Kubernetes deployment name
+without changing `DD_SERVICE`, or the other way round. Eight production services are split
+across two identities right now for exactly that reason. The unified tagging block below
+removes the possibility.
+
+### How to fix it
+
+The service name on a **log** comes from the Kubernetes container and deployment name, or
+from a Datadog Agent annotation. The service name on a **trace** comes from `DD_prod-ms-bpm`, or
+from whatever the tracer was initialised with in code. Nothing makes those two agree. When
+they differ, Datadog builds two entities from one workload, and every dashboard, monitor and
+Service Catalog entry silently covers half of it.
+
+The fix is to stop setting the name in two places. Put the Datadog unified tagging labels on
+the **pod template**, and the Agent applies the same identity to logs, traces, metrics and
+profiles together:
+
+```yaml
+# deployment.yaml -> spec.template.metadata.labels
+tags.datadoghq.com/env: "prod"
+tags.datadoghq.com/service: "prod-ms-bpm"
+tags.datadoghq.com/version: "{{ .Values.image.tag }}"
+```
+
+Then set the matching environment variables on the container, sourced from those same
+labels so they cannot drift:
+
+```yaml
+env:
+  - name: DD_ENV
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/env'] } }
+  - name: DD_prod-ms-bpm
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/service'] } }
+  - name: DD_VERSION
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
+```
+
+These files live in the GitOps repo, not here. This repo deploys through
+`bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
+raising as one change to the shared template rather than 104 separate pull requests. Ask the
+Platform team before opening anything.
+
+If the tracer is initialised in code, remove the hardcoded name so `DD_prod-ms-bpm` is the only
+source. In Node.js that means `tracer.init({})` rather than
+`tracer.init({ service: "..." })`; in Spring Boot, drop `dd.service` from `JAVA_OPTS`.
+
+### How to check your own service
+
+Two searches, one minute. Run both in the Datadog **us5** org.
+
+```
+# Logs Explorer
+service:prod-ms-bpm env:prod
+
+# APM Traces
+service:prod-ms-bpm env:prod
+```
+
+If one returns nothing and the other returns plenty, you have either a name mismatch or a
+collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-bpm` to
+tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
 ## Checklist
 
 - [ ] **Read the prod deployment manifest for `LOGGING_LEVEL_*` overrides** — do this first
@@ -244,3 +429,8 @@ logs every two days and a real defect. Worth a ticket to whichever console owns 
 - [ ] Match link event names in `ndf4w.bpmn` and `unified-main-workflow.bpmn`
 - [ ] Review the 694 `log.error(msg, ex)` sites, starting with the Ali Cloud path
 - [ ] Raise a ticket for the front-end sending `undefined` as a path parameter
+- [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
+- [ ] Do **not** remove `CustomFeignLogger` until Live Debugger works — it is the only response-body capture in the estate
+- [ ] Add a size limit and a masking step to `CustomFeignLogger`; copy the field list from `bravo-onboarding-service`
+- [ ] Scope the custom Feign logger to the clients you debug, not `default`
+- [ ] Chase SRE on the Remote Configuration failure — 191 failed polls in two days blocks Live Debugger

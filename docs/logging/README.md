@@ -31,6 +31,13 @@ The short version:
   well as costing money.
 - A family of Datadog monitors **queries service names that do not exist**, so they report
   `OK` and can never fire.
+- **Eleven busy Bravo services send no logs to Datadog at all**, including
+  `prod-ms-agreement` at 7.4 million spans a week. Another **eight are split across two
+  service names**, so logs and traces can never join.
+- **Two services are logging full request and response bodies into production**, unmasked.
+  `prod-ms-bpm` alone writes 487,146 of them a week — 44% of its log volume.
+- **Remote Configuration is failing on thirteen production services**, roughly 91,000 failed
+  polls a week. Nothing can be enabled from the Datadog UI until that is fixed.
 
 ## Moving to Datadog
 
@@ -40,6 +47,10 @@ BFI is standardising on Datadog for logs, traces and metrics. Two documents cove
   feature answers which question, and where to find it. For every squad.
 - **[sre-datadog-recommendations.md](sre-datadog-recommendations.md)** — a configuration
   audit of our Datadog org across all environments, and what SRE should change.
+- **[body-visibility.md](body-visibility.md)** — squads say they cannot see request and
+  response bodies in Datadog, so they log them instead. They are right. This is the
+  estate-level view, the service-by-service index, and what SRE should enable. The findings
+  for each service live in that service's own file.
 
 **The sequencing matters, and it is about cost.** Squad log cleanup comes first; SRE
 enablement comes second, gated on two numbers:
@@ -67,6 +78,8 @@ no ingest. Turn that on now.
 | 4 | Fix the monitors that query service names that do not exist | SRE | 2 d | none |
 | 5 | Name an owner for `confins-prod-ms-lms-ar-be` — 29% of all log volume | SRE | 1 d | none |
 | 6 | Ask what Coralogix is for | Architecture | 1 d | none |
+| 7 | **Fix Remote Configuration** — failing on 13 services, ~91k failed polls a week | SRE | 1 d | none |
+| 8 | Turn on `DD_TRACE_HEADER_TAGS` for correlation IDs | SRE | 1 h | none |
 
 None of these increases Datadog spend. Items 1 and 2 are an afternoon between them, and
 item 2 decides whether several of the per-repo files below are worth anything.
@@ -96,6 +109,7 @@ Ordered by billable impact.
 | [bravo-payment-service](bravo-payment-service.md) | Payment | Dormant `loggerLevel: full` |
 | [bravo-inventory-management-service](bravo-inventory-management-service.md) | Asset Management | `loggerLevel: full` in `application-prod.yaml` |
 | [bravo-surveyor-console](bravo-surveyor-console.md) | Survey and Verification | 939 browser `console.log` — exposure, **no cost** |
+| [bravo-user-iam-service](bravo-user-iam-service.md) | Internal Service | BAU deployment split across three Datadog names, 51 logs against 1.9M spans |
 
 ## How to read these
 
@@ -110,6 +124,32 @@ documents:
 
 Savings are ranges with a stated confidence. Where the evidence does not support a number,
 the file says so rather than guessing.
+
+Every file also carries two standard sections, the same shape everywhere, so a squad can
+check their own service in a minute:
+
+- **Request and response bodies in Datadog** — what that service captures today, what it
+  cannot capture, which Datadog feature replaces it, and what to do. In
+  [lms-calculation-service.md](lms-calculation-service.md) the detail sits in item 4a and the
+  section summarises it.
+- **Service identity in Datadog** — measured log and trace volume over seven days, whether
+  the log name and the trace name agree, and the exact steps to fix it if they do not.
+
+## Telemetry coverage, production, seven days
+
+| | Count |
+|---|---:|
+| Service names sending logs | 78 |
+| Service names sending traces | 101 |
+| Sending both, as Datadog sees them today | 52 |
+| Sending both, once the eight name mismatches are fixed | **59** |
+| Tracing but sending no logs | **42** |
+| Logging but sending no traces | **18** |
+
+This corrects an earlier figure of "30 of 71 send both, two services have different names".
+That came from a two-day window and an incomplete APM service list. The direction was right;
+the counts were low, and two of the twelve services listed there as silent were not silent —
+they were logging under a different name.
 
 ## Three things this analysis could not check
 

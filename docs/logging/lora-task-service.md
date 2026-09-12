@@ -95,6 +95,133 @@ better structure. Its logger setup is worth copying — see
 
 ---
 
+## Request and response bodies in Datadog
+
+No Datadog tracer, in any language, has a supported setting that puts an HTTP body on a
+span. Squads work around that by logging bodies. **This service does not, and bodies are not
+its problem — the ratio is.**
+
+| | Seven days, production |
+|---|---:|
+| Spans | 339,048 |
+| Log entries | 3,851,904 |
+| of which `warn` | 3,811,588 |
+| Entries carrying a captured body | 0 |
+
+Eleven log lines for every span recorded. That is the widest gap of any service in this
+pack, and it is the opposite of the problem the other squads are describing: this service is
+not short of log output, it is drowning in it. Item 1 above is the fix.
+
+### What body logging exists
+
+All of it is at `Debug` level and dormant in production:
+
+- `internal/httpserver/handlers/frontend/user/profile.go:68` and
+  `document/download.go:70` — `log.Debug().Any("requester", requester)`, which serialises
+  the whole requester object including roles.
+- `internal/httpserver/handlers/frontend/message/proto.go:281` —
+  `m.logger.Debug().Str("payload", message)` on every websocket message received.
+
+None of these reaches production. Leave them at `Debug` and do not promote any of them while
+fixing item 1.
+
+### What the replacement would be, and the catch
+
+Datadog's Live Debugger needs the Datadog tracer library. This service is instrumented with
+**OpenTelemetry** — `go.opentelemetry.io/otel v1.44.0` and `otelhttp` are the direct
+dependencies; `github.com/DataDog/dd-trace-go/v2 v2.9.1` appears only as an indirect
+dependency from the Agent packages.
+
+Under OpenTelemetry there is no probe mechanism, so **Live Debugger is not available to this
+service as it stands.** Do not promise it to this squad until the tracing-stack decision in
+[sre-datadog-recommendations.md §7](sre-datadog-recommendations.md) is made.
+
+### What to do
+
+1. Fix the warning levels (item 1). Until that is done, nothing else about this service's
+   observability is worth discussing — 3.8 million routine warnings hide everything.
+2. Keep the `Debug` body logs where they are.
+3. Put task identifiers on the OTel span — task id, requester id, partnership id — so a
+   stuck task is findable without a payload.
+4. Feed this repo into the tracing-stack decision alongside `bravo-cnv-service`.
+
+---
+
+## Service identity in Datadog
+
+Measured over seven days to 12 September 2026, production.
+
+| | Name | Volume |
+|---|---|---:|
+| Traces | `prod-lora-task` | 337,750 spans |
+| Logs | `prod-lora-task` | 3,858,350 entries |
+
+**The names match.** Nothing to fix here today.
+
+Keep it that way. The mismatch happens when someone changes the Kubernetes deployment name
+without changing `DD_SERVICE`, or the other way round. Eight production services are split
+across two identities right now for exactly that reason. The unified tagging block below
+removes the possibility.
+
+### How to fix it
+
+The service name on a **log** comes from the Kubernetes container and deployment name, or
+from a Datadog Agent annotation. The service name on a **trace** comes from `DD_prod-lora-task`, or
+from whatever the tracer was initialised with in code. Nothing makes those two agree. When
+they differ, Datadog builds two entities from one workload, and every dashboard, monitor and
+Service Catalog entry silently covers half of it.
+
+The fix is to stop setting the name in two places. Put the Datadog unified tagging labels on
+the **pod template**, and the Agent applies the same identity to logs, traces, metrics and
+profiles together:
+
+```yaml
+# deployment.yaml -> spec.template.metadata.labels
+tags.datadoghq.com/env: "prod"
+tags.datadoghq.com/service: "prod-lora-task"
+tags.datadoghq.com/version: "{{ .Values.image.tag }}"
+```
+
+Then set the matching environment variables on the container, sourced from those same
+labels so they cannot drift:
+
+```yaml
+env:
+  - name: DD_ENV
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/env'] } }
+  - name: DD_prod-lora-task
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/service'] } }
+  - name: DD_VERSION
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
+```
+
+These files live in the GitOps repo, not here. This repo deploys through
+`bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
+raising as one change to the shared template rather than 104 separate pull requests. Ask the
+Platform team before opening anything.
+
+If the tracer is initialised in code, remove the hardcoded name so `DD_prod-lora-task` is the only
+source. In Node.js that means `tracer.init({})` rather than
+`tracer.init({ service: "..." })`; in Spring Boot, drop `dd.service` from `JAVA_OPTS`.
+
+### How to check your own service
+
+Two searches, one minute. Run both in the Datadog **us5** org.
+
+```
+# Logs Explorer
+service:prod-lora-task env:prod
+
+# APM Traces
+service:prod-lora-task env:prod
+```
+
+If one returns nothing and the other returns plenty, you have either a name mismatch or a
+collection gap — not an empty service. Widen the log search to `kube_deployment:prod-lora-task` to
+tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
 ## Checklist
 
 - [ ] Move `missing in form submission?` at `action.go:306` to debug
@@ -103,3 +230,6 @@ better structure. Its logger setup is worth copying — see
 - [ ] Keep `field layout does not have a valid data reference` at warn and investigate the 97/6h rate
 - [ ] Replace body logging in `proxy/invoke.go` with target, status and duration
 - [ ] Leave the generated `_templ.go` and `static/` bundles alone
+- [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
+- [ ] Keep the `requester` and `payload` Debug logs at Debug while fixing the warning levels
+- [ ] Feed this repo into the tracing-stack decision — on OpenTelemetry there is no Live Debugger

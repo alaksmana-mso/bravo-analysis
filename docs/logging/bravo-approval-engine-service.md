@@ -1,6 +1,7 @@
 # bravo-approval-engine-service — logging fixes
 
 **Squad:** Contract Collateral \& Loan Calculation
+**Production service:** `prod-ms-approval-engine`
 **Stack:** Java, Spring Boot
 
 This repo logs inbound request bodies **by default**. Whether that is happening in
@@ -76,6 +77,141 @@ person would need one.
 
 ---
 
+## Request and response bodies in Datadog
+
+No Datadog tracer, in any language, has a supported setting that puts an HTTP body on a
+span. Squads work around that by logging bodies. **For this service the question does not
+arise yet, because nothing it writes reaches Datadog at all.**
+
+| | Seven days, production |
+|---|---:|
+| Spans | 26,775 |
+| Log entries | **0** |
+| Entries carrying a captured body | 0 |
+
+`prod-ms-approval-engine` returns no results in Datadog Logs over seven days, under either
+`service:` or `kube_deployment:`. The service identity section below covers why and what to
+do about it.
+
+### What exists in the code
+
+`client/logger/FeignSlf4jLogger.java` captures request and response bodies at Feign level
+FULL, gated on `logger.isDebugEnabled()`, with `MASKED_FIELD` covering `Authorization`,
+`api-secret`, `x-api-key`, `X-ACCESS-TOKEN`, `x-auth-app-id` and `x-auth-app-secret` —
+headers only, not bodies. Production sits above DEBUG, so it is a no-op today.
+
+This matters for sequencing. If log collection is fixed while the payload filter default is
+still `DEBUG` (item 1 above), the first thing to arrive in Datadog will be bodies.
+
+### What you get back
+
+Java services can use **method probes** in Datadog's Live Debugger: name a method, capture
+its arguments and return value from the running pod, then remove the probe.
+
+Remote Configuration has to work first, and it is failing across the Java estate —
+`unexpected response code Internal Server Error 500 ... empty targets meta in director local
+store` on thirteen production services.
+
+### What to do, in this order
+
+1. Fix the payload filter default (item 1) **before** log collection is fixed, not after.
+2. Fix log collection, after the exclusion filters exist, so the new volume lands inside a
+   filter rather than on the bill.
+3. Then ask for Live Debugger. There is no point asking for body capture on a service whose
+   ordinary logs are invisible.
+
+---
+
+## Service identity in Datadog
+
+Measured over seven days to 12 September 2026, production.
+
+| | Name | Volume |
+|---|---|---:|
+| Traces | `prod-ms-approval-engine` | 27,699 spans |
+| Logs | — | **0 entries** |
+
+**This service sends no logs to Datadog at all.** Not under this name, and not under
+`kube_deployment:prod-ms-approval-engine` either — both searches return zero over seven days.
+
+It is not silent. It is producing 27,699 spans, so the workload is busy and the Agent
+can reach Datadog. The logs are going to Cloud Logging and Coralogix and stopping there.
+
+The practical effect: when this service fails at 02:00, there is a trace showing *that* it
+failed and nothing showing *why*. The on-call engineer has a duration and a status code.
+
+### What to do
+
+1. **Confirm the Agent is collecting this pod's logs.** In the GitOps values file, check for
+   the log collection annotation on the pod template, or that the Agent's
+   `containerCollectAll` covers this namespace.
+2. **Make sure the container writes to stdout**, not to a file inside the container. A
+   Logback `FileAppender` or a pm2 `log_file` produces logs the Agent never sees.
+3. **Do not enable collection until the non-production exclusion filters exist**
+   ([sre-datadog-recommendations.md §2.1](sre-datadog-recommendations.md)). Turning this on
+   first adds volume outside a filter and moves cost rather than saving it.
+4. **Apply the unified tagging block below at the same time**, so the logs arrive already
+   carrying the same service name as the traces.
+
+### How to fix it
+
+The service name on a **log** comes from the Kubernetes container and deployment name, or
+from a Datadog Agent annotation. The service name on a **trace** comes from `DD_prod-ms-approval-engine`, or
+from whatever the tracer was initialised with in code. Nothing makes those two agree. When
+they differ, Datadog builds two entities from one workload, and every dashboard, monitor and
+Service Catalog entry silently covers half of it.
+
+The fix is to stop setting the name in two places. Put the Datadog unified tagging labels on
+the **pod template**, and the Agent applies the same identity to logs, traces, metrics and
+profiles together:
+
+```yaml
+# deployment.yaml -> spec.template.metadata.labels
+tags.datadoghq.com/env: "prod"
+tags.datadoghq.com/service: "prod-ms-approval-engine"
+tags.datadoghq.com/version: "{{ .Values.image.tag }}"
+```
+
+Then set the matching environment variables on the container, sourced from those same
+labels so they cannot drift:
+
+```yaml
+env:
+  - name: DD_ENV
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/env'] } }
+  - name: DD_prod-ms-approval-engine
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/service'] } }
+  - name: DD_VERSION
+    valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
+```
+
+These files live in the GitOps repo, not here. This repo deploys through
+`bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
+raising as one change to the shared template rather than 104 separate pull requests. Ask the
+Platform team before opening anything.
+
+If the tracer is initialised in code, remove the hardcoded name so `DD_prod-ms-approval-engine` is the only
+source. In Node.js that means `tracer.init({})` rather than
+`tracer.init({ service: "..." })`; in Spring Boot, drop `dd.service` from `JAVA_OPTS`.
+
+### How to check your own service
+
+Two searches, one minute. Run both in the Datadog **us5** org.
+
+```
+# Logs Explorer
+service:prod-ms-approval-engine env:prod
+
+# APM Traces
+service:prod-ms-approval-engine env:prod
+```
+
+If one returns nothing and the other returns plenty, you have either a name mismatch or a
+collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-approval-engine` to
+tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
 ## Checklist
 
 - [ ] Run the `kubectl set env --list` check above and record the answer
@@ -83,3 +219,9 @@ person would need one.
 - [ ] Set `setIncludePayload(false)` in `WebConfig.java`, or move the bean behind `@Profile("local")`
 - [ ] Pin the filter level explicitly in `application-prod.yaml`
 - [ ] Review the 14 exception-logging sites
+- [ ] Confirm with Platform why this service sends no logs to Datadog
+- [ ] Check the container writes logs to stdout, not to a file
+- [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template
+- [ ] Enable log collection **after** the non-production exclusion filters exist
+- [ ] Fix the payload filter default **before** log collection is fixed, not after
+- [ ] Do not ask for Live Debugger until this service's ordinary logs are visible

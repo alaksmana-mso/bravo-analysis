@@ -280,6 +280,108 @@ Your side of it is small but required, and it is what opens the gate:
 
 ---
 
+## Part 3b — If you are logging bodies because Datadog will not show them
+
+Several squads have said the same thing: *we cannot see the request and response body in
+Datadog, so we put it in the log.*
+
+**You were right about the gap.** Datadog's Node.js and Java tracers have no supported
+setting that puts an HTTP body on a span. Nothing you could have configured would have given
+you this. The full investigation is in [body-visibility.md](body-visibility.md).
+
+Three things you should know before you write the next one.
+
+**Your error dump probably does not contain the response.** If you are doing
+`JSON.stringify(error)` on an Axios error, you are getting `message`, `name`, `stack`,
+`config`, `code` and `status`. Axios deliberately leaves `response` out of that. The request
+body is there. The response body — the half you actually wanted — never was.
+
+**It only fires on failures.** A call that returns HTTP 200 with the wrong number in it
+produces nothing. For a calculation or pricing service, that is the failure that matters.
+
+**It ships your credentials.** The dumped config carries request headers. One service is
+writing a live API secret into production logs about 1,700 times a day this way.
+
+### What to do instead, today
+
+Put the **identifiers and the decision** on the span, not the payload:
+
+```ts
+import tracer from "dd-trace";
+tracer.scope().active()?.setTag("loan.agreement_no", agreementNo);
+tracer.scope().active()?.setTag("loan.tenor", tenor);
+tracer.scope().active()?.setTag("calc.rejected_reason", reason);
+```
+
+```java
+final Span span = GlobalTracer.get().activeSpan();
+if (span != null) span.setTag("loan.agreement_no", agreementNo);
+```
+
+That is enough to find the request, group the failures, and reproduce the call. Do not put
+whole bodies here: a tag value is silently truncated at 25,000 characters, nothing is
+redacted for you, and you pay for every one.
+
+### What is coming, and what it is waiting on
+
+SRE is checking whether we can turn on Datadog's **Live Debugger**. It lets you set a probe
+on a line of running production code from the Datadog UI, see the variables in scope at that
+line, and remove the probe — no code change, no redeploy, nothing left running.
+
+That is the real replacement for body logging, and it is better than what you have: it is
+on-demand rather than always-on, it redacts secrets by default, and it produces data only
+while someone is actually debugging.
+
+It is not switched on yet. It needs Remote Configuration enabled, and we do not yet know how
+Datadog bills the snapshots. **Nobody is asking you to remove body logging before that
+replacement exists.** The one exception is any line that carries a credential or customer
+data — that goes now, regardless.
+
+---
+
+## Part 3c — Check that your logs and traces use the same name
+
+This takes one minute and it catches a problem that makes a service look half-dead.
+
+Run both searches in the Datadog **us5** org, with your own service name:
+
+```
+# Logs Explorer                 # APM Traces
+service:prod-ms-yours env:prod  service:prod-ms-yours env:prod
+```
+
+**If one returns plenty and the other returns nothing**, widen the log search:
+
+```
+kube_deployment:prod-ms-yours
+```
+
+- **Results there** — your logs are arriving under a *different service name*. Datadog has
+  built two entities out of one workload, so every dashboard and monitor covers half of it.
+  Eight production services are in this state right now.
+- **Nothing there either** — your logs are not reaching Datadog at all. Eleven busy Bravo
+  services are in this state, including `prod-ms-agreement`, which runs 7.4 million spans a
+  week and has never sent a log line.
+
+Either way, the fix is not in your application code. The service name on a log comes from the
+Kubernetes deployment name; on a trace it comes from `DD_SERVICE`. Nothing reconciles them.
+The fix is the unified tagging labels on the pod template, in the GitOps repo:
+
+```yaml
+tags.datadoghq.com/env: "prod"
+tags.datadoghq.com/service: "prod-ms-yours"
+tags.datadoghq.com/version: "{{ .Values.image.tag }}"
+```
+
+**Raise it with Platform rather than opening your own pull request.** 104 of the 152 repos
+deploy through the shared `bfi-base-template` workflows, so this is one change for most of
+the estate instead of 104 separate ones. Your repo's file in this folder has the exact steps
+and your service's measured state.
+
+If your tracer sets the name in code, remove it so `DD_SERVICE` is the only source —
+`tracer.init({})` rather than `tracer.init({ service: "..." })` in Node.js, and no
+`dd.service` in `JAVA_OPTS` for Spring Boot.
+
 ## Part 4 — Checklist for your service
 
 Copy this into your squad's next planning session.
@@ -307,6 +409,9 @@ Copy this into your squad's next planning session.
 - [ ] Open Error Tracking and look at your top three issues
 - [ ] Check whether your service traces at all — ask SRE if not
 - [ ] Check whether your front end has a working RUM app
+- [ ] Run the two searches in Part 3c — do your logs and traces use the same name?
+- [ ] If they do not, or if one is empty, read your repo's file in this folder and raise it with Platform
+- [ ] Put business identifiers on spans with `setTag`, instead of logging the payload
 
 **Available now, no cost, ask SRE**
 
@@ -317,6 +422,7 @@ Copy this into your squad's next planning session.
 
 - [ ] Log-to-trace correlation
 - [ ] Tracing for your service, if it is not traced yet
+- [ ] Live Debugger, so you can stop logging bodies altogether — see Part 3b
 - [ ] One synthetic test that exercises your squad's critical journey
 
 ---

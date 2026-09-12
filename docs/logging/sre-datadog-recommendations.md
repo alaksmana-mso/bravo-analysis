@@ -224,37 +224,174 @@ on GitHub availability at build time.
 
 **Effort: 3 days. Cost: zero — this renames, it does not add volume.**
 
-**Two services have different names in logs and traces:**
+**Eight services have different names in logs and traces.** This is a bigger family than
+the two named in the first version of this document — a full seven-day sweep found the rest.
 
-| Logs | Traces | Effect |
+| Logs | Traces | Owner |
 |---|---|---|
-| `confins-prod-ms-lms-ar-be` | `prod-ms-lms-ar-be` | Same service, two identities |
-| `confins-prod-ms-foundation-be` | `prod-ms-fou-foundation-be` | Same service, two identities |
+| `confins-prod-ms-lms-ar-be` | `prod-ms-lms-ar-be` | CONFINS / AdIns |
+| `confins-prod-ms-foundation-be` | `prod-ms-fou-foundation-be` | CONFINS / AdIns |
+| `confins-prod-ms-ce-integration-be` | `prod-ms-ce-integration-be` | CONFINS / AdIns |
+| `confins-prod-ms-los-be` | `prod-ms-los-be` | CONFINS / AdIns |
+| `confins-prod-ms-mou-cwr-be` | `prod-ms-mou-cwr-be` | CONFINS / AdIns |
+| `confins-prod-ms-lms-amendment-be` | `prod-ms-lms-amendment-be` | CONFINS / AdIns |
+| `confins-prod-ms-lms-recovery-be` | `prod-ms-lms-recovery-be` | CONFINS / AdIns |
+| `bau-prod-ms-user-iam` | `prod-ms-bau-user-iam` | Internal Service — [repo file](bravo-user-iam-service.md) |
 
-Datadog treats these as four services, not two. Logs and traces can never join, no service
-page shows both, and every monitor covers half the picture. `confins-prod-ms-lms-ar-be` is
-also our highest-volume logger.
+Datadog treats each of these as two services. Logs and traces can never join, no service page
+shows both, and every monitor covers half the picture. `confins-prod-ms-lms-ar-be` is also
+our highest-volume logger.
+
+Seven of the eight are CONFINS services from the vendor, running in the separate
+`core-system-prod` GCP project. They have no repository under `squads/`, so the fix goes to
+the vendor or to whoever owns that cluster's Helm charts. The eighth is ours.
+
+**This mismatch also produced a wrong finding in the first version of §5.**
+`prod-ms-lms-ar-be` and `prod-ms-fou-foundation-be` were listed there as services that trace
+but send no logs. They do send logs — under their `confins-` names. Two of the twelve
+"silent" services were never silent. The corrected coverage numbers are in §5.
+
+### Why it happens
+
+The service name on a **log** comes from the Kubernetes container and deployment name, or
+from an Agent annotation. The service name on a **trace** comes from `DD_SERVICE`, or from
+whatever the tracer was initialised with in code. Nothing reconciles them.
+
+You can see the collision on the log events themselves. A single `confins-prod-ms-lms-ar-be`
+entry carries **two `service` tags**:
+
+```
+service:confins-prod-ms-lms-ar-be     <- from the container and deployment name
+service:prod-ms-lms-ar-be             <- from the kube_app_instance label
+```
+
+Datadog resolves one of them and discards the other.
 
 **What to do:**
 
-1. Standardise `DD_SERVICE` on one name per service, applied in the deployment manifest, and
-   make it match between the log pipeline's service remapper and the tracer.
-2. Set unified tags on every workload so nothing lands in `env:none`:
+1. **Stop setting the name in two places.** Put the unified tagging labels on the pod
+   template. The Agent then applies one identity to logs, traces, metrics and profiles
+   together:
 
    ```yaml
-   metadata:
-     labels:
-       tags.datadoghq.com/env: "prod"
-       tags.datadoghq.com/service: "ms-agreement"
-       tags.datadoghq.com/version: "v2.93.56"
+   # deployment.yaml -> spec.template.metadata.labels
+   tags.datadoghq.com/env: "prod"
+   tags.datadoghq.com/service: "prod-ms-lms-ar-be"
+   tags.datadoghq.com/version: "v3.1.12"
+   ```
+
+2. **Source the environment variables from those labels**, so the two can never drift again:
+
+   ```yaml
+   env:
+     - name: DD_ENV
+       valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/env'] } }
+     - name: DD_SERVICE
+       valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/service'] } }
+     - name: DD_VERSION
+       valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
    ```
 
    These labels already exist on some workloads — we found them on
    `sit-finance-shareholders` — so the pattern is established, just not applied everywhere.
-3. Retire `env:production`. Pick `prod` and migrate the workloads using the other.
+
+3. **Keep the trace name, not the log name.** In every one of the eight, the trace name is
+   the one that follows the `prod-ms-*` convention and carries far more history. Renaming the
+   logs to match orphans nothing.
+
+4. **Do it once, in the shared template.** 104 of the 152 repos deploy through
+   `bfi-finance/bfi-base-template`, and 65 of those go through its `*-deploy-prod.yaml`
+   workflows. One change there reaches most of the estate. The CONFINS services do not use
+   it and need a separate conversation with the vendor.
+
+5. **Retire `env:production` and `env:digital-prod`.** Pick `prod` and migrate. `env` should
+   be a small closed set — `prod`, `uat`, `sit`, `dev` — with the product in the service
+   name. `bfi-digital-web-api` currently reports under `env:digital-prod`, which excludes
+   2.08M spans a week from every estate-wide `env:prod` view.
+
+6. **Tell each squad to run the two-search check** in their repo file before you start, so
+   the list is confirmed rather than assumed.
 
 Do this in Phase 1 because it costs nothing and because Phase 3's per-service exclusion
 filters need correct service names to work.
+
+---
+
+### 2.5 Answer the squads on request and response bodies
+
+**Effort: 1 hour for the header tags, then however long the Remote Configuration fix takes.
+Cost: none for this step.**
+
+Squads have told us they cannot see request and response bodies in Datadog, and that this is
+why they log them by hand — `lms-calculation-service` is the named example. **They are
+right.** The estate-level view and the service-by-service index are in
+[body-visibility.md](body-visibility.md); the findings themselves live in each service's own
+file, under a section called *Request and response bodies in Datadog*.
+
+The short version: no Datadog tracer, in any language, has a supported setting that puts an
+HTTP body on a span, so no amount of configuration would have given them this. Fifteen squads
+built their own version instead, and the two that have it switched on in production are the
+two with no masking:
+
+- `prod-ms-bpm` writes **487,146 request bodies and 471,241 response bodies a week**, at
+  INFO, unmasked and untruncated — 44% of that service's entire log volume.
+- `prod-inventory-management` runs a shared-library request logger plus `loggerLevel: full`,
+  both defaulting to on, and writes six log lines per span recorded.
+
+Two more that do not show up in logging numbers at all: `bravo-edoc-service` persists CONFINS
+request and response payloads into a **database table** with no known owner or retention, and
+`bfi-insurance-api` puts whole disbursement and customer payloads — bank accounts, NIK,
+addresses — into dead-letter error messages, 90,553 times a week.
+
+We are about to ask squads to remove body logging. **Do not make that ask without naming the
+replacement in the same sentence**, or it will be resisted, correctly.
+
+Two things to do in Phase 1, both free:
+
+**a. Turn on header tags.** One environment variable, no code change:
+
+```yaml
+DD_TRACE_HEADER_TAGS: "x-request-id,x-correlation-id,x-b3-traceid,content-type,content-length"
+```
+
+Incoming headers land as `http.request.headers.*`, outgoing as `http.response.headers.*`.
+This is not bodies. It is the correlation identifiers that let a developer tie a trace to a
+record elsewhere, plus payload size. Never add `authorization`, `api-secret`, `cookie` or
+`set-cookie`.
+
+**b. Fix Remote Configuration. It is failing right now.** This was written up as a
+30-minute check. It has since been measured, and the answer is worse than unverified:
+thirteen production Java services are polling for Remote Configuration and getting an error
+back.
+
+```
+[dd-remote-config] WARN datadog.remoteconfig.ConfigurationPoller - Failed to retrieve
+remote configuration: unexpected response code Internal Server Error 500
+rpc error: code = Unknown desc = empty targets meta in director local store
+```
+
+Roughly **91,000 failed polls in seven days**, led by `prod-ms-bfi-payment-api` (679 in two
+days), `prod-ms-bfi-insurance-api` (579), `prod-ms-employee` (509), `prod-ms-insurance`
+(497) and `prod-ms-payment` (477). `prod-ms-bpm` and `prod-inventory-management` — the two
+services with body logging switched on — are both on the list.
+
+`empty targets meta in director local store` means the Agent has no Remote Configuration
+state to serve. In practice it is one of three things, and all three are ours to check:
+
+1. Remote Configuration is not enabled on the Datadog org.
+2. The API key the Agents use does not carry the Remote Configuration capability.
+3. Remote Configuration is switched off in the Agent, or the Agent is below 7.49.0.
+
+Until this is fixed, **nothing can be enabled from the Datadog UI** — not Live Debugger, not
+remote tracer configuration, not remote sampling rates. It is also writing a steady stream
+of billable error logs on thirteen services for no benefit.
+
+Nothing in the org uses Live Debugger today: a 30-day search for `source:dd_debugger`
+returns zero results. That is a consequence of this, not a separate fact.
+
+**Do not enable Live Debugger yet.** It is a Phase 4 item because we do not know how Datadog
+bills it — see §6a. Phase 1's job is to find out whether we *can*, and to tell the squads the
+answer.
 
 ---
 
@@ -403,25 +540,61 @@ never rises unguarded.
 
 **Effort: 5 days. Cost: increases span volume — see the note on KrakenD.**
 
-Of the services visible in production: **42 send traces, 71 send logs, only 30 send both.**
+Re-measured over a full seven days, and corrected. The first version of this document
+used a two-day window and an incomplete APM service list.
 
-**12 services trace but send no logs:** `prod-ms-agent`, `prod-ms-agreement`,
-`prod-ms-asset-pricing`, `prod-ms-branch`, `prod-ms-bravo-core-proxy`, `prod-ms-collateral`,
-`prod-ms-document`, `prod-ms-edoc`, `prod-ms-fou-foundation-be`, `prod-ms-lms-ar-be`,
-`prod-ms-lms-gateway`, `prod-ms-master`.
+| | Count |
+|---|---:|
+| Service names sending logs | 78 |
+| Service names sending traces | 101 |
+| Sending both, as Datadog sees them today | 52 |
+| Sending both, after the eight name mismatches in §2.4 are fixed | **59** |
+| Tracing but sending no logs | **42** |
+| Logging but sending no traces | **18** |
 
-`prod-ms-agreement` has 2.4 million spans and zero log entries. If it fails at 02:00 there
-is nothing to read.
+Trace counts exclude the datastore child services the tracer generates automatically
+(`*-postgres`, `*-redis`, `*-rabbitmq`, `*-http-client`), which are not separately deployed
+workloads.
 
-**41 services log but send no traces**, including the two highest-volume loggers:
+**The Bravo services that trace but send no logs are the ones to start with.** All of these
+return zero log entries over seven days — not under their service name, and not under
+`kube_deployment:` either:
 
-- `prod-lora-task` — 1.29M entries over two days, no traces
-- `prod-ms-krakend-gateway` — 373,856 entries, no traces. This is an **API gateway**; it is
-  the highest-value place to have tracing, because every request enters through it
+| Service | Spans, 7 days | Repo file |
+|---|---:|---|
+| `prod-ms-agreement` | 7,424,485 | [bravo-agreement-service.md](bravo-agreement-service.md) |
+| `prod-ms-document` | 5,831,475 | — |
+| `prod-ms-branch` | 3,054,484 | [bravo-branch-service.md](bravo-branch-service.md) |
+| `prod-ms-agent` | 3,013,188 | — |
+| `prod-ms-master` | 2,639,121 | — |
+| `prod-ms-asset-pricing` | 1,776,285 | — |
+| `prod-ms-collateral` | 1,354,151 | — |
+| `prod-ms-bravo-core-proxy` | 745,851 | [bravo-core-proxy-service.md](bravo-core-proxy-service.md) |
+| `prod-ms-edoc` | 384,176 | [bravo-edoc-service.md](bravo-edoc-service.md) |
+| `prod-ms-lms-gateway` | 292,481 | [bravo-lms-gateway.md](bravo-lms-gateway.md) |
+| `prod-ms-approval-engine` | 27,699 | [bravo-approval-engine-service.md](bravo-approval-engine-service.md) |
 
-Also untraced: `prod-ms-bfi-insurance-api`, `prod-inventory-management`,
-`prod-ms-notification`, `prod-ms-payment`, `prod-ms-integrity`, `prod-ms-gen-ai`,
-`prod-portfolio-management-service`, and all 10 `confins-prod-ms-ce-batch-worker-*` jobs.
+`prod-ms-agreement` runs 7.4 million spans a week and has never sent a log line to Datadog.
+If it fails at 02:00 there is a duration and a status code, and nothing else.
+
+These are not quiet services. They are busy services whose logs stop at Cloud Logging and
+Coralogix. That is also why the Cloud Logging bill and the Datadog bill do not describe the
+same estate.
+
+**Services that log but send no traces**, highest volume first:
+
+- `prod-ms-krakend-gateway` — 1,293,001 entries, no traces. This is the **API gateway**;
+  every request enters through it, so it is the highest-value place to have tracing and the
+  most expensive. See the cost note below.
+- `prod-lora-task` — 3,858,350 entries, 337,750 spans. Traced, but barely: this one is a
+  coverage problem rather than an absence. See [lora-task-service.md](lora-task-service.md).
+- The ten `confins-prod-ms-ce-batch-worker-*` jobs, `prod-robot-scrape`,
+  `prod-ms-gold-service`, `prod-ms-backoffice-worker`, `prod-lora-cdc-foxx-service`,
+  `prod-ares`, `prod-army`, `prod-pcms`, `bau-prod-ms-otrs-report`.
+
+Enable log collection on the silent services **after** §2.1's exclusion filters exist, so
+their volume lands inside a filter rather than outside one. Each affected repo file now
+carries the check and the steps.
 
 ### Cost note, and how to control it
 
@@ -460,6 +633,58 @@ then decide on the next. Do not batch them.
 Error Tracking is the exception in this table: it costs no additional ingest because it works
 on errors already flowing. Move it forward.
 
+## 6a. Live Debugger — the replacement for body logging
+
+**Effort: 1 day once Remote Configuration works. Cost: unknown — confirm first.**
+
+**Blocked today.** Remote Configuration is failing across thirteen production services
+(§2.5b). Live Debugger cannot be switched on until that is fixed, so treat §2.5b as the
+prerequisite for this whole section.
+
+This is the feature that makes body logging unnecessary. A developer sets a probe on a line
+of running production code from the Datadog UI, captures the variables in scope, and removes
+it. No code change, no redeploy, nothing left running afterwards. On-demand beats always-on
+for both cost and data protection.
+
+It sits in Phase 4 for one reason: **we do not know what it costs.** Snapshots are delivered
+as log events tagged `source:dd_debugger`, into a log index you create yourself. Datadog's
+documentation does not state, in either direction, whether those count against log ingestion
+and indexing or are included with APM. The mechanism says they are ordinary logs.
+
+**Three questions for the account team before this is switched on in production:**
+
+1. Does `source:dd_debugger` count against ingested GB and indexed events?
+2. Is there any bundled allowance with our APM subscription?
+3. Datadog's guidance is to create that index with no sampling. How does that interact with
+   our commitment tier?
+
+Volume is small by nature — one capture per second per probe, live only for the length of a
+debugging session. But small is not free, and we do not have the rates.
+
+**When it is approved, roll it out as a time-boxed pilot on one service**, with a named owner
+per squad holding `live_debugger_write`. Set
+`DD_DYNAMIC_INSTRUMENTATION_ENABLED=true` on that service only, add BFI-specific identifiers
+to `DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS` (`nik`, `no_ktp`, `norek` — `secret`,
+`password`, `token` and about sixty others are redacted by default), and trade it explicitly
+against removing the body logging in that service.
+
+The four limits that will otherwise make the pilot look like a failure — Node.js supports
+line probes only, capture depth and field count are tight, strings truncate at 255
+characters, and snapshots are rate limited to one per second — are set out in
+[body-visibility.md §5.3](body-visibility.md). Read that before briefing any squad.
+
+**Three services cannot have this at all.** `bravo-cnv-service`, `lora-task-service` and
+`bravo-user-iam-service` instrument with OpenTelemetry, not the Datadog tracer, and under
+OTel there is no probe mechanism. Between them that is **13.2 million spans a week**,
+including the busiest service in the estate. `bravo-surveyor-console` is a browser
+application and has no server-side tracer either; its answer is RUM. Say so before briefing
+those squads, not after. See §7.
+
+**Best pilot candidate: `bfi-payment-api`.** It captures nothing in production by design, so
+it has the clearest unmet need and nothing to unwind; it is Java, so it gets method probes;
+and it has the highest Remote Configuration failure count in the estate, so fixing §2.5b is
+verifiable there first.
+
 ## 7. Pick one tracing stack
 
 **Effort: a decision, then 1–2 sprints.**
@@ -478,9 +703,21 @@ at the boundary. That is a plausible contributor to the 76,840 spans tagged `env
 There is also a cost angle: two tracers on one service can produce duplicate spans, which we
 pay for twice.
 
+**There is a third cost, and it is new.** Datadog's Live Debugger only works through the
+Datadog tracer. `bravo-cnv-service`, `lora-task-service` and `bravo-user-iam-service` all
+have `go.opentelemetry.io/otel` as a direct dependency and `github.com/DataDog/dd-trace-go/v2`
+only as an indirect one, so none of them can ever be given a probe. That is **13.2 million
+spans a week**, including `prod-ms-cnv`, the busiest service in the estate.
+
 **Recommendation:** standardise on OpenTelemetry SDK with OTLP export to the Datadog agent
 for Go, keep `dd-java-agent` for Java, and remove `dd-trace-go` where OTel is already
 present. Whichever way it goes, it needs to be one decision rather than 54.
+
+**But make the decision with the Live Debugger consequence stated.** Choosing OTel for Go
+means accepting that a third of the estate's span volume is permanently outside the
+on-demand debugging story we are about to sell to the Java squads. That may still be the
+right call — it is a portability argument against a tooling argument — but it should be
+chosen, not discovered later.
 
 ## 8. Non-production telemetry in Datadog
 
@@ -555,16 +792,18 @@ half of that coverage continuously, rather than in a weekly cron.
 | 3 | 1 | Pin the tracer version (§2.3) | 1 h | none | — |
 | 4 | 1 | Unified tags, service-name mismatches, retire `env:production` (§2.4) | 3 d | none | — |
 | 5 | 1 | Error Tracking rollout to squads (§6) | 2 d | none | — |
+| 5a | 1 | Header tags on, and **fix Remote Configuration — failing on 13 services** (§2.5) | 1 d | none | — |
 | 6 | 1 | Name an owner for `confins-prod-ms-lms-ar-be` (§3) | 1 d | none | — |
 | 7 | 1 | RUM tidy-up and the Gmail access review (§9) | 2 d | reduces | — |
 | 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3) | 4–6 wks | reduces | feeds every item below |
 | 9 | 3 | Reassembly + logs injection + trace remapper + per-service exclusion filters (§4) | 2 d | small, gated | — |
 | 10 | 3 | Trace KrakenD then `prod-lora-task`, with sampling from day one (§5) | 3 d | moderate | — |
-| 11 | 3 | Log collection on the 12 silent traced services (§5) | 2 d | moderate | — |
-| 12 | 4 | Runtime metrics, then DBM on 10 services, then profiling on ms-bpm (§6) | 3 d | per product | — |
-| 13 | 4 | Pick one tracing stack; remove duplicate tracers (§7) | decision | reduces | — |
-| 14 | 4 | Real synthetic tests, added sparingly (§9) | 3 d | per run | — |
-| 15 | 4 | SIT and UAT logs into Datadog, errors only, 3-day retention (§8) | 3 d | **largest increase** | — |
+| 11 | 3 | Log collection on the silent traced services, `prod-ms-agreement` first (§5) | 3 d | moderate | — |
+| 12 | 4 | Live Debugger pilot on `bfi-payment-api`, once billing is confirmed (§6a) | 1 d | **unknown — confirm** | — |
+| 13 | 4 | Runtime metrics, then DBM on 10 services, then profiling on ms-bpm (§6) | 3 d | per product | — |
+| 14 | 4 | Pick one tracing stack; remove duplicate tracers (§7) | decision | reduces | — |
+| 15 | 4 | Real synthetic tests, added sparingly (§9) | 3 d | per run | — |
+| 16 | 4 | SIT and UAT logs into Datadog, errors only, 3-day retention (§8) | 3 d | **largest increase** | — |
 
 Phase 1 is about two weeks of work, banks the full **Rp 81–105M a month**, closes a live
 alerting gap and adds no Datadog cost. Phase 2 is the squads' work and the gate. Nothing in
