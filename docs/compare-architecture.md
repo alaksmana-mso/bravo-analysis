@@ -253,9 +253,9 @@ Neither is clean. LORA's problem is engineering consistency. Bravo's is that pro
 | Engine UI | Camunda Cockpit/Tasklist/Admin at `/camunda/**`, `permitAll()` at the Spring Security layer — Camunda's own login plus `authorization.enabled: true` is the only gate. **The REST API is separate and materially weaker:** `/engine-rest/**` requires a Spring credential but establishes **no Camunda identity**, so engine authorization is **inert** there and any holder of the shared `api-secret` has full engine rights ([SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md)) | Temporal UI (flooded), custom "Oh My LORA" diff inspector |
 | "Which loans are stuck at survey?" | SQL over `surveyor_assignment.assignment_status` or Cockpit incident list; `ApplicationErrorTracking` table | Not a Temporal Visibility query (0 search attributes); works via Datadog APM spans by activity name and error type |
 | Metrics | Micrometer/Prometheus on, but 0 custom process metrics (9 `@Timed` on outbound clients); no metric for incidents, stuck processes or per-activity duration | OTel spans per activity attempt with workflow id; 5 dashboards, 12+ monitors; bookkeeping is 63.5% of activity executions so business signal is diluted |
-| Tracing | Jaeger dependency present, `NoopTracer` unless `JAEGER_ENABLE_TRACE=true`; Feign `loggerLevel: full` globally (PEFINDO/SLIK/Dukcapil/CONFINS bodies in JSON logs) | ~195k spans/day carrying a customer NIK in clear text (adjacent service) |
+| Tracing | Jaeger dependency present, `NoopTracer` unless `JAEGER_ENABLE_TRACE=true`; Feign `loggerLevel: full` set on 57 clients in `ms-bpm` — *but see the 2026-09-13 correction: that setting only emits at DEBUG and estate-wide there are none. `prod-ms-bpm` does log bodies, through its own `CustomFeignLogger` at INFO — 487,146 a week.* Datadog APM is in fact live on 42 production services | ~195k spans/day carrying a customer NIK in clear text (adjacent service) |
 | Upstream attribution | Per Feign client, so attributable | ~300 proxies behind one gateway route; 21k 500s/week unattributable |
-| Logs cost | Cloud Logging for the Bravo estate ≈Rp201M/month (more than LORA's whole GKE line) | Datadog |
+| Logs cost | Cloud Logging for the Bravo estate **Rp 271.8M/month**, plus Coralogix Rp 253.3M and Datadog Rp 110.6M — **Rp 635.8M across three log platforms**. *Corrected 2026-09-13; this row previously read ≈Rp201M. See [logging/logging-cost.md](logging/logging-cost.md).* | Datadog |
 
 **Assessment.** Bravo can answer fleet questions with SQL, because its state is relational. LORA needs APM for the same questions. Bravo has essentially no process-level metrics, and it logs full request bodies. LORA has metrics, but narrates its own bookkeeping. Both leak personal data into telemetry, in different ways.
 
@@ -313,9 +313,9 @@ The numbers come from two places. The LORA cost document, which uses the GCP bil
 | Non-prod copies | pods Rp12.1M; SIT/UAT/Sharia databases not pulled | inside the figures above |
 | Applications, Aug 2026 | 118,253 (billing sheet) to ≈113k (engine meter: 338,858 process starts in 90 days) | 171,479 (billing sheet) to ≈135k (Temporal meter) |
 | **Per application** | **≈Rp490–515** | **≈Rp2,500–3,200** |
-| Not attributable to either | Memorystore Redis (Rp51M), in-cluster RabbitMQ, Keycloak, Cloud Logging (Rp140.5M prod), console hosting, and the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances that **both** platforms call | same |
+| Not attributable to either | Memorystore Redis (Rp51M), in-cluster RabbitMQ, Keycloak, Cloud Logging (~~Rp140.5M prod~~ **Rp 125.4M prod, Rp 271.8M estate**, corrected 2026-09-13), console hosting, and the ~26 `ms-*` data-plane services with ~50 Cloud SQL instances that **both** platforms call | same |
 
-**The estate view the LORA cost document started from**, kept here for reference. The two Bravo GCP projects bill about Rp1.87B a month. LORA's labels account for about Rp226M of that, leaving about Rp1.65B. Within it, Cloud SQL is Rp584M, Cloud Logging is Rp201M, and `bravo-project-nonprod` is Rp573M.
+**The estate view the LORA cost document started from**, kept here for reference. The two Bravo GCP projects bill about Rp1.87B a month. LORA's labels account for about Rp226M of that, leaving about Rp1.65B. Within it, Cloud SQL is Rp584M, Cloud Logging is ~~Rp201M~~ **Rp 271.8M** (corrected 2026-09-13), and `bravo-project-nonprod` is Rp573M.
 
 That remainder is not "Bravo LOS". It is the shared BFI data plane plus non-prod, and LORA's 300 gateway proxies depend on it (§8.5).
 

@@ -248,6 +248,36 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bravo-edoc-service#1525](https://github.com/bfi-finance/bravo-edoc-service/pull/1525)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-edoc-service/tree/fix/logging), head `81903540`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-edoc-service/pull/1525/files) · [Commits](https://github.com/bfi-finance/bravo-edoc-service/pull/1525/commits) · [Compare against master](https://github.com/bfi-finance/bravo-edoc-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 2 |
+
+Commit:
+
+- fix(logging): gate the shared body loggers and scope Feign logging
+
+Files:
+
+- `src/main/java/com/bfi/bravo/config/logger/LoggerConfiguration.java`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Add a `logging.level.root: INFO` block to `application-prod.yaml`

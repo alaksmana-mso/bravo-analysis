@@ -127,7 +127,7 @@
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="note"><h4>The claim, as written</h4>&ldquo;Approve the Cloud Logging fix. It saves <strong>Rp 50&ndash;90M a month</strong> and is configuration only. That is more than retiring Bravo&rsquo;s workflow tier would save.&rdquo;<br><br>The mechanism named was <code>loggerLevel: full</code> on Feign, which makes every upstream call log its full request and response body.</div>
-        <div class="note note--ok"><h4>What we checked</h4><strong>FinOps billing</strong> for August 2026, complete month, by project, service and SKU. <strong>Datadog production logs</strong>, two days, every service. <strong>All 152 repositories</strong> under <code>squads/</code>, pulled to master on the day of writing &mdash; 149,729 files scanned.</div>
+        <div class="note note--ok"><h4>What we checked</h4><strong>FinOps billing</strong> for August 2026, complete month, by project, service and SKU. <strong>Datadog production logs</strong>, two days, every service. <strong>All 152 repositories</strong> under <code>squads/</code>, pulled to master on the day of writing &mdash; 149,729 files scanned.<br><br>Then, on a second pass, the <strong>53 repositories the first cut left out</strong>, plus 36 cloned for the purpose.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="note note--bad"><h4>What came back</h4>The direction is right and the prize is bigger than claimed. But <strong>three of the supporting facts do not survive contact with the data</strong>, and the fix that was named is not the one that pays.<br><br>We also found a <strong>live API credential sitting in production logs</strong>, which nobody was looking for.</div>
@@ -252,14 +252,33 @@
   </div>
 </section>
 
+<section class="slide" data-nav="Second pass">
+  <div class="inner">
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>What is actually happening</p>
+    <h2 class="st">We then read the other 53 repositories. It was not the same problem.</h2>
+    <p class="lede">The first pass ranked repositories by a code scan. That scan was Java-shaped, and about two-thirds of the estate is Go &mdash; those repositories scored zero on it while carrying four of the five worst severity mixes in production.</p>
+    <div class="off">
+      <div class="offrow"><span class="s">bau-prod-ms-otrs-report</span><span class="ct">live now</span><span class="p">rotate</span><span class="d"><strong>Google Chat webhook credentials in the log index.</strong> The key and token are in the URL query string, and the URL is logged on every message sent. Anyone with log read access can post into those spaces.</span></div>
+      <div class="offrow"><span class="s">prod-ms-employee</span><span class="ct">907,511</span><span class="p">a week</span><span class="d"><strong>Whole HR records at <code>info</code>.</strong> Religion, marital status, date and place of birth, bank account number and holder name, personal email, mobile number &mdash; on every inbound and outbound message.</span></div>
+      <div class="offrow"><span class="s">prod-ms-notification</span><span class="ct">not firing</span><span class="p">present</span><span class="d"><strong>The JWT signing key, printed with <code>fmt.Printf</code></strong> &mdash; which bypasses the logger, so no level could ever suppress it. We checked: that path is not being exercised today. The code is there.</span></div>
+      <div class="offrow"><span class="s">prod-ms-auth</span><span class="ct">98.5%</span><span class="p">error</span><span class="d">16,934 errors and <strong>3 info entries</strong> a week, because one function logs at <code>error</code> whatever status code it is handed. A wrong OTP was an error.</span></div>
+    </div>
+    <div class="cols b" style="margin-top:2px">
+      <div class="note note--bad"><h4>The pattern underneath</h4>The Go estate&rsquo;s masking is <strong>wired up and empty</strong>. Twenty-two repositories hand the scrubber a field list that defaults to nothing. In <code>lora-gateway-service</code> the scrubber call is <strong>commented out</strong>, under a comment reading <em>&ldquo;NON PRODUCTION ENVIRONMENT ONLY&rdquo;</em>. It writes 69,433 bodies a week in production.<br><br>Reading the code tells you masking is on. It is not.</div>
+      <div class="note"><h4>What we had wrong</h4>Our own earlier note called the API gateway&rsquo;s million log lines <em>&ldquo;an access log wearing the wrong level. Nothing is wrong.&rdquo;</em> <strong>Both halves were wrong.</strong><br><br>The gateway levels by status code, correctly. Its 942,909 warnings a week are <strong>942,909 real 4xx responses</strong> &mdash; 415,388 of them one WhatsApp endpoint returning 400. It is the only thing reporting them. Filtering it would destroy the evidence.</div>
+    </div>
+    <div class="foot"><span class="src">coverage.md &sect;1, &sect;3 &middot; logging-cost.md &sect;5a&ndash;5b &middot; Datadog production, 7 days to 2026-09-13</span><span>08</span></div>
+  </div>
+</section>
+
 <section class="slide" data-nav="Datadog today">
   <div class="inner">
-    <p class="eyebrow"><b>07</b><span class="sep">/</span>The Datadog position</p>
+    <p class="eyebrow"><b>08</b><span class="sep">/</span>The Datadog position</p>
     <h2 class="st">We own more of Datadog than we use, and parts of it are broken</h2>
     <p class="lede">We audited every environment. The expensive half is already deployed and working. The cheap half is missing.</p>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note note--ok"><h4>Already working, and better than our own documents claim</h4><strong>APM covers 42 production services</strong> &mdash; 79 million spans over two days, including database and queue spans. Most squads do not know this exists. Earlier packs said Bravo&rsquo;s workflow layer produced no traces; <code>prod-ms-bpm</code> has over a million.</div>
+        <div class="note note--ok"><h4>Already working, and better than our own documents claim</h4><strong>APM covers 42 production services</strong> &mdash; 79 million spans over two days, including database and queue spans. Most squads do not know this exists. <code>prod-ms-bpm</code> alone produces over three million spans a week &mdash; controllers, JPA and outbound calls. <em>What it does not produce is a Camunda span: no process instance, no service task. That gap is real and is <a href="../bravo-observability.md">bravo-observability.md</a> &sect;2.</em></div>
         <div class="note note--bad"><h4>Logs and traces are not joined up</h4><strong>Zero logs carry a trace id.</strong> Nobody can click from a slow trace to the logs for that request, or from an error to the trace that caused it.<br><br>Only <strong>30 of 71 services send both</strong> logs and traces. Two services have <em>different names</em> in logs and traces, so Datadog treats them as four.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:13px">
@@ -273,7 +292,7 @@
 
 <section class="slide" data-nav="The cost trap">
   <div class="inner">
-    <p class="eyebrow"><b>08</b><span class="sep">/</span>The plan</p>
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>The plan</p>
     <h2 class="st">The order matters, because Datadog bills on what we send it</h2>
     <p class="lede">The obvious move is to turn on the Datadog features now. That would make the bill worse.</p>
     <div class="cols b">
@@ -294,13 +313,35 @@
   </div>
 </section>
 
+<section class="slide" data-nav="Written and raised">
+  <div class="inner">
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Where it stands</p>
+    <h2 class="st">The squad work is written. What is left is review and merge.</h2>
+    <p class="lede">Phase 2 was a plan when this deck was first drafted. It is now 64 open pull requests, one per repository, each with a file naming the finding, the production numbers and the change.</p>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="stats stats--4">
+          <div class="stat"><span class="stat__n plain">73</span><span class="stat__l">repositories read line by line, against production evidence</span></div>
+          <div class="stat"><span class="stat__n pos">64</span><span class="stat__l">pull requests open, branch <code>fix/logging</code> in each</span></div>
+        </div>
+        <div class="note note--ok"><h4>Nine defects, and none of them found by reading</h4>The Go changes are now <strong>compiled, formatted and linted</strong> &mdash; <code>go build</code>, <code>gofmt</code> and <code>golangci-lint</code> against each repository&rsquo;s own config. CI found five defects, the local toolchain another four: a parameter named <code>logger</code> shadowing the logger package in seven repositories, two gofmt rules, an unused import, <code>gochecknoglobals</code>, <code>tagalign</code>, and a comment block missing its <code>//</code>.<br><br><strong>Every one was invisible to reading.</strong> Java still cannot be built here &mdash; no Maven, no JVM &mdash; so those pull requests remain unverified.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="note note--bad"><h4>One hour of platform work is holding up six weeks of squad work</h4>A job named <code>Static Analysis &mdash; SonarQube</code> in the shared CI workflow fails at its Codacy step:<br><br><code>Invalid configuration: Either a project or account API token must be provided</code><br><br>It <strong>red-flags 23 of the 64 pull requests</strong> for a reason unrelated to their content. Confirmed identical on three repositories whose changes are a struct-tag default and two log levels.<br><br>Until it is fixed, every reviewing squad sees a red check and has to be told to ignore it.</div>
+        <p class="claim">Analysis is not the constraint any more. A missing CI token and squad review time are.</p>
+      </div>
+    </div>
+    <div class="foot"><span class="src">docs/logging/README.md &middot; sre-datadog-recommendations.md &sect;3a &middot; 79 files in docs/logging/</span><span>11</span></div>
+  </div>
+</section>
+
 <section class="slide" data-nav="Four phases">
   <div class="inner">
-    <p class="eyebrow"><b>09</b><span class="sep">/</span>The plan</p>
+    <p class="eyebrow"><b>11</b><span class="sep">/</span>The plan</p>
     <h2 class="st">Four phases. The money is in the first one.</h2>
     <div class="phz">
       <div class="phzc now"><span class="n">Phase 1 &middot; now</span><span class="t">Platform configuration and defect fixes</span><span class="c">Non-production exclusion filters and retention. Cloud SQL logs off in non-prod. Flow log sampling to 10%. Fix the dead monitors. Pin the tracer. Name an owner for the blank-line service.</span><span class="cost z">No Datadog cost &middot; 2 weeks</span></div>
-      <div class="phzc"><span class="n">Phase 2 &middot; next</span><span class="t">Squads cut log volume</span><span class="c">Nineteen per-repository guides, each naming the file and line. The five services on slide 06 are 64% of it. SRE holds the gate and tracks two numbers weekly.</span><span class="cost z">Reduces cost &middot; 4&ndash;6 weeks</span></div>
+      <div class="phzc"><span class="n">Phase 2 &middot; next</span><span class="t">Squads cut log volume</span><span class="c">Seventy-three per-repository files and <strong>64 open pull requests</strong>, each naming the file and line. The five services on slide 06 are 64% of it. SRE holds the gate and tracks two numbers weekly.</span><span class="cost z">Reduces cost &middot; 4&ndash;6 weeks</span></div>
       <div class="phzc"><span class="n">Phase 3 &middot; gated</span><span class="t">Ingestion and correlation</span><span class="c">Line reassembly, trace correlation, per-service cost filters in the same change. Trace the API gateway, with sampling from day one.</span><span class="cost u">Small increase &middot; 1 week</span></div>
       <div class="phzc"><span class="n">Phase 4 &middot; one at a time</span><span class="t">Paid add-ons</span><span class="c">Runtime metrics, then database monitoring on ten services, then profiling on one. Real synthetic tests. SIT and UAT logs into Datadog &mdash; last, and errors only.</span><span class="cost u">Per product &middot; measure each</span></div>
     </div>
@@ -317,17 +358,17 @@
 
 <section class="slide" data-nav="The asks">
   <div class="inner">
-    <p class="eyebrow"><b>10</b><span class="sep">/</span>Decisions</p>
+    <p class="eyebrow"><b>12</b><span class="sep">/</span>Decisions</p>
     <h2 class="st">Six things we need from you</h2>
     <div class="ask">
       <div class="askrow"><span class="n">1</span><span class="t"><b>Approve the logging programme, on the corrected reasoning.</b> Rp 81&ndash;105M a month from platform configuration, available in two weeks, with no code change. The direction in the original recommendation was right; the numbers behind it were not.</span><span class="c">Approve<br>today</span></div>
-      <div class="askrow"><span class="n">2</span><span class="t"><b>Treat the leaked API credential as an incident, not a backlog item.</b> Rotate the secret shared with <code>prod-ms-insurance</code>, fix the one line in <code>HttpHelper.ts</code>, and tell security. It has been in production logs for as long as the code has shipped.</span><span class="c">Direct<br>today</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Treat the leaked credentials as an incident, not a backlog item.</b> Rotate the API secret shared with <code>prod-ms-insurance</code> and fix <code>HttpHelper.ts</code>. <b>Then rotate the Google Chat webhooks</b> logged by <code>bau-prod-ms-otrs-report</code> &mdash; their key and token are in the log index now, and nobody on our side has write access to that repository.</span><span class="c">Direct<br>today</span></div>
       <div class="askrow"><span class="n">3</span><span class="t"><b>Order the one-hour manifest check before any of this is quoted externally.</b> It decides whether the Feign fix is worth Rp 0 or Rp 40M a month. Until it is done, that figure should not appear in a board pack.</span><span class="c">Direct<br>this week</span></div>
       <div class="askrow"><span class="n">4</span><span class="t"><b>Hold the sequencing.</b> Squad cleanup gates SRE enablement, on two published numbers. If that gate is waived under delivery pressure, we move the waste from Cloud Logging into Datadog and the bill goes up instead of down.</span><span class="c">Hold<br>the line</span></div>
       <div class="askrow"><span class="n">5</span><span class="t"><b>Name an owner for <code>confins-prod-ms-lms-ar-be</code>.</b> It is 29% of all production log volume, it emits blank lines, and no squad in our mapping claims it. Nothing else in Phase 2 is worth as much per hour of work.</span><span class="c">Assign<br>this week</span></div>
       <div class="askrow"><span class="n">6</span><span class="t"><b>Ask someone to justify Coralogix.</b> Rp 253M a month, flat since February, for a third logging platform alongside Cloud Logging and Datadog. We are not recommending cancelling it. We are saying nobody has been asked.</span><span class="c">Ask<br>this month</span></div>
     </div>
-    <div class="note note--ok" style="margin-top:2px"><h4>What is already written and waiting</h4><strong>logging-cost.md</strong> &mdash; the cost analysis and the corrections owed to four other documents and one deck. <strong>squads-guide.md</strong> &mdash; five rules, and which Datadog feature answers which question. <strong>sre-datadog-recommendations.md</strong> &mdash; the configuration audit and the phased plan. <strong>Nineteen per-repository files</strong>, each naming the file, the line and the fix. No further analysis is needed to start Phase 1.</div>
-    <div class="foot"><span class="src">docs/logging/ &middot; 22 documents &middot; all figures traceable to FinOps, Datadog or a named file and line</span><span>11</span></div>
+    <div class="note note--ok" style="margin-top:2px"><h4>What is already written and waiting</h4><strong>logging-cost.md</strong> &mdash; the cost analysis and the corrections owed to four other documents, one deck and itself. <strong>squads-guide.md</strong> &mdash; the rules, now covering the Go estate as well as the Java one. <strong>sre-datadog-recommendations.md</strong> &mdash; the configuration audit and the phased plan. <strong>Seventy-three per-repository files and 64 open pull requests.</strong> No further analysis is needed to start Phase 1 or Phase 2.</div>
+    <div class="foot"><span class="src">docs/logging/ &middot; 79 documents &middot; all figures traceable to FinOps, Datadog or a named file and line</span><span>11</span></div>
   </div>
 </section>

@@ -37,6 +37,13 @@ def toks(s):
     return {w.replace("-", "").replace("'", "")
             for w in re.findall(r"[A-Za-z][A-Za-z'-]{5,}", s.lower())}
 
+def squashed(s):
+    """Letter-spaced uppercase headings (.k, .eyebrow) come back from pdftotext with
+    spaces inside the words -- "FIVE MINUTES" extracts as "FI V E M INU TES". Those
+    words are on the page; they just cannot be tokenised. Collapsing all whitespace
+    lets us find them by substring, which is enough to tell present from clipped."""
+    return re.sub(r"[^a-z]", "", s.lower())
+
 def check(slug, floor=0.97):
     slides = slide_texts(slug)
     bad = []
@@ -44,8 +51,13 @@ def check(slug, floor=0.97):
         want = toks(txt)
         if len(want) < 8:
             continue
-        got = toks(page_text(slug, i))
+        page = page_text(slug, i)
+        got = toks(page)
         missing = want - got
+        if missing:
+            # second pass: a word broken up by letter-spacing is present, not lost
+            flat = squashed(page)
+            missing = {w for w in missing if w not in flat}
         cov = 1 - len(missing) / len(want)
         if cov < floor:
             bad.append((i, len(want), sorted(missing)[:8], cov))

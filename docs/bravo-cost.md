@@ -15,6 +15,31 @@ Application counts and the LORA tier figures are carried from [LORA cost.md](../
 >
 > **Open:** LORA's **171,479** comes from the same billing row and has not been re-verified.
 
+> **Corrected 2026-09-13, from the logging analysis.** Four changes. The first two affect
+> every Cloud Logging figure on this page; the third withdraws a mechanism this document
+> asserted; the fourth is not a cost item at all.
+>
+> 1. **Rp 140.5M was the production project only, and it is stale.** Estate-wide Cloud
+>    Logging was **Rp 271.8M** in August 2026; the production project alone re-measures at
+>    **Rp 125.4M**. And BFI runs **three** log platforms, not one: Coralogix at
+>    **Rp 253.3M** a month and Datadog at **Rp 110.6M**, for **Rp 635.8M** in total. This
+>    document counts one of the three, and counts it low.
+> 2. **"2.4× the orchestration tier" understates it.** Cloud Logging alone is **4.7×**. All
+>    three platforms together are about **11×**.
+> 3. **The Feign mechanism named below is not confirmed in production.** `loggerLevel:
+>    full` appears **129 times across 57 clients in `bravo-bpm-service`**, not "113 clients"
+>    globally — and it only emits when that client's logger is at DEBUG. Estate-wide there
+>    are **zero DEBUG logs and zero `END HTTP` markers**. The Rp 50–90M saving is attached
+>    to a cause we have not shown is active. A one-hour deployment-manifest check settles
+>    it. What *is* certain is **Rp 81–105M a month from platform configuration** —
+>    non-production retention and exclusion filters, Cloud SQL audit logs, flow-log
+>    sampling — with no code change at all.
+> 4. **One service was writing a live `api-secret` into production logs**, and three more
+>    exposures were found since. See [logging-cost.md](logging/logging-cost.md) §5b.
+>
+> Full working: [logging/logging-cost.md](logging/logging-cost.md). The figures below are
+> left as originally written so the change is visible; read them with this block.
+
 **On this page:** the problem → what we found → what to do.
 
 | | |
@@ -33,7 +58,7 @@ Application counts and the LORA tier figures are carried from [LORA cost.md](../
 | Retiring Bravo saves ≈Rp1.6B/month | **Withdrawn, and this document re-confirms the withdrawal.** The Bravo GCP projects bill **Rp1.874B** in August, but the remainder beyond the LOS tier is the shared BFI data plane — ~26 `ms-*` services that **LORA itself calls**. The LOS lever is **≈Rp58M prod, ≈Rp70–100M with non-prod: 8–14×** the entire Temporal Actions programme, not 227×. |
 | Bravo's cost is dominated by the workflow engine | **No. The engine tier is 4.5% of its own production project.** Cloud SQL (Rp450.7M) and Compute Engine (Rp394.4M) are 65% of `bravo-project-331802`, and neither is mostly BPM. |
 | Bravo's unit economics are improving as it drains | **Not settled by the August data — the refutation is withdrawn, 2026-09-11.** This row previously read *Refuted*, on a 35% volume fall between July and August. That fall was an artefact of a partial-month count: August was **118,253**, essentially flat against July's 117,996, so **platform cost per application was flat too**. What still stands is the *ops* side: ticket load **rose 82%** over eight months, so cost per application on the support side is rising. And the structural point stands for the future rather than for August — a fixed platform cost over a volume that falls as the migration proceeds does inflate the unit cost, which is why ≈Rp1,450 per application at 40k/month is the figure to plan against. |
-| The cost work worth doing is on the engine | **Refuted, and three larger levers are named here.** Cloud Logging at **Rp140.5M/month** — 2.4× the whole orchestration tier — sits behind a globally enabled `loggerLevel: full` and an error stream that is 47% stack-trace frames. The Maps API stack is **Rp64.0M/month**. Non-production is **Rp573.5M**, 31% of all Bravo spend. |
+| The cost work worth doing is on the engine | **Refuted, and three larger levers are named here.** Cloud Logging at ~~Rp140.5M/month — 2.4× the whole orchestration tier~~ **Rp 271.8M estate-wide, 4.7× the tier — and Rp 635.8M across all three log platforms, about 11×** (corrected 2026-09-13). The `loggerLevel: full` attribution is **not confirmed in production**; the error stream being 47% stack-trace frames is. The Maps API stack is **Rp64.0M/month**. Non-production is **Rp573.5M**, 31% of all Bravo spend. |
 | Bravo's cost is a reason to keep it | **Partly, and it is the strongest argument on Bravo's side of the ledger.** But the tier that would retire is small (≈Rp58M) and the platform it would retire *to* costs more per application today. The cost case for migration is that LORA's marginal cost is near zero and one platform goes away — not that Bravo is expensive. |
 
 **The through-line.** Bravo's LOS orchestration really is cheap. And almost none of Bravo's bill is orchestration. The money sits in a database, a log pipeline and a non-production estate. Two of those three are misconfiguration, not workload.
@@ -79,6 +104,7 @@ Service breakdown of the production project:
 | Cloud SQL | Rp 450,659,997 | 34.7% |
 | Compute Engine | Rp 394,392,920 | 30.3% |
 | **Cloud Logging** | **Rp 140,536,563** | **10.8%** |
+| ↳ *corrected 2026-09-13* | *Rp 125,438,000 prod project; **Rp 271.8M estate-wide**; **Rp 635.8M** across Cloud Logging + Coralogix + Datadog* | |
 | Cloud Storage | Rp 86,484,875 | 6.7% |
 | Networking | Rp 51,860,732 | 4.0% |
 | Cloud Memorystore for Redis | Rp 51,023,861 | 3.9% |
@@ -162,18 +188,18 @@ The pack's standing explanation applies here, and it should be held loosely. A d
 |---|---|---:|---|
 | 1 | Cloud SQL, whole production project | Rp 450.7M | workload; the BPM instance is Rp52.7M of it |
 | 2 | Compute Engine, whole production project | Rp 394.4M | workload |
-| 3 | **Cloud Logging** | **Rp 140.5M** | **substantially defect — see below** |
+| 3 | **Cloud Logging** | ~~Rp 140.5M~~ **Rp 271.8M estate** | **substantially defect — but see the 2026-09-13 correction: the named mechanism is unconfirmed** |
 | 4 | Cloud Storage | Rp 86.5M | workload |
 | 5 | **Non-production estate** (`bravo-project-nonprod`) | **Rp 573.5M** | **31% of all Bravo spend — governance** |
 | 6 | **Google Maps platform** | **Rp 64.0M** | **workload, but see the geolocation defect** |
 | 7 | Redis (Memorystore) | Rp 51.0M | workload; also the NIK-keyed cache flagged for PII |
 | 8 | Vertex AI + Vision + Gemini | Rp 56.4M | workload |
 
-### Defect 1 — Cloud Logging at Rp140.5M is 2.4× the orchestration tier
+### Defect 1 — Cloud Logging at ~~Rp140.5M is 2.4×~~ Rp 271.8M is 4.7× the orchestration tier
 
 `prod-ms-bpm` alone emits **1,116,135 log lines a week**, of which **525,181 (47%) are ERROR**. Two configuration choices explain most of that, and both are recorded in the code:
 
-- **`loggerLevel: full` is set globally on Feign** ([compare-architecture.md Appendix C](compare-architecture.md)). So all 113 clients log complete request and response bodies. That means PEFINDO, SLIK, Dukcapil and CONFINS payloads go into Cloud Logging as JSON. It is a cost line and a data-protection exposure at the same time.
+- **`loggerLevel: full` is set globally on Feign** ([compare-architecture.md Appendix C](compare-architecture.md)). ~~So all 113 clients log complete request and response bodies.~~ **Corrected 2026-09-13: 129 entries across 57 clients, in `bravo-bpm-service` alone, and the setting only emits when that client's logger is at DEBUG. Estate-wide there are zero DEBUG logs and zero `END HTTP` markers, so this is not confirmed to be active. `prod-ms-bpm` does log bodies — but through its own `CustomFeignLogger` at INFO, which is a different mechanism.** That means PEFINDO, SLIK, Dukcapil and CONFINS payloads go into Cloud Logging as JSON. It is a cost line and a data-protection exposure at the same time.
 - **Stack traces are logged one frame per line.** The top error "patterns" in the log stream are literally `at org.springframework.…`, at 874 a week, and `at java.base/…`. One exception becomes dozens of billable lines. And one Camunda job failure produces **two** lines at **two severities**: `ENGINE-14006` at `warn` and `ENGINE-16004` at `error`.
 
 Add **38,198 `ENGINE-09004` BPMN parse warnings a week** ([bravo-testing.md §4](bravo-testing.md)) — pods re-parsing all 53 model files on every boot.
@@ -204,7 +230,9 @@ Nothing in this analysis establishes what is running in `bravo-project-nonprod`,
 
 | Lever | Worth / month | Available | Confidence |
 |---|---:|---|---|
-| **Cut Cloud Logging** — disable global Feign body logging, log exceptions as one event, stop re-parsing warnings | **Rp 50–90M** | now | high — configuration only |
+| **Cut Cloud Logging — platform configuration only** (non-prod retention and exclusion filters, Cloud SQL audit logs off in non-prod, flow-log sampling) | **Rp 81–105M** | now | **high — measured, no code change** |
+| **Cut Cloud Logging — the Feign body-logging fix** | ~~Rp 50–90M~~ **unsized** | after a 1-hour manifest check | **low — mechanism not confirmed in production** (corrected 2026-09-13) |
+| **Ask what Coralogix is for** — Rp 253.3M a month, flat since February, a third log platform alongside the other two | up to **Rp 253.3M** | now | needs a decision, not analysis |
 | **Review `bravo-project-nonprod`** | unknown, up to **Rp 573.5M** | now | low — never examined |
 | **Audit the Maps spend against failed geolocation** | up to **Rp 64.0M** | now | low — needs a day of work first |
 | Shorten Camunda history TTL from 90 d, or drop history level from `full` | part of Rp 52.7M | now, with a data-retention decision | medium — it is the audit trail after `application_status_log` |
@@ -224,7 +252,7 @@ So the migration's cost case is *one platform instead of two, at near-zero margi
 
 ## Recommended actions
 
-1. **Cut the Cloud Logging bill. Small effort, do this first. Worth Rp50–90M a month.** Turn off Feign `loggerLevel: full` globally, and enable it per client only where it is needed. That also takes upstream request bodies containing customer data out of Cloud Logging. Log exceptions as a single structured event instead of one line per stack frame. And stop `ENGINE-09004` recurring by fixing the models ([bravo-testing.md](bravo-testing.md) recommendation 2). This is the largest, fastest, lowest-risk saving in the document.
+1. **Cut the Cloud Logging bill. Small effort, do this first. Worth ~~Rp50–90M~~ Rp 81–105M a month** — and from platform configuration, not from the Feign change (corrected 2026-09-13). Non-production retention and exclusion filters, Cloud SQL audit logs off in non-prod, flow-log sampling to 10%. None of it needs a code change or a squad's sprint. **Then** turn off Feign `loggerLevel: full` globally, and enable it per client only where it is needed — but check the deployment manifests first, because the mechanism is not confirmed active in production. That also takes upstream request bodies containing customer data out of Cloud Logging. Log exceptions as a single structured event instead of one line per stack frame. And stop `ENGINE-09004` recurring by fixing the models ([bravo-testing.md](bravo-testing.md) recommendation 2). This is the largest, fastest, lowest-risk saving in the document.
 2. **Open `bravo-project-nonprod`. Small effort to look, unknown to fix. Worth up to Rp573.5M a month.** This pack has never examined 31% of Bravo's spend. Produce a service-level breakdown, and a list of what is running and why. Even a 20% cut beats the migration lever.
 3. **Check whether failed geolocation attempts are billed. Small effort. Worth up to Rp64.0M a month.** We spend Rp64M on Maps APIs, on a console with 20,690 geolocation failures a week. Find out whether the two are related before deciding anything. **Owner identified 2026-09-10.** The call sites are in `bravo-surveyor-console`, using `@react-google-maps/api`, owned by squad **`LN`, Team Surveyor & Verificator**. That repository has 286 PR-gating tests, so there is somewhere to add a regression once the behaviour is fixed.
 4. **Decide the Camunda history question explicitly. Small to medium effort.** History level `full` with `P90D` on Cloud SQL is a real cost. And after day 91, the only remaining record of what happened to a loan is the trigger-written `application_status_log`. So either shorten the TTL and accept that, or keep it and stop calling it a cost problem. Either way, make it a decision rather than a default.
@@ -239,7 +267,7 @@ So the migration's cost case is *one platform instead of two, at near-zero margi
 
 Eight recommendations, phased. Most of this is FinOps and Platform time, not Squad S&U engineering — which matters, because the largest saving here is configuration, not migration.
 
-**The rule for ordering this work: money that is configuration comes before money that is migration.** Cloud Logging costs **Rp140.5M a month, which is 2.4× the entire ≈Rp58M tier the migration would retire.** And it is a config change available now. So it starts in week 1. The migration lever is not in this plan at all. It lands when the migration finishes, and nothing here speeds that up.
+**The rule for ordering this work: money that is configuration comes before money that is migration.** Logging costs **Rp635.8M a month across three platforms, about 11× the entire ≈Rp58M tier the migration would retire** (corrected 2026-09-13), and **Rp81–105M of it is recoverable by platform configuration alone**, available now. So it starts in week 1. The migration lever is not in this plan at all. It lands when the migration finishes, and nothing here speeds that up.
 
 **Shared with other documents.** Recommendation 5 is also recommendation 1 in [bravo-observability.md](bravo-observability.md) and recommendation 1 in [bravo-delivery.md](bravo-delivery.md). Recommendation 3 pairs with recommendation 2 in [bravo-delivery.md](bravo-delivery.md). They are phased the same way, so do them once.
 
@@ -269,7 +297,7 @@ No new cost work is scheduled. Phase 3 is verification, because a saving that is
 
 | Check | Against |
 |---|---|
-| September and October Cloud Logging against the August baseline of Rp140.5M | Recommendations 1 — target Rp50–90M/month reduction |
+| September and October Cloud Logging against the August baseline of ~~Rp140.5M~~ **Rp 271.8M estate / Rp 125.4M prod project** | Recommendation 1 — target **Rp 81–105M**/month reduction from platform configuration |
 | The LOS tier standing view across three months | Recommendation 7 — confirm ≈Rp58M and its trend as volume drains |
 | Per-application cost recomputed on the agreed denominators | Recommendation 6 — the first non-provisional unit cost in the pack |
 
@@ -286,7 +314,7 @@ No new cost work is scheduled. Phase 3 is verification, because a saving that is
 
 | Recommendation | Example when done |
 |---|---|
-| Logging configuration fixed | Rp50–90M/month recovered — more than the migration lever — and PEFINDO/SLIK/Dukcapil/CONFINS request bodies stop landing in Cloud Logging. |
+| Logging configuration fixed | **Rp 81–105M**/month recovered from platform configuration — more than the migration lever — and request bodies stop landing in the log pipeline. **64 pull requests** covering 73 repositories are already open for the code half; see [logging/README.md](logging/README.md). |
 | Non-prod examined | The second-largest number in Bravo's bill has an owner and a rationale, or a decommissioning plan. |
 | Maps spend explained | Either a defect is fixed and Rp-tens-of-millions come back, or the spend is justified and stops being an open question. |
 | History decision made | "What happened to this loan on day 120" has a documented answer instead of an accidental one. |

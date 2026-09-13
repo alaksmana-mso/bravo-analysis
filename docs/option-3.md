@@ -171,7 +171,7 @@ None of these is an argument against Option 3 in principle. They are all argumen
 | `ms-bpm` pods + `prod-postgres-bpm-d2bpm` | **−≈Rp58M/month** prod; **−≈Rp70–100M/month** including SIT/UAT and Sharia copies |
 | LORA marginal cost of Bravo's volume | **≈zero.** LORA went +23% Temporal-metered volume for +3% spend Jun→Aug; it pays for provisioned capacity, not work done |
 | Second platform's staffing and on-call | Retires. Not in any GCP line, and plausibly the largest saving |
-| Cloud Logging on the Bravo estate | Partially retires. `ms-bpm` logs full Feign request bodies (`loggerLevel: full`) into a Rp140.5M/month prod logging line |
+| Cloud Logging on the Bravo estate | Partially retires. `ms-bpm` logs full request and response bodies — 487,146 entries a week — into a ~~Rp140.5M~~ **Rp 125.4M**/month prod logging line (**Rp 271.8M** estate-wide). *Corrected 2026-09-13: the mechanism is `ms-bpm`'s own `CustomFeignLogger` at INFO, not the global `loggerLevel: full`, which only emits at DEBUG and is not observed active. See [logging/logging-cost.md](logging/logging-cost.md).* |
 
 **What does not retire. This correction matters.** [compare.md §3.12](compare-architecture.md) withdrew the earlier claim that retiring Bravo saves about Rp1.6B a month. Most of the Bravo estate is the shared BFI data plane, and **LORA's 301 gateway proxies call it too**. That includes Cloud SQL at Rp584M, the roughly 26 `ms-*` data-plane services with about 50 Cloud SQL instances, Memorystore and Keycloak. All of it stays. Only the LOS tier retires.
 

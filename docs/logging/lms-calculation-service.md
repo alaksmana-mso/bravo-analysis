@@ -158,6 +158,25 @@ produces no record at all — which for a calculation engine is the failure that
 So the trade is worse than it looks: the interceptor leaks a live credential 1,700 times a
 day, costs money on every occurrence, and delivers half of what it was written for.
 
+### And it is registered more than once
+
+Found while writing the fix, not during the original analysis.
+
+`axios.interceptors.response.use(...)` is called in the **constructor**, and
+`axios.interceptors` is the module-level default instance shared by the whole process. So
+every `new HttpHelper(...)` adds another copy of the same interceptor to the same chain.
+They are never removed.
+
+`HttpHelper` is constructed per client class — `client.insurance.bfi.ts`,
+`client.new-calculation.bfi.ts` and the rest — so one failed downstream call is logged once
+for **every `HttpHelper` instance created since the process started**.
+
+That multiplies everything above by an unknown factor: the volume, the cost, and the number
+of times the `api-secret` is written. It is also a slow leak — the interceptor chain grows
+for the life of the pod.
+
+The fix installs it once behind a static guard.
+
 ### What to do instead
 
 Put the identifiers and the outcome on the span. That is enough to find the call, group the
@@ -307,6 +326,36 @@ service:prod-ms-calculation env:prod
 If one returns nothing and the other returns plenty, you have either a name mismatch or a
 collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-calculation` to
 tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
+## Implementation status
+
+**Pull request: [lms-calculation-service#647](https://github.com/bfi-finance/lms-calculation-service/pull/647)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/lms-calculation-service/tree/fix/logging), head `305f74a`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/lms-calculation-service/pull/647/files) · [Commits](https://github.com/bfi-finance/lms-calculation-service/pull/647/commits) · [Compare against master](https://github.com/bfi-finance/lms-calculation-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 5 |
+
+Commit:
+
+- fix(logging): stop writing the api-secret to logs and emit parseable JSON
+
+Files:
+
+- `src/client/client.new-calculation.bfi.ts`
+- `src/connections/connection.logger.ts`
+- `src/connections/connection.postgres.ts`
+- `src/connections/connection.tracer.ts`
+- `src/helpers/HttpHelper.ts`
+
+**Nothing in this pull request was compiled or tested.** Node is available through `mise`; the changed files are TypeScript and this repository's `node_modules` is not installed here, so they were not type-checked. Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 

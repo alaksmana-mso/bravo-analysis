@@ -60,9 +60,16 @@ Nothing matching. Across two days, all production services:
 | `END HTTP` (Feign's full-logging terminator) | 0 |
 
 **That does not mean bodies are absent.** Both checks look for the *standard* Feign logger,
-which is gated on DEBUG and terminates each response with `END HTTP`. This repo also has
-`CustomFeignLogger`, which writes bodies through `log.info` and matches neither check.
-It is on in production. That finding is in
+which is gated on DEBUG and terminates each response with `END HTTP`. This repo has two
+other body-logging paths that match neither check, and **both write at INFO**:
+
+- `CustomFeignLogger` — outbound Feign request and response bodies. On in production.
+- `CustomRequestLoggingFilter` — inbound request bodies. It extends
+  `CommonsRequestLoggingFilter` but overrides `shouldLog()` to `logger.isInfoEnabled()`
+  and `afterRequest()` to `logger.info()`, so unlike every other Commons filter in this
+  pack the DEBUG gate does not hold it back. No `REQUEST DATA :` entries appear in
+  production, so something is stopping it — but the configuration says it should be
+  writing, and that gap is not explained by the logger level. That finding is in
 [Request and response bodies in Datadog](#request-and-response-bodies-in-datadog), and it is
 the bigger of the two.
 
@@ -414,6 +421,41 @@ service:prod-ms-bpm env:prod
 If one returns nothing and the other returns plenty, you have either a name mismatch or a
 collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-bpm` to
 tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
+## Implementation status
+
+**Pull request: [bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-bpm-service/tree/fix/logging), head `ec17912d55`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-bpm-service/pull/10463/files) · [Commits](https://github.com/bfi-finance/bravo-bpm-service/pull/10463/commits) · [Compare against master](https://github.com/bfi-finance/bravo-bpm-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 2 |
+| Files changed | 6 |
+
+Commits:
+
+- fix(logging): stop the inbound request filter capturing payloads
+- fix(logging): mask and truncate Feign bodies, drop full Feign logging by default
+
+Files:
+
+- `src/main/java/com/bfi/bravo/config/RequestLoggingFilterConfig.java`
+- `src/main/java/com/bfi/bravo/config/feign/CustomFeignLogger.java`
+- `src/main/java/com/bfi/bravo/config/feign/FeignBodySanitizer.java`
+- `src/main/java/com/bfi/bravo/config/feign/FeignCustomLogConfig.java`
+- `src/main/resources/application-prod.yaml`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 

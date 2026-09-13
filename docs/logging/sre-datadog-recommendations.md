@@ -447,6 +447,56 @@ Phase 2 is 64% done when these five are fixed. SRE should track them by name:
 `confins-prod-ms-lms-ar-be` has no identified owner and is the single largest contributor at
 29%. **Naming that owner is an SRE action, this week.**
 
+### 3a. Phase 2 is written and raised — four things now belong to SRE
+
+As of 13 September 2026 the code half of Phase 2 exists: **73 repositories analysed, 64
+pull requests open**, each with a file in this folder naming the finding, the branch and
+the change. Squads have to review and merge them. Four things that came out of it are
+SRE's, not theirs.
+
+**1. One CI gate blocks 23 of the 64 pull requests, and it is not a code problem.**
+The shared `call-workflow-passing-data` workflow has a job named
+`Static Analysis - SonarQube` that fails at its Codacy step:
+
+```
+error [CodacyCoverageReporter] Invalid configuration: Either a project or account
+API token must be provided or available in an environment variable
+```
+
+Confirmed identical on `bravo-supplier-service`, `bravo-pbf-service` and
+`bravo-journal-service` — repositories whose changes are a struct-tag default and two log
+levels. Until the token is present for these runs, every squad reviewing one of these pull
+requests sees a red check and has to be told to ignore it. **Fix the token, or the merge
+rate for Phase 2 will be whatever each squad's patience allows.**
+
+**2. Six production services emit no telemetry at all.** No logs, no APM spans, over a full
+7-day window: `prod-ms-asset-pricing`, `prod-ms-document`, `prod-ms-master`,
+`prod-ms-collateral`, `prod-ms-journal`, `prod-ms-data-admin`. Add
+`prod-ms-krakend-internal`, `prod-ms-kyc-sign`, `prod-doc-renderer` and
+`prod-ms-document-hub` to the same list.
+
+Either they are not running under those names, or they are running and nobody can see them.
+A service nobody can observe is a worse problem than a noisy one, and no amount of squad
+cleanup will surface it — this needs someone to check the deployments.
+
+**3. Three services log but produce no APM spans at all**: `prod-ms-product`,
+`prod-ms-kyc-proxy`, `prod-ms-rule-engine`. They are running untraced. That is a smaller
+version of the same problem and belongs in §5's coverage work.
+
+**4. Service-to-repository mapping should come from Datadog, not from name similarity.**
+Four repositories in the original coverage list were mapped to the wrong service. The
+`git.repository_url` tag settles it in one query:
+
+```
+SELECT "git.repository_url", count(*) FROM logs WHERE "git.repository_url" IS NOT NULL
+GROUP BY "git.repository_url" ORDER BY count(*) DESC
+-- filter: env:prod
+```
+
+**Only 39 repositories answer it.** Every Go service carries the tag; almost no Java service
+does. Getting source-code integration onto the Java services is cheap, and it makes every
+future question of the form "which repo is this service?" answerable without guessing.
+
 ---
 
 # Phase 3 — Ingestion and correlation, once the gate is met
@@ -586,6 +636,16 @@ same estate.
 - `prod-ms-krakend-gateway` — 1,293,001 entries, no traces. This is the **API gateway**;
   every request enters through it, so it is the highest-value place to have tracing and the
   most expensive. See the cost note below.
+
+  **Do not treat its volume as noise.** An earlier draft of the coverage document called
+  this an access log at the wrong level. That was wrong. The `server-observer` plugin maps
+  5xx to error, 4xx to warn and 2xx to info deliberately, and production runs at
+  `LOGGER_LEVEL=WARNING`, which is why there is no info. Every one of the 942,909 warn
+  entries a week is a **real 4xx response**: 415,388 of them a single WhatsApp notification
+  endpoint returning 400, 67,369 an email endpoint returning 500, and 6,507 a bank autodebit
+  callback hitting a route that does not exist. The gateway is the only thing in the estate
+  reporting those. Tracing it will make them easier to act on; filtering them would destroy
+  the evidence.
 - `prod-lora-task` — 3,858,350 entries, 337,750 spans. Traced, but barely: this one is a
   coverage problem rather than an absence. See [lora-task-service.md](lora-task-service.md).
 - The ten `confins-prod-ms-ce-batch-worker-*` jobs, `prod-robot-scrape`,
@@ -795,7 +855,11 @@ half of that coverage continuously, rather than in a weekly cron.
 | 5a | 1 | Header tags on, and **fix Remote Configuration — failing on 13 services** (§2.5) | 1 d | none | — |
 | 6 | 1 | Name an owner for `confins-prod-ms-lms-ar-be` (§3) | 1 d | none | — |
 | 7 | 1 | RUM tidy-up and the Gmail access review (§9) | 2 d | reduces | — |
-| 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3) | 4–6 wks | reduces | feeds every item below |
+| 7a | 1 | **Fix the Codacy token in the shared CI workflow** — it red-flags 23 of the 64 Phase 2 pull requests for a reason unrelated to their content (§3a) | 1 h | none | unblocks Phase 2 |
+| 7b | 1 | **Rotate the Google Chat webhook credentials** logged by `bau-prod-ms-otrs-report`, and find an owner with write access to that repo (§3a, [backend-dashboard-otrs.md](backend-dashboard-otrs.md)) | 1 d | none | security |
+| 7c | 1 | Establish why six production services emit no logs and no spans at all (§3a) | 2 d | none | — |
+| 7d | 1 | Datadog source-code integration on the Java services, so `git.repository_url` answers "which repo is this?" (§3a) | 2 d | none | — |
+| 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3). 64 pull requests are already open and waiting on squad review (§3a) | 4–6 wks | reduces | feeds every item below |
 | 9 | 3 | Reassembly + logs injection + trace remapper + per-service exclusion filters (§4) | 2 d | small, gated | — |
 | 10 | 3 | Trace KrakenD then `prod-lora-task`, with sampling from day one (§5) | 3 d | moderate | — |
 | 11 | 3 | Log collection on the silent traced services, `prod-ms-agreement` first (§5) | 3 d | moderate | — |
@@ -806,8 +870,13 @@ half of that coverage continuously, rather than in a weekly cron.
 | 16 | 4 | SIT and UAT logs into Datadog, errors only, 3-day retention (§8) | 3 d | **largest increase** | — |
 
 Phase 1 is about two weeks of work, banks the full **Rp 81–105M a month**, closes a live
-alerting gap and adds no Datadog cost. Phase 2 is the squads' work and the gate. Nothing in
+alerting gap and adds no Datadog cost. Phase 2 is the squads' work and the gate — the code
+for it is written and raised, so what is left is review and merge, not analysis. Nothing in
 Phase 3 or 4 should start before the gate is met.
+
+**Items 7a and 7b did not exist when this plan was first written.** They came out of
+implementing Phase 2 and both are SRE's. 7b is a live credential exposure and should not
+queue behind the rest of Phase 1.
 
 ---
 

@@ -278,6 +278,38 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bfi-insurance-api#3298](https://github.com/bfi-finance/bfi-insurance-api/pull/3298)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-insurance-api/tree/fix/logging), head `cbf88d8cc`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bfi-insurance-api/pull/3298/files) · [Commits](https://github.com/bfi-finance/bfi-insurance-api/pull/3298/commits) · [Compare against master](https://github.com/bfi-finance/bfi-insurance-api/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 4 |
+
+Commit:
+
+- fix(logging): stop writing customer and disbursement payloads to logs
+
+Files:
+
+- `src/main/java/id/co/bfi/insurance/config/HttpJsonLoggingFilter.java`
+- `src/main/java/id/co/bfi/insurance/service/customer/impl/CustomerNotificationServiceImpl.java`
+- `src/main/java/id/co/bfi/insurance/util/JsonLogMaskUtil.java`
+- `src/main/java/id/co/bfi/insurance/wrapper/BravoConsumerWrapper.java`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Review the 23 exception logs in `BillingServiceImpl.java`, then the rest of the 624

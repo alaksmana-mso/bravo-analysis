@@ -222,6 +222,35 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [lora-task-service#1363](https://github.com/bfi-finance/lora-task-service/pull/1363)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/lora-task-service/tree/fix/logging), head `2061a656`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/lora-task-service/pull/1363/files) · [Commits](https://github.com/bfi-finance/lora-task-service/pull/1363/commits) · [Compare against master](https://github.com/bfi-finance/lora-task-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 4 |
+
+Commit:
+
+- fix(logging): move routine conditions from warn to debug
+
+Files:
+
+- `internal/httpserver/handlers/frontend/message/client.go`
+- `internal/httpserver/handlers/frontend/message/proto.go`
+- `internal/httpserver/handlers/frontend/task/action.go`
+- `internal/service/auth/cookie_middleware.go`
+
+**Nothing in this pull request was compiled or tested.** Go and Node are available through `mise`; `go build ./...` passes, `gofmt` is clean on all four changed files, and `golangci-lint` against this repository's own config reports 0 issues. Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Move `missing in form submission?` at `action.go:306` to debug

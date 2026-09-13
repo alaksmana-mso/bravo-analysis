@@ -107,10 +107,13 @@ complaint, arriving from the other end.
 
 1. Add `allowedTracingUrls` to `datadogRum.init`, scoped to the surveyor console's own API
    host. Copy the shape from `bravo-inventory-management-system/src/libs/datadog.ts`.
-2. Check the sample rates. This repo defaults `sessionSampleRate` and
-   `sessionReplaySampleRate` to **1** when the environment variable is unset;
-   `bravo-inventory-management-system` defaults both to 100. Find out which values production
-   actually runs with — a 1% sample will make the linkage look broken when it is not.
+2. **Rename the production RUM application.** `.env.production` sets
+   `REACT_APP_DATADOG_SERVICE=surveyor-platform-test` — the live surveyor console reports
+   itself as a test service. Renaming splits the existing RUM history, so it needs a
+   decision rather than a quiet change, but it should be made.
+
+   The sample rates are fine: `.env.production` and `.env.sit` both set 100. The `|| 1`
+   fallback in `src/datadog/index.ts` only applies when the variable is missing.
 3. For the 18 `console.log` calls that serialise a response or payload: these are visible to
    anyone with devtools open on a surveyor's laptop. Replace them with `datadogRum.addError`
    where they matter, and delete the rest. This is an exposure item, not a cost item — see
@@ -145,6 +148,32 @@ Register it as `surveyor-console-prod`, matching the `<product>-<env>` conventio
 `service` in the RUM init to the same string. Point `allowedTracingUrls` at the Bravo
 microservices host so browser spans join the backend trace, the way
 `bravo-inventory-management-system` already does.
+
+---
+
+## Implementation status
+
+**Pull request: [bravo-surveyor-console#3976](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-surveyor-console/tree/fix/logging), head `4f667dd5b`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976/files) · [Commits](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976/commits) · [Compare against master](https://github.com/bfi-finance/bravo-surveyor-console/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 1 |
+
+Commit:
+
+- fix(rum): join browser spans to backend traces with allowedTracingUrls
+
+Files:
+
+- `src/datadog/index.ts`
+
+**Nothing in this pull request was compiled or tested.** Node is available through `mise`; the changed file is TypeScript and this repository's `node_modules` is not installed here, so it was not type-checked. Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 

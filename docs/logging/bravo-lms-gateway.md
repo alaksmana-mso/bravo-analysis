@@ -238,6 +238,36 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bravo-lms-gateway#2519](https://github.com/bfi-finance/bravo-lms-gateway/pull/2519)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-lms-gateway/tree/fix/logging), head `e0380966e`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-lms-gateway/pull/2519/files) · [Commits](https://github.com/bfi-finance/bravo-lms-gateway/pull/2519/commits) · [Compare against master](https://github.com/bfi-finance/bravo-lms-gateway/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 2 |
+
+Commit:
+
+- fix(logging): stop the request-logging filter capturing payment payloads
+
+Files:
+
+- `src/main/java/com/bfi/bravo/config/RequestLoggingFilterConfig.java`
+- `src/main/resources/application-prod.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Consolidate the 117 exception logs in `PaymentAdapterImpl.java` behind one handler

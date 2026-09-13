@@ -1,8 +1,13 @@
 # Logging cost — what it is, where it goes, and what to fix
 
-Written 12 September 2026. Cost data is GCP billing via FinOps. Log evidence is Datadog
-production. Code evidence is all 152 repos under `squads/`, pulled to `master` on the day
-of writing.
+Written 12 September 2026, extended 13 September 2026. Cost data is GCP billing via FinOps.
+Log evidence is Datadog production. Code evidence is all 152 repos under `squads/`, pulled
+to `master` on the day of writing, plus 36 more cloned since.
+
+**Section 5 has been rewritten.** The first version ranked repositories by a code scan.
+That scan was Java-shaped, and roughly two-thirds of the estate is Go — those repositories
+scored zero on it while carrying some of the worst behaviour in production. Section 5 now
+ranks by what production shows.
 
 This document was started to approve one recommendation: cut Cloud Logging by
 Rp 50–90M a month by turning off Feign body logging. That recommendation appears in
@@ -302,6 +307,40 @@ Two repos that look alarming in a raw scan are not. `bfi-digital-web-ui-v3` show
 vendor code — 107 real, all vendor. `bravo-surveyor-console` has 939 genuine ones, but it
 is a browser console: no Cloud Logging cost, only a data-exposure question.
 
+### 5a. What the code scan missed
+
+The table above came from pattern-matching Java idioms: `loggerLevel: full`,
+`CommonsRequestLoggingFilter`, `printStackTrace`. Applied to the whole estate it produced a
+**false clean bill for the Go services**, which are about two-thirds of the repositories and
+include four of the five worst severity mixes in production.
+
+Reading the remaining 53 repositories against production evidence turned up four patterns
+that no Java-shaped scan would ever have found:
+
+| Pattern | Repos | What it costs |
+|---|---:|---|
+| `*_JSON_MASKED_FIELDS` parsed from the environment with **no default**, so the scrubber runs with an empty list | 22 | Nothing in volume. Everything in exposure — the code reads as though masking is on |
+| `With*BodyLoggingFunc` **commented out**, so the masked-field config is parsed and never used | 8 | `lora-gateway-service` alone: 69,433 bodies a week, unmasked |
+| Exception handler logging **every 4xx at error** | 6 | `prod-ms-auth` 98.5% error; `prod-ms-repeat-order` 51,843 a week |
+| Queue consumer logging `string(msg.Body)` on the failure path | 3 | `prod-ms-partnership` 123,503 body-carrying entries a week — the highest in the estate |
+
+**The lesson for any future scan:** rank by production severity mix first, then read the
+code. `bravo-partnership-service`, `bravo-auth-service` and `bravo-assistance-service` all
+scored zero on the code scan and have among the worst production behaviour in the estate.
+
+### 5b. Four exposures found on the way, none of them cost items
+
+Listed here because they came out of this work, not because they belong in a cost document.
+Each needs an owner outside the logging programme. Detail in
+[coverage.md](coverage.md) §3.
+
+| Finding | Service | State |
+|---|---|---|
+| Google Chat webhook URLs logged in full — the key and token are in the query string | `bau-prod-ms-otrs-report` | **Live. Rotate the webhooks.** |
+| JWT signing key printed with `fmt.Printf`, which no log level can suppress | `prod-ms-notification` | Code present; **not firing** in the 7-day window |
+| Whole HR records at `info` — religion, marital status, bank account, personal email | `prod-ms-employee` | Live, ~900,000 a week |
+| Customer mobile number, customer ID and licence plate on every duplicate-check miss | `prod-ms-bfi-connect` | Live, 6,608 a week |
+
 Per-repo files, ordered by billable impact:
 
 | Repo | Squad | Main problem |
@@ -326,6 +365,32 @@ Per-repo files, ordered by billable impact:
 | [bravo-inventory-management-service](bravo-inventory-management-service.md) | Asset Management | `loggerLevel: full` in `application-prod.yaml` |
 | [bravo-surveyor-console](bravo-surveyor-console.md) | Survey and Verification | 939 browser `console.log` — exposure, not cost |
 
+And the second pack, ordered the same way. These were invisible to the code scan:
+
+| Repo | Squad | Main problem | Entries / week |
+|---|---|---|---:|
+| [bravo-partnership-service](bravo-partnership-service.md) | Digital Partnership | 70 sites logging the raw MQ body; HTTP bodies unmasked; a poison message repeating 183× | 965,616 |
+| [bravo-employee-service](bravo-employee-service.md) | Internal Service | Whole HR records at `info`, three call sites | 907,511 |
+| [bravo-assistance-service](bravo-assistance-service.md) | Customer Platform | Masking configured, field list empty | 812,125 |
+| [collection-consumer-service](collection-consumer-service.md) | Contract Collateral | 89% of a busy consumer is warn or error | 601,576 |
+| [bravo-lms-ops-service](bravo-lms-ops-service.md) | Operation Post-Go Live | 1,264 entries a week whose whole message is the word `Exception` | 532,167 |
+| [bravo-customer-bff-service](bravo-customer-bff-service.md) | Customer Mobile Apps | Masking configured, field list empty | 439,358 |
+| [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | Direct Marketing | Bodies on every call, not just failures | 438,865 |
+| [bfi-incentive-api](bfi-incentive-api.md) | Agency | Whole DTO interpolated into the message, so it cannot be grouped | 351,082 |
+| [bravo-repeat-order-service](bravo-repeat-order-service.md) | Tele Marketing | Every 4xx logged at error by `ControllerAdvice` | 332,644 |
+| [bravo-audit-trail-service](bravo-audit-trail-service.md) | Internal Service | No masking config at all; error duplicated in its own message | 292,109 |
+| [portfolio-management-service](portfolio-management-service.md) | Contract Collateral | 99,131 warn, masking empty | 108,151 |
+| [lora-gateway-service](lora-gateway-service.md) | LORA Core | Scrubber commented out; bodies on every call | 82,911 |
+| [lora-partnership-ndf](lora-partnership-ndf.md) | Digital Partnership | 73% error | 77,228 |
+| [bravo-pbf-service](bravo-pbf-service.md) | PBF (SF) | 97% of the service is `sql: no rows in result set` | 41,067 |
+| [bravo-auth-service](bravo-auth-service.md) | Internal Service | 98.5% error — every 4xx logged at error | 17,774 |
+| [backend-dashboard-otrs](backend-dashboard-otrs.md) | — | **Google Chat webhook credentials in the log index** | 11,846 |
+| [bravo-notification-service](bravo-notification-service.md) | Internal Service | **JWT signing key via `fmt.Printf`**; Vonage key at info | 9,570 |
+| [bfi-connect](bfi-connect.md) | Digital Partnership | Customer phone number on every duplicate-check miss | 6,617 |
+
+Full index of all 73, with pull request links: [README.md](README.md) ·
+[coverage.md](coverage.md).
+
 ---
 
 ## 6. What to do, in order
@@ -349,10 +414,18 @@ code work combined and depends on nobody's sprint.
 | 12 | **Fix the ENGINE-09004 BPMN model warnings** | S&U | 2 d | Rp 2–5M | high |
 | 13 | **Downgrade routine warnings to debug** in `lora-task-service` | LORA Core | 1 d | Rp 3–6M | medium |
 | 14 | **Long tail**: `printStackTrace`, `System.out`, `console.log`, logs in loops | All squads | ongoing | Rp 5–10M | low each |
+| 15 | **Merge the 64 open pull requests.** Written, raised, waiting on squad review — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
+| 16 | **Fix the Codacy token in the shared CI workflow.** It red-flags 23 of those 64 for a reason unrelated to their content, and each squad has to be told to ignore it | Platform | 1 h | unblocks #15 | high |
+| 17 | **Give every Go `*_JSON_MASKED_FIELDS` a default** and check no manifest overrides it with a blank | Platform + each squad | 1 d | exposure, not cost | high |
+| 18 | **Rotate the Google Chat webhook credentials** in `bau-prod-ms-otrs-report`, and find someone with write access to that repo | Platform / security | 1 d | security | high |
 
 **Items 1–4 are Rp 81–105M a month excluding Coralogix, and they are all platform
 configuration.** No squad backlog, no code review, no release. They are available this
 week.
+
+**Items 5–14 are now written.** As of 13 September 2026 all 73 repositories have a file in
+this folder and 64 have an open pull request. What is left on the code side is review and
+merge, not analysis — which makes item 16 disproportionately important for a one-hour job.
 
 Items 10 and 11 — the fix the deck actually asks to approve — cannot be sized until item 9
 is done.
@@ -395,19 +468,38 @@ with the billing data.
 
 ## 8. Corrections owed to other documents
 
-If this is accepted, these need updating. [bravo-cost.md](../bravo-cost.md) is the source
-the deck and [compare.md](../compare.md) both quote, so fix it first.
+**All of these were applied on 13 September 2026**, each marked in place so a reader
+holding an older copy can see what changed. The table is kept as the record of what was
+wrong.
 
-| File | Says | Should say |
+| File | Said | Now says | Applied |
+|---|---|---|---|
+| `bravo-cost.md` §5, §6, line 81, 165, 172, 242, 272 | Cloud Logging Rp 140.5M | Rp 271.8M estate; Rp 125.4M prod project (Aug 2026) | ✅ |
+| `bravo-cost.md` line 176 | `loggerLevel: full` means 113 clients log bodies | 129 entries, 57 clients, in `bravo-bpm-service`; not observed in production | ✅ |
+| `bravo-cost.md` line 207, 227 | Rp 50–90M from the Feign fix | Unsized until the deployment manifests are checked | ✅ |
+| `compare.md` line 135, 226, 359 | Rp 140.5M, 2.4× the tier | Rp 271.8M, 4.7× the tier | ✅ |
+| `compare-architecture.md` line 258, 316, 318 | Cloud Logging ≈Rp 201M / Rp 140.5M prod | Rp 271.8M estate; Rp 125.4M prod | ✅ |
+| `option-3.md` line 174 | Rp 140.5M/month prod logging line | Rp 125.4M prod (Aug 2026) | ✅ |
+| CTO deck `body_cto.html` slide 08 | "Cloud Logging alone costs Rp 140.5M a month… 2.4 times the tier" | Rp 271.8M, 4.7× — and drop the Feign attribution until #9 is done | ✅ |
+
+Three documents also repeated the Rp 50–90M saving as settled. It is not settled. Each has
+been changed to the Rp 81–105M platform figure, which is measured, with the Feign saving
+marked unsized pending the manifest check.
+
+Two more were corrected at the same time, beyond the list above:
+[lora-workspace `production-findings/cost.md`](../../../lora-workspace/docs/production-findings/cost.md)
+carried Cloud Logging at Rp 201.4M, and its CTO deck duplicated the figure in three places
+(`build.js`, `cost-cto.html`, `cost-slides/cto-slides.html`) — all three moved together,
+and `cost-cto.pdf` was re-rendered. **`cost-cto.pptx` could not be rebuilt**: it needs
+Node, which is not installed on this machine, so it still carries the old figure.
+
+### Corrections this document owes, from the second pass
+
+Two of them are mine.
+
+| Said | Should say | Where it was fixed |
 |---|---|---|
-| `bravo-cost.md` §5, §6, line 81, 165, 172, 242, 272 | Cloud Logging Rp 140.5M | Rp 271.8M estate; Rp 125.4M prod project (Aug 2026) |
-| `bravo-cost.md` line 176 | `loggerLevel: full` means 113 clients log bodies | 129 entries, 57 clients, in `bravo-bpm-service`; not observed in production |
-| `bravo-cost.md` line 207, 227 | Rp 50–90M from the Feign fix | Unsized until the deployment manifests are checked |
-| `compare.md` line 135, 226, 359 | Rp 140.5M, 2.4× the tier | Rp 271.8M, 4.7× the tier |
-| `compare-architecture.md` line 258, 316, 318 | Cloud Logging ≈Rp 201M / Rp 140.5M prod | Rp 271.8M estate; Rp 125.4M prod |
-| `option-3.md` line 174 | Rp 140.5M/month prod logging line | Rp 125.4M prod (Aug 2026) |
-| CTO deck `body_cto.html` slide 08 | "Cloud Logging alone costs Rp 140.5M a month… 2.4 times the tier" | Rp 271.8M, 4.7× — and drop the Feign attribution until #9 is done |
-
-Three documents also repeat the Rp 50–90M saving as settled. It is not settled. It should
-be marked as pending the manifest check, or replaced with the Rp 81–105M platform figure,
-which is.
+| §5's estate scan gives the per-repo ranking | The scan is Java-shaped and returns a **false clean bill for the Go estate**, which is about two-thirds of the repositories. Rank by production severity mix, then read the code | §5a above |
+| `prod-ms-krakend-gateway` is "an access log wearing the wrong level. Nothing is wrong" | The plugin levels by status code, correctly, and production runs at WARNING. The 942,909 warn entries a week are **real 4xx responses** — 415,388 of them one WhatsApp endpoint returning 400 | [coverage.md](coverage.md) §1, [sre-datadog-recommendations.md](sre-datadog-recommendations.md) §5 |
+| Four repositories mapped to a production service by name similarity | Datadog's `git.repository_url` tag settles it. `prod-ms-calculation` is `lms-calculation-service`, `prod-ms-kyc-proxy` is `bravo-kyc-proxy`, `prod-ms-rule-engine` is `bfi-rule-engine-service`, `prod-ms-notification` is `bravo-notification-service` | [coverage.md](coverage.md) §1 |
+| "70 production-active repositories" | Too generous — it came from the same name join. **Only 39 repositories identify themselves in production logs**, and six services in the list emit no telemetry at all | [coverage.md](coverage.md) §2, §4 |

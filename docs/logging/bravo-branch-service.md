@@ -216,6 +216,38 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bravo-branch-service#506](https://github.com/bfi-finance/bravo-branch-service/pull/506)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-branch-service/tree/fix/logging), head `34ba1ca`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-branch-service/pull/506/files) · [Commits](https://github.com/bfi-finance/bravo-branch-service/pull/506/commits) · [Compare against master](https://github.com/bfi-finance/bravo-branch-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 4 |
+
+Commit:
+
+- fix(logging): gate the shared body loggers and stop capturing payloads
+
+Files:
+
+- `src/main/java/com/bfi/bravo/config/LoggerConfiguration.java`
+- `src/main/java/com/bfi/bravo/config/RequestLoggingFilterConfig.java`
+- `src/main/resources/application-prod.yaml`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Move loop logging out of the loop in `BravoBranchTransactionalServiceImpl`

@@ -206,6 +206,37 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bravo-payment-service#2661](https://github.com/bfi-finance/bravo-payment-service/pull/2661)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-payment-service/tree/fix/logging), head `534327845`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-payment-service/pull/2661/files) · [Commits](https://github.com/bfi-finance/bravo-payment-service/pull/2661/commits) · [Compare against master](https://github.com/bfi-finance/bravo-payment-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 3 |
+
+Commit:
+
+- fix(logging): stop the request-logging filter capturing payment payloads
+
+Files:
+
+- `src/main/java/com/bfi/bravo/config/RequestLoggingFilterConfig.java`
+- `src/main/resources/application-prod.yaml`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Change `feign.client.config.default.loggerLevel` to `basic`

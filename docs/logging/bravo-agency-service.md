@@ -106,11 +106,15 @@ unconditionally — no `@ConditionalOnProperty`, unlike `bravo-onboarding-servic
 
 ### What this repo does mask
 
-`FeignSlf4jLogger.MASKED_FIELD` covers `Authorization`, `api-secret`, `x-api-key`,
-`X-ACCESS-TOKEN`, `x-auth-app-id` and `x-auth-app-secret`. Headers only — **bodies are not
-masked**. Agency payloads carry agent identity and commission data, so if the level is ever
-lowered, that list needs body entries too. `bravo-onboarding-service`'s `maskedField` list
-is the one to copy.
+`FeignSlf4jLogger.MASKED_FIELD` covers the auth headers — `Authorization`, `api-secret`,
+`x-api-key`, `X-ACCESS-TOKEN`, `x-auth-app-id`, `x-auth-app-secret` — **and request and
+response bodies**: `phone_number`, `NIK`, `identity_number`, `id_number`, `idNumber`,
+`email`, plus `customer.full_name`, `customer.npwp_number`, `customer.spouse_name` and
+`customer.spouse_identity_number` on both directions.
+
+An earlier version of this file said the list was headers only. That was wrong — it was
+true of `bravo-approval-engine-service` and `bravo-core-proxy-service`, which share the
+class name but not the list. This repo is one of the two best-masked in the estate.
 
 ### What you get back
 
@@ -203,6 +207,36 @@ service:prod-ms-agency env:prod
 If one returns nothing and the other returns plenty, you have either a name mismatch or a
 collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-agency` to
 tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
+## Implementation status
+
+**Pull request: [bravo-agency-service#1141](https://github.com/bfi-finance/bravo-agency-service/pull/1141)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-agency-service/tree/fix/logging), head `f5c5d0e4`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-agency-service/pull/1141/files) · [Commits](https://github.com/bfi-finance/bravo-agency-service/pull/1141/commits) · [Compare against master](https://github.com/bfi-finance/bravo-agency-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 2 |
+
+Commit:
+
+- fix(logging): safe defaults for Feign level and inbound payload logging
+
+Files:
+
+- `src/main/java/com/bfi/bravo/config/WebConfig.java`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 

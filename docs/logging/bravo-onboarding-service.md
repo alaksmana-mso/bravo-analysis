@@ -174,18 +174,28 @@ workaround in the Java estate, and then left it switched off.**
 | Entries carrying a captured body | 8 |
 | INFO entries | 47 |
 
-### Two mechanisms, both dormant
+### Three mechanisms, and the picture is not what it first looked like
 
-- `WebConfig.java:62` and `:78` — `CommonsRequestLoggingFilter` with
-  `setMaxPayloadLength(64000)`. This is item 1 above. It writes at the filter's own logger
-  level, which sits above DEBUG in production, so nothing is emitted.
-- `adapter/logger/FeignSlf4jLogger.java` — request and response bodies at Feign level FULL,
-  gated on `logger.isDebugEnabled()`, truncated at
-  `feign.client.config.default.max-chars-before-truncation: 5000`, and passed through
-  `JsonMasker` first. `setting.features.enableBfiLogger` is `false` in
-  `feature-properties.yml`, so the shared `bravo-lib-logging` filters are off as well.
+`WebConfig` declares **two** request filters, selected by
+`setting.features.loggingFilterV2`, and `feature-properties.yml` sets that to **true**:
 
-47 INFO entries in seven days is the proof that none of this is running.
+- `requestLoggingFilter` — a plain `CommonsRequestLoggingFilter`, payload on, 64,000
+  characters, **no masking**. Active only when the flag is `false`, so it is the inactive
+  fallback.
+- `applicationRequestLoggingFilter` — `ApplicationRequestLoggingFilter`, which overrides
+  `getMessagePayload` to run the body through `JsonMasker` before it is logged. **This is
+  the one that is wired**, and it is a good piece of work.
+
+And `application.yaml:14` sets `CommonsRequestLoggingFilter: DEBUG` — hardcoded, not a
+placeholder, with no override in `application-prod.yaml`. An earlier version of this file
+called both mechanisms dormant. That was not right: the level is set, and these filters
+write at DEBUG. Datadog drops DEBUG before indexing, which is why only 47 INFO entries
+appear in seven days — but **Cloud Logging still charges for every line.**
+
+The third mechanism, `adapter/logger/FeignSlf4jLogger.java`, does bodies at Feign level
+FULL gated on `logger.isDebugEnabled()`, truncated at 5,000 characters, masked.
+`setting.features.enableBfiLogger` is `false`, so the shared `bravo-lib-logging` filters
+are off.
 
 ### The masking list is the asset here
 
@@ -303,6 +313,36 @@ service:prod-ms-onboarding env:prod
 If one returns nothing and the other returns plenty, you have either a name mismatch or a
 collection gap — not an empty service. Widen the log search to `kube_deployment:prod-ms-onboarding` to
 tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
+## Implementation status
+
+**Pull request: [bravo-onboarding-service#6328](https://github.com/bfi-finance/bravo-onboarding-service/pull/6328)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-onboarding-service/tree/fix/logging), head `f3bb118aa`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-onboarding-service/pull/6328/files) · [Commits](https://github.com/bfi-finance/bravo-onboarding-service/pull/6328/commits) · [Compare against master](https://github.com/bfi-finance/bravo-onboarding-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 2 |
+
+Commit:
+
+- fix(logging): cut the 64 KB payload cap and stop the unmasked filter capturing bodies
+
+Files:
+
+- `src/main/java/id/co/bfi/bravo/config/WebConfig.java`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 

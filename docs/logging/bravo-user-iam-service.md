@@ -121,10 +121,21 @@ single, check:
 1. Whether the Agent is collecting this pod at all — search `kube_deployment:bau-prod-ms-user-iam`
    in Logs, not `service:`.
 2. `docker-entrypoint.sh` pipes output through `tee` into
-   `${SERVICE_LOG_DIR}/${SERVICE_NAME}.json` when that directory exists. stdout still flows,
-   so this should not break collection, but it does write every line twice and fills
-   container storage with a file nobody reads. Confirm `SERVICE_LOG_DIR` is unset in the BAU
-   deployment.
+   `${SERVICE_LOG_DIR}/${SERVICE_NAME}.json` when that directory exists, and
+   `SERVICE_LOG_DIR` **defaulted to `/tmp/log`** — so the behaviour depended on whether that
+   directory happened to exist in the image. stdout still flows, so this should not break
+   collection, but it writes every line twice and fills container storage with a file
+   nobody reads and nothing rotates.
+
+   **There is a second problem with that line, found while writing the fix.** In a
+   pipeline, the shell reports the exit status of the *last* command — `tee` — not the
+   service. `set -e` does not change this. So when the server crashes, the container exits
+   `0` and Kubernetes sees a clean shutdown rather than a failure. Any restart-loop or
+   crash alerting on this deployment has been blind for as long as that path has been
+   taken.
+
+   The fix makes file logging opt-in and `exec`s the service directly on the normal path,
+   so it runs as PID 1 and its exit status and SIGTERM handling are its own.
 3. Whether `LOG_LEVEL` is set higher on BAU than on the main deployment.
 
 ---
@@ -206,6 +217,32 @@ tracing-stack decision is in
    the real observability problem here, and it is covered above.
 3. Put identifiers on the OTel span — realm, client id, user id — never the token or the
    credential.
+
+---
+
+## Implementation status
+
+**Pull request: [bravo-user-iam-service#521](https://github.com/bfi-finance/bravo-user-iam-service/pull/521)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-user-iam-service/tree/fix/logging), head `1404107`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-user-iam-service/pull/521/files) · [Commits](https://github.com/bfi-finance/bravo-user-iam-service/pull/521/commits) · [Compare against master](https://github.com/bfi-finance/bravo-user-iam-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 1 |
+
+Commit:
+
+- fix(logging): make file logging opt-in in the entrypoint
+
+Files:
+
+- `docker-entrypoint.sh`
+
+**Nothing in this pull request was compiled or tested.** Go and Node are available through `mise`; `go build ./...` passes. This branch changes no Go files — the change is to `docker-entrypoint.sh`, checked with `sh -n`. Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 

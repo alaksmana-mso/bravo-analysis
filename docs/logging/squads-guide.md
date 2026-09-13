@@ -6,9 +6,13 @@ BFI is standardising on Datadog for logs, traces and metrics. Cloud Logging stop
 place you go to debug. This guide says what to log, what not to log, and which Datadog
 feature answers which question.
 
-It is based on measurements from all 152 repos and two days of production telemetry, not on
-general advice. Where a rule exists, it is because something in our estate is broken by
-breaking it.
+It is based on measurements from all 152 repos and production telemetry, not on general
+advice. Where a rule exists, it is because something in our estate is broken by breaking it.
+
+**Revised 13 September 2026**, after every one of the 73 repositories in this programme was
+read line by line and 64 pull requests were raised. Rules 2, 3 and 5 gained a section each
+as a direct result — the Go estate breaks these rules differently from the Java estate, and
+the first version of this guide only described the Java half.
 
 ---
 
@@ -104,6 +108,43 @@ logger.error(`Unexpected error at client response interceptor: ${JSON.stringify(
 
 Neither was malicious. Both are one line of well-meaning debugging code that shipped.
 
+**The same rule applies to queue consumers, and that is where the Go estate breaks it.**
+`bravo-partnership-service` had 70 call sites across 13 RabbitMQ consumers doing this on
+every failure path:
+
+```go
+Str("body", string(mqMessage.Body)).
+```
+
+That is the whole loan application payload, on the error path, at production volume.
+`bravo-employee-service` did it in Java on the *success* path — every inbound and outbound
+HC message logged in full, at `info`, about **900,000 times a week**, carrying religion,
+marital status, date and place of birth, bank account number and holder name.
+
+Log the message ID, the routing key and the size. If you need the payload to diagnose
+something, put it behind `isDebugEnabled()` and mask it first.
+
+**A URL can be a credential.** `backend-dashboard-otrs` logs the Google Chat webhook URL
+on every message it sends:
+
+```go
+log.Printf("✅ Sent ticket %s %s (%s) to channel %s", ..., webhookURL)
+```
+
+Google Chat webhook URLs carry their key and token in the query string. Those entries are
+in the log index now, and anyone with log read access can post into those spaces. If you
+log a URL, drop the query string:
+
+```go
+u, _ := url.Parse(raw); u.RawQuery = ""; u.Fragment = ""; u.User = nil
+```
+
+**And a field name is not a safety check.** `bravo-notification-service` had
+`tag.Any("private_key", config.Environment.VonagePrivateKey)` at `info`, and
+`fmt.Printf("… Private key PEM: %s", pemPrivateKey)` — which bypasses the logger entirely,
+so no level could ever have suppressed it. It also attached the bearer token to a logger it
+then used to report failed parses, so every malformed token was written out in full.
+
 ### Rule 3. Use levels honestly
 
 The test is one question: **would somebody do something about this?**
@@ -123,6 +164,37 @@ They belong at `debug`.
 `prod-ms-cnv` emits the same error 4,995 times in six hours. That one *is* a real error —
 20,000 employee records a day failing to sync. The level is right; the problem is that
 nobody noticed, because it is buried in the same stream as the noise.
+
+**A 4xx is not an error.** This is the single most common level mistake in the estate, and
+it hides in one place: the exception handler. `bravo-auth-service` funnels every response
+through one function that logged at `error` whatever status code it was handed:
+
+```go
+func (e *Error) Write(ctx context.Context, code int, message error, details interface{}) Error {
+    ...
+    log.ErrorX(ctx, e.Message.Error(), tag.Any("code", code), ...)
+```
+
+The result: **16,934 errors and 3 info entries a week**, 98.5% error, on an authentication
+service. A wrong OTP was an error. An expired refresh token was an error. Four Java
+services had the same shape in their `ControllerAdvice` — `bravo-repeat-order-service`
+alone logged 51,843 a week that way, including "Agent not found" and bean-validation
+failures.
+
+The rule: **let the status code pick the level.** 5xx is yours; 4xx is the caller's.
+
+```go
+logAt := log.ErrorX
+if code >= http.StatusBadRequest && code < http.StatusInternalServerError {
+    logAt = log.WarnX
+}
+```
+
+**A "not found" that the code already treats as normal is not an error either.**
+`bravo-pbf-service` returned `sql.ErrNoRows` from a lookup straight to its message-handling
+wrapper, which logged `sql: no rows in result set` — a message that names no agreement, no
+queue and no reason — **40,021 times a week, 97% of everything the service logs.** The very
+next function in the same file already treated the same error as the normal case.
 
 Honest levels are what make alerting possible. Dishonest levels are why alerting here does
 not work.
@@ -188,6 +260,42 @@ So:
   a package-level DEBUG set elsewhere — they are different keys, and this exact mistake is
   live in `bravo-bpm-service` and `bravo-onboarding-service` today.
 - If a default must exist, make the safe value the default.
+
+**In Go the equivalent trap is worse, because the safety looks like it is already there.**
+`bfi-go-pkg` provides `logger.JSONScrubberFunc(fields)`, and most Go services call it. The
+field list it is given comes from the environment:
+
+```go
+HTTPClientRequestBodyJSONMaskedFields []string `env:"HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS" envSeparator:","`
+```
+
+With **no `envDefault`**. An unset deployment hands the scrubber an empty list, and it
+masks nothing. Twenty-two repositories were in that state. Reading the code tells you
+masking is configured; it is not.
+
+`lora-gateway-service` was worse still — the scrubber call itself was commented out:
+
+```go
+httpclient.WithRequestBodyLoggingLimit(e.HTTPClientRequestBodyLogLimit),
+// httpclient.WithRequestBodyLoggingFunc(),
+```
+
+so the masked-fields variable was parsed and then never used. The comment above it read
+`// HTTP client request body logger (NON PRODUCTION ENVIRONMENT ONLY)`. It writes **69,433
+bodies a week in production**.
+
+Three things to check in a Go service:
+
+- Every `*_JSON_MASKED_FIELDS` has a non-empty `envDefault`, and the deployment manifest
+  does not override it with a blank.
+- Every `With*BodyLoggingFunc` is actually wired, not commented out.
+- `BODY_LOGGING_ON_ERROR_ONLY` defaults to `true`. Where it is `false`, every call logs its
+  body, not just the failures.
+
+**One compiler trap worth knowing**, because it will bite whoever fixes this: the shared
+config function is `func (e *Env) HTTPClient(logger zerolog.Logger)`. That parameter
+shadows the `logger` package inside the function, so `logger.JSONScrubberFunc` compiles
+against the parameter and fails. Alias the import.
 
 ---
 
@@ -392,16 +500,27 @@ Copy this into your squad's next planning session.
 - [ ] No secrets or customer data in any log line — check your HTTP client error paths first
 - [ ] `feign.client.config.default.loggerLevel` is `basic`, not `full`
 - [ ] `CommonsRequestLoggingFilter` has `setIncludePayload(false)` or is local-only
-- [ ] No `System.out`, `printStackTrace()`, or backend `console.log`
+- [ ] No `System.out`, `printStackTrace()`, `fmt.Print*`, `log.Print*` or backend
+      `console.log` — none of them carry a level
 - [ ] Log levels pinned explicitly in `application-prod.yaml`
+- [ ] No queue consumer logs `string(msg.Body)` — ID, routing key and size only
+- [ ] No log line contains a URL with a query string
+- [ ] **Go:** every `*_JSON_MASKED_FIELDS` has a non-empty `envDefault`, every
+      `With*BodyLoggingFunc` is wired and not commented out, and
+      `BODY_LOGGING_ON_ERROR_ONLY` is `true`
+- [ ] **Your exception handler picks the level from the status code** — 4xx at warn, 5xx at
+      error. This is the one that matters most; check it first
 
 **Make logs usable**
 
 - [ ] JSON encoder wired in the config that actually loads in production
 - [ ] Every log line carries a business identifier
 - [ ] Levels pass the "would anyone act on this?" test
-- [ ] Routine conditions moved to `debug`
+- [ ] Routine conditions moved to `debug` — including "not found" where the code already
+      treats it as the normal case
 - [ ] No log statement inside a loop over a collection
+- [ ] Every repeating message is a **constant string** — identifiers go in fields, never
+      interpolated into the message, or Datadog cannot group it and no query can match it
 
 **Use what is already there**
 
@@ -440,6 +559,26 @@ Copy this into your squad's next planning session.
 | Monitors | `https://us5.datadoghq.com/monitors/manage` |
 
 Our Datadog site is **us5**. A link starting `app.datadoghq.com` will not resolve to our org.
+
+### Your service probably already has a pull request
+
+Every repository in this programme has a file in `bravo-analysis/docs/logging/` named after
+it, and 64 of the 73 have an open pull request on a branch called `fix/logging`. The file
+names the finding, quotes the production numbers, says what the change does and — just as
+importantly — says what it deliberately left alone for you to decide.
+
+Two things to know before you review one:
+
+- **The Go ones are built; the Java ones are not.** Every Go change has had `go build`,
+  `gofmt` and `golangci-lint` run against it locally, and the shipped unit tests pass. Java
+  cannot be compiled on the machine these were written on — no Maven, and `/usr/bin/java` is
+  a stub — so those were reviewed by reading only. Nine defects have been found between CI
+  and the local toolchain; read the CI result, not the diff alone.
+- **A red `Static Analysis - SonarQube` check is probably not yours.** That job fails at a
+  Codacy step for a missing token, on 23 of the 64. Platform has it. Check what the job
+  actually says before you send the branch back.
+
+Index with every link: [README.md](README.md).
 
 ---
 

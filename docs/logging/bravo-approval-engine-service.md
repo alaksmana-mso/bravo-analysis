@@ -212,6 +212,37 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bravo-approval-engine-service#166](https://github.com/bfi-finance/bravo-approval-engine-service/pull/166)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-approval-engine-service/tree/fix/logging), head `aefbb29`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-approval-engine-service/pull/166/files) · [Commits](https://github.com/bfi-finance/bravo-approval-engine-service/pull/166/commits) · [Compare against master](https://github.com/bfi-finance/bravo-approval-engine-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 3 |
+
+Commit:
+
+- fix(logging): safe defaults for Feign level and inbound payload logging
+
+Files:
+
+- `src/main/java/com/bfi/bravo/client/logger/FeignSlf4jLogger.java`
+- `src/main/java/com/bfi/bravo/config/WebConfig.java`
+- `src/main/resources/application.yaml`
+
+**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
+macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
+Node turned out to be available through `mise`, and the Go changes in this programme have
+since been compiled and linted; Java cannot be built here.) Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Run the `kubectl set env --list` check above and record the answer

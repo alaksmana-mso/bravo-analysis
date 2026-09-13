@@ -241,6 +241,32 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## Implementation status
+
+**Pull request: [bravo-cnv-service#726](https://github.com/bfi-finance/bravo-cnv-service/pull/726)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-cnv-service/tree/fix/logging), head `3b4ccd4d`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bravo-cnv-service/pull/726/files) · [Commits](https://github.com/bfi-finance/bravo-cnv-service/pull/726/commits) · [Compare against master](https://github.com/bfi-finance/bravo-cnv-service/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 1 |
+
+Commit:
+
+- fix(logging): stop logging every HCIS attempt twice
+
+Files:
+
+- `internal/rabbitmq/employeemq/employee_hcis_consumer.go`
+
+**Nothing in this pull request was compiled or tested.** Go and Node are available through `mise`; `go build ./...` passes and `gofmt` is clean on the changed file. `golangci-lint` could not run — this repository needs `go mod vendor` first. Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
+
+---
+
 ## Checklist
 
 - [ ] Query the error text on `prod-ms-cnv` to classify why `UpdateMetadataConsumer` fails

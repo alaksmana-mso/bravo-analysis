@@ -5,7 +5,7 @@
     <p class="claim">Three questions. What does Bravo cost, compared fairly against LORA? What drives that cost? And which savings are real &mdash; how much is each one worth, and when can we take it?</p>
     <div class="stats stats--4" style="margin-top:6px">
       <div class="stat"><span class="stat__n pos">Rp&thinsp;58<small>M</small></span><span class="stat__l">The part of Bravo that runs loan workflows. The same part of LORA costs Rp&thinsp;431M.</span></div>
-      <div class="stat"><span class="stat__n neg">Rp&thinsp;140.5<small>M</small></span><span class="stat__l">Cloud Logging on its own. That is 2.4 times the whole workflow tier.</span></div>
+      <div class="stat"><span class="stat__n neg">Rp&thinsp;636<small>M</small></span><span class="stat__l">Three log platforms, not one. About 11 times the whole workflow tier.</span></div>
       <div class="stat"><span class="stat__n neg">Rp&thinsp;573.5<small>M</small></span><span class="stat__l">Test and staging environments. 31% of all Bravo spend, and nobody has looked at it.</span></div>
       <div class="stat"><span class="stat__n plain">4.5<small>%</small></span><span class="stat__l">The workflow engine&rsquo;s share of Bravo&rsquo;s own production bill.</span></div>
     </div>
@@ -27,7 +27,7 @@
       <div class="vrow"><p class="cl">Retiring Bravo saves about Rp1.6B a month</p><span class="v v--non">Withdrawn</span><p class="gi">We withdrew this claim before, and the new pull confirms the withdrawal. The Bravo GCP projects do bill <b>Rp1.874B</b> in August. But almost everything beyond the workflow tier is the <strong>shared BFI data plane</strong> &mdash; about 26 <code>ms-*</code> services that <em>LORA itself calls</em>. Those do not go away. What the migration actually retires is <b>about Rp58M in production, or Rp70&ndash;100M including test environments</b>. That is 8 to 14 times the cost of the whole Temporal Actions programme, not 227 times.</p></div>
       <div class="vrow"><p class="cl">The workflow engine is what makes Bravo expensive</p><span class="v v--ref">No</span><p class="gi">The workflow tier is <b>4.5% of Bravo&rsquo;s own production project</b>. Cloud SQL (Rp450.7M) and Compute Engine (Rp394.4M) make up 65% of <code>bravo-project-331802</code>, and most of neither one is the workflow engine.</p></div>
       <div class="vrow"><p class="cl">Bravo gets cheaper per application as it drains</p><span class="v v--ref">Refuted</span><p class="gi">Volume was <b>flat</b>: 117,996 applications in July, 118,253 in August. Support tickets <b>rose 82%</b> over eight months. The platform costs the same each month whatever the volume, so the cost per application is <strong>going up</strong>. Architecture has nothing to do with it.</p></div>
-      <div class="vrow"><p class="cl">The cost work worth doing is on the engine</p><span class="v v--ref">Refuted &mdash; three bigger savings</span><p class="gi">Cloud Logging costs <b>Rp140.5M a month</b>, which is 2.4 times the whole workflow tier. Behind it sit one global setting, <code>loggerLevel: full</code>, and an error stream that is 47% stack-trace lines. The Maps APIs cost <b>Rp64.0M a month</b>. Test and staging cost <b>Rp573.5M</b>.</p></div>
+      <div class="vrow"><p class="cl">The cost work worth doing is on the engine</p><span class="v v--ref">Refuted &mdash; three bigger savings</span><p class="gi">Logging costs <b>Rp635.8M a month</b> across three platforms &mdash; Cloud Logging Rp271.8M, Coralogix Rp253.3M, Datadog Rp110.6M &mdash; about 11 times the whole workflow tier. Behind it sit an error stream that is 47% stack-trace lines and a third of the bill spent on environments with no customers. The Maps APIs cost <b>Rp64.0M a month</b>. Test and staging cost <b>Rp573.5M</b>.</p></div>
       <div class="vrow"><p class="cl">Bravo&rsquo;s cost is a reason to keep it</p><span class="v v--sup">Partly &mdash; and it is the strongest argument on its side</span><p class="gi">But the part that would retire is small, about Rp58M. And the platform it would move to costs more per application today. <strong>The cost case for migrating is that LORA&rsquo;s cost for each extra application is close to zero, and that we would run one platform instead of two.</strong> It is not that Bravo is expensive.</p></div>
     </div>
     <p class="pull">Bravo&rsquo;s workflow layer is genuinely cheap. And almost none of Bravo&rsquo;s bill is the workflow layer.
@@ -171,7 +171,7 @@
       <tbody>
         <tr><td class="n">1</td><td class="k">Cloud SQL, whole production project</td><td class="n">Rp 450.7M</td><td>Real work. The workflow database is Rp52.7M of it.</td></tr>
         <tr><td class="n">2</td><td class="k">Compute Engine, whole production project</td><td class="n">Rp 394.4M</td><td>Real work</td></tr>
-        <tr><td class="n">3</td><td class="k"><b>Cloud Logging</b></td><td class="n"><span class="dn">Rp 140.5M</span></td><td><b>Mostly waste</b></td></tr>
+        <tr><td class="n">3</td><td class="k"><b>Log platforms</b> &mdash; Cloud Logging, Coralogix, Datadog</td><td class="n"><span class="dn">Rp 635.8M</span></td><td><b>Mostly waste</b></td></tr>
         <tr><td class="n">4</td><td class="k">Cloud Storage</td><td class="n">Rp 86.5M</td><td>Real work</td></tr>
         <tr><td class="n">5</td><td class="k"><b>Test and staging</b> (<code>bravo-project-nonprod</code>)</td><td class="n"><span class="dn">Rp 573.5M</span></td><td><b>31% of all Bravo spend. A governance problem.</b></td></tr>
         <tr><td class="n">6</td><td class="k"><b>Google Maps platform</b></td><td class="n"><span class="dn">Rp 64.0M</span></td><td><b>Real work, but see the geolocation defect</b></td></tr>
@@ -186,29 +186,32 @@
 <section class="slide" data-nav="Defect 1: Logging">
   <div class="inner">
     <p class="eyebrow"><b>&sect;5</b><span class="sep">/</span>Defect 1</p>
-    <h2 class="st">Cloud Logging costs Rp140.5M &mdash; 2.4 times the workflow tier</h2>
+    <h2 class="st">Logging costs Rp636M across three platforms &mdash; about 11 times the workflow tier</h2>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:14px">
         <p class="lede"><code>prod-ms-bpm</code> alone writes <strong>1,116,135 log lines a week</strong>. <strong>525,181 of them, or 47%, are errors.</strong> Two settings explain most of that, and both are visible in the code.</p>
-        <div class="note note--bad"><h4>One setting turns on full request logging for every client</h4><code>loggerLevel: full</code> is set globally on Feign. So <strong>all 113 HTTP clients log the complete request and response body</strong>. That means PEFINDO, SLIK, Dukcapil and CONFINS data goes into Cloud Logging as JSON. <em>It is a cost problem and a data-protection problem at the same time.</em></div>
+        <div class="note note--bad"><h4>It really does log full request and response bodies &mdash; but not for the reason we first gave</h4>We said <code>loggerLevel: full</code> on Feign put all 113 clients&rsquo; bodies into the logs. <strong>That setting only emits at DEBUG, and estate-wide there are no DEBUG logs.</strong> The bodies are real all the same: <code>prod-ms-bpm</code> writes <strong>487,146 body-carrying entries a week</strong> through its own <code>CustomFeignLogger</code>, at INFO. PEFINDO, SLIK, Dukcapil and CONFINS data does reach the logs. <em>Cost problem and data-protection problem, via a different mechanism.</em></div>
         <div class="note note--bad"><h4>Stack traces are logged one frame per line</h4>The most common error &ldquo;patterns&rdquo; in the log stream are literally <code>at org.springframework.&hellip;</code> (874 a week) and <code>at java.base/&hellip;</code>. <strong>One exception becomes dozens of lines we pay for.</strong> A single Camunda job failure writes <em>two</em> lines at <em>two</em> different severities. On top of that, <strong>38,198 <code>ENGINE-09004</code> warnings a week</strong> come from pods re-reading all 53 workflow model files every time they start.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <svg class="chart" viewBox="0 0 460 160" role="img" aria-label="Cloud Logging monthly cost compared with the workflow tier">
-          <g><rect class="bBad" x="4" y="14" width="336" height="34"></rect>
-            <text class="cl-lab" x="4" y="8">Cloud Logging, monthly</text>
-            <text class="cl-val" x="332" y="36" text-anchor="end" fill="var(--paper)">Rp 140.5M</text></g>
-          <g><rect class="bA" x="4" y="72" width="139" height="34"></rect>
-            <text class="cl-lab" x="4" y="66">Workflow tier &mdash; what the migration retires</text>
-            <text class="cl-valA" x="151" y="94">Rp 58.0M</text></g>
-          <g><rect class="bOk" x="4" y="122" width="134" height="20"></rect>
-            <text class="cl-lab" x="4" y="118">A cautious 40% cut to logging</text>
-            <text class="cl-val" x="146" y="137">Rp 56M recovered</text></g>
-          <line class="cl-ax" x1="4" y1="152" x2="340" y2="152"></line>
-          <text class="cl-lab" x="4" y="160">Rp 0</text><text class="cl-lab" x="340" y="160" text-anchor="end">Rp 140M</text>
+        <svg class="chart" viewBox="0 0 460 186" role="img" aria-label="Monthly spend on the three log platforms compared with the workflow tier">
+          <g><rect class="bBad" x="4" y="14" width="336" height="26"></rect>
+            <text class="cl-lab" x="4" y="8">All three log platforms, monthly</text>
+            <text class="cl-val" x="332" y="32" text-anchor="end" fill="var(--paper)">Rp 635.8M</text></g>
+          <g><rect class="bBad" x="4" y="58" width="144" height="26"></rect>
+            <text class="cl-lab" x="4" y="52">Cloud Logging alone</text>
+            <text class="cl-valA" x="156" y="76">Rp 271.8M</text></g>
+          <g><rect class="bA" x="4" y="102" width="31" height="26"></rect>
+            <text class="cl-lab" x="4" y="96">Workflow tier &mdash; what the migration retires</text>
+            <text class="cl-valA" x="43" y="120">Rp 58.0M</text></g>
+          <g><rect class="bOk" x="4" y="146" width="55" height="20"></rect>
+            <text class="cl-lab" x="4" y="142">Platform configuration, available now</text>
+            <text class="cl-valA" x="67" y="161">Rp 81&ndash;105M recovered</text></g>
+          <line class="cl-ax" x1="4" y1="176" x2="340" y2="176"></line>
+          <text class="cl-lab" x="4" y="184">Rp 0</text><text class="cl-lab" x="340" y="184" text-anchor="end">Rp 636M</text>
         </svg>
-        <p class="pull">This is the biggest line in Bravo&rsquo;s bill that we can actually do something about. It is <em>larger than the thing the migration would retire</em>. And the fix is a configuration change.
-          <small>Even a cautious 40% cut saves about Rp56M a month. <strong>That is the entire workflow tier, recovered without migrating anything.</strong></small></p>
+        <p class="pull">This is the biggest line in Bravo&rsquo;s bill that we can actually do something about. It is <em>many times larger than the thing the migration would retire</em>. And the first tranche is a configuration change.
+          <small><strong>Rp81&ndash;105M a month is recoverable from platform configuration alone</strong> &mdash; non-production retention, exclusion filters, Cloud SQL audit logs, flow-log sampling. No code change, no squad backlog. That is more than the entire workflow tier, recovered without migrating anything.</small></p>
       </div>
     </div>
     <div class="foot"><span class="src">bravo-cost.md &sect;5 Defect 1 &middot; compare-architecture.md Appendix C &middot; bravo-testing.md &sect;4</span><span>08</span></div>
@@ -266,7 +269,7 @@
     <p class="eyebrow"><b>What to do</b><span class="sep">/</span>Recommended actions</p>
     <h2 class="st">Eight actions</h2>
     <div class="recs">
-      <div class="rec first"><span class="no">1</span><span class="tx"><b>Cut the Cloud Logging bill <span class="sz">&middot; S, do this first &mdash; Rp50&ndash;90M a month</span></b>Turn off <code>loggerLevel: full</code> globally, then switch it back on for the few clients that need it. That also stops request bodies containing customer data from reaching Cloud Logging. Write each exception as one structured event instead of one line per stack frame. Fix the workflow models so <code>ENGINE-09004</code> stops recurring. <b>This is the largest saving in the document, the fastest, and the lowest risk.</b></span></div>
+      <div class="rec first"><span class="no">1</span><span class="tx"><b>Cut the log bill <span class="sz">&middot; S, do this first &mdash; Rp81&ndash;105M a month</span></b>Non-production retention and exclusion filters, Cloud SQL audit logs off in non-prod, flow-log sampling to 10%. <b>Platform configuration only &mdash; no code change and no squad backlog.</b> Then the code half: stop request bodies reaching the logs, write each exception as one structured event, and fix the models so <code>ENGINE-09004</code> stops recurring. <b>This is the largest saving in the document, the fastest, and the lowest risk.</b></span></div>
       <div class="rec first"><span class="no">2</span><span class="tx"><b>Open <code>bravo-project-nonprod</code> <span class="sz">&middot; S to look &mdash; up to Rp573.5M a month</span></b>This pack has never examined 31% of Bravo&rsquo;s spend. Produce a breakdown by service, and a list of what runs there and why. <b>Even a 20% cut is worth more than the migration.</b></span></div>
       <div class="rec"><span class="no">3</span><span class="tx"><b>Find out whether failed location calls are billed <span class="sz">&middot; S &mdash; up to Rp64.0M a month</span></b>We spend Rp64M a month on Maps APIs, on a console that fails to get a location 20,690 times a week. Find out whether the two are connected before deciding anything else. <b>We identified the owner on 2026-09-10.</b> The calls are made from <code>bravo-surveyor-console</code>, which uses <code>@react-google-maps/api</code> and runs to about 307,000 lines of code. It belongs to squad <b><code>LN</code> &mdash; Team Surveyor &amp; Verificator</b>, which already has 286 tests gating its pull requests, so there is somewhere to add a regression test once this is fixed.</span></div>
       <div class="rec"><span class="no">4</span><span class="tx"><b>Decide the Camunda history question explicitly <span class="sz">&middot; S&ndash;M</span></b>Recording history at <code>full</code> and keeping it for 90 days on Cloud SQL costs real money. After day 91, the only record of what happened to a loan is <code>application_status_log</code>, written by a database trigger. Either keep history for less time and accept that, or keep it as it is and stop calling it a cost problem. Either way, <b>make it a decision instead of a default.</b></span></div>
@@ -285,14 +288,14 @@
     <h2 class="st">30, 60, 90 days</h2>
     <p class="lede">Eight recommendations, in phases. Most of this needs <strong>FinOps and Platform time, not Squad S&amp;U engineers.</strong> That matters, because the biggest saving here is a configuration change, not the migration.</p>
     <div class="cols">
-      <div class="note note--bad"><h4>The rule for ordering this work</h4><strong>Savings that are configuration come before savings that are migration.</strong> Cloud Logging costs <strong>Rp140.5M a month &mdash; 2.4 times the whole Rp58M tier the migration would retire</strong>, and it is a configuration change available now. It starts in week one. <strong>The migration saving is not in this plan at all.</strong> It arrives when the migration finishes, and nothing here makes that sooner.</div>
+      <div class="note note--bad"><h4>The rule for ordering this work</h4><strong>Savings that are configuration come before savings that are migration.</strong> Logging costs <strong>Rp635.8M a month across three platforms</strong> &mdash; about 11 times the Rp58M tier the migration would retire &mdash; and <strong>Rp81&ndash;105M is recoverable by configuration alone</strong>. It starts in week one. <strong>The migration saving is not in this plan at all.</strong> It arrives when the migration finishes, and nothing here makes that sooner.</div>
       <div class="note"><h4>Shared with other documents</h4>Recommendation 5 is also rec 1 in <strong>bravo-observability.md</strong> and rec 1 in <strong>bravo-delivery.md</strong>. Recommendation 3 goes with rec 2 in <strong>bravo-delivery.md</strong>. Phased the same way in each, so do them once.</div>
     </div>
     <div class="phases">
       <div class="ph">
         <div class="ph__h"><span class="ph__d">Days 0&ndash;30</span><span class="ph__t">Start the largest saving, fix the counts</span></div>
         <ul>
-          <li><span class="r">1</span><span><b>Turn off <code>loggerLevel: full</code> globally</b>, then switch it back on only where it is needed. <em>S&amp;U and Platform &middot; 3 days.</em> <b>The largest single saving in the pack.</b> Upstream request bodies stop entering Cloud Logging, closing a cost problem and a data-protection problem together. The drop should show on the September bill.</span></li>
+          <li><span class="r">1</span><span><b>Non-prod retention and exclusion filters, Cloud SQL audit logs off, flow-log sampling.</b> <em>Platform &middot; 3 days.</em> <b>Rp81&ndash;105M a month, measured, no code change.</b> Then the code half, which also takes request bodies out of the logs. The drop should show on the September bill.</span></li>
           <li><span class="r">6</span><span><b>Define <code>Bravo total app</code> and <code>Lora total app</code></b> &mdash; above all, whether an application started in LORA is counted again in Bravo at go-live. <em>FinOps and the billing owner &middot; 2 days.</em></span></li>
           <li><span class="r">5</span><span><b>Fix the <code>feature-configuration</code> 404.</b> <em>S&amp;U &middot; 2 days.</em> The investigation sits in the observability plan.</span></li>
           <li><span class="r">7</span><span><b>Publish the workflow tier as a standing FinOps view.</b> <em>FinOps &middot; 1 day.</em> The Rp58M figure becomes a chart we track.</span></li>
@@ -313,7 +316,7 @@
         <div class="ph__h"><span class="ph__d">Days 61&ndash;90</span><span class="ph__t">Verify the savings landed</span></div>
         <ul>
           <li><span class="r">&#10003;</span><span>No new cost work. <b>This phase is verification, because a saving you cannot see on a later invoice is a plan, not a saving.</b></span></li>
-          <li><span class="r">1</span><span>September and October <b>Cloud Logging</b> against the August baseline of Rp140.5M. Target: a cut of Rp50&ndash;90M a month.</span></li>
+          <li><span class="r">1</span><span>September and October <b>Cloud Logging</b> against the August baseline of <b>Rp271.8M estate, Rp125.4M production project</b>. Target: a cut of <b>Rp81&ndash;105M a month</b> from platform configuration.</span></li>
           <li><span class="r">7</span><span>The <b>workflow tier&rsquo;s standing view</b> across three months. Confirm the Rp58M figure, and see which way it moves as volume drains.</span></li>
           <li><span class="r">6</span><span><b>Recompute the cost per application</b> on the agreed counts &mdash; the first figure in the pack that is not provisional.</span></li>
         </ul>

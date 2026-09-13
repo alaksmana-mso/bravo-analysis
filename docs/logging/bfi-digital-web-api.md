@@ -114,6 +114,14 @@ remembers this service by name.
 
 The fix is in the service identity section below.
 
+### There is more instrumentation here than the log volume suggests
+
+`app.js:2` initialises dd-trace with `logInjection: true`, and `src/v2/utils/serviceLogger.js`
+reads the active span and writes `trace_id` and `span_id` into every record as JSON. The v2
+half of this codebase is already doing what the rest of the estate is being asked to do.
+
+The 679 `console.log` calls are the v1 half, which bypasses all of that.
+
 ### What you get back, and the Node.js limit
 
 `package.json` has `dd-trace: ^6.1.0`, so the tracer is present. Datadog's Live Debugger
@@ -235,6 +243,35 @@ service:digital-prod-ms-bfi-digital-web-api env:digital-prod
 If one returns nothing and the other returns plenty, you have either a name mismatch or a
 collection gap — not an empty service. Widen the log search to `kube_deployment:digital-prod-ms-bfi-digital-web-api` to
 tell the two apart: results there mean the logs are arriving under a different service name.
+
+---
+
+## Implementation status
+
+**Pull request: [bfi-digital-web-api#711](https://github.com/bfi-finance/bfi-digital-web-api/pull/711)** — open, not merged.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-digital-web-api/tree/fix/logging), head `65d35c52`, branched from `master`.
+
+[Files changed](https://github.com/bfi-finance/bfi-digital-web-api/pull/711/files) · [Commits](https://github.com/bfi-finance/bfi-digital-web-api/pull/711/commits) · [Compare against master](https://github.com/bfi-finance/bfi-digital-web-api/compare/master...fix/logging)
+
+| | |
+|---|---|
+| Commits | 1 |
+| Files changed | 4 |
+
+Commit:
+
+- fix(logging): stop serialising whole error objects
+
+Files:
+
+- `app.js`
+- `src/v1/models/service/carCalculatorModel.js`
+- `src/v1/service/submission/submissionService.js`
+- `src/v1/utils/describeError.js`
+
+**Nothing in this pull request was compiled or tested.** Node is available through `mise`; `node --check` parses all four changed `.js` files. Every change was
+reviewed by reading; none was built. CI on the pull request is the first real
+check — do not merge on the strength of this document.
 
 ---
 
