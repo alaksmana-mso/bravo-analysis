@@ -1,6 +1,6 @@
-# Proposed app-deployment changes (not applied)
+# Proposed app-deployment changes — raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)
 
-Generated 14 September 2026 from `bfi-finance/app-deployment` at `master`. Each block is a unified diff against the file as it is today. Nothing here has been committed or pushed; these are for SRE and the owning squad to apply, trim, or reject.
+Generated 14 September 2026 from `bfi-finance/app-deployment` at `master`. Each block is a unified diff against the file as it was then. **All six sections were applied on branch `fix/logging` (commit `5c5ce78`, 20 files, +43/−37) and raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) the same day**, minus the one item §5 marks as not proposed (the `bpm` off-switch). Every changed file parses as YAML. SRE and the owning squads review, trim or reject from there; nothing has been merged.
 
 ## 1. Production log level debug -> info
 
@@ -411,3 +411,82 @@ Add next to the existing `RESPONSE_BODY_LOGGING: "false"` (line 1159):
       value: "false"
 ```
 
+
+
+## 5. bravo-bpm-service — the Feign body logger
+
+`bpm/values-prod.yaml` (lines 2172–2221) turns on the service's hand-written Feign logger:
+
+```yaml
+    - name: FEIGN_CUSTOM_LOG_VERSION
+      value: "3"
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG
+      value: "true"
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER
+      value: "false"
+```
+
+With it on, every Feign request and response body is written at INFO, unmasked and uncapped —
+about 22 GB a day, 89% of the service's log bytes, the largest single log producer in Bravo
+([bravo-bpm-service.md](bravo-bpm-service.md) §1). **The right fix is code, not this file:**
+[bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) adds
+masking and a size cap and turns full logging off by default. Until it merges there is no
+manifest setting that trims the logger — it has no size or masking switch — only the off
+switch:
+
+```yaml
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG
+      value: "false"
+```
+
+Flipping it removes the only place response bodies exist in this estate today, so it is a
+decision for the Scoring & Underwriting squad, not a default. Not proposed here; recorded so
+SRE knows where the switch is. The durable fix for the *line size* is not a manifest value
+either: it is adopting `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), whose encoder caps every
+message at 8 KB — bpm is on Boot 3.5.16 and can take it as soon as the PR merges.
+
+### `bpm/values-prod-sharia.yaml` — headers including `Authorization`
+
+The sharia deployment sets the header flags the main one leaves off (lines 863–868):
+
+```yaml
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER
+      value: "true"
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER_AUTH
+      value: "true"
+```
+
+`SHOW_HEADER_AUTH=true` bypasses the one redaction the logger has, so the `Authorization`
+header of every outbound call is written to the log. The service logged ten lines in the last
+24 hours, so the exposure is small — but it is a bearer token in a log index. Proposed:
+
+```yaml
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER
+      value: "false"
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER_AUTH
+      value: "false"
+```
+
+## 6. Java packages left at DEBUG
+
+Three manifest facts that cost nothing today — Datadog indexes no DEBUG line from any of
+them — but should not be left as they are:
+
+- **`customer/values-prod.yaml` and `customer/values-prod-sharia.yaml`** both set
+  `LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS` to `DEBUG`. Proposed: `INFO` in both.
+- **`agreement/values-prod-sharia.yaml`** sets the same variable to `DEBUG` while
+  `agreement/values-prod.yaml` has it at `INFO`. Proposed: `INFO` in the sharia file too.
+  *(An earlier version of this section read the two files as one and called this a duplicate
+  variable; it is a main/sharia mismatch.)*
+- **`approval-engine/values-prod.yaml` and `core-proxy/values-prod.yaml`** set nothing for
+  the Commons request-logging filter, whose level the code defaults to DEBUG with a 64 KB
+  payload. `agency` already pins it to `INFO`; `onboarding` to `OFF`. Proposed, in both files,
+  next to `LOGGING_LEVEL_ROOT`:
+
+  ```yaml
+      - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_FILTER_COMMONSREQUESTLOGGINGFILTER
+        value: "OFF"
+  ```
+
+  Neither service currently sends any log to Datadog (zero indexed entries in 24 hours), so
+  this is a landmine removed, not a saving.

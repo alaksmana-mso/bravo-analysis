@@ -56,7 +56,7 @@ Read from `app-deployment/gold-service/values-prod.yaml` on 14 September 2026. *
 Bodies are logged in production **with a masked-field list set here** — the pattern SRE asks for. The list is the squad's to keep current.
 **`LOGGER_LEVEL` is `debug` in production.** Every debug statement in the service ships to Cloud Logging and Datadog. This is the single cheapest change available for this service.
 
-**Proposed change to this file:** section §1 of [deployment-proposal.md](deployment-proposal.md) — a ready-to-apply diff, not applied. SRE and the owning squad decide.
+**Proposed change to this file:** section §1 of [deployment-proposal.md](deployment-proposal.md) — raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on 14 September 2026 (branch `fix/logging`), awaiting SRE review.
 
 ---
 

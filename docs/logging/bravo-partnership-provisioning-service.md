@@ -66,7 +66,7 @@ Read from `app-deployment/partnership-provisioning/values-prod.yaml` on 14 Septe
 **Bodies are logged in production and nothing is masked.** The switch is on and every masked-field list is set to an empty string, so `bfi-go-pkg`'s scrubber runs with nothing to scrub. That is a deployment setting, not a code defect — the fix is a field list in this file.
 **`LOGGER_LEVEL` is `debug` in production.** Every debug statement in the service ships to Cloud Logging and Datadog. This is the single cheapest change available for this service.
 
-**Proposed change to this file:** sections §1, §2 of [deployment-proposal.md](deployment-proposal.md) — a ready-to-apply diff, not applied. SRE and the owning squad decide.
+**Proposed change to this file:** sections §1, §2 of [deployment-proposal.md](deployment-proposal.md) — raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on 14 September 2026 (branch `fix/logging`), awaiting SRE review.
 
 ---
 

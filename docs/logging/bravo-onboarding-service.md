@@ -4,9 +4,13 @@
 **Production service:** `prod-ms-onboarding`
 **Stack:** Java, Spring Boot
 
-This is the one repo where payload logging is switched on **explicitly, by name, and
-confirmed active in the production profile**. Unlike the Feign case in
-[bravo-bpm-service](bravo-bpm-service.md), nothing here depends on a deployment manifest.
+This is the one repo where payload logging is switched on **explicitly, by name, in the
+production profile** — and the one where the deployment manifest switches it back off.
+`app-deployment/onboarding/values-prod.yaml` sets
+`LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_FILTER_COMMONSREQUESTLOGGINGFILTER=OFF` (read
+14 September 2026), so item 1 below writes nothing in production today. An earlier version
+of this file said nothing here depended on a manifest; that was wrong. The code fix still
+stands, because one environment-variable edit turns 64 KB request bodies back on.
 
 It is also the service that handles customer onboarding, so the bodies being logged are
 customer records.
@@ -43,10 +47,15 @@ logging:
 
 `src/main/resources/application-prod.yaml` sets `root: INFO`, `hibernate: WARN` and
 `security: INFO`. It overrides **none** of the three DEBUG entries above. They are
-different keys, so all three stay at DEBUG in production.
+different keys — but the manifest does what the profile does not: it sets the Commons
+filter's logger to `OFF`, leaves `utils` and `adapter` at DEBUG, and pins five more
+packages (`adapter.http.oauth`, `aspect`, the RabbitMQ publisher and consumer) at DEBUG
+explicitly. Datadog indexed five INFO lines from this service in the last 24 hours and no
+request payload.
 
-Result: every inbound request body, up to 64 KB, is written to Cloud Logging. On the
-onboarding service. That means names, identity numbers, addresses and document data.
+Result, as the code stands: every inbound request body, up to 64 KB, would be written to
+Cloud Logging — on the onboarding service, so names, identity numbers, addresses and
+document data. Today the manifest's `OFF` is the only thing preventing it.
 
 ### Fix
 
@@ -90,13 +99,14 @@ characters.
 The clients include `keycloak`, `ocr`, `duplicatecheck`, `dms` and `hardrac` — identity
 documents, OCR results and duplicate-check payloads.
 
-The same production caveat from [bravo-bpm-service](bravo-bpm-service.md) applies: no
-`END HTTP` markers and no `status:debug` entries appear anywhere in production. So this may
-be suppressed by a deployment environment variable.
-
-**But item 1 is not affected by that caveat**, because `CommonsRequestLoggingFilter` is
-named explicitly in the YAML. Fixing item 1 fixes the DEBUG level on
-`id.co.bfi.bravo.adapter` at the same time, which closes this one too.
+The manifest does **not** switch this one off: nothing in `onboarding/values-prod.yaml`
+overrides `id.co.bfi.bravo.adapter`, and the clients are built with
+`new FeignSlf4jLogger(<Client>.class)` under that package. Yet Datadog indexes none of it —
+no `--->`/`<---` markers, no body text, five INFO lines in 24 hours. Either the logback
+configuration that `LOGGER_LEVEL=INFO` drives wins over Spring's per-package level, or a
+Datadog index exclusion filter drops it; the one-minute check is Datadog's
+`Logs → Configuration → Indexes` page. Either way, fixing item 1's YAML removes the DEBUG
+level on `id.co.bfi.bravo.adapter` as well and closes this one for good.
 
 ### Fix
 
@@ -152,12 +162,13 @@ service would mean every identity number passing through JPA.
 
 | Item | Saving / month | Confidence |
 |---|---:|---|
-| 1 — 64 KB inbound payloads | Rp 5–12M | high, and it removes customer data from logs |
-| 2 — Feign bodies | Rp 0–5M | unknown, same manifest question as bpm-service |
+| 1 — 64 KB inbound payloads | Rp 0 today — the manifest sets the filter `OFF` | high that it costs nothing now; the fix removes the switch that would turn it back on |
+| 2 — Feign bodies | Rp 0 today — nothing indexed | medium; manifest does not override, Datadog shows none |
 | 3 — body logs in services | Rp 1–2M | medium |
 | 4 — exception logs | Rp 1–2M | medium |
 
-Item 1 is the one that matters, and it is a three-line change.
+Item 1 is still the change that matters — not for what it saves this month, but because it
+is customer data behind one environment variable — and it is a three-line change.
 
 ---
 
@@ -187,10 +198,10 @@ workaround in the Java estate, and then left it switched off.**
   the one that is wired**, and it is a good piece of work.
 
 And `application.yaml:14` sets `CommonsRequestLoggingFilter: DEBUG` — hardcoded, not a
-placeholder, with no override in `application-prod.yaml`. An earlier version of this file
-called both mechanisms dormant. That was not right: the level is set, and these filters
-write at DEBUG. Datadog drops DEBUG before indexing, which is why only 47 INFO entries
-appear in seven days — but **Cloud Logging still charges for every line.**
+placeholder, with no override in `application-prod.yaml`. The override is in the
+deployment: `values-prod.yaml` sets that logger to `OFF`. An earlier version of this file
+said Datadog was dropping the DEBUG lines and Cloud Logging still paying for them; the
+manifest says they are never written. That claim is withdrawn.
 
 The third mechanism, `adapter/logger/FeignSlf4jLogger.java`, does bodies at Feign level
 FULL gated on `logger.isDebugEnabled()`, truncated at 5,000 characters, masked.
@@ -289,7 +300,7 @@ env:
     valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
 ```
 
-These files live in the GitOps repo, not here. This repo deploys through
+These files live in `bfi-finance/app-deployment` (`bfi-app-deployment` for the `bfi-*-api` services), not here — SRE-owned, and read for this service on 14 September 2026; what they set is under *In the production deployment* below. This repo deploys through
 `bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
 raising as one change to the shared template rather than 104 separate pull requests. Ask the
 Platform team before opening anything.
@@ -330,8 +341,10 @@ Read from `app-deployment/onboarding/values-prod-sharia.yaml`, `app-deployment/o
 
 This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the library's `RequestLoggingFilter` and `FeignClientFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
 
-**Proposed change to this file:** section §4 of [deployment-proposal.md](deployment-proposal.md) — a ready-to-apply diff, not applied. SRE and the owning squad decide.
+**Proposed change to this file:** section §4 of [deployment-proposal.md](deployment-proposal.md) — raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on 14 September 2026 (branch `fix/logging`), awaiting SRE review.
 
+
+**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 3.5.15, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. Migrating off `bravo-lib-logging` means deleting the `logback*.xml` files and the manual filter beans, and telling SRE that the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`.
 ---
 
 ## Implementation status

@@ -195,7 +195,7 @@ env:
     valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
 ```
 
-These files live in the GitOps repo, not here. This repo deploys through
+These files live in `bfi-finance/app-deployment` (`bfi-app-deployment` for the `bfi-*-api` services), not here — SRE-owned, and read for this service on 14 September 2026; what they set is under *In the production deployment* below. This repo deploys through
 `bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
 raising as one change to the shared template rather than 104 separate pull requests. Ask the
 Platform team before opening anything.
@@ -235,6 +235,8 @@ Read from `bfi-app-deployment/bfi-payment-api/values-prod.yaml` on 14 September 
 
 This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It does not wire the library's `RequestLoggingFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
 
+
+**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 3.5.15, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. Migrating off `bravo-lib-logging` means deleting the `logback*.xml` files and the manual filter beans, and telling SRE that the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`.
 ---
 
 ## Implementation status

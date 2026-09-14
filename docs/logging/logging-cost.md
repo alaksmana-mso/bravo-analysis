@@ -14,7 +14,7 @@ Rp 50–90M a month by turning off Feign body logging. That recommendation appea
 [bravo-cost.md](../bravo-cost.md) and in the CTO deck.
 
 **The direction is right. Two of the supporting numbers are wrong, and the named mechanism
-is not confirmed in production.** Sections 1 and 2 give the corrected figures. Section 3
+is on in production but worth about a tenth of what was claimed.** Sections 1 and 2 give the corrected figures. Section 3
 explains what the evidence does and does not support. Section 4 lists the work, ordered by
 how much it saves and how sure we are.
 
@@ -178,9 +178,11 @@ Two lines are pure configuration and belong to nobody's backlog:
 
 ---
 
-## 3. The Feign claim does not hold up in production
+## 3. The Feign claim: real, at INFO not DEBUG, and worth Rp 5–8M not Rp 50–90M
 
-This is the part of the deck that needs correcting before it goes to a CTO.
+This is the part of the deck that needs correcting before it goes to a CTO. It was settled on
+14 September 2026 by reading `app-deployment/bpm/values-prod.yaml`; the version of this
+section written before that is summarised at the end.
 
 ### What the code says
 
@@ -200,38 +202,86 @@ every upstream call logs its full request and response body.
 `bravo-onboarding-service` has the same shape, plus inbound payload logging. See
 [bravo-onboarding-service.md](bravo-onboarding-service.md).
 
+### What the manifest says
+
+`app-deployment/bpm/values-prod.yaml`, lines 2172–2221:
+
+```yaml
+    - name: FEIGN_CUSTOM_LOG_VERSION
+      value: "3"
+    - name: FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+      value: basic
+    - name: LOGGING_LEVEL_ROOT
+      value: INFO
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG
+      value: "true"
+    - name: ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER
+      value: "false"
+```
+
+The fourth entry is the one that matters. It makes `FeignLoggingConfiguration` register
+`CustomFeignLogger` as the Feign logger bean, replacing the standard `Slf4jLogger`. The
+standard logger writes at DEBUG and ends every exchange with `<--- END HTTP`; the custom one
+writes at **INFO**, one entry per response, carrying `Status=`, `ElapsedTime=`, `Method=`,
+`Url=`, `BodyLength=`, `RequestBody=` and `ResponseBody=`. So the two checks this section
+used to rest on — zero `status:debug`, zero `END HTTP` — were looking for the wrong logger.
+Nothing overrides `com.bfi.bravo.adapter`, which stays at DEBUG, and produces nothing,
+because the custom logger does not write through that package. The `basic` default level is
+inert: the code hard-codes `Logger.Level.FULL` and every client sets `full` by name.
+
 ### What production says
 
-Nothing. Over two days across every production service:
+`prod-ms-bpm` in Datadog, 24 hours to the afternoon of 14 September 2026:
 
-| Check | Result |
-|---|---|
-| Logs at `status:debug`, all of prod | **0** |
-| Logs containing `END HTTP`, the Feign full-logging terminator | **0** |
+| | Count |
+|---|---:|
+| Entries carrying `ResponseBody=` | 84,028 |
+| Entries carrying `RequestBody=` only | 2,602 |
+| Of those 86,630, cut at Datadog's 76,800-byte message limit | 86,623 |
+| Indexed message bytes, body entries | 6.65 GB |
+| Indexed message bytes, everything else the service logged | 0.82 GB |
+| Ingested bytes, whole service, per day (`datadog.estimated_usage.logs.ingested_bytes`, 7-day mean) | ~25 GB |
 
-Feign's full logger writes at DEBUG and ends every exchange with `<--- END HTTP (n-byte
-body)`. Neither marker exists anywhere in production.
+Eighty-nine per cent of what this service logs is captured HTTP bodies, and almost every one
+of them is longer than Datadog will index, so the real payloads are larger than the indexed
+count shows. Over the last six hours `prod-ms-bpm` produced more indexed log bytes than any
+other production service, ahead of `prod-inventory-management`, `prod-ms-cnv` and
+`prod-ms-repeat-order`.
 
-### What that means
+### What it is worth
 
-One of two things is true, and we cannot tell which from these repos:
+About 22 GB a day of bodies, 660 GB a month — the contract's entire monthly log-ingestion
+commitment every twelve days, from one logger. At the rates in §1a that is $0.10/GB of
+Datadog ingestion, roughly **$70 a month**, plus about 2.6M indexed events at $1.59–1.91 per
+million, under $5. Cloud Logging charges $0.50/GiB past the free tier: **roughly Rp 5–8M a
+month** at Rp 16,000 to the dollar, the upper end allowing for the envelope the 16 KB
+container-runtime split adds to every chunk of a line this size.
 
-1. **The deployment overrides the log level.** A `LOGGING_LEVEL_COM_BFI_BRAVO_ADAPTER`
-   environment variable in the Helm chart or Kubernetes manifest would switch it off. None
-   of the 152 repos under `squads/` contains a deployment manifest — they live in a GitOps
-   repo we do not have. This is the likelier explanation.
-2. **Datadog drops DEBUG before indexing**, and Cloud Logging still pays for it.
+**The Rp 50–90M figure does not survive that arithmetic, and neither does the Rp 0–40M range
+this document carried while the manifests were unread.** The mechanism is real, it is on, it
+is the biggest single log producer in Bravo, and it is a data-protection problem — unmasked
+credit-bureau and CONFINS payloads at INFO — but as a cost line it is single-digit millions
+of rupiah a month. The fix is written in two layers:
+[bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) masks
+and truncates the bodies and turns full logging off by default; and the new Java starter
+([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), extended on 15 September) caps every message at 8 KB at the encoder and ships a
+Feign logger that never writes headers — bpm is on Boot 3.5.16 with no shared logging
+library today, so it is the first service that should adopt it. The emergency switch is
+`ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=false` in the manifest, at the price of losing the
+only place response bodies exist in this estate today — see
+[bravo-bpm-service.md](bravo-bpm-service.md).
 
-**Until somebody checks the deployment manifests, the Rp 50–90M saving attributed to this
-fix is not evidence-based.** It is a code reading with no production signal behind it.
+*Before 14 September this section read: zero `status:debug` and zero `END HTTP` across
+production, therefore either a manifest variable switches the level off or Datadog drops
+DEBUG before indexing, and "until somebody checks the deployment manifests, the Rp 50–90M
+saving attributed to this fix is not evidence-based". The manifests have been checked. Neither
+explanation was right: the bodies were being logged the whole time, at a level the checks did
+not look at.*
 
-Checking costs about an hour: read the ms-bpm manifest, or run
-`kubectl set env deploy/prod-ms-bpm --list | grep -i logging` against the prod cluster.
-**Do that before the deck is shown.** It flips a headline number in either direction.
+### The configuration is still wrong
 
-### What is true either way
-
-The configuration is wrong and should be fixed regardless. `loggerLevel: full` on
+Independently of the custom logger, the standard-logger configuration is wrong and should be
+fixed regardless. `loggerLevel: full` on
 `feign.client.config.default` means a single line in one manifest — or one careless merge
 to `application-prod.yaml` — starts writing PEFINDO, SLIK, Dukcapil and CONFINS request
 bodies into Cloud Logging. That is a data-protection exposure sitting behind one
@@ -247,6 +297,12 @@ Feign packages sit at INFO or WARN:
 - `bravo-edoc-service` sets it on a single client, `ApigeeApiClient`. That is already the
   right shape — the blast radius is one integration, not 28.
 
+The manifests add two more of the same kind, in a different package:
+`customer` sets `LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS=DEBUG` in both its production
+manifests (main and sharia), and `agreement` has it at `DEBUG` in the sharia manifest while
+the main one says `INFO`. Datadog indexes no DEBUG line from either, but neither should be
+there — [deployment-proposal.md](deployment-proposal.md) §6.
+
 ---
 
 ## 4. What is actually driving volume
@@ -255,15 +311,33 @@ These come from production logs, not from reading code. Each one is measured.
 
 ### 4.1 Empty log lines — `confins-prod-ms-lms-ar-be`
 
-The highest-volume service in production emits **blank log lines**. Message field empty,
-several per second, 2,730 in one hour and 9.25 million over seven days.
+**Corrected 14 September 2026.** This section used to say the highest-volume service in
+production emits blank log lines — message field empty, 9.25 million a week, carrying no
+information — and that it needed a CONFINS owner to stop them. Both halves were wrong. The
+full investigation is in [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md).
 
-They are shipped, indexed and stored. They carry no information at all. Every one still
-pays the per-entry metadata envelope — roughly 500–1,000 bytes of resource labels,
-timestamps and Kubernetes attributes.
+**The lines are not blank.** The vendor's C# JSON logger writes no `message` key, so
+Datadog's message column is empty. Every entry carries `action`, `req_path`, a request id
+and a `payload` holding the full HTTP body: 1.2 KB on average, up to 25.6 KB, with agreement
+numbers, customer numbers and outstanding balances. Two entries per call, request and
+response. It is a body-logging finding, the same class as §5a.
 
-This is the single clearest piece of waste found. It sits in CONFINS, which is outside the
-Bravo repos, so it needs an owner naming.
+**Ninety per cent of the volume is re-ingestion, not traffic.** The service serves
+300–370k requests a day and Datadog indexes about 200k of its entries a day in steady
+state. The 2.2M and 2.4M days were one-hour bursts at rollouts: a new pod re-read every log
+file left on its node by dead pods — files written 12 to 30 August — and pods on the same
+node tailed each other's files. The logs go to `/var/log/<pod>.json` on a path shared across
+pods, and the Datadog Agent tails them with a wildcard file configuration. The same disease
+is in `confins-prod-ms-foundation-be`, `confins-prod-ms-ce-camunda-external-task-client`,
+`confins-prod-ms-lms-amendment-be` and the `ce-batch-worker-*` family. About a third of all
+indexed production log events in the week to 14 September were CONFINS re-ingestion.
+
+**It costs nothing in Cloud Logging.** The application writes files, not stdout, and
+`core-system-prod` does not appear in the Cloud Logging line items in §2. The cost is
+Datadog log events — most of the overage against the 150M-a-month commitment in §1a.
+
+The fix is SRE's, not the vendor's: stop tailing a shared file path, purge the stale files,
+and exclude `@action:(Request OR Response) status:info` from the index meanwhile.
 
 ### 4.2 One repeating error — `prod-ms-cnv`
 
@@ -343,14 +417,19 @@ An optional form field being absent is normal. It is logged as a warning on ever
 `setMaxPayloadLength(64000)`, and `application.yaml` sets that filter's logger to `DEBUG`.
 `application-prod.yaml` does not override it.
 
-Unlike the Feign case, this one is switched on explicitly and by name. Every inbound
-request body up to 64 KB is written to logs — on the service that handles customer
-onboarding.
+Switched on explicitly and by name in the code — and switched **off** by the deployment:
+`app-deployment/onboarding/values-prod.yaml` sets
+`LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_FILTER_COMMONSREQUESTLOGGINGFILTER=OFF`, so nothing
+is written in production today. The code fix stands because one environment-variable edit
+would start writing 64 KB request bodies on the service that handles customer onboarding.
 
 Three more repos register the same filter with a 64 KB payload limit and a logger level of
 `${LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER:DEBUG}` — **DEBUG unless the deployment says
 otherwise**: `bravo-agency-service`, `bravo-approval-engine-service`,
-`bravo-core-proxy-service`. Same manifest check as section 3 settles all three.
+`bravo-core-proxy-service`. The manifests settle all three: `agency` sets it to `INFO`;
+`approval-engine` and `core-proxy` set nothing — and neither sends a single log line to
+Datadog (zero indexed entries in 24 hours), so it costs nothing there today. Pinning the
+level in both manifests is in [deployment-proposal.md](deployment-proposal.md) §6.
 
 ---
 
@@ -489,7 +568,7 @@ code work combined and depends on nobody's sprint.
 | 3 | **Turn off Cloud SQL audit/slow-query logs in non-prod** | Platform | 2 h | **Rp 15–18M** | high |
 | 4 | **VPC flow log sampling to 10%** | Platform | 1 h | **Rp 6–7M** | high |
 | 5 | **Fix `HttpHelper.ts` and rotate the leaked secret** | Contract Collateral | 2 h | Rp 2–4M | high, and it is a security fix |
-| 6 | **Stop the blank log lines in `confins-prod-ms-lms-ar-be`** | CONFINS owner | 1 d | Rp 5–15M | medium, needs an owner |
+| 6 | **Stop the Datadog Agent re-reading CONFINS log files on every rollout** — shared-path file tailing, not blank lines; §4.1 and [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md) (corrected 14 Sep) | SRE | 1 d | Cloud Logging **nil**; Datadog: about a third of indexed prod log events | high |
 | 7 | **Fix the HCIS consumer failure in `bravo-cnv-service`** | Internal Service | 2–3 d | Rp 3–8M | medium, mostly a bug fix |
 | 8 | **Enable multi-line stack trace aggregation** cluster-wide | Platform | 1 d | Rp 10–20M | medium |
 | 9 | **Check the deployment manifests for Feign log levels** | S&U + Platform | 1 h | decides items 10–11 | — |
@@ -498,9 +577,10 @@ code work combined and depends on nobody's sprint.
 | 12 | **Fix the ENGINE-09004 BPMN model warnings** | S&U | 2 d | Rp 2–5M | high |
 | 13 | **Downgrade routine warnings to debug** in `lora-task-service` | LORA Core | 1 d | Rp 3–6M | medium |
 | 14 | **Long tail**: `printStackTrace`, `System.out`, `console.log`, logs in loops | All squads | ongoing | Rp 5–10M | low each |
-| 15 | **Merge the 48 open service pull requests and the two wrapper ones.** Written, raised, waiting on squad review — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
+| 15 | **Merge the 48 open service pull requests and the three wrapper ones.** Written, raised, waiting on squad review — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
+| 15a | **Adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) in the 20 Boot 3.x Java services, `bravo-bpm-service` first.** 8 KB message cap, JSON lines, request logging off, Feign bodies opt-in and masked. Boot 2.7 services stay on `bravo-lib-logging` + #123 | Platform + each Java squad | 1 d each | line size and parse rate, not only bytes | high |
 | 16 | **Fix the three CI gate faults.** A missing Codacy API token (5 pull requests), a `codacy-cli.sh` installer that dies with `command not found`, and a SonarQube new-code baseline that scores a 10-line pull request as 9,855 new lines. Each squad currently has to be told which red check to ignore | Platform | 2 h | unblocks #15 | high |
-| 17 | **Give every Go `*_JSON_MASKED_FIELDS` a default** and check no manifest overrides it with a blank | Platform + each squad | 1 d | exposure, not cost | high |
+| 17 | **Set every Go `*_JSON_MASKED_FIELDS` list per service in `app-deployment`** where bodies are logged — SRE's call: the list is a deployment setting, not a code default ([deployment-proposal.md](deployment-proposal.md) §2) | SRE + each squad | 2 h | exposure, not cost | high |
 | 18 | **Rotate the Google Chat webhook credentials** in `bau-prod-ms-otrs-report`, and find someone with write access to that repo | Platform / security | 1 d | security | high |
 
 **Items 1–4 are Rp 81–105M a month excluding Coralogix, and they are all platform
@@ -533,17 +613,18 @@ What does not hold:
   alone was Rp 125.4M.
 - **"2.4× the orchestration tier" understates it.** Cloud Logging alone is 4.7×. All three
   platforms together are about 11×.
-- **The Feign mechanism is unproven in production.** Zero DEBUG logs and zero `END HTTP`
-  markers across the estate. The Rp 50–90M figure is attached to a cause we have not
-  confirmed is active.
+- **The Feign figure is about ten times too high.** The mechanism is on in production — a
+  hand-written logger at INFO, which is why no DEBUG line or `END HTTP` marker ever
+  appeared — and it measures to about 22 GB a day: roughly Rp 5–8M a month across Cloud
+  Logging and Datadog, not Rp 50–90M.
 - **The named fix is not the biggest lever.** Non-production logging is Rp 93.1M a month
   and is certain. Coralogix is Rp 253M a month and nobody has justified it.
 
 The honest version for a CTO: *logging costs Rp 636M a month across three platforms,
 about a third of it on environments that serve no customer, and one service is writing a
 live API secret into the logs. Rp 81–105M a month is recoverable by platform configuration
-alone, starting this week. The Feign question needs a one-hour manifest check before we
-put a number on it.*
+alone, starting this week. The Feign logger the deck named is real and should be fixed for
+data protection, but it is worth Rp 5–8M a month, not Rp 50–90M.*
 
 That is a stronger case than the one in the deck, and every figure in it survives contact
 with the billing data.
@@ -559,16 +640,16 @@ wrong.
 | File | Said | Now says | Applied |
 |---|---|---|---|
 | `bravo-cost.md` §5, §6, line 81, 165, 172, 242, 272 | Cloud Logging Rp 140.5M | Rp 271.8M estate; Rp 125.4M prod project (Aug 2026) | ✅ |
-| `bravo-cost.md` line 176 | `loggerLevel: full` means 113 clients log bodies | 129 entries, 57 clients, in `bravo-bpm-service`; not observed in production | ✅ |
-| `bravo-cost.md` line 207, 227 | Rp 50–90M from the Feign fix | Unsized until the deployment manifests are checked | ✅ |
+| `bravo-cost.md` line 176 | `loggerLevel: full` means 113 clients log bodies | 129 entries, 57 clients, in `bravo-bpm-service`; the standard logger is replaced by a custom one at INFO, so the bodies are logged but not by that setting | ✅ |
+| `bravo-cost.md` line 207, 227 | Rp 50–90M from the Feign fix | Rp 5–8M a month, measured from the manifest and Datadog on 14 September 2026 (§3) | ✅ |
 | `compare.md` line 135, 226, 359 | Rp 140.5M, 2.4× the tier | Rp 271.8M, 4.7× the tier | ✅ |
 | `compare-architecture.md` line 258, 316, 318 | Cloud Logging ≈Rp 201M / Rp 140.5M prod | Rp 271.8M estate; Rp 125.4M prod | ✅ |
 | `option-3.md` line 174 | Rp 140.5M/month prod logging line | Rp 125.4M prod (Aug 2026) | ✅ |
 | CTO deck `body_cto.html` slide 08 | "Cloud Logging alone costs Rp 140.5M a month… 2.4 times the tier" | Rp 271.8M, 4.7× — and drop the Feign attribution until #9 is done | ✅ |
 
-Three documents also repeated the Rp 50–90M saving as settled. It is not settled. Each has
-been changed to the Rp 81–105M platform figure, which is measured, with the Feign saving
-marked unsized pending the manifest check.
+Three documents also repeated the Rp 50–90M saving as settled. Each has been changed to the
+Rp 81–105M platform figure, which is measured. The Feign saving, marked unsized in those
+documents while the manifests were unread, is now sized at Rp 5–8M a month (§3).
 
 Two more were corrected at the same time, beyond the list above:
 [lora-workspace `production-findings/cost.md`](../../../lora-workspace/docs/production-findings/cost.md)
@@ -586,4 +667,5 @@ Two of them are mine.
 | §5's estate scan gives the per-repo ranking | The scan is Java-shaped and returns a **false clean bill for the Go estate**, which is about two-thirds of the repositories. Rank by production severity mix, then read the code | §5a above |
 | `prod-ms-krakend-gateway` is "an access log wearing the wrong level. Nothing is wrong" | The plugin levels by status code, correctly, and production runs at WARNING. The 942,909 warn entries a week are **real 4xx responses** — 415,388 of them one WhatsApp endpoint returning 400 | [coverage.md](coverage.md) §1, [sre-datadog-recommendations.md](sre-datadog-recommendations.md) §5 |
 | Four repositories mapped to a production service by name similarity | Datadog's `git.repository_url` tag settles it. `prod-ms-calculation` is `lms-calculation-service`, `prod-ms-kyc-proxy` is `bravo-kyc-proxy`, `prod-ms-rule-engine` is `bfi-rule-engine-service`, `prod-ms-notification` is `bravo-notification-service` | [coverage.md](coverage.md) §1 |
+| §4.1: `confins-prod-ms-lms-ar-be` emits 9.25M **blank lines** a week and needs a CONFINS owner; item 6 saves Rp 5–15M of Cloud Logging | The lines are full HTTP bodies with no `message` key, ~90% of the volume is the Datadog Agent re-reading dead pods' files on every rollout, it costs nothing in Cloud Logging, and the fix is SRE's | §4.1 above, item 6, [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md) |
 | "70 production-active repositories" | Too generous — it came from the same name join. **Only 39 repositories identify themselves in production logs**, and six services in the list emit no telemetry at all | [coverage.md](coverage.md) §2, §4 |

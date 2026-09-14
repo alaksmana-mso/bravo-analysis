@@ -108,7 +108,7 @@ env:
 of the estate uses, and it is already the name on 1.9 million spans, so choosing it means no
 trace history is orphaned.
 
-These files are in the GitOps repo, not here. This repo deploys through
+These files live in `bfi-finance/app-deployment` (`bfi-app-deployment` for the `bfi-*-api` services), not here — SRE-owned, and read for this service on 14 September 2026; what they set is under *In the production deployment* below. This repo deploys through
 `bfi-finance/bfi-base-template/.github/workflows/go-deploy-prod.yaml` with `service: user-iam`
 — a template **104 of the 152 repos share**. Raise it with Platform as one change to the
 shared template rather than as a change to this repo.

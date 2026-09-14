@@ -22,7 +22,7 @@ the current setup silently useless.
 
 Datadog bills on ingested bytes and indexed events. Most of the enablement in this document
 would increase that. Our production log stream is currently **4.5 million entries a day, of
-which 93.6% are unparsed** and a large share is measurable waste — blank lines, repeated
+which 93.6% are unparsed** and a large share is measurable waste — unparsed bodies, repeated
 errors, serialised payloads.
 
 If we enable ingestion improvements against today's stream, we do not fix the problem. We
@@ -92,7 +92,7 @@ Five services produce 64% of all production log entries, and most of that volume
 
 | Service | Entries / 2 days | Share | What it is |
 |---|---:|---:|---|
-| `confins-prod-ms-lms-ar-be` | 2,640,747 | 29% | **Genuinely blank log lines** |
+| `confins-prod-ms-lms-ar-be` | 2,640,747 | 29% | **Full HTTP bodies, ~90% re-ingested at rollouts** — see [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md) (corrected 14 Sep) |
 | `prod-lora-task` | 1,291,274 | 14% | Routine conditions logged at `warn` |
 | `prod-ms-calculation` | 770,394 | 9% | Axios config dumps, one per 4xx |
 | `prod-ms-cnv` | 752,562 | 8% | The same error 20,000 times a day |
@@ -102,6 +102,14 @@ Five services produce 64% of all production log entries, and most of that volume
 None of that is telemetry anyone reads. Removing it roughly halves the stream before we ask
 Datadog to ingest it properly — so every per-GB item in Phase 3 costs about half as much,
 permanently.
+
+**Corrected 14 September 2026.** The first row is not a squad item and not a vendor item.
+The entries are request and response bodies with no `message` key, and the two-day count
+includes a one-hour burst in which a newly scheduled pod re-read sixteen log files left on
+its node by dead pods, with application timestamps from August. The same happens across the
+CONFINS family (`foundation-be`, `ce-camunda-external-task-client`, `lms-amendment-be`, the
+`ce-batch-worker-*` jobs). It is a Datadog Agent file-tailing configuration on the
+`core-system-prod` cluster, and it is SRE's to fix — §3 below and [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md).
 
 **That is the whole argument for this ordering.** The cleanup is not a prerequisite because
 it is tidy. It is a prerequisite because it changes the price of everything after it.
@@ -477,14 +485,19 @@ Phase 2 is 64% done when these five are fixed. SRE should track them by name:
 
 | Service | Owner | Fix | Doc |
 |---|---|---|---|
-| `confins-prod-ms-lms-ar-be` | **needs an owner** | Stop emitting blank lines | [logging-cost.md](logging-cost.md) §4.1 |
+| `confins-prod-ms-lms-ar-be` | **SRE** — collection defect; the traffic is Contract Collateral's core-proxy | Stop shared-path file tailing, purge stale files, index exclusion meanwhile | [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md) |
 | `prod-lora-task` | LORA Core | Routine warnings to debug | [lora-task-service.md](lora-task-service.md) |
 | `prod-ms-calculation` | Contract Collateral | Stop `JSON.stringify(error)` — **also a leaked secret** | [lms-calculation-service.md](lms-calculation-service.md) |
 | `prod-ms-cnv` | Internal Service | Fix the HCIS sync failure | [bravo-cnv-service.md](bravo-cnv-service.md) |
 | `prod-ms-bpm` | Scoring and Underwriting | Feign config, stack traces, ENGINE-09004 | [bravo-bpm-service.md](bravo-bpm-service.md) |
 
-`confins-prod-ms-lms-ar-be` has no identified owner and is the single largest contributor at
-29%. **Naming that owner is an SRE action, this week.**
+**Corrected 14 September 2026.** This paragraph used to say the service "has no identified
+owner" and that naming one was the SRE action. The owner question is moot for the volume:
+about 90% of it is the Datadog Agent re-reading dead pods' files from a shared `/var/log` on
+every rollout, and pods on one node indexing each other's lines. That is SRE's configuration
+on `prod-core-system-cluster`. The image is built in BFI's own `bfi-devsecops` registry; the
+vendor is AdIns; the bodies themselves are a data-handling question for whoever owns the
+CONFINS contract. Evidence and the fix in [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md).
 
 ### 3a. Phase 2 is written and raised — four things now belong to SRE
 
@@ -553,8 +566,9 @@ eight production services run at `debug`.** SRE gave access to `app-deployment` 
 `bfi-app-deployment` on 14 September 2026 (`confins-app-deployment` was not reachable).
 Every `values-prod.yaml` for the 65 repositories in this programme has been read; what each
 one sets is in that service's file under *In the production deployment*, and the changes are
-written out as diffs in [deployment-proposal.md](deployment-proposal.md), **not applied**.
-The four findings that matter:
+written out as diffs in [deployment-proposal.md](deployment-proposal.md) and raised as
+[app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on `fix/logging` — **not merged**.
+The five findings that matter:
 
 - **`LOGGER_LEVEL=debug` in production** on `audit-trail`, `gen-ai`,
   `partnership-provisioning`, `robot-controller`, `supplier`, `doc-renderer`,
@@ -568,11 +582,23 @@ The four findings that matter:
   BFI list — for the squads to trim.
 - **Every body, not only failures**, on `doc-renderer`, `portfolio-management-service` and
   `database-catalog` (`HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY=false`).
+- **`bpm` runs a hand-written Feign body logger at INFO.** `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true`
+  in `bpm/values-prod.yaml` replaces Feign's DEBUG logger with `CustomFeignLogger`, which
+  writes every request and response body unmasked and uncapped — 89% of the service's log
+  bytes, about 22 GB a day, the largest single log producer in Bravo. The sharia deployment
+  additionally logs headers *including `Authorization`* (`…SHOW_HEADER_AUTH=true`), though it
+  wrote ten lines in the last day. The code fix is
+  [bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463);
+  the manifest switch is the fallback — [deployment-proposal.md](deployment-proposal.md) §5.
 - **Java defaults.** `bravo-lib-logging` defaults `REQUEST_BODY_LOGGING` and
   `RESPONSE_BODY_LOGGING` to `true`. Of 18 repositories on it, four set `SENSITIVE_KEYS` in
   production and four turn response bodies off; the rest log both bodies of every request at
   INFO because nobody set the switch. `bravo-onboarding-service` — 64 KB request bodies —
-  is the one the proposal touches.
+  is the one the proposal touches. **From 15 September Java is two layers:** the 20 Boot 3.x
+  repositories should move to `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) — 8 KB message
+  cap, request logging off, Feign bodies opt-in and never headers); the 14 Boot 2.7
+  repositories stay on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123). Manifest trap for SRE: the starter
+  reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`, not `LOGGER_LEVEL` and `SENSITIVE_KEYS`.
 
 Two side findings from the same read: `bravo-scheduling-service` and
 `bfi-rule-engine-service` read their HTTP client timeouts from `HTTPCLIENT_*` while
@@ -637,6 +663,11 @@ and the trace id — arrived as a separate entry. Neither is valid JSON, so neit
 so no attributes are extracted from either.
 
 Large log lines are not just expensive. **They are actively destroying the log pipeline.**
+
+For Java there is now a wrapper-level answer: `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122))
+caps every message at 8 KB and every stack trace at 8 KB / 20 frames at the encoder, so a
+service that adopts it cannot emit a line the runtime has to split. The reassembly work
+below is still needed for Go, Node.js and the Java services that have not moved yet.
 
 ### Why this waits for the gate
 
@@ -803,20 +834,24 @@ of running production code from the Datadog UI, captures the variables in scope,
 it. No code change, no redeploy, nothing left running afterwards. On-demand beats always-on
 for both cost and data protection.
 
-It sits in Phase 4 for one reason: **we do not know what it costs.** Snapshots are delivered
-as log events tagged `source:dd_debugger`, into a log index you create yourself. Datadog's
-documentation does not state, in either direction, whether those count against log ingestion
-and indexing or are included with APM. The mechanism says they are ordinary logs.
+It sits in Phase 4 for one reason: **we do not know how it is billed.** Snapshots are
+delivered as log events tagged `source:dd_debugger`, into a log index you create yourself.
+Datadog's documentation does not state, in either direction, whether those count against log
+ingestion and indexing or are included with APM. The mechanism says they are ordinary logs —
+and our contract (`Q-849776`, §0) has no Live Debugger line, so ordinary logs would land on
+the two lines we are already over: ingestion at $0.10/GB and indexed events at $1.59–1.91 per
+million in overage.
 
-**Three questions for the account team before this is switched on in production:**
+**Two questions for the account team before this is switched on in production:**
 
-1. Does `source:dd_debugger` count against ingested GB and indexed events?
-2. Is there any bundled allowance with our APM subscription?
-3. Datadog's guidance is to create that index with no sampling. How does that interact with
+1. Does `source:dd_debugger` count against ingested GB and indexed events, or is there a
+   bundled allowance with APM Enterprise?
+2. Datadog's guidance is to create that index with no sampling. How does that interact with
    our commitment tier?
 
 Volume is small by nature — one capture per second per probe, live only for the length of a
-debugging session. But small is not free, and we do not have the rates.
+debugging session. At the overage rates above a pilot would cost dollars, not thousands; the
+question is only whether it is billed at all.
 
 **When it is approved, roll it out as a time-boxed pilot on one service**, with a named owner
 per squad holding `live_debugger_write`. Set
@@ -950,7 +985,7 @@ half of that coverage continuously, rather than in a weekly cron.
 | 4 | 1 | Unified tags, service-name mismatches, retire `env:production` (§2.4) | 3 d | none | — |
 | 5 | 1 | Error Tracking rollout to squads (§6) | 2 d | none | — |
 | 5a | 1 | Header tags on, and **fix Remote Configuration — failing on 13 services** (§2.5) | 1 d | none | — |
-| 6 | 1 | Name an owner for `confins-prod-ms-lms-ar-be` (§3) | 1 d | none | — |
+| 6 | 1 | **Fix CONFINS log re-ingestion** — stop shared-path file tailing, purge stale `*.json` on the core-system nodes, index exclusion meanwhile (§3, [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md)) | 1 d | **reduces** — about a third of indexed prod log events | most of the log-event overage |
 | 7 | 1 | RUM tidy-up and the Gmail access review (§9) | 2 d | reduces | — |
 | 7a | 1 | **Fix the three CI gate faults** — the missing Codacy project token (5 pull requests), the broken `codacy-cli.sh` installer on `bravo-employee-service`, and the SonarQube new-code baseline that scores a 10-line pull request as 9,855 new lines on `bravo-insurance-service` (§3a) | 2 h | none | unblocks Phase 2 |
 | 7b | 1 | **Rotate the Google Chat webhook credentials** logged by `bau-prod-ms-otrs-report`, and find an owner with write access to that repo (§3a, [backend-dashboard-otrs.md](backend-dashboard-otrs.md)) | 1 d | none | security |
@@ -958,7 +993,7 @@ half of that coverage continuously, rather than in a weekly cron.
 | 7d | 1 | Datadog source-code integration on the Java services, so `git.repository_url` answers "which repo is this?" (§3a) | 2 d | none | — |
 | 7e | 1 | **Apply [deployment-proposal.md](deployment-proposal.md)** — nine services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off (§3a item 5) | 2 h | reduces | volume and exposure |
 | 7f | 1 | **Reconcile Datadog's log-ingestion estimate (≈1.3 TB/day) against the Usage & Cost page and the invoices** — if it is right, log ingestion is ~150× the 256 GB/month commitment and about $4,000/month in overage (§0) | 2 h | none | sizes the next renewal |
-| 7g | 2 | Review and merge the two wrapper fixes: [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (mask non-string values) and [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) (Feign bodies masked, case-insensitive keys, body cap), then bump the dependency in the consuming services | 1 d | none | closes the masking gap estate-wide |
+| 7g | 2 | Review and merge the three wrapper fixes: [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (mask non-string values), [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) (the new Boot 3 starter: JSON lines, 8 KB cap, Feign logger — the target for 20 Java repos) and [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) (the bridge for the 14 Boot 2.7 repos: Feign bodies masked, case-insensitive keys, body cap), then bump the dependency in the consuming services | 1 d | none | closes the masking gap estate-wide |
 | 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3). 48 pull requests are already open and waiting on squad review (§3a) | 4–6 wks | reduces | feeds every item below |
 | 9 | 3 | Reassembly + logs injection + trace remapper + per-service exclusion filters (§4) | 2 d | small, gated | — |
 | 10 | 3 | Trace KrakenD then `prod-lora-task`, with sampling from day one (§5) | 3 d | moderate | — |
@@ -980,23 +1015,31 @@ queue behind the rest of Phase 1.
 
 ---
 
-## What could not be checked
+## What could not be checked — and what has been since
 
-Stated plainly so nobody treats this audit as complete.
+Stated plainly so nobody treats this audit as complete. Two of the four were closed on
+14 September 2026, when SRE opened the deployment repos, the contract and the billing sheet;
+two are narrower than they were but still open.
 
-- **The Datadog agent configuration itself.** The Helm values and DaemonSet live in a GitOps
-  repo we do not have. Everything in §4 is inferred from log content and needs confirming
-  against the actual agent config.
-- **Log indexes, exclusion filters and retention already in place.** Not exposed through the
-  tooling available here. Check `Logs → Configuration → Indexes` before adding more — it is
-  possible some filtering already exists and explains part of the 93.6% unparsed rate.
-- **Our actual Datadog contract and unit rates.** The cost direction in this document is
-  qualitative. Before Phase 3, get the per-GB ingest, per-million-events index and per-host
-  add-on rates from the account team, and model the gate against real numbers. August
-  Datadog spend was Rp 110.6M, which is the baseline to protect.
-- **Whether DEBUG logs are dropped by Datadog or never emitted.** Zero `status:debug` entries
-  exist across production. This is the open question from [logging-cost.md](logging-cost.md)
-  §3, and it decides whether the Feign body-logging fix is worth Rp 0 or Rp 40M a month.
-  Reading the ms-bpm deployment manifest settles it.
+- **The Datadog agent configuration itself.** Still open. `app-deployment` and
+  `bfi-app-deployment` hold the application charts — a per-container
+  `ad.datadoghq.com/<name>.logs` annotation in 105 production values files, unified-tag
+  labels in exactly one — but not the agent's own Helm values or DaemonSet. Everything in §4
+  about the agent is still inferred from log content; whoever owns the agent chart needs to
+  confirm it. (`confins-app-deployment` returns 404 to the token used here.)
+- **Log indexes, exclusion filters and retention already in place.** Still open, and more
+  pointed than before: Datadog's own ingestion metric and its indexed bytes disagree by about
+  3× for `prod-ms-bpm` and about 40× for `prod-ms-assistance`. That is the shape of a
+  per-service exclusion filter. Check `Logs → Configuration → Indexes` before adding more.
+- **Our actual Datadog contract and unit rates.** Closed. §0 has the order, the unit rates
+  and the usage against them; the gate in §3 is modelled against those numbers.
+- **Whether DEBUG logs are dropped by Datadog or never emitted.** Closed for the service it
+  was asked about: `bpm/values-prod.yaml` turns on a custom Feign logger that writes at INFO,
+  so no DEBUG line was ever emitted there — the bodies are in Datadog at INFO, 89% of the
+  service's log bytes, worth about Rp 5–8M a month rather than Rp 0–40M
+  ([logging-cost.md](logging-cost.md) §3). Estate-wide there are still zero `status:debug`
+  entries in seven days, and one manifest does put a Java package at DEBUG in production
+  (`customer`, its CONFINS client) with nothing indexed from it — which folds into the
+  exclusion-filter check above.
 - **Monitor totals.** We confirmed the defect patterns in §2.2 by sampling roughly 45
   monitors. We did not enumerate every monitor in the org, so treat the counts as floors.

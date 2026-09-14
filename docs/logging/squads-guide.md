@@ -10,7 +10,7 @@ It is based on measurements from all 152 repos and production telemetry, not on 
 advice. Where a rule exists, it is because something in our estate is broken by breaking it.
 
 **Revised 13 September 2026**, after every one of the 73 repositories in this programme was
-read line by line and 64 pull requests were raised (16 since closed on SRE's guidance — masking is a deployment setting — and two wrapper pull requests added in their place). Rules 2, 3 and 5 gained a section each
+read line by line and 64 pull requests were raised (16 since closed on SRE's guidance — masking is a deployment setting — and three wrapper pull requests added in their place). Rules 2, 3 and 5 gained a section each
 as a direct result — the Go estate breaks these rules differently from the Java estate, and
 the first version of this guide only described the Java half.
 
@@ -22,7 +22,7 @@ the first version of this guide only described the Java half.
 deliberate and it is about cost.
 
 Datadog bills on how much we send it. Today production emits **4.5 million log lines a day
-and 93.6% of them cannot be parsed** — blank lines, split JSON fragments, repeated errors,
+and 93.6% of them cannot be parsed** — unparsed request and response bodies, split JSON fragments, repeated errors,
 serialised payloads. If SRE switched on better log ingestion against that stream, we would
 move the waste from Cloud Logging to Datadog and pay more for it.
 
@@ -30,13 +30,20 @@ Five services produce 64% of all production log lines:
 
 | Service | Lines / 2 days | Share | What it is |
 |---|---:|---:|---|
-| `confins-prod-ms-lms-ar-be` | 2,640,747 | 29% | **Genuinely blank lines** |
+| `confins-prod-ms-lms-ar-be` | 2,640,747 | 29% | **Full HTTP bodies, ~90% of them re-ingested at rollouts** — an SRE collection defect, not a squad item; see [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md) |
 | `prod-lora-task` | 1,291,274 | 14% | Routine conditions at `warn` |
 | `prod-ms-calculation` | 770,394 | 9% | Axios dumps, one per 4xx |
 | `prod-ms-cnv` | 752,562 | 8% | The same error 20,000 times a day |
 | `prod-ms-bpm` | 387,332 | 4% | Split JSON fragments, stack frames |
 
 None of it is telemetry anyone reads.
+
+**Corrected 14 September 2026.** The first row used to read "genuinely blank lines". The
+lines are full request and response bodies whose JSON has no `message` key, and the two-day
+sample that produced 2,640,747 caught a one-hour burst in which the Datadog Agent re-read a
+month of dead pods' log files. Real traffic for that service is about 200k indexed entries a
+day. The 4.5M-a-day figure above is therefore inflated by roughly 1M on burst days and the
+"below 2.5M" target is closer than the table suggests. Detail in [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md).
 
 So there are two numbers the whole company is working towards:
 
@@ -322,16 +329,27 @@ Three things to check in a Go service:
 masks a matched field only when its value is a string. A NIK or phone number sent as a JSON
 number, or a list of phone numbers, goes through untouched however good your list is.
 
-**Java has the same shape and a worse default.** `bravo-lib-logging` (`bfi-java-pkg`) reads
+**Java is two layers now — pick yours by Spring Boot version.**
+
+*On Boot 3.x or 4.x (20 of the 34 Java repositories):* add `bfi-logging-spring-boot-starter`
+([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), delete your `logback*.xml`, and leave request logging off unless your service is
+the first layer behind the gateway. You get single-line JSON, an 8 KB message cap, stack
+traces capped at 8 KB, framework loggers at WARN, and — if you use Feign — one line per
+outbound call with no headers and no bodies unless you set
+`bravo.logging.feign.include-body=true` for the client you are debugging. Delete any
+hand-written `feign.Logger` and its `Logger.Level.FULL` bean so the starter's takes over.
+The starter reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`; tell SRE when you migrate, because
+your manifest currently says `LOGGER_LEVEL` and `SENSITIVE_KEYS`.
+
+*On Boot 2.7 (14 repositories):* stay on `bravo-lib-logging` (`bfi-java-pkg`). It reads
 `SENSITIVE_KEYS`, `REQUEST_BODY_LOGGING` and `RESPONSE_BODY_LOGGING` from the environment,
 and the two switches **default to `true`** — so a service that wires the library's
 `RequestLoggingFilter` and sets nothing in its manifest logs every request and response
 body at INFO. Of the 18 repositories on the library, four set `SENSITIVE_KEYS` in
 production and four turn response bodies off; the rest run on defaults. Until
-[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the key
-match is case-sensitive (`Authorization` is not `authorization`), `FeignClientFilter`
-masks nothing at all, and there is no body size cap. Same rule: set the switches in
-`values-prod.yaml`, and treat `SENSITIVE_KEYS` as your list to write.
+[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the key match is case-sensitive (`Authorization` is not `authorization`),
+`FeignClientFilter` masks nothing at all, and there is no body size cap. Same rule: set the
+switches in `values-prod.yaml`, and treat `SENSITIVE_KEYS` as your list to write.
 
 **One compiler trap worth knowing**, because it will bite whoever fixes this: the shared
 config function is `func (e *Env) HTTPClient(logger zerolog.Logger)`. That parameter
@@ -514,7 +532,13 @@ kube_deployment:prod-ms-yours
 
 Either way, the fix is not in your application code. The service name on a log comes from the
 Kubernetes deployment name; on a trace it comes from `DD_SERVICE`. Nothing reconciles them.
-The fix is the unified tagging labels on the pod template, in the GitOps repo:
+The fix is the unified tagging labels on the pod template. They belong in
+`app-deployment/<service>/values-prod.yaml`, under `deploymentLabels` and `podLabels` —
+as of 14 September 2026 exactly one service in the estate has them (`bfi-operation-ui`, in
+`bfi-app-deployment`). Today the log side gets its service name from the
+`ad.datadoghq.com/<container>.logs` annotation in that same file (105 files carry one), and
+the trace side gets it from the tracer's own configuration, because only one manifest sets
+`DD_SERVICE`. Two sources, nothing reconciling them — which is the split you are looking at:
 
 ```yaml
 tags.datadoghq.com/env: "prod"

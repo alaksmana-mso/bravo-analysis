@@ -302,7 +302,7 @@ env:
     valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
 ```
 
-These files live in the GitOps repo, not here. This repo deploys through
+These files live in `bfi-finance/app-deployment` (`bfi-app-deployment` for the `bfi-*-api` services), not here — SRE-owned, and read for this service on 14 September 2026; what they set is under *In the production deployment* below. This repo deploys through
 `bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
 raising as one change to the shared template rather than 104 separate pull requests. Ask the
 Platform team before opening anything.

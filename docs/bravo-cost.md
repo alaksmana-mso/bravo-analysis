@@ -26,12 +26,14 @@ Application counts and the LORA tier figures are carried from [LORA cost.md](../
 >    document counts one of the three, and counts it low.
 > 2. **"2.4× the orchestration tier" understates it.** Cloud Logging alone is **4.7×**. All
 >    three platforms together are about **11×**.
-> 3. **The Feign mechanism named below is not confirmed in production.** `loggerLevel:
->    full` appears **129 times across 57 clients in `bravo-bpm-service`**, not "113 clients"
->    globally — and it only emits when that client's logger is at DEBUG. Estate-wide there
->    are **zero DEBUG logs and zero `END HTTP` markers**. The Rp 50–90M saving is attached
->    to a cause we have not shown is active. A one-hour deployment-manifest check settles
->    it. What *is* certain is **Rp 81–105M a month from platform configuration** —
+> 3. **The Feign mechanism named below is real, but worth about a tenth of the claim.**
+>    `loggerLevel: full` appears **129 times across 57 clients in `bravo-bpm-service`**, not
+>    "113 clients" globally — and that setting emits nothing, because the production manifest
+>    (`app-deployment/bpm/values-prod.yaml`, read 2026-09-14) swaps in a hand-written Feign
+>    logger that writes every body at INFO instead. Measured: 89% of the service's log bytes,
+>    about 22 GB a day — **roughly Rp 5–8M a month** across Cloud Logging and Datadog, not
+>    Rp 50–90M. Fix it for data protection ([logging/logging-cost.md](logging/logging-cost.md)
+>    §3). What *is* certain is **Rp 81–105M a month from platform configuration** —
 >    non-production retention and exclusion filters, Cloud SQL audit logs, flow-log
 >    sampling — with no code change at all.
 > 4. **One service was writing a live `api-secret` into production logs**, and three more
@@ -231,7 +233,7 @@ Nothing in this analysis establishes what is running in `bravo-project-nonprod`,
 | Lever | Worth / month | Available | Confidence |
 |---|---:|---|---|
 | **Cut Cloud Logging — platform configuration only** (non-prod retention and exclusion filters, Cloud SQL audit logs off in non-prod, flow-log sampling) | **Rp 81–105M** | now | **high — measured, no code change** |
-| **Cut Cloud Logging — the Feign body-logging fix** | ~~Rp 50–90M~~ **unsized** | after a 1-hour manifest check | **low — mechanism not confirmed in production** (corrected 2026-09-13) |
+| **Cut Cloud Logging — the Feign body-logging fix** | ~~Rp 50–90M~~ **Rp 5–8M** | after `bravo-bpm-service#10463` merges | **high — measured from the manifest and Datadog on 2026-09-14; worth doing for data protection, not cost** (corrected 2026-09-13, sized 2026-09-14) |
 | **Ask what Coralogix is for** — Rp 253.3M a month, flat since February, a third log platform alongside the other two | up to **Rp 253.3M** | now | needs a decision, not analysis |
 | **Review `bravo-project-nonprod`** | unknown, up to **Rp 573.5M** | now | low — never examined |
 | **Audit the Maps spend against failed geolocation** | up to **Rp 64.0M** | now | low — needs a day of work first |

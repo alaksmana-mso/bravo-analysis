@@ -64,7 +64,7 @@ Read from `app-deployment/doc-renderer/values-prod.yaml` on 14 September 2026. *
 `*_BODY_LOGGING_ON_ERROR_ONLY` is `false`: **every** request and response body is written, not only those of failed calls.
 **`LOGGER_LEVEL` is `debug` in production.** Every debug statement in the service ships to Cloud Logging and Datadog. This is the single cheapest change available for this service.
 
-**Proposed change to this file:** sections §1, §2, §3 of [deployment-proposal.md](deployment-proposal.md) — a ready-to-apply diff, not applied. SRE and the owning squad decide.
+**Proposed change to this file:** sections §1, §2, §3 of [deployment-proposal.md](deployment-proposal.md) — raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on 14 September 2026 (branch `fix/logging`), awaiting SRE review.
 
 ---
 

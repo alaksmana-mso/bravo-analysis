@@ -4,16 +4,19 @@
 **Production service:** `prod-ms-bpm`
 **Stack:** Java, Spring Boot, Camunda 7
 
-This repo carries the largest logging configuration risk in the estate. Whether *item 1* is
-currently costing money is **unconfirmed** — that still needs a manifest check.
+This repo carries the largest logging configuration risk in the estate — and, measured on
+14 September 2026, the largest log volume of any Bravo production service. The manifest has
+been read: *item 1*'s standard Feign logger is **not** what runs. `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true`
+replaces it with the hand-written logger below, so item 1 costs nothing on its own and
+everything through item 2's logger.
 
-What is confirmed is separate and larger: a second, hand-written Feign logger is writing
-full request and response bodies into production at INFO, 487,146 times a week. See
+That logger is writing full request and response bodies into production at INFO, about
+86,600 times a day — 89% of the service's log bytes, about 22 GB a day. See
 [Request and response bodies in Datadog](#request-and-response-bodies-in-datadog).
 
 ---
 
-## 1. Feign full-body logging — check the manifest before doing anything else
+## 1. Feign full-body logging — settled by the manifest
 
 ### What the code says
 
@@ -50,18 +53,21 @@ Feign writes bodies when the client's logger is at DEBUG. On this reading, every
 call — PEFINDO, SLIK, Dukcapil, CONFINS, Ali Cloud — logs its complete request and response
 body.
 
+### What the manifest says
+
+`app-deployment/bpm/values-prod.yaml` (read 14 September 2026) sets `LOGGING_LEVEL_ROOT=INFO`
+and nothing for `com.bfi.bravo.adapter` — so the DEBUG level does survive, exactly as the
+code reading said. It also sets `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true`, which is
+why that DEBUG level produces nothing: `FeignLoggingConfiguration` registers
+`CustomFeignLogger` as the Feign logger bean, replacing the standard `Slf4jLogger`. The
+standard logger is never called. `FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL=basic` is set too,
+and is inert — the code hard-codes `Logger.Level.FULL` and every client sets `full` by name.
+
 ### What production says
 
-Nothing matching. Across two days, all production services:
-
-| Check | Result |
-|---|---|
-| `status:debug` | 0 |
-| `END HTTP` (Feign's full-logging terminator) | 0 |
-
-**That does not mean bodies are absent.** Both checks look for the *standard* Feign logger,
-which is gated on DEBUG and terminates each response with `END HTTP`. This repo has two
-other body-logging paths that match neither check, and **both write at INFO**:
+Across two days, all production services: `status:debug` 0, `END HTTP` 0. Both checks look
+for the *standard* Feign logger, and the manifest explains why they find nothing. This repo
+has two other body-logging paths that match neither check, and **both write at INFO**:
 
 - `CustomFeignLogger` — outbound Feign request and response bodies. On in production.
 - `CustomRequestLoggingFilter` — inbound request bodies. It extends
@@ -73,26 +79,33 @@ other body-logging paths that match neither check, and **both write at INFO**:
 [Request and response bodies in Datadog](#request-and-response-bodies-in-datadog), and it is
 the bigger of the two.
 
-### So do this first
+### What it measures to
 
-Somebody needs to read the deployment manifest, which is not in this repo:
+`prod-ms-bpm`, 24 hours to the afternoon of 14 September 2026:
 
-```bash
-kubectl -n prod set env deploy/prod-ms-bpm --list | grep -i 'logging\|FEIGN'
-```
+| | Count |
+|---|---:|
+| Entries carrying `ResponseBody=` | 84,028 |
+| Entries carrying `RequestBody=` only | 2,602 |
+| Of those 86,630, cut at Datadog's 76,800-byte message limit | 86,623 |
+| Indexed message bytes, body entries | 6.65 GB |
+| Indexed message bytes, everything else | 0.82 GB |
+| Ingested bytes, whole service, per day (Datadog's usage metric, 7-day mean) | ~25 GB |
 
-Grep for `FEIGN` as well as `LOGGING`. The same command answers the second question:
-whether `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG` is `true` and what
-`FEIGN_CUSTOM_LOG_VERSION` is set to. Production behaviour says `true` and `3`; confirm it
-from the manifest in the same hour.
+Almost every body entry is longer than Datadog will index, so the payloads are bigger than
+the indexed figure shows. About 22 GB a day of bodies is 660 GB a month: at contract rates
+roughly $70 a month of Datadog ingestion and under $5 of indexed events, and roughly
+**Rp 5–8M a month** in Cloud Logging at $0.50/GiB. That is the figure for this repo — not
+the Rp 0–40M range this file carried before the manifest was read, and not the Rp 50–90M in
+the original deck. The value of fixing it is data protection first and cost second: these
+are unmasked PEFINDO, SLIK, Dukcapil and CONFINS payloads at INFO.
 
-If it shows `LOGGING_LEVEL_COM_BFI_BRAVO_ADAPTER=INFO` or similar, the body logging is
-already off and there is **no cost saving here at all**. If it shows nothing, the logs are
-being written and Datadog is dropping them before indexing — in which case Cloud Logging is
-paying for all of it.
-
-**One hour of work decides whether this repo is worth Rp 0 or Rp 40M a month.** Do not
-quote a saving until it is done.
+The sharia deployment (`values-prod-sharia.yaml`, Datadog service `prod-sharia-bpm-sharia`)
+runs the same logger at version 2 with **header logging on, including `Authorization`**
+(`ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER_AUTH=true`). It wrote ten lines in the
+last 24 hours, so the volume is nothing — but a bearer token in a log index is a finding
+regardless of count. [deployment-proposal.md](deployment-proposal.md) §5 has the two-line
+change.
 
 ### Fix the configuration either way
 
@@ -247,7 +260,7 @@ logs every two days and a real defect. Worth a ticket to whichever console owns 
 
 | Item | Saving / month | Confidence |
 |---|---:|---|
-| 1 — Feign body logging | **Rp 0 to 40M** | unknown until the manifest is read |
+| 1 — Feign body logging, via `CustomFeignLogger` | **Rp 5–8M** | high — measured: ~22 GB a day, 89% of the service's log bytes |
 | 2 — stack trace handling | Rp 8–15M | medium; most of it is the cluster-wide setting |
 | 3 — ENGINE-09004 | Rp 2–5M | high |
 | 4 — exception logs | Rp 3–6M | medium |
@@ -286,9 +299,11 @@ about 487,000 of them carry `RequestBody=`, `Status=`, `ElapsedTime=` and `BodyL
 the *same* entry. Only `logAndRebufferResponseV3` builds one entry that way, so
 `FEIGN_CUSTOM_LOG_VERSION=3` as well.
 
-One thing is set correctly: header logging is off. Exactly one entry in seven days carries
-`Headers=`, so `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER` is false and no
-`Authorization` value is being written. Keep it that way.
+One thing is set correctly in the main deployment: header logging is off. Exactly one entry
+in seven days carries `Headers=`, and the manifest confirms
+`ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER=false`. Keep it that way — and fix the
+sharia deployment, which sets both the header flag and `…SHOW_HEADER_AUTH` to `true`, so
+there the `Authorization` header is written (§1).
 
 ### What is wrong with it
 
@@ -327,13 +342,21 @@ switched on from the Datadog UI until SRE fixes it.
 1. **Do not switch `CustomFeignLogger` off yet.** It is the only place response bodies exist
    in this estate today. Removing it before the replacement works takes away real debugging
    ability, and that will be resisted — correctly.
-2. Ask SRE for the Remote Configuration fix first. It is item 5a in
+2. **Adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) as soon as it merges.** This repo is on
+   Boot 3.5.16 and uses no shared logging library, so it can take the starter directly: the
+   plain-text console pattern becomes single-line JSON, every message is capped at 8 KB (the
+   Feign lines are 76 KB+ today), and the starter's own Feign logger — one line per call, no
+   headers, bodies only when you ask — replaces `CustomFeignLogger` once the bean is deleted.
+   Until then the masking and size cap in #10463 stand.
+3. Ask SRE for the Remote Configuration fix first. It is item 5a in
    [sre-datadog-recommendations.md](sre-datadog-recommendations.md).
-3. Meanwhile, cut the volume without losing the capability. Add a size limit and a masking
-   step to `CustomFeignLogger`, and scope it to the clients you actually debug instead of
-   `default`. Copy the masked-field list from `bravo-onboarding-service`'s
-   `FeignSlf4jLogger` — it is the most complete one in the estate.
-4. Put the identifiers on the span, so a failed call is findable without the body at all:
+4. Meanwhile, cut the volume without losing the capability — **this is what
+   [#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) does**: a size
+   limit and a masking step in `CustomFeignLogger`, full logging off by default. Scope it
+   to the clients you actually debug instead of `default`, and take the masked-field list
+   from `bravo-onboarding-service`'s `FeignSlf4jLogger` — the most complete one in the
+   estate.
+5. Put the identifiers on the span, so a failed call is findable without the body at all:
 
    ```java
    final Span span = GlobalTracer.get().activeSpan();
@@ -397,7 +420,7 @@ env:
     valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
 ```
 
-These files live in the GitOps repo, not here. This repo deploys through
+These files live in `bfi-finance/app-deployment` (`bfi-app-deployment` for the `bfi-*-api` services), not here — SRE-owned, and read for this service on 14 September 2026; what they set is under *In the production deployment* below. This repo deploys through
 `bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
 raising as one change to the shared template rather than 104 separate pull requests. Ask the
 Platform team before opening anything.
@@ -430,10 +453,20 @@ Read from `app-deployment/bpm/values-prod-sharia.yaml`, `app-deployment/bpm/valu
 
 | Setting | Production value |
 |---|---|
-| Log level | `INFO` |
+| `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG` | `true` *(values-prod-sharia.yaml)* |
+| `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER` | `true` *(values-prod-sharia.yaml)* |
+| `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER_AUTH` | `true` *(values-prod-sharia.yaml)* |
+| `FEIGN_CUSTOM_LOG_VERSION` | `2` *(values-prod-sharia.yaml)* |
+| `FEIGN_CUSTOM_LOG_VERSION` | `3` *(values-prod.yaml)* |
+| `FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL` | `basic` *(values-prod.yaml)* |
+| `LOGGING_LEVEL_ROOT` | `INFO` *(values-prod.yaml)* |
+| `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG` | `true` *(values-prod.yaml)* |
+| `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG_SHOW_HEADER` | `false` *(values-prod.yaml)* |
 
-Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+This is a Java service that does **not** depend on `bravo-lib-logging`. The variables above are the ones that matter: `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true` swaps Feign's standard logger for `CustomFeignLogger`, which writes every request and response body at **INFO**, unmasked and uncapped; `FEIGN_CUSTOM_LOG_VERSION=3` is the variant that puts request body, response body, status and elapsed time in one entry; header logging is off in the main deployment and **on** in the sharia one (`values-prod-sharia.yaml`, version 2, with `…SHOW_HEADER_AUTH=true` — so the `Authorization` header is written as well). `FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL=basic` is inert: the code hard-codes a `Logger.Level.FULL` bean and every named client sets `loggerLevel: full` explicitly. `LOGGING_LEVEL_ROOT=INFO` duplicates `application-prod.yaml`; nothing overrides `com.bfi.bravo.adapter`, which stays at DEBUG — but the custom logger does not use that package's logger, so the DEBUG level produces nothing. See §1 for what this measures to in Datadog. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
+
+**Which Java wrapper applies here (15 September 2026).** Spring Boot 3.5.16, no shared logging library: this is the first service that should adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) — see §1 and *What to do* above.
 ---
 
 ## Implementation status

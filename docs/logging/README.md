@@ -6,7 +6,7 @@ Cost data is GCP billing through FinOps. Log evidence is Datadog production. Cod
 is all 152 repos under `squads/`, pulled to `master` on the day of writing — 149,729 files
 scanned — plus 36 more cloned since.
 
-**73 repositories analysed; 48 service pull requests open, 16 closed on SRE's guidance, 2 wrapper pull requests added; 80 files in this folder.** The code half
+**73 repositories analysed; 48 service pull requests open, 16 closed on SRE's guidance, 3 wrapper pull requests (two ours, one a colleague's that we extended); 80 files in this folder.** The code half
 of the programme is written; what is left on it is review and merge.
 
 ## Start here
@@ -24,8 +24,11 @@ The short version:
   deck. Cloud Logging is Rp 271.8M, Coralogix Rp 253.3M, Datadog Rp 110.6M.
 - **A third of the Cloud Logging bill is non-production.** Rp 93.1M a month on environments
   that serve no customer.
-- **The Feign mechanism the deck names is not confirmed in production.** Zero DEBUG logs
-  and zero `END HTTP` markers estate-wide. A one-hour manifest check settles it.
+- **The Feign mechanism the deck names is real, on, and worth about a tenth of what was
+  claimed.** `bpm`'s manifest turns on a hand-written Feign logger that writes bodies at
+  INFO — which is why no DEBUG line or `END HTTP` marker ever appeared. It is 89% of the
+  service's log bytes, about 22 GB a day; at contract and Cloud Logging rates that is
+  roughly Rp 5–8M a month, not Rp 50–90M.
 - **Rp 81–105M a month is recoverable by platform configuration alone**, with no code
   change and no squad backlog.
 - One service is writing a **live API secret** into production logs.
@@ -79,7 +82,7 @@ enablement comes second, gated on two numbers:
 | Share Datadog can parse | 6.4% | **above 80%** |
 
 Datadog bills on what we send it. Enabling better log ingestion against today's stream —
-93.6% unparsed, 64% of it from five services emitting blank lines and repeated errors —
+93.6% unparsed, 64% of it from five services emitting unparsed bodies and repeated errors —
 would move the waste from Cloud Logging to Datadog and cost more. Clean first, then enable
 on a stream half the size.
 
@@ -102,10 +105,11 @@ no ingest. Turn that on now.
 | # | Action | Owner | Effort | Datadog cost |
 |---|---|---|---|---|
 | 1 | Fix `HttpHelper.ts` and rotate the leaked secret | Contract Collateral | 2 h | none |
-| 2 | **Apply [deployment-proposal.md](deployment-proposal.md)** — nine production services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off. One file each, all in `app-deployment` | SRE + owning squads | 2 h | reduces |
+| 2a | **Review and merge [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)** — the new `bfi-logging-spring-boot-starter`: single-line JSON, 8 KB message cap, request logging off by default, and (added on 15 September) a Feign logger that never logs headers and masks bodies. Then adopt it in `bravo-bpm-service` first: Boot 3.5.16, no shared logging library today, and the 76 KB Feign lines that make it the largest log producer in Bravo | Platform + S&U | review + 1 d | reduces |
+| 2 | **Review and merge [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)** — nine production services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off, `bpm`'s sharia header logging (with `Authorization`) off, two Java packages off `DEBUG`. 20 `values-prod*.yaml` files, one variable each; the reasoning is [deployment-proposal.md](deployment-proposal.md) | SRE + owning squads | review only | reduces |
 | 3 | Exclusion filter and 7-day retention on non-prod projects | Platform | 1 d | none |
 | 4 | Fix the monitors that query service names that do not exist | SRE | 2 d | none |
-| 5 | Name an owner for `confins-prod-ms-lms-ar-be` — 29% of all log volume | SRE | 1 d | none |
+| 5 | **Fix CONFINS log re-ingestion** — the Datadog Agent re-reads dead pods' files from a shared `/var/log` on every rollout; ~90% of that service's volume, about a third of all indexed prod log events ([confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md), corrected 14 Sep) | SRE | 1 d | **reduces** |
 | 6 | Ask what Coralogix is for | Architecture | 1 d | none |
 | 7 | **Fix Remote Configuration** — failing on 13 services, ~91k failed polls a week | SRE | 1 d | none |
 | 8 | Turn on `DD_TRACE_HEADER_TAGS` for correlation IDs | SRE | 1 h | none |
@@ -114,8 +118,9 @@ no ingest. Turn that on now.
 
 None of these increases Datadog spend. Item 2 replaces what used to read "check the prod
 deployment manifests": SRE gave access to them on 14 September 2026, they have been read
-for every service in this programme, and what they say is now in each per-service file
-under **In the production deployment** — with the changes they need written out as diffs.
+for every service in this programme, what they say is in each per-service file under
+**In the production deployment**, and the changes they need are raised as one pull request
+on `fix/logging` — not merged.
 Item 9 is a live credential exposure; item 10 is an hour that unblocks six weeks of squad
 work.
 
@@ -123,9 +128,13 @@ work.
 
 **[coverage.md](coverage.md)** has the estate map and the results of the second pack.
 Headline numbers: 122 production services, **52 with no source we can see**, and
-`confins-prod-ms-lms-ar-be` alone at 29% of all production log volume. Getting an owner for
-the CONFINS and Treasury families is still a bigger lever than every pull request here put
-together.
+`confins-prod-ms-lms-ar-be` alone at 29% of all production log volume.
+
+**Corrected 14 September 2026.** That 29% is mostly not the service's own output. About 90%
+of it is the Datadog Agent re-reading a month of dead pods' log files at every rollout, on a
+shared `/var/log` path, and the entries are full HTTP bodies, not blank lines. It is an SRE
+collection fix, not an ownership problem — [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md). Getting an owner for the CONFINS and Treasury
+families still matters for the body logging itself and for the 52 services without source.
 
 **coverage.md also corrects three things this README said before.** The most important:
 
@@ -157,8 +166,9 @@ minutes, and the GCP artifact-registry wagon in the poms picks up the machine's 
 credentials, so the private `bravo-lib-logging` resolves. On 14 September 2026 every Java
 repository with a `.java` change on its branch was compiled: **22 of 22 compile**.
 Unit tests were run on 12 of them: 12 pass (bfi-connect (0 tests), bfi-insurance-api (4391 tests), bravo-agent-service (2181 tests), bravo-approval-engine-service (388 tests), bravo-bpm-service (18306 tests), bravo-collateral-service (1530 tests), bravo-core-proxy-service (826 tests), bravo-employee-service (176 tests), bravo-insurance-service (947 tests), bravo-journal-service (934 tests), bravo-product-service (330 tests), bravo-repeat-order-service (5559 tests)).
-The two wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean) and
-`bfi-java-pkg#123` (`mvn verify`, 73 tests, 0 failures). CI on each pull request is still
+The wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean),
+`bfi-java-pkg#123` (`mvn verify`, 73 tests, 0 failures) and the four commits we added to
+`bfi-java-pkg#122` (`mvn verify`, 58 + 39 tests, 0 failures). CI on each pull request is still
 the authority, but "not compiled" is no longer true of anything in this programme.
 
 | Repo | Pull request |
@@ -228,13 +238,27 @@ a per-service pull request:
    because the manifests already set those variables explicitly (often to `""`), and an
    explicit value beats a struct default every time.
 2. **Fix it once in the wrapper, not once per service.** Both shared libraries had a real
-   masking gap that no per-service change could close:
+   masking gap that no per-service change could close (and Java now has a second wrapper —
+   see the note after this list):
    [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) — `JSONScrubber`
    masked strings only, so a NIK, phone number or salary sent as a JSON number went through;
    [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) —
    `FeignClientFilter` logged every Feign request and response body **unmasked**, the
    sensitive-key match was case-sensitive (so `Authorization` slipped past `authorization`),
    and nothing capped body size.
+
+**Java is now two layers, not one.** On 14 September a colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122): two new
+modules, `bfi-logging-core` and `bfi-logging-spring-boot-starter`, for Spring Boot 3.x.
+They are the schema-and-volume layer this programme was missing — single-line JSON with
+`level`, `service`, `trace_id`; an 8 KB message cap and stack-trace cap that keep Java lines
+under the 16 KB container-runtime split; request logging off by default; async, dedupe,
+framework loggers at WARN. They did not touch outbound bodies or run the PII regex over the
+message, so on 15 September we pushed four commits onto that branch: a Feign logger that
+writes one line per call and never a header (bodies opt-in, masked, capped), the PII pass on
+every `message`, JSON parsing of captured bodies so the key deny-list reaches their fields,
+and the READMEs. The rule from here: **Boot 3.x/4.x services (20 of the 34 Java repos)
+adopt the starter; Boot 2.7 services (14) stay on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)** until
+they upgrade. Full assessment in [body-visibility.md](body-visibility.md) §2a.
 
 So: the commit that added a struct default was reverted on every branch that had one.
 **Sixteen branches were left identical to their base and their pull requests closed**, each
@@ -426,14 +450,19 @@ read. Reading does not catch a null dereference.
 
 *(Counts below are as of the CI read on 14 September, before 16 of the 44 were closed — see above. Of the 28 still open, none fails on anything written here.)*
 
-Re-polled after the fixes above, with every failing job's log read:
+Re-polled after the fixes above (last poll: evening of 14 September, after the
+`bfi-insurance-api` test fix on `878035cc4`), with every failing job's log read:
 
 | | Count |
 |---|---:|
-| Fully green | 25 |
-| Failing **only** on dependency, container, coverage or quality gates that were red before this work | 19 |
+| Fully green | 28 |
+| Failing **only** on dependency, container, coverage or quality gates that were red before this work (SonarQube, SNYK, Trivy container scan, and `bfi-connect`'s pre-existing Prettier drift) | 15 |
+| Closed before the poll (`bravo-assistance-service`) | 1 |
 | Failing on anything written here | **0** |
 | Still running | 0 |
+
+`bfi-insurance-api` and `bravo-scheduling-service` are now fully green; `bfi-incentive-api`
+fails only on SonarQube and the container scan.
 
 `bfi-incentive-api` is the one to check if you want to see the fix land: **1806 tests run,
 0 failures, `BUILD SUCCESS`** on head `2a738ed6`. That job is still red, but now only at the
@@ -516,15 +545,39 @@ That came from a two-day window and an incomplete APM service list. The directio
 the counts were low, and two of the twelve services listed there as silent were not silent —
 they were logging under a different name.
 
-## Three things this analysis could not check
+## Three things this analysis could not check — and what they said once checked
 
-- **Deployment manifests.** None of the 152 repos under `squads/` contains one. They live
-  in a GitOps repo we do not have. This blocks a firm answer on Feign and on three payload
-  filters.
-- **Datadog's own filtering.** Datadog shows zero DEBUG logs estate-wide. That could mean
-  DEBUG is not emitted, or that Datadog drops it before indexing while Cloud Logging still
-  pays. Reading the manifests distinguishes the two.
-- **Our Datadog contract rates.** The cost direction in the Datadog documents is
-  qualitative. Before any enablement, get the per-GB ingest, per-million-events index and
-  per-host add-on rates from the account team. August Datadog spend was Rp 110.6M, which is
-  the baseline to protect.
+All three were opened up on 14 September 2026, when SRE gave access to `app-deployment` and
+`bfi-app-deployment`, the signed Datadog order and the 2025 billing sheet.
+
+- **Deployment manifests.** Read for every service in this programme; what each one sets is
+  in its file under *In the production deployment*, and the changes they need are diffs in
+  [deployment-proposal.md](deployment-proposal.md). **On Feign:** `bpm/values-prod.yaml` sets
+  `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true` and `FEIGN_CUSTOM_LOG_VERSION=3`, which swaps
+  Feign's DEBUG logger for a hand-written one that writes every request and response body at
+  INFO. That is why the estate has zero DEBUG lines and zero `END HTTP` markers while bodies
+  were being logged the whole time. Measured in Datadog over 24 hours: 86,630 body entries,
+  6.65 GB of the service's 7.47 GB of indexed message bytes, 99.99% of them cut at the
+  76,800-byte message limit; ingestion-side the service takes about 25 GB a day — the whole
+  contract's monthly log-ingestion commitment every ten days. **On the three payload
+  filters:** `onboarding` sets its Commons filter to `OFF` (so the 64 KB request-body
+  logging its code enables is off in production), `agency` sets it to `INFO`,
+  `approval-engine` and `core-proxy` set nothing — and send no logs to Datadog at all. The
+  one manifest repo still unread is `confins-app-deployment`: the URL returns 404 to the
+  token used here, so the CONFINS services stay outside this analysis.
+- **Datadog's own filtering.** Narrowed, not closed. No manifest hides DEBUG for the services
+  above, and Datadog still indexes zero `status:debug` lines in seven days. One manifest
+  does put a Java package at DEBUG in production (`customer`'s CONFINS client) and nothing
+  from it is indexed either. What remains is Datadog's own `Logs → Configuration → Indexes`
+  page — a one-minute check for someone with the admin role. The ingestion-to-indexed
+  ratio, about 3× for `prod-ms-bpm` and about 40× for `prod-ms-assistance`, has the shape
+  of a per-service exclusion filter.
+- **Our Datadog contract rates.** In hand: order `Q-849776`, 1 October 2025 to 30 September
+  2027, $14,030 a month committed, of which log ingestion is 256 GB a month at $0.10/GB and
+  log events 150M a month at $1.06–1.27 per million; overage $0.10/GB and $1.59–1.91 per
+  million. Datadog's own usage metric says about 1.3 TB a day ingested — 150× the
+  commitment. The 2025 billing sheet puts Datadog at Rp 5.62bn for the year (Rp 3.66bn of
+  it a prior-order payment in May) against Cloud Logging Rp 1.78bn and Coralogix Rp 2.77bn.
+  The detail is in [logging-cost.md](logging-cost.md) §1a and
+  [sre-datadog-recommendations.md](sre-datadog-recommendations.md) §0. August Datadog spend,
+  Rp 110.6M, remains the monthly baseline to protect.

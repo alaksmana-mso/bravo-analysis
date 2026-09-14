@@ -211,7 +211,7 @@ env:
     valueFrom: { fieldRef: { fieldPath: metadata.labels['tags.datadoghq.com/version'] } }
 ```
 
-These files live in the GitOps repo, not here. This repo deploys through
+These files live in `bfi-finance/app-deployment` (`bfi-app-deployment` for the `bfi-*-api` services), not here — SRE-owned, and read for this service on 14 September 2026; what they set is under *In the production deployment* below. This repo deploys through
 `bfi-finance/bfi-base-template`, which **104 of the 152 repos share** — so this is worth
 raising as one change to the shared template rather than 104 separate pull requests. Ask the
 Platform team before opening anything.
@@ -244,10 +244,12 @@ Read from `app-deployment/lms-gateway/values-prod.yaml` on 14 September 2026. **
 
 | Setting | Production value |
 |---|---|
-| Logging variables | none of the shared-library switches are set; the wrapper defaults apply |
+| Logging variables | none set — the service's own `application*.yaml` decides |
 
-Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+This is a Java service that does **not** depend on `bravo-lib-logging`, so the library's `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` / `SENSITIVE_KEYS` switches do not apply here. The body logging this service does comes from its own filters and Feign loggers, described above, and the production levers in this file are the `LOGGING_LEVEL_*` variables in the table — Spring Boot reads each one as `logging.level.<package>`. Where the table is empty, the service's own `application*.yaml` decides. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
+
+**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 2.7.18, so the new starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), Boot 3.x only) is not available to it until it upgrades. It stays on its own filters and Feign loggers, with the per-file fixes above; the shared-library fixes in [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) do not apply to it because it does not use `bravo-lib-logging`.
 ---
 
 ## Implementation status

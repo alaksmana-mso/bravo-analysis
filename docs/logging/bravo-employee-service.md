@@ -60,10 +60,16 @@ Read from `app-deployment/employee/values-prod.yaml` on 14 September 2026. **Thi
 
 | Setting | Production value |
 |---|---|
-| Log level | `INFO` |
+| `LOGGING_LEVEL_ROOT` | `INFO` |
+| `LOGGING_LEVEL_ORG_HIBERNATE` | `INFO` |
+| `LOGGING_LEVEL_ORG_HIBERNATE_SQL` | `info` |
+| `LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL` | `info` |
+| `LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_CLIENT_RESTTEMPLATE` | `INFO` |
 
-Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+This is a Java service that does **not** depend on `bravo-lib-logging`, so the library's `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` / `SENSITIVE_KEYS` switches do not apply here. The body logging this service does comes from its own filters and Feign loggers, described above, and the production levers in this file are the `LOGGING_LEVEL_*` variables in the table — Spring Boot reads each one as `logging.level.<package>`. Where the table is empty, the service's own `application*.yaml` decides. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
+
+**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 3.5.14, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It has no shared logging library today, so the starter is an addition, not a migration; any hand-written `feign.Logger` bean should be deleted so the starter's takes over.
 ---
 
 ## Implementation status

@@ -86,10 +86,15 @@ are the **CONFINS / AdIns vendor estate** and the **BFI Treasury** family:
   `prod-ms-bfi-payment-net-api`, `prod-ms-bfi-syariah-net-api`, `prod-ms-consumer-bfi`,
   `prod-ares`, `prod-army`.
 
-`confins-prod-ms-lms-ar-be` alone is **29% of all production log volume**. We
-cannot fix what we cannot read. Getting source access, or an owner, for this
-group remains a bigger lever than anything in the sixty-four pull requests now
-raised.
+`confins-prod-ms-lms-ar-be` alone is **29% of all production log volume**.
+
+**Corrected 14 September 2026.** That share is a collection artefact, not application
+output. The entries are request and response bodies with no `message` key, and about 90% of
+the volume is the Datadog Agent re-reading dead pods' log files from a shared `/var/log` on
+the `core-system-prod` nodes whenever a rollout schedules a new pod. Files outnumber pods
+across the whole CONFINS family. SRE can fix it without source access — [confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md). Getting source
+access, or an owner, for this group still matters for the body logging and for the other 51
+services without source.
 
 ---
 
@@ -131,7 +136,7 @@ masked-field variable set to `""`** (`lora-gateway`, `doc-renderer`,
 `partnership-provisioning`, `lora-schema`, `database-catalog` over HTTP;
 `integrity`, `pbf`, `supplier` over gRPC). SRE's view is that `lora-schema` and
 `database-catalog` carry no PII, which leaves five where a list is needed; the
-ready-to-apply diffs are in [deployment-proposal.md](deployment-proposal.md).
+the diffs are in [deployment-proposal.md](deployment-proposal.md), raised as [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820).
 Separately, in three repositories the code never called the scrubber at all —
 `lora-gateway-service` had the call commented out under a comment claiming the
 code was non-production only, while writing 69,433 bodies a week in production —

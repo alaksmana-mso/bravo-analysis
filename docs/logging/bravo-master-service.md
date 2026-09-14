@@ -19,6 +19,11 @@ Measured in Datadog over the 7 days to 13 September 2026, unless stated otherwis
 
 ---
 
+
+## Which Java wrapper applies here (15 September 2026)
+
+This repository is on Spring Boot 3.5.15, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It has no shared logging library today, so the starter is an addition, not a migration.
+
 ## Implementation status
 
 **No pull request, and none needed.** No branch was created for this repository.

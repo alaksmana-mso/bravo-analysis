@@ -87,6 +87,42 @@ every Hibernate SQL statement into the MDC, where it rides along on the next log
 the case and the size cap in one place. Whether a service logs bodies at all stays a
 deployment setting — set the two switches in `values-prod.yaml`, as the Go services do.
 
+### 2a. The new Java starter — bfi-java-pkg#122, read 15 September 2026
+
+A colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) on 14 September: `bfi-logging-core` (a Logback/logstash JSON
+encoder with volume controls) and `bfi-logging-spring-boot-starter` (Spring Boot 3.x
+auto-configuration), alongside `bravo-lib-logging`, not replacing it. Read in full.
+
+**What it gets right, and why it matters here:**
+
+- **A message cap at the encoder** — `TruncatingMessageJsonProvider`, 8,192 characters, plus
+  stack traces capped at 8,192 characters and 20 frames. This is the only wrapper-level
+  change that shortens `prod-ms-bpm`'s Feign lines (99.99% of 86,600 a day hit Datadog's
+  76,800-byte limit): bpm is on Boot 3.5.16 and does not use `bravo-lib-logging`, so #123
+  cannot reach it. It also keeps Java lines under the 16 KB split that leaves 93.6% of
+  production logs unparseable.
+- **Single-line JSON** with `level`, `timestamp`, `service`, `version`, `env`, and
+  `trace_id`/`span_id` normalised from `dd.trace_id` (the MDC passthrough keeps `dd.trace_id`
+  too, so Datadog's own correlation still works). bpm logs a plain-text pattern today.
+- **Request logging off by default**, payload off by default, 2 KB payload cap — the opposite
+  of the lib's `true`/`true`.
+- Async appender that drops rather than blocks, duplicate-message filter, framework loggers at
+  WARN, `LOG_LEVEL` with an INFO default. Tests on every class.
+
+**What it left out, and what we added on 15 September** (four commits on the PR branch,
+`mvn verify` green, 58 + 39 tests):
+
+| Gap as opened | Fix pushed |
+|---|---|
+| No outbound (Feign) handling at all — the estate's largest body source is a Feign logger | `BravoFeignLogger`: one INFO line per call (client, method, URL, status, `duration_ms`), **never headers**, bodies opt-in (`bravo.logging.feign.include-body`, default `false`), masked and capped; backs off if the service has its own `feign.Logger` bean |
+| The PII regex never ran over the `message` field — a body logged as a plain string was capped but not masked | `maskPii` on the message provider, default on, `LOG_MASK_MESSAGE_PII` to turn off |
+| `request_body` was regex-masked only — the key deny-list never saw a body's fields | `MaskingValueUtil.maskJson`: parse JSON, mask every field by key whatever its type, regex fallback |
+| Both READMEs linked a guideline at `../docs` that is not in the repository | Plain text; new properties documented |
+| Spring Boot 3 only | Not fixable there. 14 of 34 Java repositories are on Boot 2.7; #123 is their bridge |
+
+**What it does not do, and will not:** capture outbound bodies for debugging. That is still
+Live Debugger's job (§5), once Remote Configuration works.
+
 ---
 
 ## 3. Three defects that make all of this worse
@@ -269,11 +305,13 @@ BFI-specific names — `nik`, `no_ktp`, `norek` — with
 implemented in the Node.js tracer**; do not rely on it.
 
 **Cost: confirm before enabling.** Snapshots are delivered as log events tagged
-`source:dd_debugger` into a log index you create. Datadog's documentation does not state
-whether these count against log ingestion and indexing or are included with APM. Ask the
-account team three questions first: does `source:dd_debugger` count against ingested GB and
-indexed events; is there a bundled allowance with APM; and does Datadog's "no sampling"
-instruction for that index interact with our commitment tier.
+`source:dd_debugger` into a log index you create. Our contract (order `Q-849776`, read on
+14 September 2026) has no Live Debugger line, so if they bill as ordinary logs they land on
+the two lines we are already over: ingestion at **$0.10/GB** and indexed events at
+**$1.59–1.91 per million** in overage. Datadog's documentation does not state whether they
+count there or are included with APM. Two questions remain for the account team: does
+`source:dd_debugger` count against ingested GB and indexed events, and does Datadog's "no
+sampling" instruction for that index interact with our commitment tier.
 
 ### 5.4 Manual span tags — the targeted fallback
 
@@ -344,10 +382,12 @@ Two exceptions, both of which go now on their own schedule:
   actually capture and mask is unknown.~~ **Resolved 14 September 2026** — the source is
   `bfi-finance/bfi-java-pkg`; eighteen repos depend on it; both filters capture bodies by
   default and `FeignClientFilter` masks nothing. See above and
-  [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123).
+  [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123); for Boot 3.x
+  services the target is now the starter in [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) (§2a).
 - **`ConfinsRequestLog` in `bravo-edoc-service`.** Size, retention and read access unknown.
 - **The Node.js tracer version actually running.** `lms-calculation-service`'s lockfile says
   5.109.0 and `package.json` says `^5.81.0`. Production spans carry no tracer version tag.
   Below 5.84.0, probes cannot be enabled from the UI.
 - **Datadog's billing treatment of `source:dd_debugger`.** Not stated in their documentation
-  in either direction. Account team question.
+  in either direction, and not a line in our contract. Account team question; the rates it
+  would fall under if it bills as logs are in §5.3 above.
