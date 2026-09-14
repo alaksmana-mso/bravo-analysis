@@ -1,0 +1,282 @@
+<style>
+/* Deck-local pieces: the ask list, the gate, the verdict box, and a compact commitment table. */
+.verdictbox{border:2px solid var(--ac);border-radius:4px;padding:20px 24px;background:var(--acBg2);display:flex;flex-direction:column;gap:10px}
+.verdictbox .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.verdictbox .txt{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(18px,2.3vw,29px);line-height:1.22;letter-spacing:-.018em;color:var(--ink)}
+.verdictbox .txt em{color:var(--ac);font-style:normal;font-weight:800}
+
+.ask{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.askrow{background:var(--panel);padding:12px 16px;display:grid;grid-template-columns:26px 1fr 150px;gap:14px;align-items:start}
+.askrow .n{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:var(--ac);font-variant-numeric:tabular-nums}
+.askrow .t{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.askrow .t b{color:var(--ink);font-weight:600}
+.askrow .c{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);text-align:right;line-height:1.5}
+
+.gate{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.gcell{background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:7px}
+.gcell .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.gcell .nums{display:flex;align-items:baseline;gap:10px}
+.gcell .a{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(18px,2.2vw,26px);color:var(--bad);letter-spacing:-.02em}
+.gcell .arw{color:var(--ink3);font-size:15px}
+.gcell .b{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(18px,2.2vw,26px);color:var(--ok);letter-spacing:-.02em}
+.gcell p{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+
+.tw table{width:100%;border-collapse:collapse;font-size:13px}
+.tw th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;text-align:left}
+.tw td.num,.tw th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw td .over{color:var(--bad);font-weight:700} .tw td .under{color:var(--warn);font-weight:700} .tw td .fine{color:var(--ok);font-weight:600}
+
+.phz{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.phzc{background:var(--panel);padding:14px 15px;display:flex;flex-direction:column;gap:7px}
+.phzc.now{background:var(--acBg)}
+.phzc .n{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink3)}
+.phzc.now .n{color:var(--ac)}
+.phzc .t{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink)}
+.phzc .c{font-size:12px;line-height:1.4;color:var(--ink2)}
+
+.tl{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.tlc{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.tlc .w{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;color:var(--ac)}
+.tlc .h{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink)}
+.tlc .d{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+
+@media (max-width:860px){.phz,.tl{grid-template-columns:1fr}.gate{grid-template-columns:1fr}}
+@media print{
+  .phz{grid-template-columns:repeat(4,minmax(0,1fr))} .tl{grid-template-columns:repeat(3,minmax(0,1fr))} .gate{grid-template-columns:1fr 1fr}
+  .askrow{padding:8px 12px} .askrow .t{font-size:11px;line-height:1.4} .askrow .c{font-size:9px}
+  .gcell{padding:11px 13px;gap:5px} .gcell .a,.gcell .b{font-size:18px} .gcell p{font-size:10.5px;line-height:1.35}
+  .phzc{padding:9px 11px;gap:5px} .phzc .t{font-size:11.5px} .phzc .c{font-size:10px;line-height:1.32}
+  .tlc{padding:9px 12px;gap:4px} .tlc .h{font-size:11.5px} .tlc .d{font-size:10px;line-height:1.32}
+  .tw table{font-size:10.5px} .tw td,.tw th{padding:6px 10px}
+}
+</style>
+
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:20px">
+    <p class="cover-kicker">PT BFI Finance Indonesia &middot; Engineering &middot; A briefing for the Datadog account team</p>
+    <h1>What BFI needs<br><span class="thin">from Datadog, and why.</span></h1>
+    <div class="verdictbox" style="max-width:88ch">
+      <span class="lab">The ask, in one sentence</span>
+      <p class="txt">Teach our squads to <em>look at a trace before they add a log line</em>, and teach our platform team to run the pipeline that makes that possible.</p>
+    </div>
+    <div class="verdictbox" style="max-width:88ch;border-color:var(--ruleS);background:transparent">
+      <span class="lab" style="color:var(--ink3)">Why we are telling you first</span>
+      <p class="txt" style="font-size:clamp(16px,2vw,23px)">We have spent six weeks measuring our own use of Datadog. We own more of it than we use, and the part we over-use is logging. A generic onboarding would miss that. This deck is what we found, so the workshops can start from where we actually are.</p>
+    </div>
+    <div class="meta">
+      <span><b>Sources</b> &nbsp;Datadog usage metrics and log queries in our org, our deployment manifests, 73 repositories read line by line.</span>
+      <span><b>As at</b> &nbsp;2026-09-14</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> 12 slides &middot; the situation is on 2&ndash;8 &middot; the training we are asking for is on 10&ndash;12</p>
+</section>
+
+<section class="slide" data-nav="Who we are">
+  <div class="inner">
+    <p class="eyebrow"><b>01</b><span class="sep">/</span>Orientation</p>
+    <h2 class="st">Who we are, in Datadog terms</h2>
+    <p class="lede">A consumer-finance lender running a loan origination and servicing estate on GKE. Three languages, two shared wrapper libraries, one Datadog org, one two-year order.</p>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">~122</span><span class="stat__l">production services on the cluster</span></div>
+      <div class="stat"><span class="stat__n plain">71</span><span class="stat__l">of them send logs or traces to Datadog today</span></div>
+      <div class="stat"><span class="stat__n plain">3</span><span class="stat__l">languages: Go (about two-thirds), Java Spring Boot, Node.js</span></div>
+      <div class="stat"><span class="stat__n plain">2</span><span class="stat__l">wrapper libraries every service imports &mdash; one Go, one Java</span></div>
+    </div>
+    <div class="cols b">
+      <div class="note"><h4>The two wrappers are the lever</h4><code>bfi-go-pkg</code> gives every Go service its logger, HTTP middleware, gRPC interceptors and tracer setup. <code>bravo-lib-logging</code> (<code>bfi-java-pkg</code>) does the same for 18 Java services. <strong>A default changed in one of them reaches the whole estate in one release.</strong> Any workshop that ends with a wrapper change is worth more than thirty team sessions. We have two such changes in review now.</div>
+      <div class="note"><h4>How we know what follows</h4>Six weeks of review: 73 repositories read, production logs and spans queried in our org for every service, every production deployment manifest read, and the signed order <code>Q-849776</code> (1 Oct 2025 &ndash; 30 Sep 2027) set against Datadog&rsquo;s own <code>estimated_usage</code> metrics. <strong>Every number in this deck comes from one of those four places.</strong> Where a number needs your side to confirm it, we say so.</div>
+    </div>
+    <div class="foot"><span class="src">bravo-analysis/docs/logging/README.md &middot; sre-datadog-recommendations.md &sect;1</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Bought vs used">
+  <div class="inner">
+    <p class="eyebrow"><b>02</b><span class="sep">/</span>The contract</p>
+    <h2 class="st">We are over on the two cheapest lines and under on the four expensive ones</h2>
+    <p class="lede">Committed quantities per month from order Q-849776, against what <code>datadog.estimated_usage.*</code> reports for the 30 days to 14 September 2026.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Line</th><th class="num">Committed / month</th><th class="num">Used, last 30 days</th><th>Reading</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Infra hosts (Pro Plus)</td><td class="num">100</td><td class="num">59</td><td><span class="under">under</span> &mdash; 41% unused</td></tr>
+        <tr><td class="k">APM Enterprise hosts</td><td class="num">100</td><td class="num">50</td><td><span class="under">under</span> &mdash; half unused</td></tr>
+        <tr><td class="k">Indexed spans (15-day)</td><td class="num">840M</td><td class="num">100M</td><td><span class="under">under</span> &mdash; 12% of what was bought</td></tr>
+        <tr><td class="k">Ingested spans</td><td class="num">20,000 GB</td><td class="num">12,900 GB</td><td><span class="fine">within</span></td></tr>
+        <tr><td class="k">Containers</td><td class="num">2,400</td><td class="num">~3,095</td><td><span class="over">over</span> &mdash; small, at $0.002 / container-hour</td></tr>
+        <tr><td class="k">Log events indexed (3 + 7 day)</td><td class="num">150M</td><td class="num">~240M</td><td><span class="over">over</span> &mdash; 1.6&times;</td></tr>
+        <tr><td class="k"><b>Log ingestion</b></td><td class="num"><b>256 GB</b></td><td class="num"><b>~39,800 GB</b></td><td><span class="over">over &mdash; about 150&times;</span>, billed at $0.10 / GB</td></tr>
+      </tbody>
+    </table></div>
+    <div class="cols b">
+      <p class="claim">Logs are 1.5% of what we bought and most of what we pay extra for. Teams log because nobody has shown them what a trace can answer. That is a training problem before it is a pricing one.</p>
+      <div class="note"><h4>One number we need you to confirm</h4>40 TB across 240M events is 166 KB an event, which is not what a log line weighs. Either the estimate over-counts or a few services ship very large entries &mdash; we know of 64 KB request bodies being logged. <strong>Please reconcile the ingestion metric against our invoices before either side uses it in a renewal conversation.</strong></div>
+    </div>
+    <div class="foot"><span class="src">Order Q-849776 pages 1&ndash;2 &middot; datadog.estimated_usage.* in the BFI org &middot; logging-cost.md &sect;1a</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The log stream">
+  <div class="inner">
+    <p class="eyebrow"><b>03</b><span class="sep">/</span>Logging</p>
+    <h2 class="st">The log stream is large, mostly unparsed, and mostly avoidable</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n neg">4.5<small>M</small></span><span class="stat__l">production log lines a day</span></div>
+      <div class="stat"><span class="stat__n neg">93.6<small>%</small></span><span class="stat__l">of them carry no parsed attributes &mdash; no <code>@logger.name</code>, no level, no trace id</span></div>
+      <div class="stat"><span class="stat__n neg">64<small>%</small></span><span class="stat__l">of the volume comes from five services</span></div>
+      <div class="stat"><span class="stat__n plain">16<small>KB</small></span><span class="stat__l">line split by the container runtime; every longer line arrives as fragments</span></div>
+    </div>
+    <div class="cols b">
+      <div class="note note--bad"><h4>Where it comes from</h4><strong>Request and response bodies logged at INFO.</strong> The Java wrapper defaults body logging to on; the Go wrapper is opt-in but eight production services have it on with an empty masking list. <strong>Eight services run production at <code>debug</code>.</strong> One service emits genuinely blank lines &mdash; 29% of everything. Serialised payloads, stack frames and the same error 20,000 times a day make up most of the rest. <strong>Almost none of it is a log a human wanted.</strong></div>
+      <div class="note note--ok"><h4>What we are doing about it ourselves</h4>Forty-eight pull requests across the estate, two wrapper fixes, and a set of manifest changes ready for our SRE team. We hold ourselves to a gate before asking Datadog to ingest more: <strong>under 2.5M lines a day, over 80% parsed.</strong> The workshops on slide 10 are what get squads to keep it there &mdash; a team that can read a trace stops printing the payload.</div>
+    </div>
+    <div class="foot"><span class="src">Datadog log analytics, production, 7 days to 2026-09-13 &middot; sre-datadog-recommendations.md &sect;0, &sect;3</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Traces unused">
+  <div class="inner">
+    <p class="eyebrow"><b>04</b><span class="sep">/</span>APM</p>
+    <h2 class="st">The traces are there. Almost nobody looks at them.</h2>
+    <p class="lede">The expensive half of the product is deployed and working. The squads who would benefit do not know it exists, and the features built on top of it are untouched.</p>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n pos">42</span><span class="stat__l">production services covered by APM</span></div>
+      <div class="stat"><span class="stat__n pos">79<small>M</small></span><span class="stat__l">spans in two days, including database and queue spans</span></div>
+      <div class="stat"><span class="stat__n plain">3<small>M+</small></span><span class="stat__l">spans a week from the workflow engine alone &mdash; controllers, JPA, outbound calls</span></div>
+      <div class="stat"><span class="stat__n neg">12<small>%</small></span><span class="stat__l">of the committed indexed spans actually used</span></div>
+    </div>
+    <div class="cols b">
+      <div class="note note--bad"><h4>What is switched off, or never switched on</h4><strong>Error Tracking</strong> &mdash; derived from telemetry already flowing, costs nothing extra, not used. <strong>Database Monitoring</strong> &mdash; the Cloud SQL Postgres instances are not enrolled. <strong>Profiling</strong> &mdash; not enabled anywhere. <strong>Service Catalog</strong> ownership &mdash; empty. When an incident happens, engineers open logs, because logs are where they were taught to look.</div>
+      <div class="note"><h4>The training gap this describes</h4>Not &ldquo;how to install the tracer&rdquo; &mdash; it is installed. <strong>How a service owner reads their own service page, finds the failed request, follows it across five services and a database call, and answers the question without a single log line.</strong> Then how Error Tracking turns 20,000 identical errors a day into one issue with an owner.</div>
+    </div>
+    <div class="foot"><span class="src">Datadog APM, production, 2 days to 2026-09-12 &middot; sre-datadog-recommendations.md &sect;1</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Not joined up">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Correlation</p>
+    <h2 class="st">Logs and traces are not joined up anywhere</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="stats">
+          <div class="stat"><span class="stat__n neg">0</span><span class="stat__l">production logs with a parsed <code>@dd.trace_id</code>, across two days</span></div>
+          <div class="stat"><span class="stat__n plain">21</span><span class="stat__l">services that emit <code>dd.trace_id</code> as plain text inside the message &mdash; injection is on, parsing is not</span></div>
+          <div class="stat"><span class="stat__n neg">30<small> of 71</small></span><span class="stat__l">services send both logs and traces; the rest send one or the other</span></div>
+          <div class="stat"><span class="stat__n neg">8</span><span class="stat__l">services carry a different <code>service</code> name in logs than in traces &mdash; Datadog treats each as two services</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>Why</h4><strong>No log pipeline parses our JSON</strong>, so <code>dd.trace_id</code> stays a string in the message. <strong>Unified service tagging</strong> is not applied on the pods, so names drift between the tracer and the log collector. And the <strong>16 KB split</strong> turns the JSON of any long line into fragments no parser can read. Nobody can click from a slow trace to its logs, or from an error log to the trace that caused it. We own the feature and get none of it.</div>
+        <div class="note"><h4>What we need to learn</h4><strong>Platform:</strong> pipelines and processors, trace-id remapping, reserved attributes, multi-line handling, unified service tagging on GKE. <strong>Squads:</strong> what their logger has to emit for the pipeline to work &mdash; MDC in Java, context loggers in Go &mdash; and how to check in the UI that it did.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">Datadog log queries, production, 2 days &middot; sre-datadog-recommendations.md &sect;4 &middot; bfi-datadog-telemetry-coverage</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Body visibility">
+  <div class="inner">
+    <p class="eyebrow"><b>06</b><span class="sep">/</span>Dynamic instrumentation</p>
+    <h2 class="st">Squads log bodies because they cannot see them &mdash; and the feature that would fix that is blocked</h2>
+    <p class="lede">Every squad we asked gave the same reason for logging request and response payloads: &ldquo;Datadog does not show them.&rdquo; They are right, and Live Debugger is the answer. It does not work in our org today.</p>
+    <div class="cols b">
+      <div class="note note--bad"><h4>Remote Configuration is failing</h4><strong>13 production services, about 91,000 failed polls a week</strong>, all with the same agent error: <code>empty targets meta in director local store</code>. Until it is fixed, no Live Debugger probe can be placed and no tracer setting can be changed from the UI. We have not found the cause on our side. <strong>This is the single item where we most need Datadog&rsquo;s help.</strong></div>
+      <div class="note"><h4>Three things that limit what Live Debugger can do here</h4><strong>23 Dockerfiles</strong> download the tracer from <code>releases/latest</code> &mdash; unpinned, in production, so tracer behaviour changes without a deploy. <strong>Three services run on OpenTelemetry</strong> with dd-trace only indirectly, so they get no Datadog-native features at all. <strong>Node.js gets line probes only</strong>, and the Go estate &mdash; two-thirds of our services &mdash; is where dynamic instrumentation is thinnest.</div>
+    </div>
+    <p class="claim">If a squad can place a probe on a method and see the payload for one request, they will stop logging every payload for every request. That is the workshop with the largest effect on the ingestion line on slide 3.</p>
+    <div class="foot"><span class="src">Datadog agent logs, production &middot; body-visibility.md &middot; bfi-datadog-remote-config-broken</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Monitors and RUM">
+  <div class="inner">
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>Alerting, synthetics, RUM</p>
+    <h2 class="st">Monitors that cannot fire, tests that test nothing, RUM half-configured</h2>
+    <div class="cols b">
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note note--bad"><h4>Monitors</h4>About <strong>20 log monitors target <code>dev-</code>, <code>sit-</code> and <code>uat-</code> services</strong>. No non-production logs reach Datadog, so they report OK forever. The production monitors for one product line query a service name that does not exist. <strong>38 monitors match the workflow engine; none watches whether a loan is progressing.</strong> Alerts route to <code>@googlechat-test</code> and <code>@webhook-testwebhook</code>.</div>
+        <div class="note"><h4>Synthetics</h4><strong>Eight tests, all DNS and SSL checks.</strong> Nothing exercises whether a customer can submit an application. A five-week production defect on the front end went unreported by monitoring while 2.4M front-end errors accumulated in RUM.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="note"><h4>RUM</h4>Two browser applications instrumented. One has <code>allowedTracingUrls</code> and joins browser sessions to backend traces; the other does not, and its sample rates were left at the defaults. Session Replay is bought (600K sessions a month) and, as far as we can tell, never watched.</div>
+        <div class="note note--ok"><h4>The training gap</h4><strong>Monitors as code</strong> &mdash; Terraform or API, reviewed like software, routed to channels people read. <strong>Composite and workflow monitors</strong> that watch a business step, not a container. <strong>API synthetics</strong> that exercise a real submission. <strong>RUM setup</strong> done once, correctly, on both apps.</div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">Datadog monitors, synthetics and RUM in the BFI org, audited 2026-09-11/12 &middot; sre-datadog-recommendations.md &sect;2, &sect;9</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Our plan">
+  <div class="inner">
+    <p class="eyebrow"><b>08</b><span class="sep">/</span>What we are already doing</p>
+    <h2 class="st">Our own plan, so the workshops slot into it rather than duplicate it</h2>
+    <div class="phz">
+      <div class="phzc now"><span class="n">Phase 1 &middot; now</span><span class="t">Platform fixes, no Datadog change</span><span class="c">Non-production log exclusion and retention, dead monitors fixed, tracer versions pinned, nine services taken off <code>debug</code>, masking lists set per service in the deployment manifests.</span></div>
+      <div class="phzc"><span class="n">Phase 2 &middot; next</span><span class="t">Squads cut log volume</span><span class="c">48 pull requests open, one per repository, each naming the file and line. Two wrapper fixes: the Go scrubber masks numbers and lists; the Java Feign logger masks bodies and caps size.</span></div>
+      <div class="phzc"><span class="n">Phase 3 &middot; gated</span><span class="t">Ingestion and correlation</span><span class="c">Pipelines that parse our JSON, line reassembly, trace-id remapping, unified service tagging, per-service cost filters. <strong>This is where the platform workshops land.</strong></span></div>
+      <div class="phzc"><span class="n">Phase 4 &middot; one at a time</span><span class="t">The paid features we already own</span><span class="c">Error Tracking, Live Debugger, Database Monitoring, real synthetics, RUM done properly. <strong>This is where the squad workshops land.</strong></span></div>
+    </div>
+    <div class="cols b" style="margin-top:2px">
+      <div class="gate">
+        <div class="gcell"><span class="k">Gate 1 &middot; production log lines / day</span><div class="nums"><span class="a">4.5M</span><span class="arw">&rarr;</span><span class="b">under 2.5M</span></div><p>Protects the ingestion line. Squads own this.</p></div>
+        <div class="gcell"><span class="k">Gate 2 &middot; share Datadog can parse</span><div class="nums"><span class="a">6.4%</span><span class="arw">&rarr;</span><span class="b">over 80%</span></div><p>Cost filters, correlation and Error Tracking all work on parsed attributes. Platform owns this.</p></div>
+      </div>
+      <div class="note"><h4>Why the order matters to you</h4>If we enable ingestion features against today&rsquo;s stream, Datadog faithfully reassembles the 64 KB bodies into single billable events and indexes them. The bill goes up and the trust goes down. <strong>We would rather arrive at the workshops with a stream half the size and ask you to help us use the features we bought.</strong></div>
+    </div>
+    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;0, &sect;10 &middot; deployment-proposal.md &middot; bfi-go-pkg#175, bfi-java-pkg#123</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Squad training">
+  <div class="inner">
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>Training we are asking for &middot; squads</p>
+    <h2 class="st">For developers: from &ldquo;add a log line&rdquo; to &ldquo;open the trace&rdquo;</h2>
+    <p class="lede">Hands-on, in our own org, on our own services, in three language tracks. About eight squads; a cohort of two or three squads per session.</p>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Traces first.</b> A service owner opens their service page, finds the failed request from the last hour, follows it across five services and a database call, reads the span tags &mdash; and answers &ldquo;what went wrong for this customer&rdquo; without a log line. Then the same for &ldquo;why is this slow&rdquo;.</span><span class="c">half day<br>per track</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Error Tracking as the inbox.</b> How grouping works, how to assign an owner, how one issue replaces 20,000 identical log lines, how to alert on a new issue rather than on a log count.</span><span class="c">2 hours<br>all squads</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Logs Datadog can use.</b> JSON, attributes versus message text, reserved attributes (<code>status</code>, <code>service</code>, <code>dd.trace_id</code>), what a 16 KB limit means, what never to log &mdash; bodies, identifiers, secrets &mdash; and how to check in the Log Explorer that your line parsed.</span><span class="c">2 hours<br>per track</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Correlation from the application side.</b> Log injection, unified service tagging, MDC in Spring, context loggers in Go, so the trace id lands as an attribute and not as text.</span><span class="c">with #3</span></div>
+      <div class="askrow"><span class="n">5</span><span class="t"><b>Live Debugger, once Remote Configuration works.</b> Place a probe, capture one request&rsquo;s payload, remove the probe. Java method probes; Node.js line probes; what Go can and cannot do today. This is the session that retires payload logging.</span><span class="c">2 hours<br>after slide 7</span></div>
+    </div>
+    <div class="foot"><span class="src">squads-guide.md &middot; body-visibility.md &middot; the five rules squads are already being held to</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Platform training">
+  <div class="inner">
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Training we are asking for &middot; SRE and platform</p>
+    <h2 class="st">For the platform team: run the pipeline, own the cost, make the monitors real</h2>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Log pipelines and processors.</b> JSON and grok parsers for our three logger formats, status and service remappers, trace-id remapping, multi-line and partial-line handling for the 16 KB split. Built together, on our stream, and left working.</span><span class="c">1 day</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Indexes, exclusion filters, retention and usage attribution.</b> Which service costs what; per-index quotas and daily-quota alerts; when to exclude and when to archive; how to read the Usage &amp; Cost page against the order &mdash; and settle the 40 TB question on slide 3.</span><span class="c">half day</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Agent and Remote Configuration on GKE.</b> Why our 13 services fail to poll, how to pin and roll tracer versions, single-step instrumentation options, what the OpenTelemetry services give up.</span><span class="c">half day<br>+ a support case</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Unified service tagging and the Service Catalog.</b> Labels and annotations on the pod template so logs, traces and metrics agree on <code>service</code>, <code>env</code>, <code>version</code>; ownership recorded once.</span><span class="c">2 hours</span></div>
+      <div class="askrow"><span class="n">5</span><span class="t"><b>Monitors as code, routing, SLOs.</b> Terraform or API, reviewed like software; composite monitors on a business step; notification channels people actually read; SLOs on the loan workflow.</span><span class="c">half day</span></div>
+      <div class="askrow"><span class="n">6</span><span class="t"><b>Database Monitoring, RUM and synthetics.</b> Enrol the Cloud SQL Postgres instances; <code>allowedTracingUrls</code> and sampling on both browser apps; one API synthetic that submits a real application to a test tenant.</span><span class="c">half day</span></div>
+    </div>
+    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;2&ndash;9 &middot; bfi-datadog-remote-config-broken</span><span>11</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Sequence and asks">
+  <div class="inner">
+    <p class="eyebrow"><b>11</b><span class="sep">/</span>Sequence, format, and what else we need</p>
+    <h2 class="st">Eight weeks, in the order our own plan needs it</h2>
+    <div class="tl">
+      <div class="tlc"><span class="w">Weeks 1&ndash;2</span><span class="h">Platform first</span><span class="d">Pipelines, tagging, Remote Configuration, usage attribution (slide 11, items 1&ndash;4). These unblock everything else, and they are the ones only your engineers can teach on our org.</span></div>
+      <div class="tlc"><span class="w">Weeks 3&ndash;6</span><span class="h">Squad cohorts</span><span class="d">&ldquo;Traces first&rdquo;, Error Tracking and structured logging (slide 10, items 1&ndash;4), three language tracks, while our Phase 2 cleanup lands. Each squad leaves having fixed one thing in its own service.</span></div>
+      <div class="tlc"><span class="w">Weeks 7&ndash;8</span><span class="h">The features we own</span><span class="d">Live Debugger, Database Monitoring, monitors as code, RUM and synthetics &mdash; once the gates on slide 9 are met and Remote Configuration polls.</span></div>
+    </div>
+    <div class="cols b" style="margin-top:2px">
+      <div class="ask">
+        <div class="askrow"><span class="n">A</span><span class="t"><b>Reconcile the ingestion metric</b> against our invoices. If 1.3 TB a day is right, it is the largest overage on the account and neither side should be surprised by it in October.</span><span class="c">before week 1</span></div>
+        <div class="askrow"><span class="n">B</span><span class="t"><b>Open a case on Remote Configuration</b> with us &mdash; 13 services, one error string, nothing we change on our side moves it.</span><span class="c">week 1</span></div>
+        <div class="askrow"><span class="n">C</span><span class="t"><b>Tell us the roadmap</b> for dynamic instrumentation in Go and for Node.js beyond line probes. Two-thirds of our services are Go.</span><span class="c">week 1</span></div>
+        <div class="askrow"><span class="n">D</span><span class="t"><b>A named solutions engineer</b> for the eight weeks, with time booked in our org, not slides.</span><span class="c">the whole window</span></div>
+      </div>
+      <div class="note note--ok"><h4>How we will both know it worked</h4><strong>Gate 1 and Gate 2 met</strong> and holding for four weeks. <strong>Over 80% of production logs carry a parsed trace id.</strong> <strong>Every monitor can fire</strong> and routes somewhere real. <strong>Indexed-span usage rises</strong> toward what was bought as log ingestion falls toward it. And in the next renewal conversation, the log lines and the span lines are sized from a year of data both sides trust.</div>
+    </div>
+    <div class="foot"><span class="src">bravo-analysis/docs/logging/ &middot; 80 documents &middot; every figure traceable to a Datadog query, a manifest, or a named file and line</span><span>12</span></div>
+  </div>
+</section>

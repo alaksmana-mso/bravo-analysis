@@ -29,6 +29,45 @@ If we enable ingestion improvements against today's stream, we do not fix the pr
 move it from Cloud Logging at Rp 271.8M a month to Datadog at Datadog prices, on top of the
 Rp 110.6M we already spend there.
 
+**What "Datadog prices" means, now that the contract is in hand (14 September 2026).** The
+signed order `Q-849776` runs 1 October 2025 to 30 September 2027. Its committed quantities,
+per month, against what Datadog's own `datadog.estimated_usage.*` metrics say we used in
+the 30 days to 14 September:
+
+| Line | Committed / month | Used, last 30 days | Overage rate |
+|---|---:|---:|---|
+| Infra hosts (Pro Plus) | 100 | 59 | $0.035 / host-hour |
+| Containers | 2,400 | ~3,095 | $0.002 / container-hour |
+| APM Enterprise hosts | 100 | 50 | $0.08 / host-hour |
+| Indexed spans | 840M | 100M | $2.55 / M |
+| Ingested spans | 20,000 GB | 12,900 GB | $0.10 / GB |
+| **Log events indexed** (3-day + 7-day) | **150M** | **240M** | $1.59–1.91 / M |
+| **Log ingestion** | **256 GB** | **~39,800 GB** | **$0.10 / GB** |
+| Cloud Network Monitoring | 100 hosts | — | $0.012 / host-hour |
+| RUM sessions + replay | 408K + 600K | — | $2.20–2.60 / K |
+
+Two things follow. **Logs are 1.5% of what was bought** — $210 of the $14,030 committed a
+month — and the log ingestion line was sized at 256 GB a month for an estate that Datadog
+says is sending it about **1.3 TB a day**. If that metric is right, log ingestion overage is
+roughly **$4,000 a month** (about Rp 64M at Rp 16,000), which would make it the largest
+single overage on the account and most of the Rp 110.6M. The event line is also over
+(240M against 150M) but that costs about $170 a month. The contract is meanwhile
+*under*-used on APM hosts, infra hosts and indexed spans by half or more.
+
+The metric needs one check before anyone acts on it: 40 TB across 240M events is 166 KB an
+event, which is not what a log line weighs. Either the estimate over-counts, or a small
+number of services are shipping very large entries (the 64 KB request bodies and serialised
+payloads in this document would do it). **SRE should reconcile it against the Usage & Cost
+page and the last three marketplace invoices before the next renewal conversation.**
+Either way the shape of the argument is unchanged: the cheap way to stay inside this
+contract is to send fewer, smaller lines, which is Phase 2.
+
+The 2025 billing sheet SRE shared says the same thing from the other side. Datadog cost
+Rp 5.62bn in 2025 through the GCP marketplace — Rp 3.66bn of it in May, the prior order's
+payment — and Rp 90–457M a month otherwise, against Cloud Logging at Rp 1.78bn for the year
+(Rp 97M in January rising to Rp 194M in December) and Coralogix flat at Rp 2.77bn. Year 2 of
+the current order is a single $168,357.60 payment due 1 October 2026.
+
 The specific trap is §3's partial-line reassembly. It works by rejoining log lines that the
 container runtime split at 16 KB. That is the right fix — but applied to today's stream it
 would rejoin `bravo-onboarding-service`'s 64 KB request bodies and
@@ -454,20 +493,46 @@ pull requests open**, each with a file in this folder naming the finding, the br
 the change. Squads have to review and merge them. Four things that came out of it are
 SRE's, not theirs.
 
-**1. One CI gate blocks 23 of the 64 pull requests, and it is not a code problem.**
-The shared `call-workflow-passing-data` workflow has a job named
-`Static Analysis - SonarQube` that fails at its Codacy step:
+**1. Shared-workflow gates account for 26 of the 27 red jobs, and none of them is a code
+problem.** Every failing job across the 44 pack-two pull requests was fetched and read
+individually — 27 red jobs across 19 repositories:
+
+| Cause | Jobs |
+|---|---:|
+| Dependency CVEs (SNYK) and base-image CVEs (Trivy — `musl`, `zlib`) | 17 |
+| `CodacyCoverageReporter` has no API token | 5 |
+| SonarQube quality gate on new-code coverage | 1 |
+| Codacy CLI installer itself broken — `codacy-cli.sh: line 65: fatal: command not found` | 1 |
+| `goconst` finding that predates the branch | 1 |
+| Prettier violations that predate the branch | 1 |
+| A real test failure in the change (fixed) | 1 |
+
+The Codacy token error reads:
 
 ```
 error [CodacyCoverageReporter] Invalid configuration: Either a project or account
 API token must be provided or available in an environment variable
 ```
 
-Confirmed identical on `bravo-supplier-service`, `bravo-pbf-service` and
-`bravo-journal-service` — repositories whose changes are a struct-tag default and two log
-levels. Until the token is present for these runs, every squad reviewing one of these pull
-requests sees a red check and has to be told to ignore it. **Fix the token, or the merge
-rate for Phase 2 will be whatever each squad's patience allows.**
+**An earlier version of this section said that error explained 23 of the pull requests.**
+It was checked on three repositories and generalised; reading all 27 logs brings it down to
+five. The correction matters in both directions — it is a smaller job than described, and
+one of the pull requests it was said to excuse actually had a defect in it.
+
+Three separate Platform items fall out of this:
+
+- **The Codacy project token is absent** for these runs on at least five repositories.
+- **The Codacy CLI installer is broken** on `bravo-employee-service` — the job dies inside
+  `codacy-cli.sh`, before any analysis runs, so no token would help.
+- **The SonarQube new-code baseline is wrong somewhere.** `bravo-insurance-service`'s quality
+  gate reports **9,855 "new lines"** against a limit of 2,000 for a pull request that changes
+  **+10/−4 lines in one file**. Any squad opening a small pull request against that project
+  will fail the gate on somebody else's code.
+
+Until these are fixed, every squad reviewing one of these pull requests sees a red check and
+has to be told which red to ignore — and being told to ignore red is exactly how a real
+failure gets missed. **Fix the gates, or the merge rate for Phase 2 will be whatever each
+squad's patience allows.**
 
 **2. Six production services emit no telemetry at all.** No logs, no APM spans, over a full
 7-day window: `prod-ms-asset-pricing`, `prod-ms-document`, `prod-ms-master`,
@@ -483,7 +548,39 @@ cleanup will surface it — this needs someone to check the deployments.
 `prod-ms-kyc-proxy`, `prod-ms-rule-engine`. They are running untraced. That is a smaller
 version of the same problem and belongs in §5's coverage work.
 
-**4. Service-to-repository mapping should come from Datadog, not from name similarity.**
+**5. The deployment manifests are where most of the remaining logging settings live — and
+eight production services run at `debug`.** SRE gave access to `app-deployment` and
+`bfi-app-deployment` on 14 September 2026 (`confins-app-deployment` was not reachable).
+Every `values-prod.yaml` for the 65 repositories in this programme has been read; what each
+one sets is in that service's file under *In the production deployment*, and the changes are
+written out as diffs in [deployment-proposal.md](deployment-proposal.md), **not applied**.
+The four findings that matter:
+
+- **`LOGGER_LEVEL=debug` in production** on `audit-trail`, `gen-ai`,
+  `partnership-provisioning`, `robot-controller`, `supplier`, `doc-renderer`,
+  `gold-service` and `portfolio-management-service`; `POSTGRES_LOG_LEVEL=debug` on the
+  last two; `LOG_LEVEL=DEBUG` on `robot-scrape`. Between them the eight Go services put
+  0.9 TB into Datadog in the last seven days. One line each.
+- **Body logging on with every masked-field list set to `""`** on `lora-gateway`,
+  `doc-renderer`, `partnership-provisioning` (HTTP) and `integrity`, `pbf` (gRPC). SRE's
+  reading is that `lora-schema` and `database-catalog`, which are in the same state, carry
+  no PII. The proposal gives the five a list — backoffice's, the closest thing to an agreed
+  BFI list — for the squads to trim.
+- **Every body, not only failures**, on `doc-renderer`, `portfolio-management-service` and
+  `database-catalog` (`HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY=false`).
+- **Java defaults.** `bravo-lib-logging` defaults `REQUEST_BODY_LOGGING` and
+  `RESPONSE_BODY_LOGGING` to `true`. Of 18 repositories on it, four set `SENSITIVE_KEYS` in
+  production and four turn response bodies off; the rest log both bodies of every request at
+  INFO because nobody set the switch. `bravo-onboarding-service` — 64 KB request bodies —
+  is the one the proposal touches.
+
+Two side findings from the same read: `bravo-scheduling-service` and
+`bfi-rule-engine-service` read their HTTP client timeouts from `HTTPCLIENT_*` while
+production sets `HTTP_CLIENT_*`, so those timeouts have never been applied; and both
+`notification-service` and `bravo-notification-service` map to the same
+`app-deployment/notification` directory, which the per-service files now say.
+
+**6. Service-to-repository mapping should come from Datadog, not from name similarity.**
 Four repositories in the original coverage list were mapped to the wrong service. The
 `git.repository_url` tag settles it in one query:
 
@@ -855,11 +952,14 @@ half of that coverage continuously, rather than in a weekly cron.
 | 5a | 1 | Header tags on, and **fix Remote Configuration — failing on 13 services** (§2.5) | 1 d | none | — |
 | 6 | 1 | Name an owner for `confins-prod-ms-lms-ar-be` (§3) | 1 d | none | — |
 | 7 | 1 | RUM tidy-up and the Gmail access review (§9) | 2 d | reduces | — |
-| 7a | 1 | **Fix the Codacy token in the shared CI workflow** — it red-flags 23 of the 64 Phase 2 pull requests for a reason unrelated to their content (§3a) | 1 h | none | unblocks Phase 2 |
+| 7a | 1 | **Fix the three CI gate faults** — the missing Codacy project token (5 pull requests), the broken `codacy-cli.sh` installer on `bravo-employee-service`, and the SonarQube new-code baseline that scores a 10-line pull request as 9,855 new lines on `bravo-insurance-service` (§3a) | 2 h | none | unblocks Phase 2 |
 | 7b | 1 | **Rotate the Google Chat webhook credentials** logged by `bau-prod-ms-otrs-report`, and find an owner with write access to that repo (§3a, [backend-dashboard-otrs.md](backend-dashboard-otrs.md)) | 1 d | none | security |
 | 7c | 1 | Establish why six production services emit no logs and no spans at all (§3a) | 2 d | none | — |
 | 7d | 1 | Datadog source-code integration on the Java services, so `git.repository_url` answers "which repo is this?" (§3a) | 2 d | none | — |
-| 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3). 64 pull requests are already open and waiting on squad review (§3a) | 4–6 wks | reduces | feeds every item below |
+| 7e | 1 | **Apply [deployment-proposal.md](deployment-proposal.md)** — nine services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off (§3a item 5) | 2 h | reduces | volume and exposure |
+| 7f | 1 | **Reconcile Datadog's log-ingestion estimate (≈1.3 TB/day) against the Usage & Cost page and the invoices** — if it is right, log ingestion is ~150× the 256 GB/month commitment and about $4,000/month in overage (§0) | 2 h | none | sizes the next renewal |
+| 7g | 2 | Review and merge the two wrapper fixes: [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (mask non-string values) and [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) (Feign bodies masked, case-insensitive keys, body cap), then bump the dependency in the consuming services | 1 d | none | closes the masking gap estate-wide |
+| 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3). 48 pull requests are already open and waiting on squad review (§3a) | 4–6 wks | reduces | feeds every item below |
 | 9 | 3 | Reassembly + logs injection + trace remapper + per-service exclusion filters (§4) | 2 d | small, gated | — |
 | 10 | 3 | Trace KrakenD then `prod-lora-task`, with sampling from day one (§5) | 3 d | moderate | — |
 | 11 | 3 | Log collection on the silent traced services, `prod-ms-agreement` first (§5) | 3 d | moderate | — |

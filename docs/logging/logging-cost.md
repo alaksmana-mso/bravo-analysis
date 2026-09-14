@@ -54,6 +54,79 @@ Coralogix is flat at about Rp 250M a month and has been since February. It is a 
 marketplace commitment, billed in one charge. Nobody in the cost documents has asked what
 it is for. **That question is worth more than the Feign fix.** See item 1 in section 4.
 
+### 1a. What the contract and the 2025 bills add (14 September 2026)
+
+SRE shared two things: the signed Datadog order
+(`production-findings/Q-849776-20250930-1622_completed_datadog_contract.pdf`) and the
+2025 GCP billing spreadsheet. They change how the Datadog line above should be read.
+
+**The 2025 bills, month by month (Rp):**
+
+| Platform | Jan | Apr | Jul | Oct | Dec | 2025 total |
+|---|---:|---:|---:|---:|---:|---:|
+| Cloud Logging | 96.8M | 158.6M | 146.5M | 189.0M | 194.4M | **1,780.7M** |
+| Coralogix | 227.6M | 232.1M | 227.2M | 234.6M | 233.6M | **2,769.1M** |
+| Datadog | 94.8M | 245.3M | 123.1M | 295.0M | 194.8M | **5,620.4M** |
+
+Datadog's 2025 total includes a single **Rp 3.66bn in May** — the previous order's
+payment through the marketplace, not a usage month. Take that out and Datadog ran
+Rp 90–457M a month, more variable than the other two because the marketplace bills
+overage monthly on top of the commitment. Cloud Logging doubled across 2025 (Rp 97M in
+January to Rp 194M in December) and kept climbing into 2026 (§1). Coralogix did not move.
+Total GCP spend for 2025 was Rp 33.8bn; the three log platforms were Rp 10.2bn of it, 30%.
+
+**The contract.** `Q-849776` is a two-year renewal, 1 October 2025 to 30 September 2027,
+resold through GCP Marketplace. Committed quantities per month, and what Datadog's own
+usage metrics say we used in the 30 days to 14 September 2026:
+
+| Line | Committed / month | Sales price | Committed $/month | Used (30 d) |
+|---|---:|---|---:|---:|
+| Infra hosts (Pro Plus) | 100 | $18 / host | 1,800 | 59 |
+| Containers | 2,400 | $1 / container | 2,400 | ~3,095 |
+| APM Enterprise | 100 hosts | $40 / host | 4,000 | 50 |
+| Indexed spans, 15-day | 840M | $1.70 / M | 1,428 | 100M |
+| Ingested spans | 20,000 GB | $0.10 / GB | 2,000 | 12,900 GB |
+| Log events, 3-day | 30M | $1.06 / M | 32 | — |
+| Log events, 7-day | 120M | $1.27 / M | 152 | 240M in total |
+| Log ingestion | 256 GB | $0.10 / GB | 26 | **~39,800 GB** |
+| Cloud Network Monitoring | 100 hosts | $5 / host | 500 | — |
+| RUM session replay | 600K | $1.80 / K | 1,080 | — |
+| RUM sessions | 408K | $1.50 / K | 612 | — |
+| **Total committed** | | | **$14,030** | |
+
+Net due over the term is $174,324.52 after a $162,390.68 credit for the existing order:
+**$5,966.92 in year one and $168,357.60 due 1 October 2026** for year two. Overage is billed
+monthly at the "Additional" rates on page 2 — $0.10/GB for log ingestion, $1.59–1.91 per
+million log events, $0.002 per container-hour.
+
+**Three things this settles, and one it does not.**
+
+1. **Logs are 1.5% of the Datadog contract.** $210 of $14,030 a month. The "Datadog cost
+   will explode" concern is real but it is not about the per-line price; it is about the
+   ingestion line having been sized at **256 GB a month**.
+2. **We are over on the two log lines and under on almost everything else.** Datadog's
+   `datadog.estimated_usage.logs.ingested_bytes` says about **1.3 TB a day** — 150× the
+   commitment — and `ingested_events` about 8M a day against 5M committed. At the overage
+   rate that is roughly **$4,000 a month** of log ingestion, about Rp 64M at Rp 16,000, which
+   would explain most of the Rp 110.6M Datadog line in August. Meanwhile APM hosts, infra
+   hosts and indexed spans are used at half the commitment or less. The next renewal should
+   move money from the span and host lines to the log lines — or, better, arrive with a
+   stream a third the size.
+3. **The per-service split is known.** Top log-ingestion sources over the last seven days,
+   Datadog's estimate, 96% of it from the `prod-bravo-cluster` index: `prod-ms-assistance`
+   1.60 TB, `prod-ms-cnv` 1.39 TB, `prod-ms-lms-ops` 0.70 TB, `prod-agent-marketing`
+   0.52 TB, `prod-ms-audit-trail` 0.48 TB, `prod-ms-repeat-order` 0.37 TB,
+   `prod-customer-bff` 0.33 TB, `prod-ms-supplier` 0.21 TB, `prod-ms-bfi-incentive-api`
+   0.19 TB, `prod-sharia-user-iam-sharia` 0.19 TB, `prod-ms-bpm` 0.18 TB. Four of the top
+   eight run production at `LOGGER_LEVEL=debug` ([deployment-proposal.md](deployment-proposal.md) §1).
+
+What it does not settle: **40 TB across 240M events is 166 KB per event**, which is not
+what a log line weighs. Either the estimate over-counts, or a few services ship very large
+entries — the 64 KB request bodies and serialised payloads elsewhere in this document
+would do it. SRE should reconcile the metric against the Usage & Cost page and the last
+three invoices before the figure is used in a renewal conversation. Until then, treat the
+$4,000 as an upper bound with the right order of magnitude.
+
 ---
 
 ## 2. Where the Cloud Logging money goes
@@ -328,6 +401,17 @@ that no Java-shaped scan would ever have found:
 code. `bravo-partnership-service`, `bravo-auth-service` and `bravo-assistance-service` all
 scored zero on the code scan and have among the worst production behaviour in the estate.
 
+**A second lesson, about checking rather than scanning.** The changes in this programme were
+written on a machine believed to have no build tools; `mise` in fact had Go, `gofmt`,
+`golangci-lint` and Node all along, and Node runs `prettier-plugin-java` too. Running what
+was actually available found four defects that reading had missed, in changes already
+described in these documents as reviewed. The one class that stayed hidden is the one no
+static tool catches: a Java change that swapped a string concatenation — null-safe by
+definition — for a method call on the same possibly-null reference, turning the exception a
+RabbitMQ listener is contracted to throw into a `NullPointerException`. Only that
+repository's own test suite found it, and it could not be run here. **A logging change is a
+code change; it earns the same build, lint and test as any other.**
+
 ### 5b. Four exposures found on the way, none of them cost items
 
 Listed here because they came out of this work, not because they belong in a cost document.
@@ -414,8 +498,8 @@ code work combined and depends on nobody's sprint.
 | 12 | **Fix the ENGINE-09004 BPMN model warnings** | S&U | 2 d | Rp 2–5M | high |
 | 13 | **Downgrade routine warnings to debug** in `lora-task-service` | LORA Core | 1 d | Rp 3–6M | medium |
 | 14 | **Long tail**: `printStackTrace`, `System.out`, `console.log`, logs in loops | All squads | ongoing | Rp 5–10M | low each |
-| 15 | **Merge the 64 open pull requests.** Written, raised, waiting on squad review — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
-| 16 | **Fix the Codacy token in the shared CI workflow.** It red-flags 23 of those 64 for a reason unrelated to their content, and each squad has to be told to ignore it | Platform | 1 h | unblocks #15 | high |
+| 15 | **Merge the 48 open service pull requests and the two wrapper ones.** Written, raised, waiting on squad review — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
+| 16 | **Fix the three CI gate faults.** A missing Codacy API token (5 pull requests), a `codacy-cli.sh` installer that dies with `command not found`, and a SonarQube new-code baseline that scores a 10-line pull request as 9,855 new lines. Each squad currently has to be told which red check to ignore | Platform | 2 h | unblocks #15 | high |
 | 17 | **Give every Go `*_JSON_MASKED_FIELDS` a default** and check no manifest overrides it with a blank | Platform + each squad | 1 d | exposure, not cost | high |
 | 18 | **Rotate the Google Chat webhook credentials** in `bau-prod-ms-otrs-report`, and find someone with write access to that repo | Platform / security | 1 d | security | high |
 

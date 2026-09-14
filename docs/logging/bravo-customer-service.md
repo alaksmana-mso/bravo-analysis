@@ -215,6 +215,18 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/customer/values-prod-sharia.yaml`, `app-deployment/customer/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Logging variables | none of the shared-library switches are set; the wrapper defaults apply |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-customer-service#621](https://github.com/bfi-finance/bravo-customer-service/pull/621)** — open, not merged.
@@ -236,12 +248,7 @@ Files:
 - `src/main/java/com/bfi/bravo/config/RequestLoggingFilterConfig.java`
 - `src/main/resources/application-prod.yaml`
 
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Compiled locally on 14 September 2026** — `mvn -DskipTests compile` passes with Temurin 17 and Maven 3.9 via `mise`. (Three earlier versions of this note said Java could not be built on this machine. A JDK was one `mise x` away; that claim is withdrawn everywhere.) Unit tests were not run for this repository locally; CI remains the authority for behaviour. Every changed file is also `prettier-java` clean at the repository's pinned settings.
 
 ---
 

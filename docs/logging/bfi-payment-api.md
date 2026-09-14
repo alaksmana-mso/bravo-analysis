@@ -222,6 +222,21 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## In the production deployment
+
+Read from `bfi-app-deployment/bfi-payment-api/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| `SENSITIVE_KEYS` | not set  ← library default (6 keys) |
+| `REQUEST_BODY_LOGGING` | not set  ← library default `true` |
+| `RESPONSE_BODY_LOGGING` | not set  ← library default `true` |
+| `BODY_LOG_MAX_LENGTH` | not set  ← new in bfi-java-pkg#123, default 16384 |
+
+This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It does not wire the library's `RequestLoggingFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
+
+---
+
 ## Implementation status
 
 **Pull request: [bfi-payment-api#1650](https://github.com/bfi-finance/bfi-payment-api/pull/1650)** — open, not merged.
@@ -242,12 +257,7 @@ Files:
 
 - `src/main/resources/application-dev.yaml`
 
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**No Java changed on this branch — the change is to `application*.yaml`, which parses as valid YAML.** There is nothing to compile; the file is what Spring reads at start-up. (Earlier versions of this note said Java could not be built here; it can, and every Java branch in this programme now has been.)
 
 ---
 

@@ -1,5 +1,7 @@
 # bravo-backoffice-service — logging findings and fixes
 
+> **Superseded on 14 September 2026.** The code change this file describes — a default masked-field list in the config struct — was reverted and its pull request closed on SRE's guidance: masked fields are set **per service and per environment in `app-deployment`**, not defaulted in code. The finding stands; the fix moves. See *In the production deployment* below for what the manifest actually sets, and [deployment-proposal.md](deployment-proposal.md) for the diff if one is needed.
+
 **Squad:** Direct Marketing  
 **Production service:** `prod-ms-backoffice`  
 **Stack:** Go, zerolog, gRPC, bfi-go-pkg  
@@ -33,7 +35,31 @@ this change have not been run — CI remains the authority.
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/backoffice/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `warn` |
+| Postgres log level | `info` |
+| `HTTP_SERVER_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY` | `false` |
+| `HTTP_SERVER_REQUEST_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_RESPONSE_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_REQUEST_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_RESPONSE_BODY_LOGGING` | `true` |
+| `GENERIC_JSON_MASKED_FIELDS` | `access_token,accessKey,account_number,address,address_det…` (44 fields) |
+| `PHONE_JSON_MASKED_FIELDS` | `alternate_phone,customer_phone,phone,phone_number,additio…` (10 fields) |
+
+Bodies are logged in production **with a masked-field list set here** — the pattern SRE asks for. The list is the squad's to keep current.
+`*_BODY_LOGGING_ON_ERROR_ONLY` is `false`: **every** request and response body is written, not only those of failed calls.
+
+---
+
 ## Implementation status
+
+**Pull request [#2781](https://github.com/bfi-finance/bravo-backoffice-service/pull/2781) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change is [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175).
 
 **Pull request: [bravo-backoffice-service#2781](https://github.com/bfi-finance/bravo-backoffice-service/pull/2781)** — open.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-backoffice-service/tree/fix/logging), head `a1536ee64`, branched from `master` at `36e171f19`.
@@ -42,37 +68,13 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-backoffice-service/
 
 | | |
 |---|---|
-| Commits | 1 |
+| Commits | 2 |
 | Files changed | 2 |
 
 Commits:
 
 - fix(logging): mask request and response bodies by default
-
-Files:
-
-- `.env.example`
-- `CHANGELOG.md`
-
-**Compiled, formatted and linted locally.** An earlier version of this file said no
-Go toolchain was available on the machine this analysis ran on. That was wrong — Go is
-installed via `mise`. What has been run on this branch:
-
-- `go build ./...` — passes
-- `gofmt` — clean on every file this branch touches
-- `golangci-lint` against this repository's own `.golangci.yml` — clean on the files
-this branch touches
-
-Unit tests beyond those shipped with this change have not been run, and nothing has
-been exercised against a running dependency. CI remains the authority.
-
----|---|
-| Commits | 1 |
-| Files changed | 2 |
-
-Commits:
-
-- fix(logging): mask request and response bodies by default
+- fix(logging): drop the masked-field defaults from the config struct *(14 Sep, reverts the default above on SRE's guidance; branch now identical to base, pull request closed)*
 
 Files:
 
@@ -95,7 +97,7 @@ been exercised against a running dependency. CI remains the authority.
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

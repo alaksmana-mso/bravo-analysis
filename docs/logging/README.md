@@ -6,7 +6,7 @@ Cost data is GCP billing through FinOps. Log evidence is Datadog production. Cod
 is all 152 repos under `squads/`, pulled to `master` on the day of writing — 149,729 files
 scanned — plus 36 more cloned since.
 
-**73 repositories analysed, 64 pull requests open, 79 files in this folder.** The code half
+**73 repositories analysed; 48 service pull requests open, 16 closed on SRE's guidance, 2 wrapper pull requests added; 80 files in this folder.** The code half
 of the programme is written; what is left on it is review and merge.
 
 ## Start here
@@ -48,12 +48,14 @@ Added by the second pass:
   token are in the URL query string, and the URL is logged on every message sent.
 - **Whole HR records at `info`, about 900,000 times a week** — religion, marital status,
   date and place of birth, bank account number and holder name.
-- **The Go estate's masking is wired up and empty.** Twenty-two repositories hand the
-  scrubber a field list that defaults to nothing; in one the scrubber call is commented out
-  entirely, under a comment claiming the code is non-production only.
+- **Go masking is a deployment setting, and in production it is often set to nothing.**
+  Eight services log bodies with every `*_JSON_MASKED_FIELDS` set to `""` in
+  `values-prod.yaml`; eight run at `LOGGER_LEVEL=debug`; in one repository the scrubber
+  call is commented out entirely, under a comment claiming the code is non-production
+  only. The wrapper itself never masked a number or a list.
 - **Six production services emit no logs and no traces at all.** Not quiet — invisible.
-- One CI job, failing for a missing Codacy token, **red-flags 23 of the 64 pull requests**
-  for a reason unrelated to their content.
+- Three broken CI gates — a missing Codacy token, a broken Codacy installer and a SonarQube
+  new-code baseline — **red-flag pull requests for reasons unrelated to their content**.
 
 ## Moving to Datadog
 
@@ -81,6 +83,17 @@ Datadog bills on what we send it. Enabling better log ingestion against today's 
 would move the waste from Cloud Logging to Datadog and cost more. Clean first, then enable
 on a stream half the size.
 
+**The contract puts a number on that (added 14 September 2026).** SRE shared the signed
+Datadog order (`Q-849776`, 1 October 2025 to 30 September 2027) and the 2025 GCP billing
+sheet. Logs are a small line in a large contract: the committed log lines are **150M
+indexed events a month at 3- and 7-day retention and 256 GB of ingestion a month**, worth
+$210 of the $14,030 committed each month. Datadog's own usage metric says we are sending it
+**about 240M events and 40 TB a month** — the events 1.6× the commitment, the bytes
+**150×**, billed as overage at $0.10/GB. The gate is not there because Datadog logging is
+expensive per line; it is there because the ingestion commitment was sized for a clean
+stream and we are shipping a dirty one at 150 times that size. Detail and the reconciliation
+SRE still needs to do are in [logging-cost.md](logging-cost.md) §1a.
+
 The one exception is Error Tracking, which derives from telemetry already flowing and adds
 no ingest. Turn that on now.
 
@@ -89,7 +102,7 @@ no ingest. Turn that on now.
 | # | Action | Owner | Effort | Datadog cost |
 |---|---|---|---|---|
 | 1 | Fix `HttpHelper.ts` and rotate the leaked secret | Contract Collateral | 2 h | none |
-| 2 | Check prod deployment manifests for `LOGGING_LEVEL_*` overrides | Platform | 1 h | none |
+| 2 | **Apply [deployment-proposal.md](deployment-proposal.md)** — nine production services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off. One file each, all in `app-deployment` | SRE + owning squads | 2 h | reduces |
 | 3 | Exclusion filter and 7-day retention on non-prod projects | Platform | 1 d | none |
 | 4 | Fix the monitors that query service names that do not exist | SRE | 2 d | none |
 | 5 | Name an owner for `confins-prod-ms-lms-ar-be` — 29% of all log volume | SRE | 1 d | none |
@@ -97,11 +110,14 @@ no ingest. Turn that on now.
 | 7 | **Fix Remote Configuration** — failing on 13 services, ~91k failed polls a week | SRE | 1 d | none |
 | 8 | Turn on `DD_TRACE_HEADER_TAGS` for correlation IDs | SRE | 1 h | none |
 | 9 | **Rotate the Google Chat webhooks** logged by `bau-prod-ms-otrs-report` | Platform / security | 1 d | none |
-| 10 | **Fix the Codacy token in the shared CI workflow** — it blocks 23 of the 64 pull requests | Platform | 1 h | none |
+| 10 | **Fix the three CI gate faults** — missing Codacy token, broken `codacy-cli.sh`, wrong SonarQube new-code baseline | Platform | 2 h | none |
 
-None of these increases Datadog spend. Items 1 and 2 are an afternoon between them, and
-item 2 decides whether several of the per-repo files below are worth anything. Item 9 is a
-live credential exposure; item 10 is an hour that unblocks six weeks of squad work.
+None of these increases Datadog spend. Item 2 replaces what used to read "check the prod
+deployment manifests": SRE gave access to them on 14 September 2026, they have been read
+for every service in this programme, and what they say is now in each per-service file
+under **In the production deployment** — with the changes they need written out as diffs.
+Item 9 is a live credential exposure; item 10 is an hour that unblocks six weeks of squad
+work.
 
 ## Coverage — all 53 remaining repositories are now done
 
@@ -135,9 +151,15 @@ produced the wrong conclusion, and the claim went into ~50 documents and 64 pull
 before it was caught.
 
 Every Go change in this programme has since been compiled, formatted and linted locally.
-**Java genuinely cannot be built here**: there is no Maven and `/usr/bin/java` is the macOS
-stub with no runtime, so the Java pull requests were reviewed by reading only. CI on each
-pull request is still the authority.
+**And Java can be compiled here too — the third correction of this claim.** `/usr/bin/java`
+is the macOS stub, but `mise x java@temurin-17 maven@3.9` installs a JDK and Maven in two
+minutes, and the GCP artifact-registry wagon in the poms picks up the machine's gcloud
+credentials, so the private `bravo-lib-logging` resolves. On 14 September 2026 every Java
+repository with a `.java` change on its branch was compiled: **22 of 22 compile**.
+Unit tests were run on 12 of them: 12 pass (bfi-connect (0 tests), bfi-insurance-api (4391 tests), bravo-agent-service (2181 tests), bravo-approval-engine-service (388 tests), bravo-bpm-service (18306 tests), bravo-collateral-service (1530 tests), bravo-core-proxy-service (826 tests), bravo-employee-service (176 tests), bravo-insurance-service (947 tests), bravo-journal-service (934 tests), bravo-product-service (330 tests), bravo-repeat-order-service (5559 tests)).
+The two wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean) and
+`bfi-java-pkg#123` (`mvn verify`, 73 tests, 0 failures). CI on each pull request is still
+the authority, but "not compiled" is no longer true of anything in this programme.
 
 | Repo | Pull request |
 |---|---|
@@ -186,11 +208,48 @@ The 53 repositories in [coverage.md](coverage.md) have now been worked through o
 pipeline: a `fix/logging` branch from `master`, the change, a push, a pull request, and the
 findings written into the per-service file below.
 
-Forty-four are open. Nine have no pull request — two because there is no write access to the
-repository, four because nothing needed changing, and three because I had mapped them to the
-wrong production service and they are not production-active at all.
+Forty-four were opened. Nine have no pull request — two because there is no write access to
+the repository, four because nothing needed changing, and three because I had mapped them to
+the wrong production service and they are not production-active at all.
 
-**The Go half has now been built; the Java half has not.** `go build ./...` passes on all 35
+### Sixteen of the forty-four were closed on 14 September 2026, on SRE's guidance
+
+SRE reviewed the approach and set two things straight, both of which change what belongs in
+a per-service pull request:
+
+1. **Masked fields are a deployment setting, not a code default.** The Go wrapper already
+   reads `HTTP_SERVER_REQUEST_BODY_JSON_MASKED_FIELDS`, `HTTP_SERVER_RESPONSE_…`,
+   `HTTP_CLIENT_REQUEST_…` and `HTTP_CLIENT_RESPONSE_…` from the environment; SRE sets them
+   per service and per environment in `app-deployment` (`values-prod.yaml`), because not
+   every service handles PII and each one needs its own field list and nested paths.
+   [backoffice's](https://github.com/bfi-finance/app-deployment/blob/master/backoffice/values-prod.yaml#L218-L221)
+   is the pattern. Giving every service the same default list in its config struct was the
+   wrong layer — and, it turns out, would have done nothing in production for most of them,
+   because the manifests already set those variables explicitly (often to `""`), and an
+   explicit value beats a struct default every time.
+2. **Fix it once in the wrapper, not once per service.** Both shared libraries had a real
+   masking gap that no per-service change could close:
+   [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) — `JSONScrubber`
+   masked strings only, so a NIK, phone number or salary sent as a JSON number went through;
+   [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) —
+   `FeignClientFilter` logged every Feign request and response body **unmasked**, the
+   sensitive-key match was case-sensitive (so `Authorization` slipped past `authorization`),
+   and nothing capped body size.
+
+So: the commit that added a struct default was reverted on every branch that had one.
+**Sixteen branches were left identical to their base and their pull requests closed**, each
+with a comment saying why. **Nine were kept**, because they also carry the code the
+deployment setting depends on — the scrubber actually wired to the field list the
+environment provides — or a log-level fix. Two (`bravo-scheduling-service`,
+`bfi-rule-engine-service`) had a hardcoded field list in `main.go`; that is replaced by the
+standard environment variables, which `app-deployment` does not yet set for them.
+
+What every service's production manifest actually says, and the diffs SRE and the squads
+need to apply, are in **[deployment-proposal.md](deployment-proposal.md)** and in each
+per-service file under *In the production deployment*. Those diffs were **not** applied by
+this work — a change to a production manifest is SRE's call.
+
+**Both halves have now been built.** `go build ./...` passes on all 35
 Go repositories in the programme, `gofmt` is clean on every changed file, and
 `golangci-lint` runs clean against each repository's own config — except three whose
 `.golangci.yml` will not load with golangci-lint 2.11.4 (`backend-dashboard-otrs`,
@@ -201,32 +260,33 @@ and `helper.RedactURL` in `backend-dashboard-otrs` — pass.
 That found four defects reading had missed, on top of the five CI caught. See
 [What CI said about pack two](#what-ci-said-about-pack-two).
 
-Java is still read-only here, so those pull requests remain unbuilt. Treat CI as the
-authority for them.
+The Java pull requests were compiled on 14 September 2026 once a JDK turned out to be a
+`mise x` away (22 of 22 compile; 12 of the 12 test suites run pass — see
+each file's verification note). Treat CI as the authority for them still.
 
 | Repository | Production service | Pull request | What it changes |
 |---|---|---|---|
 | [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss |
 | [bfi-incentive-api](bfi-incentive-api.md) | `prod-ms-bfi-incentive-api` | [#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698) | give the consumer failure a stable message |
 | [bfi-rule-engine-service](bfi-rule-engine-service.md) | `prod-ms-rule-engine` | [#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67) | mask outbound HTTP bodies before they reach the log stream |
-| [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | `prod-agent-marketing` | [#829](https://github.com/bfi-finance/bravo-agent-marketing-service/pull/829) | mask request and response bodies by default |
+| [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | `prod-agent-marketing` | [#829](https://github.com/bfi-finance/bravo-agent-marketing-service/pull/829) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-agent-service](bravo-agent-service.md) | `prod-ms-agent` | [#1632](https://github.com/bfi-finance/bravo-agent-service/pull/1632) | log rejected requests at warn, not error |
-| [bravo-assistance-service](bravo-assistance-service.md) | `prod-ms-assistance` | [#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200) | mask request and response bodies by default |
+| [bravo-assistance-service](bravo-assistance-service.md) | `prod-ms-assistance` | [#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-audit-trail-service](bravo-audit-trail-service.md) | `prod-ms-audit-trail` | [#36](https://github.com/bfi-finance/bravo-audit-trail-service/pull/36) | mask outbound bodies, and say what the error was |
 | [bravo-auth-service](bravo-auth-service.md) | `prod-ms-auth` | [#258](https://github.com/bfi-finance/bravo-auth-service/pull/258) | pick the log level from the status code |
-| [bravo-backoffice-service](bravo-backoffice-service.md) | `prod-ms-backoffice` | [#2781](https://github.com/bfi-finance/bravo-backoffice-service/pull/2781) | mask request and response bodies by default |
+| [bravo-backoffice-service](bravo-backoffice-service.md) | `prod-ms-backoffice` | [#2781](https://github.com/bfi-finance/bravo-backoffice-service/pull/2781) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-collateral-service](bravo-collateral-service.md) | `prod-ms-collateral` | [#420](https://github.com/bfi-finance/bravo-collateral-service/pull/420) | log rejected requests at warn, and close the payload trap |
-| [bravo-customer-bff-service](bravo-customer-bff-service.md) | `prod-customer-bff` | [#1216](https://github.com/bfi-finance/bravo-customer-bff-service/pull/1216) | give the masked-field lists a default |
+| [bravo-customer-bff-service](bravo-customer-bff-service.md) | `prod-customer-bff` | [#1216](https://github.com/bfi-finance/bravo-customer-bff-service/pull/1216) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-database-catalog](bravo-database-catalog.md) | `prod-database-catalog` | [#41](https://github.com/bfi-finance/bravo-database-catalog/pull/41) | mask request and response bodies by default |
 | [bravo-employee-service](bravo-employee-service.md) | `prod-ms-employee` | [#172](https://github.com/bfi-finance/bravo-employee-service/pull/172) | stop writing whole HR records to the log stream |
-| [bravo-gen-ai](bravo-gen-ai.md) | `prod-ms-gen-ai` | [#359](https://github.com/bfi-finance/bravo-gen-ai/pull/359) | give the masked-field lists a default |
+| [bravo-gen-ai](bravo-gen-ai.md) | `prod-ms-gen-ai` | [#359](https://github.com/bfi-finance/bravo-gen-ai/pull/359) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-insurance-service](bravo-insurance-service.md) | `prod-ms-insurance` | [#820](https://github.com/bfi-finance/bravo-insurance-service/pull/820) | log rejected requests at warn, not error |
-| [bravo-integrity-service](bravo-integrity-service.md) | `prod-ms-integrity` | [#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29) | mask request and response bodies by default |
+| [bravo-integrity-service](bravo-integrity-service.md) | `prod-ms-integrity` | [#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-inventory-management-system](bravo-inventory-management-system.md) | `bravo-inventory-management-system` | [#232](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232) | stop putting the request body and Authorization header in RUM errors |
 | [bravo-journal-service](bravo-journal-service.md) | `prod-ms-journal` | [#297](https://github.com/bfi-finance/bravo-journal-service/pull/297) | log rejected requests at warn, and close the payload trap |
-| [bravo-krakend-gateway](bravo-krakend-gateway.md) | `prod-ms-krakend-gateway` | [#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387) | mask request and response bodies by default |
-| [bravo-krakend-internal](bravo-krakend-internal.md) | `prod-ms-krakend-internal` | [#58](https://github.com/bfi-finance/bravo-krakend-internal/pull/58) | mask request and response bodies by default |
-| [bravo-kyc-proxy](bravo-kyc-proxy.md) | `prod-ms-kyc-proxy` | [#726](https://github.com/bfi-finance/bravo-kyc-proxy/pull/726) | give the masked-field lists a default |
+| [bravo-krakend-gateway](bravo-krakend-gateway.md) | `prod-ms-krakend-gateway` | [#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [bravo-krakend-internal](bravo-krakend-internal.md) | `prod-ms-krakend-internal` | [#58](https://github.com/bfi-finance/bravo-krakend-internal/pull/58) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [bravo-kyc-proxy](bravo-kyc-proxy.md) | `prod-ms-kyc-proxy` | [#726](https://github.com/bfi-finance/bravo-kyc-proxy/pull/726) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-kyc-sign-service](bravo-kyc-sign-service.md) | `prod-ms-kyc-sign` | [#118](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118) | mask request and response bodies by default |
 | [bravo-lms-ops-service](bravo-lms-ops-service.md) | `prod-ms-lms-ops` | [#1856](https://github.com/bfi-finance/bravo-lms-ops-service/pull/1856) | close the request payload trap |
 | [bravo-notification-service](bravo-notification-service.md) | `prod-ms-notification` | [#446](https://github.com/bfi-finance/bravo-notification-service/pull/446) | stop logging signing keys, private keys and bearer tokens |
@@ -235,21 +295,21 @@ authority for them.
 | [bravo-pbf-service](bravo-pbf-service.md) | `prod-ms-pbf` | [#125](https://github.com/bfi-finance/bravo-pbf-service/pull/125) | stop reporting "agreement not held here" as an error |
 | [bravo-product-service](bravo-product-service.md) | `prod-ms-product` | [#665](https://github.com/bfi-finance/bravo-product-service/pull/665) | log rejected requests at warn, not error |
 | [bravo-repeat-order-service](bravo-repeat-order-service.md) | `prod-ms-repeat-order` | [#3503](https://github.com/bfi-finance/bravo-repeat-order-service/pull/3503) | log rejected requests at warn, not error |
-| [bravo-robot-controller](bravo-robot-controller.md) | `prod-ms-robot-controller` | [#84](https://github.com/bfi-finance/bravo-robot-controller/pull/84) | give the masked-field lists a default |
+| [bravo-robot-controller](bravo-robot-controller.md) | `prod-ms-robot-controller` | [#84](https://github.com/bfi-finance/bravo-robot-controller/pull/84) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-robot-scrape](bravo-robot-scrape.md) | `prod-robot-scrape` | [#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114) | report DMS upload failures as errors, not as stdout text |
 | [bravo-scheduling-service](bravo-scheduling-service.md) | `prod-ms-scheduling` | [#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300) | mask outbound HTTP bodies before they reach the log stream |
-| [bravo-supplier-service](bravo-supplier-service.md) | `prod-ms-supplier` | [#181](https://github.com/bfi-finance/bravo-supplier-service/pull/181) | mask request and response bodies by default |
-| [collection-consumer-service](collection-consumer-service.md) | `prod-ms-collection-consumer` | [#143](https://github.com/bfi-finance/collection-consumer-service/pull/143) | mask request and response bodies by default |
+| [bravo-supplier-service](bravo-supplier-service.md) | `prod-ms-supplier` | [#181](https://github.com/bfi-finance/bravo-supplier-service/pull/181) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [collection-consumer-service](collection-consumer-service.md) | `prod-ms-collection-consumer` | [#143](https://github.com/bfi-finance/collection-consumer-service/pull/143) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [doc-renderer-service](doc-renderer-service.md) | `prod-doc-renderer` | [#31](https://github.com/bfi-finance/doc-renderer-service/pull/31) | mask request and response bodies by default |
-| [document-hub-service](document-hub-service.md) | `prod-ms-document-hub` | [#92](https://github.com/bfi-finance/document-hub-service/pull/92) | mask request and response bodies by default |
+| [document-hub-service](document-hub-service.md) | `prod-ms-document-hub` | [#92](https://github.com/bfi-finance/document-hub-service/pull/92) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [gold-service](gold-service.md) | `prod-ms-gold-service` | [#190](https://github.com/bfi-finance/gold-service/pull/190) | mask request and response bodies by default |
 | [lora-cdc-foxx-service](lora-cdc-foxx-service.md) | `prod-lora-cdc-foxx-service` | [#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3) | move the Datadog credentials and tags out of source |
 | [lora-gateway-service](lora-gateway-service.md) | `prod-lora-gateway` | [#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263) | actually mask outbound bodies, and log them on failure only |
 | [lora-partnership-ndf](lora-partnership-ndf.md) | `prod-lora-partnership-ndf` | [#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) | mask request and response bodies by default |
 | [lora-partnership-task-ndf](lora-partnership-task-ndf.md) | `prod-lora-partnership-task-ndf` | [#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126) | mask request and response bodies by default |
-| [lora-schema-service](lora-schema-service.md) | `prod-lora-schema` | [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) | mask request and response bodies by default |
-| [notification-service](notification-service.md) | `prod-ms-notification` | [#122](https://github.com/bfi-finance/notification-service/pull/122) | mask request and response bodies by default |
-| [portfolio-management-service](portfolio-management-service.md) | `prod-portfolio-management-service` | [#122](https://github.com/bfi-finance/portfolio-management-service/pull/122) | mask request and response bodies by default |
+| [lora-schema-service](lora-schema-service.md) | `prod-lora-schema` | [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [notification-service](notification-service.md) | `prod-ms-notification` | [#122](https://github.com/bfi-finance/notification-service/pull/122) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [portfolio-management-service](portfolio-management-service.md) | `prod-portfolio-management-service` | [#122](https://github.com/bfi-finance/portfolio-management-service/pull/122) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 
 **No pull request — 9 repositories.**
 
@@ -268,7 +328,8 @@ authority for them.
 ## What CI said about pack two
 
 CI is the only build these changes have had, and it did its job. **Five defects in my own
-code**, all found within the hour and all fixed:
+code** were caught here, all fixed. Four more were found afterwards by tools that turned out
+to be installed on this machine, and one more by a test suite — see below.
 
 | Repository | What CI caught | Cause |
 |---|---|---|
@@ -278,30 +339,11 @@ code**, all found within the hour and all fixed:
 | `bravo-auth-service` | `"fmt" imported and not used` | Removing `fmt.Print(e)` took the last real use. My own grep for remaining uses matched the word inside the comment I had just written |
 | `bravo-notification-service` | found before pushing | A comment block was missing its `//` on the second line. Brace-balance checks pass happily on a syntax error like that |
 
-**What is failing that is not mine.** The largest cluster — the jobs named
-`Static Analysis - SonarQube` across the shared `call-workflow-passing-data` workflow —
-fails at the Codacy coverage step, not on code:
-
-```
-error [CodacyCoverageReporter] Invalid configuration: Either a project or account
-API token must be provided or available in an environment variable
-```
-
-Confirmed identical on `bravo-supplier-service`, `bravo-pbf-service` and
-`bravo-journal-service`, whose changes are a struct-tag default, a log level and a log
-level respectively. The `Security Container Scan`, `SNYK` and `Codacy Diff Coverage` gates
-are the same kind of thing — pre-existing repository gates, not defects introduced here.
-
-Two more that are not code: `bfi-connect`'s Prettier check fails on twenty-five files, all
-of them under `src/test/`, none of them touched by this branch; and
-`bravo-customer-bff-service` enforces a PR title convention that the original title did not
-meet (the PR has been retitled).
-
 ### And then the toolchain turned out to be here
 
 On 14 September the "no Go toolchain" premise was found to be wrong — `mise` had Go 1.26.7,
-`gofmt` and `golangci-lint` 2.11.4 all along. Running them found **four more defects that
-reading had missed**, every one of them mine:
+`gofmt` and `golangci-lint` 2.11.4 all along, and Node too. Running them found **four more
+defects that reading had missed**, every one of them mine:
 
 | Found by | Repository | Defect |
 |---|---|---|
@@ -310,26 +352,100 @@ reading had missed**, every one of them mine:
 | `golangci-lint` | `bravo-partnership-service` | `gochecknoglobals` on two lookup tables in `pkg/logbody` |
 | `golangci-lint` | `bravo-customer-bff-service` | `tagalign` on the two struct tags this work lengthened |
 
-All fixed and pushed. **It also corrected a wrong call made here.** The claim above that the
-`Static Analysis - SonarQube` cluster is all a missing Codacy token was drawn from three
-repositories and generalised. On `bfi-rule-engine-service` that job actually failed earlier,
-at `make lint`, on the `gochecknoglobals` above — CI had been reporting a real defect for a
-day and it was explained away.
+All fixed and pushed.
 
-**Where the 44 stand after those fixes**, at the time of writing:
+Node also turned out to run **`prettier-plugin-java`**, so the Java estate is not as
+unverifiable as these documents claimed. Every Java file this programme changed now parses
+and is format-checked against each repository's pinned `prettier-java` settings. Java still
+cannot be *compiled* or unit-tested here — `/usr/bin/java` is the macOS stub — but "checked
+brace balance by hand" was never the best available.
+
+### Every failing job, checked one at a time
+
+An earlier version of this section said the `Static Analysis - SonarQube` cluster was all a
+missing Codacy token. **That was drawn from three repositories and generalised to twenty**,
+and it was wrong: on `bfi-rule-engine-service` the job died earlier, at `make lint`, on the
+`gochecknoglobals` above. CI had been reporting a real defect for a day and it was explained
+away.
+
+So every failing job was then fetched and read individually. **27 failing jobs across 19
+repositories:**
+
+| Cause | Jobs | Mine? |
+|---|---:|---|
+| Dependency and container CVE gates — SNYK on the dependency tree, Trivy on the base image (`musl`, `zlib` and friends) | 17 | No |
+| Codacy coverage reporter has no API token | 5 | No |
+| SonarQube quality gate — `bravo-insurance-service`, 83.8% coverage on new code and "9855 new lines" against a 2000 limit, for a pull request of **+10/−4 in one file** | 1 | No |
+| Codacy CLI installer broken — `bravo-employee-service`, `codacy-cli.sh: line 65: fatal: command not found` | 1 | No |
+| `golangci-lint` — `bravo-gen-ai`, `goconst` in `internal/store/pg/session_store.go` | 1 | No |
+| Prettier — `bfi-connect`, 180 files under `src/main/java` | 1 | No |
+| **Maven test failure — `bfi-incentive-api`** | **1** | **Yes** |
+
+One caveat on that table: **a single job can fail at more than one step**, so counting one
+cause per job is already a simplification. `bfi-incentive-api`'s `Static Analysis - SonarQube`
+job is the example — Maven's tests failed *and* the Codacy step then failed for want of a
+token. The question that matters is not which step failed last but whether any step failed
+on code written here, and after reading all 27 logs the answer is: one did.
+
+The CVE gates have a structural answer as well as a read one: **not one of the 65 branches
+in this programme touches a `pom.xml`, `go.mod`, `go.sum`, `package.json` or `Dockerfile`.**
+A dependency or base-image CVE cannot have been introduced by a change that adds no
+dependency and rebuilds no image.
+
+The two that needed the most work to rule out:
+
+- **`bravo-gen-ai`.** A `golangci-lint` failure looks like mine by default, and the first
+  sweep marked it so. It is not. The `goconst` pair is in `session_store.go` and
+  `session_store_test.go`, both byte-identical to `master`; this branch changes two lines of
+  `internal/config/config.go`, a different package, and `goconst` counts per package. It
+  does not reproduce locally because `goconst` reports at whichever occurrence it reaches
+  first, and macOS and Linux walk the directory in different orders — on macOS it lands on
+  the test file, which this repository's config excludes from reporting.
+- **`bfi-connect`.** The earlier claim here, "twenty-five files, all under `src/test/`, none
+  touched by this branch", was wrong three times over: it is **180** files, they are under
+  **`src/main/java`**, and the file this branch touches **is one of them**. It is still not
+  this branch's doing — running `prettier-java` over the file before and after the edit
+  produces the identical set of twenty violation hunks, all import ordering. The job was red
+  on `master`.
+
+**One real defect was mine, and only a test could have found it.** `bfi-incentive-api`
+replaced an interpolated DTO with `agreementStatusUpdate.getAgreementNumber()`. That
+variable is initialised to `null` and is still null when the failure was the deserialisation
+itself — so the call threw a `NullPointerException` from inside the catch block, in place of
+the `AmqpRejectAndDontRequeueException` the RabbitMQ listener is contracted to throw. That
+changes what the broker does with the message: a behaviour regression, not a red mark.
+`AgreementStatusUpdateDailyConsumerTest.test_Receive_WhenException` caught it, because its
+first parameter case is a null response. Fixed in `2a738ed6` and pushed.
+
+It is worth being precise about why this one got through when the Go defects did not: a Go
+compiler was sitting on the machine unused, and — as was found a day later — so was a
+JDK, one `mise x` away. This change could have been tested before pushing and was only
+read. Reading does not catch a null dereference.
+
+### Where the 44 pack-two pull requests stood before SRE's review
+
+*(Counts below are as of the CI read on 14 September, before 16 of the 44 were closed — see above. Of the 28 still open, none fails on anything written here.)*
+
+Re-polled after the fixes above, with every failing job's log read:
 
 | | Count |
 |---|---:|
-| Fully green | 17 |
-| Failing only on scanner or coverage gates (SonarQube/Codacy token, SNYK, container scan) | 23 |
-| Still running | 3 |
-| `bfi-connect`, on the pre-existing Prettier failure in `src/test/` | 1 |
+| Fully green | 25 |
+| Failing **only** on dependency, container, coverage or quality gates that were red before this work | 19 |
+| Failing on anything written here | **0** |
+| Still running | 0 |
 
-**No compile or lint failure from this work remains open.**
+`bfi-incentive-api` is the one to check if you want to see the fix land: **1806 tests run,
+0 failures, `BUILD SUCCESS`** on head `2a738ed6`. That job is still red, but now only at the
+Codacy coverage step, for want of the same API token that stops it in five other
+repositories.
 
-**Read this as the argument for building before merging, not against it.** Every one of the
-five defects was invisible to reading and to the brace, paren, import-order and line-length
-checks that were the only tools available here.
+**No compile, lint, format or test failure from this work is still open** — and this time
+that sentence rests on reading all 27 logs rather than on three of them.
+
+**Read this as the argument for building before merging, not against it.** Ten defects in
+this work were invisible to reading: five caught by CI, four by the Go tools that were here
+all along, and one by a test suite that could not be run here at all.
 
 ## Per-repo recommendations
 

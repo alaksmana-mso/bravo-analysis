@@ -70,14 +70,22 @@ give them.
 
 **The two that are switched on are the two with the least protection.**
 `bravo-bpm-service`'s `CustomFeignLogger` has no masking and no size limit at all.
-`bravo-inventory-management-service` runs a shared library whose masking behaviour nobody in
-this analysis could read, because the source is not in `squads/`.
+`bravo-inventory-management-service` runs a shared library whose masking behaviour, when
+this was first written, nobody in this analysis could read.
 
-**A shared library is the leverage point.** `com.bfi.bravo:bravo-lib-logging` provides
-`RequestLoggingFilter`, `FeignClientFilter` and `LoggerUtil`, and fifteen repos depend on
-it, at four different versions. Its source is not in `squads/`. Whoever owns it can change
-body-logging behaviour across the Java estate in one place — the same leverage
-`bfi-base-template` gives for deployment manifests.
+**A shared library is the leverage point — and it has now been read.** `com.bfi.bravo:bravo-lib-logging`
+is the `logger` module of [`bfi-finance/bfi-java-pkg`](https://github.com/bfi-finance/bfi-java-pkg);
+**eighteen** repositories depend on it, at versions 1.2.7, 2.0.3 and 2.1.4 against a library
+at 1.3.10. What it does, read on 14 September 2026: `REQUEST_BODY_LOGGING` and
+`RESPONSE_BODY_LOGGING` **default to `true`**, so a service that wires its
+`RequestLoggingFilter` and sets nothing logs every request and response body at INFO;
+`SENSITIVE_KEYS` defaults to six names and is matched **exactly and case-sensitively**, so
+`Authorization` is not `authorization`; **`FeignClientFilter` logs both Feign bodies
+unmasked** and ignores both switches; there is no body size cap; and `CustomAppender` copies
+every Hibernate SQL statement into the MDC, where it rides along on the next log line.
+[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) fixes the masking,
+the case and the size cap in one place. Whether a service logs bodies at all stays a
+deployment setting — set the two switches in `values-prod.yaml`, as the Go services do.
 
 ---
 
@@ -331,9 +339,12 @@ Two exceptions, both of which go now on their own schedule:
 - **Why Remote Configuration returns `empty targets meta`.** The failure is measured; the
   cause is one of three things and needs an SRE with access to the org settings and the
   Agent configuration. This is now the first item in section 5.
-- **`com.bfi.bravo:bravo-lib-logging`.** Fifteen repos depend on it at four versions. Its
+- ~~**`com.bfi.bravo:bravo-lib-logging`.** Fifteen repos depend on it at four versions. Its
   source is not in `squads/`, so what its `RequestLoggingFilter` and `FeignClientFilter`
-  actually capture and mask is unknown. One of those repos runs it in production today.
+  actually capture and mask is unknown.~~ **Resolved 14 September 2026** — the source is
+  `bfi-finance/bfi-java-pkg`; eighteen repos depend on it; both filters capture bodies by
+  default and `FeignClientFilter` masks nothing. See above and
+  [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123).
 - **`ConfinsRequestLog` in `bravo-edoc-service`.** Size, retention and read access unknown.
 - **The Node.js tracer version actually running.** `lms-calculation-service`'s lockfile says
   5.109.0 and `package.json` says `^5.81.0`. Production spans carry no tracer version tag.

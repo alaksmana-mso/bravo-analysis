@@ -10,7 +10,7 @@ It is based on measurements from all 152 repos and production telemetry, not on 
 advice. Where a rule exists, it is because something in our estate is broken by breaking it.
 
 **Revised 13 September 2026**, after every one of the 73 repositories in this programme was
-read line by line and 64 pull requests were raised. Rules 2, 3 and 5 gained a section each
+read line by line and 64 pull requests were raised (16 since closed on SRE's guidance — masking is a deployment setting — and two wrapper pull requests added in their place). Rules 2, 3 and 5 gained a section each
 as a direct result — the Go estate breaks these rules differently from the Java estate, and
 the first version of this guide only described the Java half.
 
@@ -261,7 +261,7 @@ So:
   live in `bravo-bpm-service` and `bravo-onboarding-service` today.
 - If a default must exist, make the safe value the default.
 
-**In Go the equivalent trap is worse, because the safety looks like it is already there.**
+**In Go, masking is a deployment setting — check the manifest, not the code.**
 `bfi-go-pkg` provides `logger.JSONScrubberFunc(fields)`, and most Go services call it. The
 field list it is given comes from the environment:
 
@@ -269,28 +269,69 @@ field list it is given comes from the environment:
 HTTPClientRequestBodyJSONMaskedFields []string `env:"HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS" envSeparator:","`
 ```
 
-With **no `envDefault`**. An unset deployment hands the scrubber an empty list, and it
-masks nothing. Twenty-two repositories were in that state. Reading the code tells you
-masking is configured; it is not.
+SRE sets that list **per service and per environment in `app-deployment`**, in
+`values-prod.yaml` — see
+[backoffice](https://github.com/bfi-finance/app-deployment/blob/master/backoffice/values-prod.yaml#L218-L221)
+for the pattern, and
+[lora-gateway](https://github.com/bfi-finance/app-deployment/blob/master/lora-gateway/values-prod.yaml#L122-L123)
+for the four variables:
 
-`lora-gateway-service` was worse still — the scrubber call itself was commented out:
+```
+HTTP_SERVER_REQUEST_BODY_JSON_MASKED_FIELDS
+HTTP_SERVER_RESPONSE_BODY_JSON_MASKED_FIELDS
+HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS
+HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS
+```
+
+Not every service handles PII — `lora-schema` and `database-catalog` do not — so there is
+deliberately no estate-wide default. Your service's list is yours to write, and it needs the
+field names *your* payloads use, including nested ones. (An earlier version of this guide
+said to put a default in the config struct. SRE corrected that: a struct default is the
+wrong layer, and in production it would rarely apply anyway, because the manifest already
+sets these variables explicitly — often to `""`.)
+
+What this means for you: **read your `values-prod.yaml` before you read your code.** On
+14 September 2026, eight Go services had body logging on in production with every masked
+field set to `""`, and eight ran at `LOGGER_LEVEL=debug`. Your service's own file in
+`bravo-analysis/docs/logging/` has a table of exactly what production sets, and
+[deployment-proposal.md](deployment-proposal.md) has the diff if it needs one.
+
+`lora-gateway-service` was a different problem — the scrubber call itself was commented out:
 
 ```go
 httpclient.WithRequestBodyLoggingLimit(e.HTTPClientRequestBodyLogLimit),
 // httpclient.WithRequestBodyLoggingFunc(),
 ```
 
-so the masked-fields variable was parsed and then never used. The comment above it read
-`// HTTP client request body logger (NON PRODUCTION ENVIRONMENT ONLY)`. It writes **69,433
-bodies a week in production**.
+so the masked-fields variable was parsed and then never used, and no deployment setting
+could have helped. The comment above it read `// HTTP client request body logger (NON
+PRODUCTION ENVIRONMENT ONLY)`. It writes **69,433 bodies a week in production**. That is a
+code fix, and it is on the branch.
 
 Three things to check in a Go service:
 
-- Every `*_JSON_MASKED_FIELDS` has a non-empty `envDefault`, and the deployment manifest
-  does not override it with a blank.
-- Every `With*BodyLoggingFunc` is actually wired, not commented out.
-- `BODY_LOGGING_ON_ERROR_ONLY` defaults to `true`. Where it is `false`, every call logs its
-  body, not just the failures.
+- In `values-<env>.yaml`: if any `*_BODY_LOGGING` is `true`, every matching
+  `*_JSON_MASKED_FIELDS` has a real list — not `""`, not absent.
+- In the code: every `With*BodyLoggingFunc` is actually wired to
+  `logger.JSONScrubberFunc(<the env field>)`, not commented out and not fed a hardcoded slice.
+- `*_BODY_LOGGING_ON_ERROR_ONLY` is `true`. Where it is `false`, every call logs its body,
+  not just the failures.
+
+**And one thing the wrapper is fixing for everyone:** until
+[bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) ships, `JSONScrubber`
+masks a matched field only when its value is a string. A NIK or phone number sent as a JSON
+number, or a list of phone numbers, goes through untouched however good your list is.
+
+**Java has the same shape and a worse default.** `bravo-lib-logging` (`bfi-java-pkg`) reads
+`SENSITIVE_KEYS`, `REQUEST_BODY_LOGGING` and `RESPONSE_BODY_LOGGING` from the environment,
+and the two switches **default to `true`** — so a service that wires the library's
+`RequestLoggingFilter` and sets nothing in its manifest logs every request and response
+body at INFO. Of the 18 repositories on the library, four set `SENSITIVE_KEYS` in
+production and four turn response bodies off; the rest run on defaults. Until
+[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the key
+match is case-sensitive (`Authorization` is not `authorization`), `FeignClientFilter`
+masks nothing at all, and there is no body size cap. Same rule: set the switches in
+`values-prod.yaml`, and treat `SENSITIVE_KEYS` as your list to write.
 
 **One compiler trap worth knowing**, because it will bite whoever fixes this: the shared
 config function is `func (e *Env) HTTPClient(logger zerolog.Logger)`. That parameter
@@ -505,9 +546,13 @@ Copy this into your squad's next planning session.
 - [ ] Log levels pinned explicitly in `application-prod.yaml`
 - [ ] No queue consumer logs `string(msg.Body)` — ID, routing key and size only
 - [ ] No log line contains a URL with a query string
-- [ ] **Go:** every `*_JSON_MASKED_FIELDS` has a non-empty `envDefault`, every
-      `With*BodyLoggingFunc` is wired and not commented out, and
-      `BODY_LOGGING_ON_ERROR_ONLY` is `true`
+- [ ] **Go:** in `values-prod.yaml`, every `*_JSON_MASKED_FIELDS` that matters has a real
+      list (not `""`); in the code, every `With*BodyLoggingFunc` is wired to the env field
+      and not commented out; `*_BODY_LOGGING_ON_ERROR_ONLY` is `true`; `LOGGER_LEVEL` is
+      not `debug`
+- [ ] **Java:** `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` are set deliberately in
+      `values-prod.yaml` (the library defaults both to `true`), and `SENSITIVE_KEYS` lists
+      your fields
 - [ ] **Your exception handler picks the level from the status code** — 4xx at warn, 5xx at
       error. This is the one that matters most; check it first
 
@@ -563,20 +608,25 @@ Our Datadog site is **us5**. A link starting `app.datadoghq.com` will not resolv
 ### Your service probably already has a pull request
 
 Every repository in this programme has a file in `bravo-analysis/docs/logging/` named after
-it, and 64 of the 73 have an open pull request on a branch called `fix/logging`. The file
+it, and 48 of the 73 have an open pull request on a branch called `fix/logging` (16 more were closed on 14 September 2026 because their only change belonged in `app-deployment`, not in code). The file
 names the finding, quotes the production numbers, says what the change does and — just as
 importantly — says what it deliberately left alone for you to decide.
 
 Two things to know before you review one:
 
-- **The Go ones are built; the Java ones are not.** Every Go change has had `go build`,
-  `gofmt` and `golangci-lint` run against it locally, and the shipped unit tests pass. Java
-  cannot be compiled on the machine these were written on — no Maven, and `/usr/bin/java` is
-  a stub — so those were reviewed by reading only. Nine defects have been found between CI
-  and the local toolchain; read the CI result, not the diff alone.
-- **A red `Static Analysis - SonarQube` check is probably not yours.** That job fails at a
-  Codacy step for a missing token, on 23 of the 64. Platform has it. Check what the job
-  actually says before you send the branch back.
+- **Both the Go and the Java ones are built.** Every Go change has had `go build`, `gofmt`
+  and `golangci-lint` run against it locally and the shipped unit tests pass. Every Java
+  change was compiled on 14 September 2026 with a JDK and Maven from `mise` (22 of
+  22 compile), and 12 of the 12 test suites that were run pass; each file's
+  verification note says which. Ten defects have been found between CI, the local toolchain
+  and one repository's own test suite; read the CI result, not the diff alone.
+- **A red check is probably not yours, but read it rather than assuming.** Across the 44
+  pack-two pull requests, 27 jobs are red and 26 of them are dependency CVEs, container-image
+  CVEs, a missing Codacy token, a broken Codacy installer script or a SonarQube coverage
+  gate — all red before this work. The 27th was real: a Java change that dereferenced a null
+  and turned an `AmqpRejectAndDontRequeueException` into a `NullPointerException`, caught by
+  the repository's own test. Assuming the cluster was all one cause is exactly the mistake
+  made here first; see [README.md](README.md#every-failing-job-checked-one-at-a-time).
 
 Index with every link: [README.md](README.md).
 

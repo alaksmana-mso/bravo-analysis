@@ -216,6 +216,22 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/branch/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `INFO` |
+| `SENSITIVE_KEYS` | not set  ← library default (6 keys) |
+| `REQUEST_BODY_LOGGING` | not set  ← library default `true` |
+| `RESPONSE_BODY_LOGGING` | not set  ← library default `true` |
+| `BODY_LOG_MAX_LENGTH` | not set  ← new in bfi-java-pkg#123, default 16384 |
+
+This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the library's `RequestLoggingFilter` and `FeignClientFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-branch-service#506](https://github.com/bfi-finance/bravo-branch-service/pull/506)** — open, not merged.
@@ -239,12 +255,7 @@ Files:
 - `src/main/resources/application-prod.yaml`
 - `src/main/resources/application.yaml`
 
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Compiled locally on 14 September 2026** — `mvn -DskipTests compile` passes with Temurin 17 and Maven 3.9 via `mise`. (Three earlier versions of this note said Java could not be built on this machine. A JDK was one `mise x` away; that claim is withdrawn everywhere.) Unit tests were not run for this repository locally; CI remains the authority for behaviour. Every changed file is also `prettier-java` clean at the repository's pinned settings.
 
 ---
 

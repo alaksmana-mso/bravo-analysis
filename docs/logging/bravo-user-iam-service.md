@@ -220,6 +220,21 @@ tracing-stack decision is in
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/user-iam/values-prod-sharia.yaml`, `app-deployment/user-iam/values-prod.yaml`, `bfi-app-deployment/user-iam/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `info` |
+| Postgres log level | `error` |
+| `HTTP_CLIENT_REQUEST_BODY_LOGGING` | `false` |
+| `HTTP_CLIENT_RESPONSE_BODY_LOGGING` | `false` |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-user-iam-service#521](https://github.com/bfi-finance/bravo-user-iam-service/pull/521)** — open, not merged.
@@ -240,9 +255,7 @@ Files:
 
 - `docker-entrypoint.sh`
 
-**Nothing in this pull request was compiled or tested.** Go and Node are available through `mise`; `go build ./...` passes. This branch changes no Go files — the change is to `docker-entrypoint.sh`, checked with `sh -n`. Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Not built and not tested; parsed.** This branch changes no Go files — the change is to `docker-entrypoint.sh`, which passes `bash -n`. That is a syntax check, not a test. CI on the pull request is the first real check.
 
 ---
 

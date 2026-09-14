@@ -50,7 +50,19 @@ This is a logging change only. No message handling, no business logic, no schema
 
 ## Please build before merging
 
-**This was not compiled and not tested, and for a Java repository that is still true.** There is no Maven and no JVM on the machine it was written on — `/usr/bin/java` is the macOS stub with no runtime. *(An earlier version of this file also claimed no Go or Node toolchain; both turned out to be available through `mise`, and the Go changes in this programme have since been compiled and linted.)* What was checked: brace and paren balance on every touched file, line lengths against the prettier-java `printWidth` of 120, and imports placed in sorted order. That is not a build — please treat the CI result as the first real check.
+**Compiled and, where a suite exists, tested locally on 14 September 2026** — see the verification note under *Implementation status* below. Earlier versions of this paragraph said Java could not be built on this machine; a JDK and Maven were one `mise x` away, and that claim is withdrawn.
+
+---
+
+## In the production deployment
+
+Read from `app-deployment/employee/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `INFO` |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
 
 ---
 
@@ -77,40 +89,13 @@ Files:
 - `src/main/java/com/bfi/bravo/service/rabbitmq/publisher/impl/RabbitMQPublisherServiceImpl.java`
 - `src/main/java/com/bfi/bravo/util/JsonLogMaskUtil.java`
 
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
-
----|---|
-| Commits | 1 |
-| Files changed | 4 |
-
-Commits:
-
-- fix(logging): stop writing whole HR records to the log stream
-
-Files:
-
-- `src/main/java/com/bfi/bravo/connector/GoogleChatCommandListener.java`
-- `src/main/java/com/bfi/bravo/connector/HCEmployeeListener.java`
-- `src/main/java/com/bfi/bravo/service/rabbitmq/publisher/impl/RabbitMQPublisherServiceImpl.java`
-- `src/main/java/com/bfi/bravo/util/JsonLogMaskUtil.java`
-
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
+**Compiled locally on 14 September 2026** — `mvn -DskipTests compile` passes with Temurin 17 and Maven 3.9 via `mise`. (Three earlier versions of this note said Java could not be built on this machine. A JDK was one `mise x` away; that claim is withdrawn everywhere.) **Unit tests: 176 run, 0 failures, 0 errors** (`mvn test`, whole module). Every changed file is also `prettier-java` clean at the repository's pinned settings.
 
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

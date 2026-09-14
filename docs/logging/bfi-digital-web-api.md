@@ -246,6 +246,12 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## In the production deployment
+
+**No deployment directory was found for this repository** in `bfi-finance/app-deployment` or `bfi-finance/bfi-app-deployment` (searched 14 September 2026; `confins-app-deployment` was not reachable). Either it deploys from somewhere else or under a name this review did not match. Whoever owns the deployment should confirm where its log level and masking are set.
+
+---
+
 ## Implementation status
 
 **Pull request: [bfi-digital-web-api#711](https://github.com/bfi-finance/bfi-digital-web-api/pull/711)** — open, not merged.
@@ -269,9 +275,7 @@ Files:
 - `src/v1/service/submission/submissionService.js`
 - `src/v1/utils/describeError.js`
 
-**Nothing in this pull request was compiled or tested.** Node is available through `mise`; `node --check` parses all four changed `.js` files. Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Not built and not tested; parsed.** Node is available through `mise`; `node --check` parses all four changed `.js` files. That is a syntax check, not a test. CI on the pull request is the first real check.
 
 ---
 

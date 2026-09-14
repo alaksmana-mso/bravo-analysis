@@ -51,7 +51,26 @@ this change have not been run — CI remains the authority.
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/scheduling/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `info` |
+| Postgres log level | `warn` |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+
+---
+
 ## Implementation status
+
+**Update, 14 September 2026 — on SRE's guidance, the field list now comes from the environment.** The first version of this branch hardcoded the masked-field list in `main.go`. Masked fields are a per-service, per-environment setting made in `app-deployment`, so the list is now read from `HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS` and `HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS` — the names every other Go service uses — and the body limits go back to the 32 KiB master already had. The scrubber stays wired, which is the part master lacked: outbound bodies logged on a failed call went through no scrubber at all. Until `app-deployment` sets those two variables for this service the list is empty and the behaviour is master's; the proposed values are in [deployment-proposal.md](deployment-proposal.md).
+
+Side finding from reading the manifest: this service reads its HTTP client timeouts from `HTTPCLIENT_*` while production sets `HTTP_CLIENT_*`, so those timeouts have never been applied. Not changed here — it is a behaviour change the squad should make knowingly.
+
+Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175 (masks non-string values).
 
 **Pull request: [bravo-scheduling-service#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300)** — open.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-scheduling-service/tree/fix/logging), head `f8dfc27`, branched from `master` at `2f839d8`.
@@ -85,37 +104,11 @@ It found a real defect in this change: `gochecknoglobals` on the masked-field li
 Unit tests beyond those shipped with this change have not been run, and nothing has
 been exercised against a running dependency. CI remains the authority.
 
----|---|
-| Commits | 1 |
-| Files changed | 1 |
-
-Commits:
-
-- fix(logging): mask outbound HTTP bodies before they reach the log stream
-
-Files:
-
-- `cmd/grpc/main.go`
-
-**Compiled, formatted and linted locally.** An earlier version of this file said no
-Go toolchain was available on the machine this analysis ran on. That was wrong — Go is
-installed via `mise`. What has been run on this branch:
-
-- `go build ./...` — passes
-- `gofmt` — clean on every file this branch touches
-- `golangci-lint` against this repository's own `.golangci.yml` — clean on the files
-this branch touches
-
-It found a real defect in this change: `gochecknoglobals` on the masked-field list. Fixed on the branch.
-
-Unit tests beyond those shipped with this change have not been run, and nothing has
-been exercised against a running dependency. CI remains the authority.
-
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

@@ -241,6 +241,25 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/cnv/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `warn` |
+| `HTTP_SERVER_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_REQUEST_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_RESPONSE_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_REQUEST_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_RESPONSE_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS` | `phone,nik,account_number,selfie_photo,name,birth_date,dob…` (30 fields) |
+| `HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS` | `password,signature,api_key,token` |
+
+Bodies are logged in production **with a masked-field list set here** — the pattern SRE asks for. The list is the squad's to keep current.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-cnv-service#726](https://github.com/bfi-finance/bravo-cnv-service/pull/726)** — open, not merged.
@@ -261,9 +280,7 @@ Files:
 
 - `internal/rabbitmq/employeemq/employee_hcis_consumer.go`
 
-**Nothing in this pull request was compiled or tested.** Go and Node are available through `mise`; `go build ./...` passes and `gofmt` is clean on the changed file. `golangci-lint` could not run — this repository needs `go mod vendor` first. Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Compiled and formatted; not unit-tested.** Go is available through `mise`: `go build ./...` passes and `gofmt` is clean on the changed file. `golangci-lint` could **not** run here — this repository vendors its dependencies and `vendor/modules.txt` is out of step with `go.mod`, which `golangci-lint` refuses to load; running `go mod vendor` would rewrite the vendor tree, so it was left alone. Lint therefore remains unverified locally for this repository. CI on the pull request is the authority.
 
 ---
 

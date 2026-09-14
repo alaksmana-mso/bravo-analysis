@@ -59,6 +59,12 @@ Fixing that means adopting a levelled logger and a new dependency, which needs a
 
 ---
 
+## In the production deployment
+
+**No deployment directory was found for this repository** in `bfi-finance/app-deployment` or `bfi-finance/bfi-app-deployment` (searched 14 September 2026; `confins-app-deployment` was not reachable). Either it deploys from somewhere else or under a name this review did not match. Whoever owns the deployment should confirm where its log level and masking are set.
+
+---
+
 ## Implementation status
 
 **No pull request.** The GitHub API reports `permissions.push: false` for this

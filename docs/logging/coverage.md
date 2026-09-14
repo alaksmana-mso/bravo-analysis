@@ -121,11 +121,31 @@ that repository, so the fix sits on a local branch. See
 logged at error whatever status code it was handed. A wrong OTP was an error.
 See [bravo-auth-service.md](bravo-auth-service.md).
 
-**The Go masking machinery is wired up but empty.** `bfi-go-pkg` provides
-`JSONScrubberFunc`, and most services call it — with a field list that defaults
-to empty. In `lora-gateway-service` the call itself was commented out while the
-comment above it claimed the code was for non-production only; it writes 69,433
-bodies a week in production. Twenty-two repositories had one or both problems.
+**Go masking is a deployment setting, and in production it is often set to
+nothing.** `bfi-go-pkg` provides `JSONScrubberFunc`; the field list it masks comes
+from `*_JSON_MASKED_FIELDS` environment variables that SRE sets per service and per
+environment in `app-deployment` — not, as an earlier version of this paragraph had
+it, from a default in each service's code. Reading every `values-prod.yaml` on
+14 September 2026: **eight Go services log bodies in production with every
+masked-field variable set to `""`** (`lora-gateway`, `doc-renderer`,
+`partnership-provisioning`, `lora-schema`, `database-catalog` over HTTP;
+`integrity`, `pbf`, `supplier` over gRPC). SRE's view is that `lora-schema` and
+`database-catalog` carry no PII, which leaves five where a list is needed; the
+ready-to-apply diffs are in [deployment-proposal.md](deployment-proposal.md).
+Separately, in three repositories the code never called the scrubber at all —
+`lora-gateway-service` had the call commented out under a comment claiming the
+code was non-production only, while writing 69,433 bodies a week in production —
+so a deployment setting would have done nothing; those three pull requests wire
+it (`lora-gateway-service`, `bravo-kyc-sign-service`, `bravo-database-catalog`).
+The sixteen pull requests that only added a code default were closed on SRE's
+guidance; see [README.md](README.md#implementation--pack-two-forty-four-pull-requests).
+
+**Eight Go services run production at `LOGGER_LEVEL=debug`.** `audit-trail`,
+`gen-ai`, `partnership-provisioning`, `robot-controller`, `supplier`,
+`doc-renderer`, `gold-service`, `portfolio-management-service` — and the last
+two also at `POSTGRES_LOG_LEVEL=debug`. `bravo-robot-scrape` runs at `DEBUG`
+too. No code change fixes that; one line each in `values-prod.yaml` does
+([deployment-proposal.md](deployment-proposal.md) §1).
 
 **Customer phone numbers on every duplicate-check miss.** `bfi-connect` writes
 6,608 warn entries a week carrying a mobile number, customer ID and licence
@@ -159,24 +179,24 @@ produce logs but **no APM spans at all**. They are running untraced.
 | [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss |
 | [bfi-incentive-api](bfi-incentive-api.md) | `prod-ms-bfi-incentive-api` | [#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698) | give the consumer failure a stable message |
 | [bfi-rule-engine-service](bfi-rule-engine-service.md) | `prod-ms-rule-engine` | [#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67) | mask outbound HTTP bodies before they reach the log stream |
-| [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | `prod-agent-marketing` | [#829](https://github.com/bfi-finance/bravo-agent-marketing-service/pull/829) | mask request and response bodies by default |
+| [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | `prod-agent-marketing` | [#829](https://github.com/bfi-finance/bravo-agent-marketing-service/pull/829) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-agent-service](bravo-agent-service.md) | `prod-ms-agent` | [#1632](https://github.com/bfi-finance/bravo-agent-service/pull/1632) | log rejected requests at warn, not error |
-| [bravo-assistance-service](bravo-assistance-service.md) | `prod-ms-assistance` | [#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200) | mask request and response bodies by default |
+| [bravo-assistance-service](bravo-assistance-service.md) | `prod-ms-assistance` | [#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-audit-trail-service](bravo-audit-trail-service.md) | `prod-ms-audit-trail` | [#36](https://github.com/bfi-finance/bravo-audit-trail-service/pull/36) | mask outbound bodies, and say what the error was |
 | [bravo-auth-service](bravo-auth-service.md) | `prod-ms-auth` | [#258](https://github.com/bfi-finance/bravo-auth-service/pull/258) | pick the log level from the status code |
-| [bravo-backoffice-service](bravo-backoffice-service.md) | `prod-ms-backoffice` | [#2781](https://github.com/bfi-finance/bravo-backoffice-service/pull/2781) | mask request and response bodies by default |
+| [bravo-backoffice-service](bravo-backoffice-service.md) | `prod-ms-backoffice` | [#2781](https://github.com/bfi-finance/bravo-backoffice-service/pull/2781) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-collateral-service](bravo-collateral-service.md) | `prod-ms-collateral` | [#420](https://github.com/bfi-finance/bravo-collateral-service/pull/420) | log rejected requests at warn, and close the payload trap |
-| [bravo-customer-bff-service](bravo-customer-bff-service.md) | `prod-customer-bff` | [#1216](https://github.com/bfi-finance/bravo-customer-bff-service/pull/1216) | give the masked-field lists a default |
+| [bravo-customer-bff-service](bravo-customer-bff-service.md) | `prod-customer-bff` | [#1216](https://github.com/bfi-finance/bravo-customer-bff-service/pull/1216) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-database-catalog](bravo-database-catalog.md) | `prod-database-catalog` | [#41](https://github.com/bfi-finance/bravo-database-catalog/pull/41) | mask request and response bodies by default |
 | [bravo-employee-service](bravo-employee-service.md) | `prod-ms-employee` | [#172](https://github.com/bfi-finance/bravo-employee-service/pull/172) | stop writing whole HR records to the log stream |
-| [bravo-gen-ai](bravo-gen-ai.md) | `prod-ms-gen-ai` | [#359](https://github.com/bfi-finance/bravo-gen-ai/pull/359) | give the masked-field lists a default |
+| [bravo-gen-ai](bravo-gen-ai.md) | `prod-ms-gen-ai` | [#359](https://github.com/bfi-finance/bravo-gen-ai/pull/359) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-insurance-service](bravo-insurance-service.md) | `prod-ms-insurance` | [#820](https://github.com/bfi-finance/bravo-insurance-service/pull/820) | log rejected requests at warn, not error |
-| [bravo-integrity-service](bravo-integrity-service.md) | `prod-ms-integrity` | [#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29) | mask request and response bodies by default |
+| [bravo-integrity-service](bravo-integrity-service.md) | `prod-ms-integrity` | [#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-inventory-management-system](bravo-inventory-management-system.md) | `bravo-inventory-management-system` | [#232](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232) | stop putting the request body and Authorization header in RUM errors |
 | [bravo-journal-service](bravo-journal-service.md) | `prod-ms-journal` | [#297](https://github.com/bfi-finance/bravo-journal-service/pull/297) | log rejected requests at warn, and close the payload trap |
-| [bravo-krakend-gateway](bravo-krakend-gateway.md) | `prod-ms-krakend-gateway` | [#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387) | mask request and response bodies by default |
-| [bravo-krakend-internal](bravo-krakend-internal.md) | `prod-ms-krakend-internal` | [#58](https://github.com/bfi-finance/bravo-krakend-internal/pull/58) | mask request and response bodies by default |
-| [bravo-kyc-proxy](bravo-kyc-proxy.md) | `prod-ms-kyc-proxy` | [#726](https://github.com/bfi-finance/bravo-kyc-proxy/pull/726) | give the masked-field lists a default |
+| [bravo-krakend-gateway](bravo-krakend-gateway.md) | `prod-ms-krakend-gateway` | [#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [bravo-krakend-internal](bravo-krakend-internal.md) | `prod-ms-krakend-internal` | [#58](https://github.com/bfi-finance/bravo-krakend-internal/pull/58) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [bravo-kyc-proxy](bravo-kyc-proxy.md) | `prod-ms-kyc-proxy` | [#726](https://github.com/bfi-finance/bravo-kyc-proxy/pull/726) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-kyc-sign-service](bravo-kyc-sign-service.md) | `prod-ms-kyc-sign` | [#118](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118) | mask request and response bodies by default |
 | [bravo-lms-ops-service](bravo-lms-ops-service.md) | `prod-ms-lms-ops` | [#1856](https://github.com/bfi-finance/bravo-lms-ops-service/pull/1856) | close the request payload trap |
 | [bravo-notification-service](bravo-notification-service.md) | `prod-ms-notification` | [#446](https://github.com/bfi-finance/bravo-notification-service/pull/446) | stop logging signing keys, private keys and bearer tokens |
@@ -185,21 +205,21 @@ produce logs but **no APM spans at all**. They are running untraced.
 | [bravo-pbf-service](bravo-pbf-service.md) | `prod-ms-pbf` | [#125](https://github.com/bfi-finance/bravo-pbf-service/pull/125) | stop reporting "agreement not held here" as an error |
 | [bravo-product-service](bravo-product-service.md) | `prod-ms-product` | [#665](https://github.com/bfi-finance/bravo-product-service/pull/665) | log rejected requests at warn, not error |
 | [bravo-repeat-order-service](bravo-repeat-order-service.md) | `prod-ms-repeat-order` | [#3503](https://github.com/bfi-finance/bravo-repeat-order-service/pull/3503) | log rejected requests at warn, not error |
-| [bravo-robot-controller](bravo-robot-controller.md) | `prod-ms-robot-controller` | [#84](https://github.com/bfi-finance/bravo-robot-controller/pull/84) | give the masked-field lists a default |
+| [bravo-robot-controller](bravo-robot-controller.md) | `prod-ms-robot-controller` | [#84](https://github.com/bfi-finance/bravo-robot-controller/pull/84) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [bravo-robot-scrape](bravo-robot-scrape.md) | `prod-robot-scrape` | [#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114) | report DMS upload failures as errors, not as stdout text |
 | [bravo-scheduling-service](bravo-scheduling-service.md) | `prod-ms-scheduling` | [#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300) | mask outbound HTTP bodies before they reach the log stream |
-| [bravo-supplier-service](bravo-supplier-service.md) | `prod-ms-supplier` | [#181](https://github.com/bfi-finance/bravo-supplier-service/pull/181) | mask request and response bodies by default |
-| [collection-consumer-service](collection-consumer-service.md) | `prod-ms-collection-consumer` | [#143](https://github.com/bfi-finance/collection-consumer-service/pull/143) | mask request and response bodies by default |
+| [bravo-supplier-service](bravo-supplier-service.md) | `prod-ms-supplier` | [#181](https://github.com/bfi-finance/bravo-supplier-service/pull/181) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [collection-consumer-service](collection-consumer-service.md) | `prod-ms-collection-consumer` | [#143](https://github.com/bfi-finance/collection-consumer-service/pull/143) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [doc-renderer-service](doc-renderer-service.md) | `prod-doc-renderer` | [#31](https://github.com/bfi-finance/doc-renderer-service/pull/31) | mask request and response bodies by default |
-| [document-hub-service](document-hub-service.md) | `prod-ms-document-hub` | [#92](https://github.com/bfi-finance/document-hub-service/pull/92) | mask request and response bodies by default |
+| [document-hub-service](document-hub-service.md) | `prod-ms-document-hub` | [#92](https://github.com/bfi-finance/document-hub-service/pull/92) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 | [gold-service](gold-service.md) | `prod-ms-gold-service` | [#190](https://github.com/bfi-finance/gold-service/pull/190) | mask request and response bodies by default |
 | [lora-cdc-foxx-service](lora-cdc-foxx-service.md) | `prod-lora-cdc-foxx-service` | [#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3) | move the Datadog credentials and tags out of source |
 | [lora-gateway-service](lora-gateway-service.md) | `prod-lora-gateway` | [#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263) | actually mask outbound bodies, and log them on failure only |
 | [lora-partnership-ndf](lora-partnership-ndf.md) | `prod-lora-partnership-ndf` | [#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) | mask request and response bodies by default |
 | [lora-partnership-task-ndf](lora-partnership-task-ndf.md) | `prod-lora-partnership-task-ndf` | [#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126) | mask request and response bodies by default |
-| [lora-schema-service](lora-schema-service.md) | `prod-lora-schema` | [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) | mask request and response bodies by default |
-| [notification-service](notification-service.md) | `prod-ms-notification` | [#122](https://github.com/bfi-finance/notification-service/pull/122) | mask request and response bodies by default |
-| [portfolio-management-service](portfolio-management-service.md) | `prod-portfolio-management-service` | [#122](https://github.com/bfi-finance/portfolio-management-service/pull/122) | mask request and response bodies by default |
+| [lora-schema-service](lora-schema-service.md) | `prod-lora-schema` | [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [notification-service](notification-service.md) | `prod-ms-notification` | [#122](https://github.com/bfi-finance/notification-service/pull/122) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
+| [portfolio-management-service](portfolio-management-service.md) | `prod-portfolio-management-service` | [#122](https://github.com/bfi-finance/portfolio-management-service/pull/122) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** |
 
 **No pull request — 9 repositories.**
 

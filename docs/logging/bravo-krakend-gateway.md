@@ -1,5 +1,7 @@
 # bravo-krakend-gateway — logging findings and fixes
 
+> **Superseded on 14 September 2026.** The code change this file describes — a default masked-field list in the config struct — was reverted and its pull request closed on SRE's guidance: masked fields are set **per service and per environment in `app-deployment`**, not defaulted in code. The finding stands; the fix moves. See *In the production deployment* below for what the manifest actually sets, and [deployment-proposal.md](deployment-proposal.md) for the diff if one is needed.
+
 **Squad:** not filed under a squad folder — cloned into `squads/others/` by this review  
 **Production service:** `prod-ms-krakend-gateway`  
 **Stack:** Go, KrakenD, slog, custom server-observer plugin  
@@ -33,7 +35,25 @@ this change have not been run — CI remains the authority.
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/krakend-gateway/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `info` |
+| `HTTP_CLIENT_REQUEST_BODY_LOGGING` | `false` |
+| `HTTP_CLIENT_RESPONSE_BODY_LOGGING` | `false` |
+| `HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+
+---
+
 ## Implementation status
+
+**Pull request [#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change is [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175).
 
 **Pull request: [bravo-krakend-gateway#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387)** — open.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-krakend-gateway/tree/fix/logging), head `a2bddc9`, branched from `master` at `676e79b`.
@@ -42,37 +62,13 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-krakend-gateway/tre
 
 | | |
 |---|---|
-| Commits | 1 |
+| Commits | 2 |
 | Files changed | 2 |
 
 Commits:
 
 - fix(logging): mask request and response bodies by default
-
-Files:
-
-- `.env.example`
-- `internal/config/config.go`
-
-**Compiled, formatted and linted locally.** An earlier version of this file said no
-Go toolchain was available on the machine this analysis ran on. That was wrong — Go is
-installed via `mise`. What has been run on this branch:
-
-- `go build ./...` — passes
-- `gofmt` — clean on every file this branch touches
-- `golangci-lint` against this repository's own `.golangci.yml` — clean on the files
-this branch touches
-
-Unit tests beyond those shipped with this change have not been run, and nothing has
-been exercised against a running dependency. CI remains the authority.
-
----|---|
-| Commits | 1 |
-| Files changed | 2 |
-
-Commits:
-
-- fix(logging): mask request and response bodies by default
+- fix(logging): drop the masked-field defaults from the config struct *(14 Sep, reverts the default above on SRE's guidance; branch now identical to base, pull request closed)*
 
 Files:
 
@@ -95,7 +91,7 @@ been exercised against a running dependency. CI remains the authority.
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

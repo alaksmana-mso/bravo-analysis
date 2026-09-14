@@ -56,6 +56,12 @@ Adding authentication is a deployment decision — who is allowed to call it, an
 
 ---
 
+## In the production deployment
+
+**No deployment directory was found for this repository** in `bfi-finance/app-deployment` or `bfi-finance/bfi-app-deployment` (searched 14 September 2026; `confins-app-deployment` was not reachable). Either it deploys from somewhere else or under a name this review did not match. Whoever owns the deployment should confirm where its log level and masking are set.
+
+---
+
 ## Implementation status
 
 **Pull request: [lora-cdc-foxx-service#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3)** — open.  
@@ -77,32 +83,13 @@ Files:
 - `logger/index.js`
 - `logger/manifest.json`
 
-**Nothing in this pull request was compiled or tested.** Node is available through `mise`; `node --check` parses `logger/index.js`, and `manifest.json` is valid JSON. CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
-
----|---|
-| Commits | 1 |
-| Files changed | 2 |
-
-Commits:
-
-- fix(logging): move the Datadog credentials and tags out of source
-
-Files:
-
-- `logger/index.js`
-- `logger/manifest.json`
-
-**Nothing in this pull request was compiled or tested.** Node is available through `mise`; `node --check` parses `logger/index.js`, and `manifest.json` is valid JSON. CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
+**Not built and not tested; parsed.** Node is available through `mise`; `node --check` parses `logger/index.js` and `manifest.json` is valid JSON. Those are syntax checks, not tests. CI on the pull request is the first real check.
 
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

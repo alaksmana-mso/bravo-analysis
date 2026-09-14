@@ -36,7 +36,23 @@ not been compiled or tested locally.
 
 ## Please build before merging
 
-**This was not compiled and not tested, and for a Java repository that is still true.** There is no Maven and no JVM on the machine it was written on — `/usr/bin/java` is the macOS stub with no runtime. *(An earlier version of this file also claimed no Go or Node toolchain; both turned out to be available through `mise`, and the Go changes in this programme have since been compiled and linted.)* What was checked: brace and paren balance on every touched file, line lengths against the prettier-java `printWidth` of 120, and imports placed in sorted order. That is not a build — please treat the CI result as the first real check.
+**Compiled and, where a suite exists, tested locally on 14 September 2026** — see the verification note under *Implementation status* below. Earlier versions of this paragraph said Java could not be built on this machine; a JDK and Maven were one `mise x` away, and that claim is withdrawn.
+
+---
+
+## In the production deployment
+
+Read from `app-deployment/agent/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `INFO` |
+| `SENSITIVE_KEYS` | not set  ← library default (6 keys) |
+| `REQUEST_BODY_LOGGING` | not set  ← library default `true` |
+| `RESPONSE_BODY_LOGGING` | not set  ← library default `true` |
+| `BODY_LOG_MAX_LENGTH` | not set  ← new in bfi-java-pkg#123, default 16384 |
+
+This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the library's `RequestLoggingFilter` and `FeignClientFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
 
 ---
 
@@ -60,37 +76,13 @@ Files:
 
 - `src/main/java/com/bfi/bravo/adapter/advice/ErrorAdvice.java`
 
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
-
----|---|
-| Commits | 1 |
-| Files changed | 1 |
-
-Commits:
-
-- fix(logging): log rejected requests at warn, not error
-
-Files:
-
-- `src/main/java/com/bfi/bravo/adapter/advice/ErrorAdvice.java`
-
-**Nothing in this pull request was compiled or tested.** There is no Maven and no JVM on the machine this analysis ran on — `/usr/bin/java` is the
-macOS stub with no runtime — so this Java change was reviewed by reading only. (Go and
-Node turned out to be available through `mise`, and the Go changes in this programme have
-since been compiled and linted; Java cannot be built here.) CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
+**Compiled locally on 14 September 2026** — `mvn -DskipTests compile` passes with Temurin 17 and Maven 3.9 via `mise`. (Three earlier versions of this note said Java could not be built on this machine. A JDK was one `mise x` away; that claim is withdrawn everywhere.) **Unit tests: 2181 run, 0 failures, 0 errors** (`mvn test`, whole module). Every changed file is also `prettier-java` clean at the repository's pinned settings.
 
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

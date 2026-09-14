@@ -53,6 +53,12 @@ The existing unit test is updated, and now also asserts that **neither the beare
 
 ---
 
+## In the production deployment
+
+**No deployment directory was found for this repository** in `bfi-finance/app-deployment` or `bfi-finance/bfi-app-deployment` (searched 14 September 2026; `confins-app-deployment` was not reachable). Either it deploys from somewhere else or under a name this review did not match. Whoever owns the deployment should confirm where its log level and masking are set.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-inventory-management-system#232](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232)** — open.  
@@ -74,32 +80,13 @@ Files:
 - `src/libs/__tests__/datadog.test.ts`
 - `src/libs/datadog.ts`
 
-**Nothing in this pull request was compiled or tested.** Node is available through `mise`; the changed files are TypeScript and this repository's `node_modules` is not installed here, so the vitest suite was not run. CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
-
----|---|
-| Commits | 1 |
-| Files changed | 2 |
-
-Commits:
-
-- fix(rum): stop putting the request body and Authorization header in RUM errors
-
-Files:
-
-- `src/libs/__tests__/datadog.test.ts`
-- `src/libs/datadog.ts`
-
-**Nothing in this pull request was compiled or tested.** Node is available through `mise`; the changed files are TypeScript and this repository's `node_modules` is not installed here, so the vitest suite was not run. CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
+**Not compiled and not tested; parsed.** Node is available through `mise`, but this repository's `node_modules` is not installed here, so the changed TypeScript was **not type-checked** and no test suite was run. The TypeScript compiler's own parser reports no syntax errors in the changed files — a syntax check, not a type check. CI on the pull request is the first real check.
 
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

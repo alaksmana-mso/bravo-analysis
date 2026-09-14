@@ -44,7 +44,35 @@ this change have not been run — CI remains the authority.
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/partnership-provisioning/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `debug`  ← **debug in production** |
+| `HTTP_SERVER_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY` | `true` |
+| `HTTP_SERVER_REQUEST_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_RESPONSE_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_BODY_LOGGING_ON_ERROR_ONLY` | `false` |
+| `HTTP_CLIENT_REQUEST_BODY_LOGGING` | `true` |
+| `HTTP_CLIENT_RESPONSE_BODY_LOGGING` | `true` |
+| `HTTP_SERVER_REQUEST_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_SERVER_RESPONSE_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+
+**Bodies are logged in production and nothing is masked.** The switch is on and every masked-field list is set to an empty string, so `bfi-go-pkg`'s scrubber runs with nothing to scrub. That is a deployment setting, not a code defect — the fix is a field list in this file.
+**`LOGGER_LEVEL` is `debug` in production.** Every debug statement in the service ships to Cloud Logging and Datadog. This is the single cheapest change available for this service.
+
+**Proposed change to this file:** sections §1, §2 of [deployment-proposal.md](deployment-proposal.md) — a ready-to-apply diff, not applied. SRE and the owning squad decide.
+
+---
+
 ## Implementation status
+
+**Scope of [#94](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94) was reduced on 14 September 2026, on SRE's guidance.** The commit that gave the `*_JSON_MASKED_FIELDS` config fields a default list was reverted; masked fields are set per environment in `app-deployment`, not defaulted in code. What remains is the code the deployment setting depends on — the scrubber actually wired to the field list the environment provides — and any log-level fixes.
 
 **Pull request: [bravo-partnership-provisioning-service#94](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94)** — open.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-partnership-provisioning-service/tree/fix/logging), head `142d5db`, branched from `master` at `7de4be9`.
@@ -53,12 +81,13 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-partnership-provisi
 
 | | |
 |---|---|
-| Commits | 1 |
+| Commits | 2 |
 | Files changed | 2 |
 
 Commits:
 
 - fix(logging): mask request and response bodies by default
+- fix(logging): drop the masked-field defaults from the config struct *(14 Sep, reverts the default above on SRE's guidance)*
 
 Files:
 
@@ -79,36 +108,11 @@ this branch touches
 Unit tests beyond those shipped with this change have not been run, and nothing has
 been exercised against a running dependency. CI remains the authority.
 
----|---|
-| Commits | 1 |
-| Files changed | 2 |
-
-Commits:
-
-- fix(logging): mask request and response bodies by default
-
-Files:
-
-- `.env.example`
-- `internal/config/config.go`
-
-**Compiled, formatted and linted locally.** An earlier version of this file said no
-Go toolchain was available on the machine this analysis ran on. That was wrong — Go is
-installed via `mise`. What has been run on this branch:
-
-- `go build ./...` — passes
-- `gofmt` — clean on every file this branch touches
-- `golangci-lint` against this repository's own `.golangci.yml` — clean on the files
-this branch touches
-
-Unit tests beyond those shipped with this change have not been run, and nothing has
-been exercised against a running dependency. CI remains the authority.
-
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships

@@ -222,6 +222,30 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/lora-task/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `info` |
+| `HTTP_SERVER_BODY_LOGGING` | `false` |
+| `HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY` | `true` |
+| `HTTP_SERVER_REQUEST_BODY_LOGGING` | `false` |
+| `HTTP_SERVER_RESPONSE_BODY_LOGGING` | `false` |
+| `HTTP_CLIENT_BODY_LOGGING` | `false` |
+| `HTTP_CLIENT_BODY_LOGGING_ON_ERROR_ONLY` | `true` |
+| `HTTP_CLIENT_REQUEST_BODY_LOGGING` | `false` |
+| `HTTP_CLIENT_RESPONSE_BODY_LOGGING` | `false` |
+| `HTTP_SERVER_REQUEST_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_SERVER_RESPONSE_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+| `HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS` | `""` (empty)  ← **set, but empty** |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+
+---
+
 ## Implementation status
 
 **Pull request: [lora-task-service#1363](https://github.com/bfi-finance/lora-task-service/pull/1363)** — open, not merged.
@@ -245,9 +269,7 @@ Files:
 - `internal/httpserver/handlers/frontend/task/action.go`
 - `internal/service/auth/cookie_middleware.go`
 
-**Nothing in this pull request was compiled or tested.** Go and Node are available through `mise`; `go build ./...` passes, `gofmt` is clean on all four changed files, and `golangci-lint` against this repository's own config reports 0 issues. Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Compiled, formatted and linted locally; not unit-tested.** Go is available through `mise`: `go build ./...` passes, `gofmt` is clean on all four changed files, and `golangci-lint` against this repository's own config reports 0 issues. No test suite was run. CI on the pull request is the authority.
 
 ---
 

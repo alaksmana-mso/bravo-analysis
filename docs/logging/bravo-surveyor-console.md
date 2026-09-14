@@ -151,6 +151,12 @@ microservices host so browser spans join the backend trace, the way
 
 ---
 
+## In the production deployment
+
+**No deployment directory was found for this repository** in `bfi-finance/app-deployment` or `bfi-finance/bfi-app-deployment` (searched 14 September 2026; `confins-app-deployment` was not reachable). Either it deploys from somewhere else or under a name this review did not match. Whoever owns the deployment should confirm where its log level and masking are set.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-surveyor-console#3976](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976)** — open, not merged.
@@ -171,9 +177,7 @@ Files:
 
 - `src/datadog/index.ts`
 
-**Nothing in this pull request was compiled or tested.** Node is available through `mise`; the changed file is TypeScript and this repository's `node_modules` is not installed here, so it was not type-checked. Every change was
-reviewed by reading; none was built. CI on the pull request is the first real
-check — do not merge on the strength of this document.
+**Not compiled and not tested; parsed.** Node is available through `mise`, but this repository's `node_modules` is not installed here, so the changed TypeScript was **not type-checked** and no test suite was run. The TypeScript compiler's own parser reports no syntax errors in the changed files — a syntax check, not a type check. CI on the pull request is the first real check.
 
 ---
 

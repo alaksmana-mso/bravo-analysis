@@ -43,6 +43,21 @@ No Python environment is available here to run the service, but the changed file
 
 ---
 
+## In the production deployment
+
+Read from `app-deployment/robot-scrape/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
+
+| Setting | Production value |
+|---|---|
+| Log level | `DEBUG`  ← **debug in production** |
+
+Body logging is **off** in production (either set to `false` or absent, and `bfi-go-pkg` defaults it off). No masked-field list is needed until a squad turns bodies on; when it does, set the list in the same file.
+**`LOGGER_LEVEL` is `debug` in production.** Every debug statement in the service ships to Cloud Logging and Datadog. This is the single cheapest change available for this service.
+
+**Proposed change to this file:** section §1 of [deployment-proposal.md](deployment-proposal.md) — a ready-to-apply diff, not applied. SRE and the owning squad decide.
+
+---
+
 ## Implementation status
 
 **Pull request: [bravo-robot-scrape#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114)** — open.  
@@ -63,31 +78,13 @@ Files:
 
 - `account_statement/bficlient/DMSService.py`
 
-**Nothing in this pull request was compiled or tested.** Python is available; the changed file was parsed with `ast.parse` and is syntactically valid; the service itself was not run. CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
-
----|---|
-| Commits | 1 |
-| Files changed | 1 |
-
-Commits:
-
-- fix(logging): report DMS upload failures as errors, not as stdout text
-
-Files:
-
-- `account_statement/bficlient/DMSService.py`
-
-**Nothing in this pull request was compiled or tested.** Python is available; the changed file was parsed with `ast.parse` and is syntactically valid; the service itself was not run. CI on the pull
-request is the first real check — do not merge on the strength of this
-document.
+**Not run and not tested; parsed.** Python is available; the changed file parses with `ast.parse`. That is a syntax check, not a test — the scraper itself was not run. CI on the pull request is the first real check.
 
 ---
 
 ## Checklist
 
-- [ ] Run CI on the pull request — nothing here was compiled or tested
+- [ ] Run CI on the pull request — see the verification note above for what was and was not checked locally
 - [ ] Review the change with the squad that owns this service
 - [ ] Confirm the deployment manifest does not override the defaults this change sets
 - [ ] Re-measure this service's 7-day volume and severity mix after the change ships
