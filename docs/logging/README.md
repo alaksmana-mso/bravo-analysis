@@ -248,7 +248,8 @@ a per-service pull request:
    and nothing capped body size.
 
 **Java is now two layers, not one.** On 14 September a colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122): two new
-modules, `bfi-logging-core` and `bfi-logging-spring-boot-starter`, for Spring Boot 3.x.
+modules, `bfi-logging-core` and `bfi-logging-spring-boot-starter`, for Spring Boot 3.3 and newer
+(on 3.2 the service would start and log nothing; the starter now fails fast there — §2a of body-visibility.md).
 They are the schema-and-volume layer this programme was missing — single-line JSON with
 `level`, `service`, `trace_id`; an 8 KB message cap and stack-trace cap that keep Java lines
 under the 16 KB container-runtime split; request logging off by default; async, dedupe,

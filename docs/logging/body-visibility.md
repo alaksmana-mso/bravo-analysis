@@ -90,7 +90,7 @@ deployment setting — set the two switches in `values-prod.yaml`, as the Go ser
 ### 2a. The new Java starter — bfi-java-pkg#122, read 15 September 2026
 
 A colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) on 14 September: `bfi-logging-core` (a Logback/logstash JSON
-encoder with volume controls) and `bfi-logging-spring-boot-starter` (Spring Boot 3.x
+encoder with volume controls) and `bfi-logging-spring-boot-starter` (Spring Boot 3.3+/4.x
 auto-configuration), alongside `bravo-lib-logging`, not replacing it. Read in full.
 
 **What it gets right, and why it matters here:**
@@ -118,7 +118,32 @@ auto-configuration), alongside `bravo-lib-logging`, not replacing it. Read in fu
 | The PII regex never ran over the `message` field — a body logged as a plain string was capped but not masked | `maskPii` on the message provider, default on, `LOG_MASK_MESSAGE_PII` to turn off |
 | `request_body` was regex-masked only — the key deny-list never saw a body's fields | `MaskingValueUtil.maskJson`: parse JSON, mask every field by key whatever its type, regex fallback |
 | Both READMEs linked a guideline at `../docs` that is not in the repository | Plain text; new properties documented |
-| Spring Boot 3 only | Not fixable there. 14 of 34 Java repositories are on Boot 2.7; #123 is their bridge |
+| Spring Boot 3 only — and, as found on the second review, **Boot 3.3 or newer**: on Boot 3.2 (Logback 1.4) the format include runs before the Spring property that names it exists, and the service starts with no appender and logs nothing | Not fixable for 2.7 (jakarta). 14 of 34 Java repositories are on Boot 2.7; #123 is their bridge. For 3.2 the fifth commit adds a startup check that fails the boot with the reason instead of running silent; `bravo-insurance-service` (3.2.11) must move to 3.3 first |
+
+**Second review, 15 September afternoon.** The author rebased the branch onto master and
+added eight commits: the PR pipeline now builds and scans the two new modules; a `.codacy.yml`
+excludes test sources from Codacy; the starter's parent moved from Boot 3.3.7 to 3.5.16;
+Logback 1.5.36, logstash-logback-encoder 8.1 and Jackson 2.22.2 are pinned; and a
+`logging-starter/.snyk` file ignores seven Spring Framework advisories until 15 March 2027.
+Every check is green: 61 + 42 tests, Codacy 0 issues, both SNYK scans clean. Two things to
+know about that green:
+
+- The seven ignores are honest. Each advisory's only fix is Spring Framework 7.0.9, because
+  Spring Framework 6.2 and Boot 3.5 left open-source support on 30 June 2026. Every Spring
+  CVE from now on lands in this file until the library moves to Boot 4, so the expiry date is
+  the real control. Boot 4.0 itself leaves open-source support on 31 December 2026.
+- The Jackson and Logback pins live in the modules' own build, so they make the library's scan
+  clean; a consuming service still gets the versions its own Boot BOM manages.
+
+We then built a throwaway consumer against three Boot lines. On 3.3.7 and 4.1.1 the starter
+works as shipped: one JSON line per event, the 16-digit identifier redacted, `correlation_id`
+carried into handler logs. On 3.2.11 the app started, served requests and **wrote nothing**:
+Logback 1.4 evaluates the format include before the Spring property exists, only a Logback
+status warning records it, and the same app passes once Logback is pinned to 1.5.18. One
+production repository, `bravo-insurance-service`, is on 3.2.11. The fifth commit on the branch
+adds a startup check (`bravo.logging.startup-check.enabled`, default on, previously a documented
+property bound to nothing) that fails the boot with the reason, and the README now says Boot
+3.3 or newer.
 
 **What it does not do, and will not:** capture outbound bodies for debugging. That is still
 Live Debugger's job (§5), once Remote Configuration works.

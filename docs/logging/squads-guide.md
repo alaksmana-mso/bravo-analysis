@@ -331,7 +331,7 @@ number, or a list of phone numbers, goes through untouched however good your lis
 
 **Java is two layers now — pick yours by Spring Boot version.**
 
-*On Boot 3.x or 4.x (20 of the 34 Java repositories):* add `bfi-logging-spring-boot-starter`
+*On Boot 3.3 or newer, or 4.x (20 of the 34 Java repositories):* add `bfi-logging-spring-boot-starter`
 ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), delete your `logback*.xml`, and leave request logging off unless your service is
 the first layer behind the gateway. You get single-line JSON, an 8 KB message cap, stack
 traces capped at 8 KB, framework loggers at WARN, and — if you use Feign — one line per
@@ -339,7 +339,10 @@ outbound call with no headers and no bodies unless you set
 `bravo.logging.feign.include-body=true` for the client you are debugging. Delete any
 hand-written `feign.Logger` and its `Logger.Level.FULL` bean so the starter's takes over.
 The starter reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`; tell SRE when you migrate, because
-your manifest currently says `LOGGER_LEVEL` and `SENSITIVE_KEYS`.
+your manifest currently says `LOGGER_LEVEL` and `SENSITIVE_KEYS`. One trap: on Boot 3.2 the
+starter's format include runs before the property that names it exists, so the service starts
+with no appender and logs nothing. The starter now refuses to start in that state and says why.
+`bravo-insurance-service` is the one repository on 3.2 (3.2.11); move to 3.3 first.
 
 *On Boot 2.7 (14 repositories):* stay on `bravo-lib-logging` (`bfi-java-pkg`). It reads
 `SENSITIVE_KEYS`, `REQUEST_BODY_LOGGING` and `RESPONSE_BODY_LOGGING` from the environment,

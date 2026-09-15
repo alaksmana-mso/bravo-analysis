@@ -594,8 +594,8 @@ The five findings that matter:
   `RESPONSE_BODY_LOGGING` to `true`. Of 18 repositories on it, four set `SENSITIVE_KEYS` in
   production and four turn response bodies off; the rest log both bodies of every request at
   INFO because nobody set the switch. `bravo-onboarding-service` — 64 KB request bodies —
-  is the one the proposal touches. **From 15 September Java is two layers:** the 20 Boot 3.x
-  repositories should move to `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) — 8 KB message
+  is the one the proposal touches. **From 15 September Java is two layers:** the 20 Boot 3.x/4.x
+  repositories (Boot 3.3 or newer; `bravo-insurance-service` must leave 3.2.11 first) should move to `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) — 8 KB message
   cap, request logging off, Feign bodies opt-in and never headers); the 14 Boot 2.7
   repositories stay on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123). Manifest trap for SRE: the starter
   reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`, not `LOGGER_LEVEL` and `SENSITIVE_KEYS`.
