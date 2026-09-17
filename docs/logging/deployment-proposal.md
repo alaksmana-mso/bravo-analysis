@@ -442,7 +442,7 @@ switch:
 Flipping it removes the only place response bodies exist in this estate today, so it is a
 decision for the Scoring & Underwriting squad, not a default. Not proposed here; recorded so
 SRE knows where the switch is. The durable fix for the *line size* is not a manifest value
-either: it is adopting `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), whose encoder caps every
+either: it is adopting `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026, awaiting its first publish), whose encoder caps every
 message at 8 KB — bpm is on Boot 3.5.16 and can take it as soon as the PR merges.
 
 ### `bpm/values-prod-sharia.yaml` — headers including `Authorization`

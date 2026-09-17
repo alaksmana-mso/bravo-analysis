@@ -60,10 +60,18 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 ## Implementation status
 
-**Pull request: [bravo-robot-scrape#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114)** — open.  
+**Pull request: [bravo-robot-scrape#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-robot-scrape/tree/fix/logging), head `e5be58c`, branched from `master` at `dae730a`.
 
 [Files changed](https://github.com/bfi-finance/bravo-robot-scrape/pull/114/files) · [Commits](https://github.com/bfi-finance/bravo-robot-scrape/pull/114/commits) · [Compare against master](https://github.com/bfi-finance/bravo-robot-scrape/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java or Go wrapper side changes this pull request; it stands as written.
+
+Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September with one condition: the service's SA confirms the rollout restart before merge.
+
+CI on the current head is **fully green**.
 
 | | |
 |---|---|

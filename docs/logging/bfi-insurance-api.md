@@ -289,7 +289,7 @@ Read from `bfi-app-deployment/bfi-insurance-api/values-prod.yaml` on 14 Septembe
 This is a Java service that does **not** depend on `bravo-lib-logging`, so the library's `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` / `SENSITIVE_KEYS` switches do not apply here. The body logging this service does comes from its own filters and Feign loggers, described above, and the production levers in this file are the `LOGGING_LEVEL_*` variables in the table — Spring Boot reads each one as `logging.level.<package>`. Where the table is empty, the service's own `application*.yaml` decides. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
 
-**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 3.3.7, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It has no shared logging library today, so the starter is an addition, not a migration; any hand-written `feign.Logger` bean should be deleted so the starter's takes over.
+**Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 3.3.7, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), **merged 16 September 2026**): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It is not published yet — Platform must run `bfi-java-pkg`'s manual *Deploy Package* workflow for `logging-core` and then `logging-starter` before any `pom.xml` can name it. Adopting it means deleting `logback*.xml` and any hand-written `feign.Logger` bean, and telling SRE the manifest reads `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`.
 ---
 
 ## Implementation status
@@ -300,6 +300,12 @@ This is a Java service that does **not** depend on `bravo-lib-logging`, so the l
 Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-insurance-api/tree/fix/logging), head `cbf88d8cc`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bfi-insurance-api/pull/3298/files) · [Commits](https://github.com/bfi-finance/bfi-insurance-api/pull/3298/commits) · [Compare against master](https://github.com/bfi-finance/bfi-insurance-api/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+This repository is on Spring Boot 3.3.7. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It is not yet published — `bfi-java-pkg` releases a module only through a manual *Deploy Package* run, which has not happened for the new modules — so the dependency cannot be added yet. **This pull request stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `logback*.xml` and any hand-written `feign.Logger` bean in the same change).
+
+CI on the current head is red only on **`Security Container Scan`, `Static Analysis - SonarQube`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

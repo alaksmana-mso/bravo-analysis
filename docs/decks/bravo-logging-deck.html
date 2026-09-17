@@ -434,11 +434,11 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
     </div>
     <div class="verdictbox" style="max-width:86ch;border-color:var(--bad);background:transparent">
       <span class="lab" style="color:var(--bad)">The reasoning &middot; do not approve as written</span>
-      <p class="txt" style="font-size:clamp(16px,2vw,23px)">The figure in the deck is stale, the named cause is unproven in production, and the real saving is somewhere else.</p>
+      <p class="txt" style="font-size:clamp(16px,2vw,23px)">The figure in the deck is stale, the named cause is real but worth a tenth of the claim, and the real saving is somewhere else.</p>
     </div>
     <div class="meta">
       <span><b>How to read this</b> &nbsp;What it costs, what we got wrong, what is actually driving it, then the plan.</span>
-      <span><b>As at</b> &nbsp;2026-09-12</span>
+      <span><b>As at</b> &nbsp;2026-09-14</span>
     </div>
   </div>
   <p class="cue"><span>&darr;</span> 13 slides &middot; the correction is on 3&ndash;5 &middot; the plan is on 9&ndash;11</p>
@@ -512,26 +512,26 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
   </div>
 </section>
 
-<section class="slide" data-nav="The claim fails">
+<section class="slide" data-nav="The claim, measured">
   <div class="inner">
     <p class="eyebrow"><b>04</b><span class="sep">/</span>The correction</p>
-    <h2 class="st">The fix that was named cannot be shown to be doing anything</h2>
-    <p class="lede">This is the part that should not go to a board without being settled. It takes one hour.</p>
+    <h2 class="st">The fix that was named is real &mdash; at INFO, not DEBUG, and worth Rp 5&ndash;8M, not Rp 50&ndash;90M</h2>
+    <p class="lede">Settled on 14 September by reading <code>app-deployment/bpm/values-prod.yaml</code>. The bodies were being logged the whole time, by a logger the earlier checks did not look for.</p>
     <div class="cols b">
       <div style="display:flex;flex-direction:column;gap:13px">
         <div class="note"><h4>What the code says &mdash; the claim is real in the source</h4>In <code>bravo-bpm-service</code>, <code>application.yaml</code> sets <code>loggerLevel: full</code> on <strong>129</strong> Feign entries including the default, and puts <code>com.bfi.bravo.adapter</code> at <strong>DEBUG</strong>. All <strong>57</strong> Feign clients live under that package. <code>application-prod.yaml</code> sets <code>root: INFO</code> but never overrides it &mdash; different keys in Spring Boot, so DEBUG survives.<br><br>On paper, every call to PEFINDO, SLIK, Dukcapil and CONFINS logs its full body.</div>
-        <div class="note note--bad"><h4>What production says &mdash; nothing</h4>Across two days, every production service:<br><br><strong>Logs at <code>status:debug</code> &mdash; 0.</strong><br><strong>Logs containing <code>END HTTP</code>, the marker Feign writes at the end of every full-logged exchange &mdash; 0.</strong></div>
+        <div class="note note--bad"><h4>What the manifest says &mdash; a different logger</h4><code>ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true</code> swaps Feign&rsquo;s standard DEBUG logger for a hand-written one that writes every request and response body at <strong>INFO</strong>, unmasked and uncapped. That is why production showed <strong>zero</strong> <code>status:debug</code> lines and <strong>zero</strong> <code>END HTTP</code> markers: both checks were looking for the logger that never runs.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:13px">
-        <div class="note"><h4>Two explanations, and we cannot tell which</h4><strong>1.</strong> A deployment environment variable overrides the log level. None of the 152 repositories contains a deployment manifest &mdash; they live in a GitOps repo we do not have. This is the likelier one.<br><br><strong>2.</strong> Datadog drops DEBUG before indexing, and Cloud Logging still pays for it.</div>
+        <div class="note"><h4>What it measures to &mdash; 24 hours, <code>prod-ms-bpm</code></h4><strong>86,630</strong> body entries, <strong>89%</strong> of the service&rsquo;s log bytes, <strong>99.99%</strong> of them cut at Datadog&rsquo;s 76,800-byte message limit. About <strong>22 GB a day</strong> &mdash; the largest log producer in Bravo, and the contract&rsquo;s whole monthly ingestion commitment every twelve days.</div>
         <div class="verdictbox" style="border-color:var(--bad);background:transparent;padding:16px 18px">
-          <span class="lab" style="color:var(--bad)">The ask</span>
-          <p class="txt" style="font-size:clamp(15px,1.7vw,20px)">Read the <code>ms-bpm</code> deployment manifest. <em>One hour.</em> It decides whether this fix is worth Rp 0 or Rp 40M a month.</p>
+          <span class="lab" style="color:var(--bad)">What it is worth</span>
+          <p class="txt" style="font-size:clamp(15px,1.7vw,20px)">At contract rates, about <em>$70 a month</em> in Datadog. In Cloud Logging, <em>Rp 5&ndash;8M a month</em>. Not Rp 50&ndash;90M.</p>
         </div>
-        <p class="claim">Until that is done, the Rp 50&ndash;90M figure is a code reading with no production signal behind it. It should not be quoted as settled.</p>
+        <p class="claim">Fix it for data protection &mdash; credit-bureau and CONFINS payloads at INFO &mdash; not for the money. The fix is written: <code>bravo-bpm-service#10463</code> masks, caps and defaults it off.</p>
       </div>
     </div>
-    <div class="note note--ok"><h4>The configuration is still wrong, whatever the answer</h4>A default of <code>full</code> means one environment variable &mdash; or one careless merge &mdash; starts writing customer credit-bureau payloads into logs. <strong>That is a data-protection exposure sitting behind a single line.</strong> Six repositories carry it. Fix it regardless of whether it is currently costing money.</div>
+    <div class="note note--ok"><h4>The standard-logger configuration is still wrong too</h4>A default of <code>full</code> means one environment variable &mdash; or one careless merge &mdash; would add a second copy of the same payloads at DEBUG. Six repositories carry it. The sharia deployment of <code>bpm</code> also logs headers <strong>including <code>Authorization</code></strong> &mdash; ten lines a day, but a bearer token in a log index. Two lines in <code>deployment-proposal.md</code> &sect;5.</div>
     <div class="foot"><span class="src">logging-cost.md &sect;3 &middot; bravo-bpm-service.md &sect;1</span><span>05</span></div>
   </div>
 </section>
@@ -647,13 +647,13 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="stats stats--4">
           <div class="stat"><span class="stat__n plain">73</span><span class="stat__l">repositories read line by line, against production evidence</span></div>
-          <div class="stat"><span class="stat__n pos">48</span><span class="stat__l">pull requests open; 16 closed on SRE&rsquo;s guidance, 2 wrapper PRs added</span></div>
+          <div class="stat"><span class="stat__n pos">47</span><span class="stat__l">pull requests open; 1 merged, 16 closed on SRE&rsquo;s guidance; Java wrapper merged, Go wrapper open</span></div>
         </div>
-        <div class="note note--ok"><h4>SRE redirected part of it &mdash; to the right layer</h4>Sixteen pull requests that gave Go services a default masked-field list were <strong>closed</strong>: that list belongs in <code>app-deployment</code>, per service and per environment, and the manifests already set it. Two wrapper fixes replace them: <strong>bfi-go-pkg#175</strong> masks non-string values; <strong>bfi-java-pkg#123</strong> masks Feign bodies, matches keys case-insensitively and caps body size &mdash; 18 Java repositories inherit it.<br><br><strong>Everything is now built.</strong> A JDK was one <code>mise x</code> away: all 22 Java branches compile, 12 suites run (35,000+ tests), and the one failure found was this work&rsquo;s &mdash; fixed. The manifest changes &mdash; nine services off <code>debug</code>, five given a field list &mdash; are written as diffs in <code>deployment-proposal.md</code>, <strong>not applied</strong>.</div>
+        <div class="note note--ok"><h4>SRE redirected part of it &mdash; to the right layer</h4>Sixteen pull requests that gave Go services a default masked-field list were <strong>closed</strong>: that list belongs in <code>app-deployment</code>, per service and per environment, and the manifests already set it. Two wrapper changes replace them: <strong>bfi-go-pkg#175</strong> masks non-string values (open); and <strong>bfi-java-pkg#122</strong>, a colleague&rsquo;s new Boot 3 starter we extended on 15 September &mdash; JSON lines, an 8 KB message cap that ends <code>bpm</code>&rsquo;s 76 KB Feign lines, and a Feign logger that never writes headers &mdash; <strong>merged on 16 September</strong> and is now the one target for every Java service. Our fix to the old library (#123) was closed the same day; the 14 repositories on Spring Boot 2.7 reach the standard through a Boot 3.3 upgrade. <strong>Merged is not published:</strong> the library&rsquo;s release workflow is manual and has not run for the new modules yet.<br><br><strong>Everything is now built.</strong> A JDK was one <code>mise x</code> away: all 22 Java branches compile, 12 suites run (35,000+ tests), and the one failure found was this work&rsquo;s &mdash; fixed. The manifest changes &mdash; nine services off <code>debug</code>, five given a field list, one <code>Authorization</code> header out of the log &mdash; are raised as <strong><code>app-deployment#13820</code></strong>, 20 files, one variable each &mdash; approved by SRE on 15 September, merging once each service&rsquo;s SA confirms the restart.</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="note note--bad"><h4>Three broken CI gates are holding up six weeks of squad work</h4>All 27 red jobs were read one at a time. <strong>26 are gates that were red before this work:</strong> dependency and base-image CVEs (17), a missing Codacy API token (5), a SonarQube gate that scores a <strong>10-line</strong> pull request as 9,855 new lines (1), a Codacy installer that dies with <code>command not found</code> (1), and two findings that predate the branch.<br><br>The earlier claim that one missing token explained 23 of them was checked on three repositories and generalised. It was wrong &mdash; and it excused the one pull request that did have a defect.</div>
-        <p class="claim">Analysis is not the constraint any more. Twelve lines of YAML, two wrapper merges and squad review time are.</p>
+        <p class="claim">Analysis is not the constraint any more. One publish step, twelve lines of YAML and squad review time are.</p>
       </div>
     </div>
     <div class="foot"><span class="src">docs/logging/README.md &middot; sre-datadog-recommendations.md &sect;3a &middot; 79 files in docs/logging/</span><span>11</span></div>
@@ -688,7 +688,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
     <div class="ask">
       <div class="askrow"><span class="n">1</span><span class="t"><b>Approve the logging programme, on the corrected reasoning.</b> Rp 81&ndash;105M a month from platform configuration, available in two weeks, with no code change. The direction in the original recommendation was right; the numbers behind it were not.</span><span class="c">Approve<br>today</span></div>
       <div class="askrow"><span class="n">2</span><span class="t"><b>Treat the leaked credentials as an incident, not a backlog item.</b> Rotate the API secret shared with <code>prod-ms-insurance</code> and fix <code>HttpHelper.ts</code>. <b>Then rotate the Google Chat webhooks</b> logged by <code>bau-prod-ms-otrs-report</code> &mdash; their key and token are in the log index now, and nobody on our side has write access to that repository.</span><span class="c">Direct<br>today</span></div>
-      <div class="askrow"><span class="n">3</span><span class="t"><b>Order the one-hour manifest check before any of this is quoted externally.</b> It decides whether the Feign fix is worth Rp 0 or Rp 40M a month. Until it is done, that figure should not appear in a board pack.</span><span class="c">Direct<br>this week</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Retire the Rp 50&ndash;90M Feign figure from every pack.</b> The manifests have been read: the logger is real, on, and worth Rp 5&ndash;8M a month. Merge <code>bravo-bpm-service#10463</code> for the data-protection reason instead.</span><span class="c">Direct<br>this week</span></div>
       <div class="askrow"><span class="n">4</span><span class="t"><b>Hold the sequencing.</b> Squad cleanup gates SRE enablement, on two published numbers. If that gate is waived under delivery pressure, we move the waste from Cloud Logging into Datadog and the bill goes up instead of down.</span><span class="c">Hold<br>the line</span></div>
       <div class="askrow"><span class="n">5</span><span class="t"><b>Name an owner for <code>confins-prod-ms-lms-ar-be</code>.</b> It is 29% of all production log volume, it emits blank lines, and no squad in our mapping claims it. Nothing else in Phase 2 is worth as much per hour of work.</span><span class="c">Assign<br>this week</span></div>
       <div class="askrow"><span class="n">6</span><span class="t"><b>Ask someone to justify Coralogix.</b> Rp 253M a month, flat since February, for a third logging platform alongside Cloud Logging and Datadog. We are not recommending cancelling it. We are saying nobody has been asked.</span><span class="c">Ask<br>this month</span></div>

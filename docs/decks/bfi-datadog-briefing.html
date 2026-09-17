@@ -408,7 +408,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       <div class="stat"><span class="stat__n plain">2</span><span class="stat__l">wrapper libraries every service imports &mdash; one Go, one Java</span></div>
     </div>
     <div class="cols b">
-      <div class="note"><h4>The two wrappers are the lever</h4><code>bfi-go-pkg</code> gives every Go service its logger, HTTP middleware, gRPC interceptors and tracer setup. <code>bravo-lib-logging</code> (<code>bfi-java-pkg</code>) does the same for 18 Java services. <strong>A default changed in one of them reaches the whole estate in one release.</strong> Any workshop that ends with a wrapper change is worth more than thirty team sessions. We have two such changes in review now.</div>
+      <div class="note"><h4>The wrappers are the lever</h4><code>bfi-go-pkg</code> gives every Go service its logger, HTTP middleware, gRPC interceptors and tracer setup. <code>bravo-lib-logging</code> (<code>bfi-java-pkg</code>) does the same for 18 Java services, and a new Spring Boot 3 starter in the same repository is taking that role for the 20 Java services already on Boot 3. <strong>A default changed in one of them reaches the whole estate in one release.</strong> Any workshop that ends with a wrapper change is worth more than thirty team sessions. We have two such changes in review now.</div>
       <div class="note"><h4>How we know what follows</h4>Six weeks of review: 73 repositories read, production logs and spans queried in our org for every service, every production deployment manifest read, and the signed order <code>Q-849776</code> (1 Oct 2025 &ndash; 30 Sep 2027) set against Datadog&rsquo;s own <code>estimated_usage</code> metrics. <strong>Every number in this deck comes from one of those four places.</strong> Where a number needs your side to confirm it, we say so.</div>
     </div>
     <div class="foot"><span class="src">bravo-analysis/docs/logging/README.md &middot; sre-datadog-recommendations.md &sect;1</span><span>02</span></div>
@@ -452,7 +452,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
     </div>
     <div class="cols b">
       <div class="note note--bad"><h4>Where it comes from</h4><strong>Request and response bodies logged at INFO.</strong> The Java wrapper defaults body logging to on; the Go wrapper is opt-in but eight production services have it on with an empty masking list. <strong>Eight services run production at <code>debug</code>.</strong> One service emits genuinely blank lines &mdash; 29% of everything. Serialised payloads, stack frames and the same error 20,000 times a day make up most of the rest. <strong>Almost none of it is a log a human wanted.</strong></div>
-      <div class="note note--ok"><h4>What we are doing about it ourselves</h4>Forty-eight pull requests across the estate, two wrapper fixes, and a set of manifest changes ready for our SRE team. We hold ourselves to a gate before asking Datadog to ingest more: <strong>under 2.5M lines a day, over 80% parsed.</strong> The workshops on slide 10 are what get squads to keep it there &mdash; a team that can read a trace stops printing the payload.</div>
+      <div class="note note--ok"><h4>What we are doing about it ourselves</h4>Forty-seven pull requests open across the estate and one merged, two wrapper changes &mdash; including a new Spring Boot 3 logging starter, merged on 16 September, that caps every Java line at 8 KB &mdash; and a manifest pull request approved by our SRE team. We hold ourselves to a gate before asking Datadog to ingest more: <strong>under 2.5M lines a day, over 80% parsed.</strong> The workshops on slide 10 are what get squads to keep it there &mdash; a team that can read a trace stops printing the payload.</div>
     </div>
     <div class="foot"><span class="src">Datadog log analytics, production, 7 days to 2026-09-13 &middot; sre-datadog-recommendations.md &sect;0, &sect;3</span><span>04</span></div>
   </div>
@@ -537,7 +537,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
     <h2 class="st">Our own plan, so the workshops slot into it rather than duplicate it</h2>
     <div class="phz">
       <div class="phzc now"><span class="n">Phase 1 &middot; now</span><span class="t">Platform fixes, no Datadog change</span><span class="c">Non-production log exclusion and retention, dead monitors fixed, tracer versions pinned, nine services taken off <code>debug</code>, masking lists set per service in the deployment manifests.</span></div>
-      <div class="phzc"><span class="n">Phase 2 &middot; next</span><span class="t">Squads cut log volume</span><span class="c">48 pull requests open, one per repository, each naming the file and line. Two wrapper fixes: the Go scrubber masks numbers and lists; the Java Feign logger masks bodies and caps size.</span></div>
+      <div class="phzc"><span class="n">Phase 2 &middot; next</span><span class="t">Squads cut log volume</span><span class="c">47 pull requests open, one per repository, each naming the file and line. Two wrapper changes: the Go scrubber masks numbers and lists; the new Java starter &mdash; merged 16 September, publish pending &mdash; caps every line at 8 KB and logs one masked line per outbound call.</span></div>
       <div class="phzc"><span class="n">Phase 3 &middot; gated</span><span class="t">Ingestion and correlation</span><span class="c">Pipelines that parse our JSON, line reassembly, trace-id remapping, unified service tagging, per-service cost filters. <strong>This is where the platform workshops land.</strong></span></div>
       <div class="phzc"><span class="n">Phase 4 &middot; one at a time</span><span class="t">The paid features we already own</span><span class="c">Error Tracking, Live Debugger, Database Monitoring, real synthetics, RUM done properly. <strong>This is where the squad workshops land.</strong></span></div>
     </div>
@@ -548,7 +548,7 @@ code{font-family:"IBM Plex Mono",monospace;background:var(--panel2);padding:.1em
       </div>
       <div class="note"><h4>Why the order matters to you</h4>If we enable ingestion features against today&rsquo;s stream, Datadog faithfully reassembles the 64 KB bodies into single billable events and indexes them. The bill goes up and the trust goes down. <strong>We would rather arrive at the workshops with a stream half the size and ask you to help us use the features we bought.</strong></div>
     </div>
-    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;0, &sect;10 &middot; deployment-proposal.md &middot; bfi-go-pkg#175, bfi-java-pkg#123</span><span>09</span></div>
+    <div class="foot"><span class="src">sre-datadog-recommendations.md &sect;0, &sect;10 &middot; deployment-proposal.md &middot; bfi-go-pkg#175, bfi-java-pkg#122 (merged)</span><span>09</span></div>
   </div>
 </section>
 

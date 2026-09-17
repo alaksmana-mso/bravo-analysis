@@ -10,7 +10,7 @@ It is based on measurements from all 152 repos and production telemetry, not on 
 advice. Where a rule exists, it is because something in our estate is broken by breaking it.
 
 **Revised 13 September 2026**, after every one of the 73 repositories in this programme was
-read line by line and 64 pull requests were raised (16 since closed on SRE's guidance — masking is a deployment setting — and three wrapper pull requests added in their place). Rules 2, 3 and 5 gained a section each
+read line by line and 64 pull requests were raised (16 since closed on SRE's guidance — masking is a deployment setting — and two wrapper pull requests added in their place; the Java one merged on 16 September 2026, the first service one on 15 September). Rules 2, 3 and 5 gained a section each
 as a direct result — the Go estate breaks these rules differently from the Java estate, and
 the first version of this guide only described the Java half.
 
@@ -329,30 +329,44 @@ Three things to check in a Go service:
 masks a matched field only when its value is a string. A NIK or phone number sent as a JSON
 number, or a list of phone numbers, goes through untouched however good your list is.
 
-**Java is two layers now — pick yours by Spring Boot version.**
+**Java has one target library now, and a waiting room.** [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) merged on
+16 September 2026: `bfi-logging-spring-boot-starter` is the logging library every Java
+service moves to. Its fix for the old library ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) was closed the same day, so
+`bravo-lib-logging` will not change. Which side you are on depends on your Spring Boot
+version.
 
-*On Boot 3.3 or newer, or 4.x (20 of the 34 Java repositories):* add `bfi-logging-spring-boot-starter`
-([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), delete your `logback*.xml`, and leave request logging off unless your service is
+*One thing first, for Platform, not squads:* the starter is merged but **not yet published**.
+`bfi-java-pkg` releases a module only when someone runs the manual *Deploy Package*
+workflow for that directory, and it has not run for `logging-core` or `logging-starter`.
+Until it does, a `pom.xml` that names the starter will not build. Ask Platform to run it
+(core first, then the starter) before you start.
+
+*On Boot 3.3 or newer, or 4.x (19 of the 34 Java repositories):* add `bfi-logging-spring-boot-starter`
+0.1.0, delete your `logback*.xml`, and leave request logging off unless your service is
 the first layer behind the gateway. You get single-line JSON, an 8 KB message cap, stack
 traces capped at 8 KB, framework loggers at WARN, and — if you use Feign — one line per
 outbound call with no headers and no bodies unless you set
 `bravo.logging.feign.include-body=true` for the client you are debugging. Delete any
 hand-written `feign.Logger` and its `Logger.Level.FULL` bean so the starter's takes over.
-The starter reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`; tell SRE when you migrate, because
-your manifest currently says `LOGGER_LEVEL` and `SENSITIVE_KEYS`. One trap: on Boot 3.2 the
-starter's format include runs before the property that names it exists, so the service starts
-with no appender and logs nothing. The starter now refuses to start in that state and says why.
-`bravo-insurance-service` is the one repository on 3.2 (3.2.11); move to 3.3 first.
+If you are on `bravo-lib-logging` (eight of the 19), remove it and its filter beans in the
+same change. The starter reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`; tell SRE when you
+migrate, because your manifest currently says `LOGGER_LEVEL` and `SENSITIVE_KEYS`. It was
+tried against a throwaway app on Boot 3.3.7 and 4.1.1 and behaves the same on both. One
+trap: on Boot 3.2 the starter's format include runs before the property that names it
+exists, so the service would start with no appender and log nothing; the starter now refuses
+to start in that state and says why. `bravo-insurance-service` is the one repository on 3.2
+(3.2.11); move to 3.3 first.
 
-*On Boot 2.7 (14 repositories):* stay on `bravo-lib-logging` (`bfi-java-pkg`). It reads
-`SENSITIVE_KEYS`, `REQUEST_BODY_LOGGING` and `RESPONSE_BODY_LOGGING` from the environment,
-and the two switches **default to `true`** — so a service that wires the library's
-`RequestLoggingFilter` and sets nothing in its manifest logs every request and response
-body at INFO. Of the 18 repositories on the library, four set `SENSITIVE_KEYS` in
-production and four turn response bodies off; the rest run on defaults. Until
-[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the key match is case-sensitive (`Authorization` is not `authorization`),
-`FeignClientFilter` masks nothing at all, and there is no body size cap. Same rule: set the
-switches in `values-prod.yaml`, and treat `SENSITIVE_KEYS` as your list to write.
+*On Boot 2.7 (14 repositories, seven of them on `bravo-lib-logging`):* nothing shared is
+coming. The library reads `SENSITIVE_KEYS`, `REQUEST_BODY_LOGGING` and
+`RESPONSE_BODY_LOGGING` from the environment, and the two switches **default to `true`** —
+so a service that wires its `RequestLoggingFilter` and sets nothing in its manifest logs
+every request and response body at INFO. Its key match is case-sensitive (`Authorization` is
+not `authorization`), `FeignClientFilter` masks nothing at all, and there is no body size
+cap; the pull request that fixed those was closed in favour of the starter. So: merge your
+`fix/logging` pull request, set both switches to `false` and write your `SENSITIVE_KEYS` in
+`values-prod.yaml`, and put the Boot 3.3 upgrade on the roadmap — it is the only route to
+masked, capped, single-line logs for you.
 
 **One compiler trap worth knowing**, because it will bite whoever fixes this: the shared
 config function is `func (e *Env) HTTPClient(logger zerolog.Logger)`. That parameter

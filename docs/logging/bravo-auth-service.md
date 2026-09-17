@@ -82,10 +82,16 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 ## Implementation status
 
-**Pull request: [bravo-auth-service#258](https://github.com/bfi-finance/bravo-auth-service/pull/258)** — open.  
+**Pull request: [bravo-auth-service#258](https://github.com/bfi-finance/bravo-auth-service/pull/258)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-auth-service/tree/fix/logging), head `c8fe6fa`, branched from `master` at `6dc643b`.
 
 [Files changed](https://github.com/bfi-finance/bravo-auth-service/pull/258/files) · [Commits](https://github.com/bfi-finance/bravo-auth-service/pull/258/commits) · [Compare against master](https://github.com/bfi-finance/bravo-auth-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI on the current head is red only on **`Codacy Diff Coverage`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

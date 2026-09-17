@@ -74,10 +74,18 @@ Read from `app-deployment/partnership-provisioning/values-prod.yaml` on 14 Septe
 
 **Scope of [#94](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94) was reduced on 14 September 2026, on SRE's guidance.** The commit that gave the `*_JSON_MASKED_FIELDS` config fields a default list was reverted; masked fields are set per environment in `app-deployment`, not defaulted in code. What remains is the code the deployment setting depends on — the scrubber actually wired to the field list the environment provides — and any log-level fixes.
 
-**Pull request: [bravo-partnership-provisioning-service#94](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94)** — open.  
+**Pull request: [bravo-partnership-provisioning-service#94](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-partnership-provisioning-service/tree/fix/logging), head `142d5db`, branched from `master` at `7de4be9`.
 
 [Files changed](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94/files) · [Commits](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94/commits) · [Compare against master](https://github.com/bfi-finance/bravo-partnership-provisioning-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September with one condition: the service's SA confirms the rollout restart before merge.
+
+CI on the current head is red only on **`Codacy Diff Coverage`, `SYNK Security Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

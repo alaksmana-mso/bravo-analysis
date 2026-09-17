@@ -60,10 +60,16 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 **Scope of [#118](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118) was reduced on 14 September 2026, on SRE's guidance.** The commit that gave the `*_JSON_MASKED_FIELDS` config fields a default list was reverted; masked fields are set per environment in `app-deployment`, not defaulted in code. What remains is the code the deployment setting depends on — the scrubber actually wired to the field list the environment provides — and any log-level fixes.
 
-**Pull request: [bravo-kyc-sign-service#118](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118)** — open.  
+**Pull request: [bravo-kyc-sign-service#118](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-kyc-sign-service/tree/fix/logging), head `7487f85`, branched from `master` at `2c2d8c6`.
 
 [Files changed](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118/files) · [Commits](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118/commits) · [Compare against master](https://github.com/bfi-finance/bravo-kyc-sign-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI on the current head is red only on **`Codacy Diff Coverage`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

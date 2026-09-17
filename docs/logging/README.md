@@ -6,8 +6,35 @@ Cost data is GCP billing through FinOps. Log evidence is Datadog production. Cod
 is all 152 repos under `squads/`, pulled to `master` on the day of writing — 149,729 files
 scanned — plus 36 more cloned since.
 
-**73 repositories analysed; 48 service pull requests open, 16 closed on SRE's guidance, 3 wrapper pull requests (two ours, one a colleague's that we extended); 80 files in this folder.** The code half
-of the programme is written; what is left on it is review and merge.
+**73 repositories analysed. On 17 September 2026: 1 service pull request merged, 47 open, 16 closed on SRE's guidance; the Java wrapper ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) is merged, the Go wrapper ([bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175)) is open, the Boot 2.7 bridge ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) is closed; the manifest pull request ([app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)) carries two SRE approvals; 80 files in this folder.** The code half
+of the programme is written; what is left on it is review, merge, and one publish step.
+
+## What changed on 15–17 September
+
+- **The Java wrapper merged.** [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) landed on `master` on 16 September
+  (`dfeb6ac`): `bfi-logging-core` and `bfi-logging-spring-boot-starter` 0.1.0, with the
+  five gaps this programme found fixed on the branch before merge. **It is not published.**
+  `bfi-java-pkg` releases a module only through a manual *Deploy Package* workflow, which
+  last ran on 30 January 2026 and has not run for the new modules. Until Platform runs it
+  (core, then starter) no service can add the dependency. That is now the first Java item
+  in the table below.
+- **Java is one layer again.** [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123), our fix to `bravo-lib-logging` for the 14
+  Boot 2.7 repositories, was closed on 16 September so that one library carries the
+  standard. Those 14 repositories keep their per-service pull requests and manifest
+  switches, and need a Boot 3.3 upgrade to reach the starter; the 19 on Boot 3.3+ (one on
+  4.1.1, checked) adopt it once published; `bravo-insurance-service` leaves 3.2.11 first.
+- **The first service pull request merged**: `bravo-inventory-management-service#399`, by
+  its squad, on 15 September.
+- **SRE approved the manifest change.** [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) has two approvals (15 September) and
+  one condition: each impacted service's SA confirms first, because the change restarts
+  19 services. That confirmation is the user's next step, not ours.
+- **The bpm squad reviewed `bravo-bpm-service#10463`** on 16 September — four comments, all
+  about control: a flag for the sanitizer, the cap in `application.yaml`, whether inbound
+  payloads can still be seen, and what `loggerLevel: basic` leaves. Answered on the pull
+  request and in the code on 17 September ([bravo-bpm-service.md](bravo-bpm-service.md)).
+- **CI re-read on 17 September**: of 47 open service pull requests, 11 are fully green and
+  36 fail only on gates that were red before this work. Two `lora-*` branches were
+  refreshed from `master` to clear a pre-existing test failure and a cancelled job.
 
 ## Start here
 
@@ -105,8 +132,8 @@ no ingest. Turn that on now.
 | # | Action | Owner | Effort | Datadog cost |
 |---|---|---|---|---|
 | 1 | Fix `HttpHelper.ts` and rotate the leaked secret | Contract Collateral | 2 h | none |
-| 2a | **Review and merge [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)** — the new `bfi-logging-spring-boot-starter`: single-line JSON, 8 KB message cap, request logging off by default, and (added on 15 September) a Feign logger that never logs headers and masks bodies. Then adopt it in `bravo-bpm-service` first: Boot 3.5.16, no shared logging library today, and the 76 KB Feign lines that make it the largest log producer in Bravo | Platform + S&U | review + 1 d | reduces |
-| 2 | **Review and merge [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)** — nine production services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off, `bpm`'s sharia header logging (with `Authorization`) off, two Java packages off `DEBUG`. 20 `values-prod*.yaml` files, one variable each; the reasoning is [deployment-proposal.md](deployment-proposal.md) | SRE + owning squads | review only | reduces |
+| 2a | **Publish the merged [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), then adopt it in `bravo-bpm-service` first.** Merged 16 September; nothing can depend on it until Platform runs the manual *Deploy Package* workflow for `logging-core` and then `logging-starter`. bpm is Boot 3.5.16 with no shared logging library today, and the 76 KB Feign lines that make it the largest log producer in Bravo | Platform + S&U | review + 1 d | reduces |
+| 2 | **Merge [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)** — approved by SRE on 15 September, waiting on each service's SA to confirm the rollout restart; nine production services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off, `bpm`'s sharia header logging (with `Authorization`) off, two Java packages off `DEBUG`. 20 `values-prod*.yaml` files, one variable each; the reasoning is [deployment-proposal.md](deployment-proposal.md) | SRE + owning squads | review only | reduces |
 | 3 | Exclusion filter and 7-day retention on non-prod projects | Platform | 1 d | none |
 | 4 | Fix the monitors that query service names that do not exist | SRE | 2 d | none |
 | 5 | **Fix CONFINS log re-ingestion** — the Datadog Agent re-reads dead pods' files from a shared `/var/log` on every rollout; ~90% of that service's volume, about a third of all indexed prod log events ([confins-prod-ms-lms-ar-be-findings.md](confins-prod-ms-lms-ar-be-findings.md), corrected 14 Sep) | SRE | 1 d | **reduces** |
@@ -167,9 +194,10 @@ credentials, so the private `bravo-lib-logging` resolves. On 14 September 2026 e
 repository with a `.java` change on its branch was compiled: **22 of 22 compile**.
 Unit tests were run on 12 of them: 12 pass (bfi-connect (0 tests), bfi-insurance-api (4391 tests), bravo-agent-service (2181 tests), bravo-approval-engine-service (388 tests), bravo-bpm-service (18306 tests), bravo-collateral-service (1530 tests), bravo-core-proxy-service (826 tests), bravo-employee-service (176 tests), bravo-insurance-service (947 tests), bravo-journal-service (934 tests), bravo-product-service (330 tests), bravo-repeat-order-service (5559 tests)).
 The wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean),
-`bfi-java-pkg#123` (`mvn verify`, 73 tests, 0 failures) and the four commits we added to
-`bfi-java-pkg#122` (`mvn verify`, 58 + 39 tests, 0 failures). CI on each pull request is still
-the authority, but "not compiled" is no longer true of anything in this programme.
+`bfi-java-pkg#123` (`mvn verify`, 74 tests, 0 failures — closed 16 September) and
+`bfi-java-pkg#122` (`mvn verify`, 61 + 42 tests, 0 failures — merged 16 September). CI on
+each pull request is still the authority, but "not compiled" is no longer true of anything
+in this programme.
 
 | Repo | Pull request |
 |---|---|
@@ -238,28 +266,32 @@ a per-service pull request:
    because the manifests already set those variables explicitly (often to `""`), and an
    explicit value beats a struct default every time.
 2. **Fix it once in the wrapper, not once per service.** Both shared libraries had a real
-   masking gap that no per-service change could close (and Java now has a second wrapper —
-   see the note after this list):
+   masking gap that no per-service change could close:
    [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) — `JSONScrubber`
-   masked strings only, so a NIK, phone number or salary sent as a JSON number went through;
-   [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) —
-   `FeignClientFilter` logged every Feign request and response body **unmasked**, the
-   sensitive-key match was case-sensitive (so `Authorization` slipped past `authorization`),
-   and nothing capped body size.
+   masked strings only, so a NIK, phone number or salary sent as a JSON number went through
+   (open); and in `bravo-lib-logging` `FeignClientFilter` logged every Feign request and
+   response body **unmasked**, the sensitive-key match was case-sensitive (so
+   `Authorization` slipped past `authorization`), and nothing capped body size. Our fix for
+   that, [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123), was
+   closed on 16 September in favour of the new starter — see the note after this list.
 
-**Java is now two layers, not one.** On 14 September a colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122): two new
+**Java now has one target library.** On 14 September a colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122): two new
 modules, `bfi-logging-core` and `bfi-logging-spring-boot-starter`, for Spring Boot 3.3 and newer
-(on 3.2 the service would start and log nothing; the starter now fails fast there — §2a of body-visibility.md).
+(on 3.2 the service would start and log nothing; the starter fails fast there — §2a of body-visibility.md).
 They are the schema-and-volume layer this programme was missing — single-line JSON with
 `level`, `service`, `trace_id`; an 8 KB message cap and stack-trace cap that keep Java lines
 under the 16 KB container-runtime split; request logging off by default; async, dedupe,
 framework loggers at WARN. They did not touch outbound bodies or run the PII regex over the
-message, so on 15 September we pushed four commits onto that branch: a Feign logger that
+message, so on 15 September we pushed five commits onto that branch: a Feign logger that
 writes one line per call and never a header (bodies opt-in, masked, capped), the PII pass on
 every `message`, JSON parsing of captured bodies so the key deny-list reaches their fields,
-and the READMEs. The rule from here: **Boot 3.x/4.x services (20 of the 34 Java repos)
-adopt the starter; Boot 2.7 services (14) stay on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)** until
-they upgrade. Full assessment in [body-visibility.md](body-visibility.md) §2a.
+the READMEs, and the Boot 3.2 startup check. **It merged on 16 September**, and #123 — the
+matching fix to the old library — was closed the same day so that the estate maintains one
+library. The rule from here: **every Java service moves to the starter. The 19 on Boot 3.3+
+(20 with `bravo-insurance-service`, once it leaves 3.2.11) can do so as soon as Platform
+publishes it; the 14 on Boot 2.7 keep their per-service fixes and manifest switches, and
+their route to masked, capped, single-line logs is a Boot 3.3 upgrade.** Publishing is a
+manual *Deploy Package* run that has not happened yet. Full assessment in [body-visibility.md](body-visibility.md) §2a.
 
 So: the commit that added a struct default was reverted on every branch that had one.
 **Sixteen branches were left identical to their base and their pull requests closed**, each
@@ -446,6 +478,23 @@ It is worth being precise about why this one got through when the Go defects did
 compiler was sitting on the machine unused, and — as was found a day later — so was a
 JDK, one `mise x` away. This change could have been tested before pushing and was only
 read. Reading does not catch a null dereference.
+
+### Where the 47 open service pull requests stand on 17 September
+
+Re-polled on 17 September 2026, every red job classified by name:
+
+| | Count |
+|---|---:|
+| Fully green | 11 |
+| Failing **only** on gates that were red before this work — SNYK and container-image CVEs (22 jobs), SonarQube new-code gates (18), Codacy coverage upload without its token (10), `bfi-connect`'s pre-existing Prettier drift (1) | 36 |
+| Failing on anything written here | **0** |
+
+Two of the 36 were red on a *unit-test* job and were looked at one by one. `lora-task-service`
+failed on `TestGetUserProfilePartnershipOnly` in a package this branch does not touch; `master`
+fixed that test on 16 September, so the branch was refreshed from `master` on 17 September and
+the package passes locally. `lora-partnership-ndf`'s test job was **cancelled**, not failed;
+that branch was refreshed the same way to re-run it. Merged: `bravo-inventory-management-service#399`,
+15 September, by its squad.
 
 ### Where the 44 pack-two pull requests stood before SRE's review
 

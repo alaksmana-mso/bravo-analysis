@@ -72,10 +72,16 @@ Side finding from reading the manifest: this service reads its HTTP client timeo
 
 Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175 (masks non-string values).
 
-**Pull request: [bravo-scheduling-service#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300)** — open.  
+**Pull request: [bravo-scheduling-service#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-scheduling-service/tree/fix/logging), head `f8dfc27`, branched from `master` at `2f839d8`.
 
 [Files changed](https://github.com/bfi-finance/bravo-scheduling-service/pull/300/files) · [Commits](https://github.com/bfi-finance/bravo-scheduling-service/pull/300/commits) · [Compare against master](https://github.com/bfi-finance/bravo-scheduling-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI on the current head is **fully green**.
 
 | | |
 |---|---|

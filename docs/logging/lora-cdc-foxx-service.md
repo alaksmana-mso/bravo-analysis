@@ -64,10 +64,16 @@ Adding authentication is a deployment decision — who is allowed to call it, an
 
 ## Implementation status
 
-**Pull request: [lora-cdc-foxx-service#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3)** — open.  
+**Pull request: [lora-cdc-foxx-service#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/lora-cdc-foxx-service/tree/fix/logging), head `04c85da`, branched from `master` at `e4eda87`.
 
 [Files changed](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3/files) · [Commits](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3/commits) · [Compare against master](https://github.com/bfi-finance/lora-cdc-foxx-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java or Go wrapper side changes this pull request; it stands as written.
+
+CI on the current head is **fully green**.
 
 | | |
 |---|---|

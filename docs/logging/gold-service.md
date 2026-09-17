@@ -64,10 +64,18 @@ Bodies are logged in production **with a masked-field list set here** — the pa
 
 **Scope of [#190](https://github.com/bfi-finance/gold-service/pull/190) was reduced on 14 September 2026, on SRE's guidance.** The commit that gave the `*_JSON_MASKED_FIELDS` config fields a default list was reverted; masked fields are set per environment in `app-deployment`, not defaulted in code. What remains is the code the deployment setting depends on — the scrubber actually wired to the field list the environment provides — and any log-level fixes.
 
-**Pull request: [gold-service#190](https://github.com/bfi-finance/gold-service/pull/190)** — open.  
+**Pull request: [gold-service#190](https://github.com/bfi-finance/gold-service/pull/190)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/gold-service/tree/fix/logging), head `79cbef4`, branched from `master` at `0a816c1`.
 
 [Files changed](https://github.com/bfi-finance/gold-service/pull/190/files) · [Commits](https://github.com/bfi-finance/gold-service/pull/190/commits) · [Compare against master](https://github.com/bfi-finance/gold-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September with one condition: the service's SA confirms the rollout restart before merge.
+
+CI on the current head is **fully green**.
 
 | | |
 |---|---|

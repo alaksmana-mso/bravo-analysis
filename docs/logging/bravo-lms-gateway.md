@@ -249,7 +249,7 @@ Read from `app-deployment/lms-gateway/values-prod.yaml` on 14 September 2026. **
 This is a Java service that does **not** depend on `bravo-lib-logging`, so the library's `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` / `SENSITIVE_KEYS` switches do not apply here. The body logging this service does comes from its own filters and Feign loggers, described above, and the production levers in this file are the `LOGGING_LEVEL_*` variables in the table — Spring Boot reads each one as `logging.level.<package>`. Where the table is empty, the service's own `application*.yaml` decides. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
 
-**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 2.7.18, so the new starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), Boot 3.x only) is not available to it until it upgrades. It stays on its own filters and Feign loggers, with the per-file fixes above; the shared-library fixes in [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) do not apply to it because it does not use `bravo-lib-logging`.
+**Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 2.7.18, so the starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026, Boot 3.3+ only) is out of reach until it upgrades. It stays on its own filters and Feign loggers with the per-file fixes above; the `bravo-lib-logging` fix ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) never applied to it and was closed on 16 September in any case. The route to masked, capped, single-line logs is a Boot 3.3 upgrade followed by the starter.
 ---
 
 ## Implementation status
@@ -258,6 +258,12 @@ This is a Java service that does **not** depend on `bravo-lib-logging`, so the l
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-lms-gateway/tree/fix/logging), head `e0380966e`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bravo-lms-gateway/pull/2519/files) · [Commits](https://github.com/bfi-finance/bravo-lms-gateway/pull/2519/commits) · [Compare against master](https://github.com/bfi-finance/bravo-lms-gateway/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+This repository is on Spring Boot 2.7.18. The shared Java logging library every service moves to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), but it is Boot 3.3+ only (jakarta), so it is out of reach here until the repository upgrades. The fix to the old library that would have bridged that gap, [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123), **was closed the same day** so that one library carries the standard. That leaves **this pull request as the fix for this service** until a Boot 3.3 upgrade, which is the only route to masked, capped, single-line logs for it.
+
+CI on the current head is red only on **`SonarQube Code Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

@@ -259,6 +259,12 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-digital-web-api/tree/
 
 [Files changed](https://github.com/bfi-finance/bfi-digital-web-api/pull/711/files) · [Commits](https://github.com/bfi-finance/bfi-digital-web-api/pull/711/commits) · [Compare against master](https://github.com/bfi-finance/bfi-digital-web-api/compare/master...fix/logging)
 
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request; it stands as written.
+
+CI on the current head is red only on **`Security Scan - SNYK`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
+
 | | |
 |---|---|
 | Commits | 1 |

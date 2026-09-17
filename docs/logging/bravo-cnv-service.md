@@ -267,6 +267,12 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-cnv-service/tree/fi
 
 [Files changed](https://github.com/bfi-finance/bravo-cnv-service/pull/726/files) · [Commits](https://github.com/bfi-finance/bravo-cnv-service/pull/726/commits) · [Compare against master](https://github.com/bfi-finance/bravo-cnv-service/compare/master...fix/logging)
 
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI on the current head is **fully green**.
+
 | | |
 |---|---|
 | Commits | 1 |

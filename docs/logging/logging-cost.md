@@ -261,12 +261,14 @@ container-runtime split adds to every chunk of a line this size.
 this document carried while the manifests were unread.** The mechanism is real, it is on, it
 is the biggest single log producer in Bravo, and it is a data-protection problem — unmasked
 credit-bureau and CONFINS payloads at INFO — but as a cost line it is single-digit millions
-of rupiah a month. The fix is written in two layers:
+of rupiah a month. The fix comes in two steps:
 [bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) masks
-and truncates the bodies and turns full logging off by default; and the new Java starter
-([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), extended on 15 September) caps every message at 8 KB at the encoder and ships a
+and truncates the bodies now (JSON-aware masking since 17 September, after the squad's
+review) and turns full logging off by default; and the new Java starter
+([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September) caps every message at 8 KB at the encoder and ships a
 Feign logger that never writes headers — bpm is on Boot 3.5.16 with no shared logging
-library today, so it is the first service that should adopt it. The emergency switch is
+library today, so it is the first service that should adopt it, once Platform publishes the
+starter (the release workflow is manual and has not yet run for it). The emergency switch is
 `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=false` in the manifest, at the price of losing the
 only place response bodies exist in this estate today — see
 [bravo-bpm-service.md](bravo-bpm-service.md).
@@ -577,8 +579,8 @@ code work combined and depends on nobody's sprint.
 | 12 | **Fix the ENGINE-09004 BPMN model warnings** | S&U | 2 d | Rp 2–5M | high |
 | 13 | **Downgrade routine warnings to debug** in `lora-task-service` | LORA Core | 1 d | Rp 3–6M | medium |
 | 14 | **Long tail**: `printStackTrace`, `System.out`, `console.log`, logs in loops | All squads | ongoing | Rp 5–10M | low each |
-| 15 | **Merge the 48 open service pull requests and the three wrapper ones.** Written, raised, waiting on squad review — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
-| 15a | **Adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) in the 20 Boot 3.x/4.x Java services, `bravo-bpm-service` first.** 8 KB message cap, JSON lines, request logging off, Feign bodies opt-in and masked. Needs Boot 3.3 or newer — `bravo-insurance-service` (3.2.11) upgrades first. Boot 2.7 services stay on `bravo-lib-logging` + #123 | Platform + each Java squad | 1 d each | line size and parse rate, not only bytes | high |
+| 15 | **Merge the 47 open service pull requests and the Go wrapper one.** Written, raised, waiting on squad review; the first (`bravo-inventory-management-service`) merged on 15 September and the Java wrapper on 16 September — see [README.md](README.md) | Each squad | review only | folded into 6–14 | — |
+| 15a | **Publish, then adopt, `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September) in the 19 Boot 3.3+/4.x Java services, `bravo-bpm-service` first.** Platform runs the manual *Deploy Package* workflow for `logging-core` then `logging-starter` (one hour, not yet done); each squad then swaps the dependency. 8 KB message cap, JSON lines, request logging off, Feign bodies opt-in and masked. `bravo-insurance-service` (3.2.11) upgrades to 3.3 first. The 14 Boot 2.7 services have no shared fix — #123 was closed with #122's merge — so for them it is the per-service pull request, the manifest switches, and a Boot 3.3 upgrade on the roadmap | Platform, then each Java squad | 1 h + 1 d each | line size and parse rate, not only bytes | high |
 | 16 | **Fix the three CI gate faults.** A missing Codacy API token (5 pull requests), a `codacy-cli.sh` installer that dies with `command not found`, and a SonarQube new-code baseline that scores a 10-line pull request as 9,855 new lines. Each squad currently has to be told which red check to ignore | Platform | 2 h | unblocks #15 | high |
 | 17 | **Set every Go `*_JSON_MASKED_FIELDS` list per service in `app-deployment`** where bodies are logged — SRE's call: the list is a deployment setting, not a code default ([deployment-proposal.md](deployment-proposal.md) §2) | SRE + each squad | 2 h | exposure, not cost | high |
 | 18 | **Rotate the Google Chat webhook credentials** in `bau-prod-ms-otrs-report`, and find someone with write access to that repo | Platform / security | 1 d | security | high |

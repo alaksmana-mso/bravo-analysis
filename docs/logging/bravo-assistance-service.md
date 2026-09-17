@@ -60,7 +60,7 @@ Bodies are logged in production **with a masked-field list set here** — the pa
 
 **Pull request [#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change is [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175).
 
-**Pull request: [bravo-assistance-service#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200)** — open.  
+**Pull request: [bravo-assistance-service#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200)** — closed 14 September 2026 (see above).  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-assistance-service/tree/fix/logging), head `a4e46b5`, branched from `master` at `8f3271e`.
 
 [Files changed](https://github.com/bfi-finance/bravo-assistance-service/pull/200/files) · [Commits](https://github.com/bfi-finance/bravo-assistance-service/pull/200/commits) · [Compare against master](https://github.com/bfi-finance/bravo-assistance-service/compare/master...fix/logging)

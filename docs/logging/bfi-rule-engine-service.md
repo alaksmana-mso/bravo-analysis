@@ -75,10 +75,16 @@ Side finding from reading the manifest: this service reads its HTTP client timeo
 
 Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175 (masks non-string values).
 
-**Pull request: [bfi-rule-engine-service#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67)** — open.  
+**Pull request: [bfi-rule-engine-service#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-rule-engine-service/tree/fix/logging), head `ae5ae3c`, branched from `master` at `00ef5f8`.
 
 [Files changed](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67/files) · [Commits](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67/commits) · [Compare against master](https://github.com/bfi-finance/bfi-rule-engine-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI on the current head is **fully green**.
 
 | | |
 |---|---|

@@ -61,10 +61,16 @@ The existing unit test is updated, and now also asserts that **neither the beare
 
 ## Implementation status
 
-**Pull request: [bravo-inventory-management-system#232](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232)** — open.  
+**Pull request: [bravo-inventory-management-system#232](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-inventory-management-system/tree/fix/logging), head `3c75205`, branched from `master` at `99425aa`.
 
 [Files changed](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232/files) · [Commits](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232/commits) · [Compare against master](https://github.com/bfi-finance/bravo-inventory-management-system/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request; it stands as written.
+
+CI on the current head is **fully green**.
 
 | | |
 |---|---|

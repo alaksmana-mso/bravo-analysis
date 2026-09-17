@@ -22,9 +22,9 @@ That turns out to be harmless: `application.yaml` has no `logging.level` block e
 ---
 
 
-## Which Java wrapper applies here (15 September 2026)
+## Which Java wrapper applies here (17 September 2026)
 
-This repository is on Spring Boot 2.7.18, so the new starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), Boot 3.x only) is not available to it until it upgrades. It stays on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) — Feign bodies masked, case-insensitive `SENSITIVE_KEYS`, body cap — and the body-logging switches in its deployment manifest.
+This repository is on Spring Boot 2.7.18, so the starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026, Boot 3.3+ only) is out of reach until it upgrades. It stays on `bravo-lib-logging`, whose fix ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) **was closed on 16 September** when the starter merged, so the library keeps unmasked Feign bodies, case-sensitive `SENSITIVE_KEYS` and no body cap: set `REQUEST_BODY_LOGGING=false`, `RESPONSE_BODY_LOGGING=false` and a written `SENSITIVE_KEYS` in `values-prod.yaml`, and put the Boot 3.3 upgrade on the roadmap — it is the only route to the starter.
 
 ## Implementation status
 

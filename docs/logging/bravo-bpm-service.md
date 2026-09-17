@@ -342,7 +342,7 @@ switched on from the Datadog UI until SRE fixes it.
 1. **Do not switch `CustomFeignLogger` off yet.** It is the only place response bodies exist
    in this estate today. Removing it before the replacement works takes away real debugging
    ability, and that will be resisted — correctly.
-2. **Adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) as soon as it merges.** This repo is on
+2. **Adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026) as soon as Platform publishes it** — the *Deploy Package* workflow is manual and has not run for the new modules yet. This repo is on
    Boot 3.5.16 and uses no shared logging library, so it can take the starter directly: the
    plain-text console pattern becomes single-line JSON, every message is capped at 8 KB (the
    Feign lines are 76 KB+ today), and the starter's own Feign logger — one line per call, no
@@ -466,25 +466,37 @@ Read from `app-deployment/bpm/values-prod-sharia.yaml`, `app-deployment/bpm/valu
 This is a Java service that does **not** depend on `bravo-lib-logging`. The variables above are the ones that matter: `ENABLE_FEATURE_CONFIG_FEIGN_CUSTOM_LOG=true` swaps Feign's standard logger for `CustomFeignLogger`, which writes every request and response body at **INFO**, unmasked and uncapped; `FEIGN_CUSTOM_LOG_VERSION=3` is the variant that puts request body, response body, status and elapsed time in one entry; header logging is off in the main deployment and **on** in the sharia one (`values-prod-sharia.yaml`, version 2, with `…SHOW_HEADER_AUTH=true` — so the `Authorization` header is written as well). `FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL=basic` is inert: the code hard-codes a `Logger.Level.FULL` bean and every named client sets `loggerLevel: full` explicitly. `LOGGING_LEVEL_ROOT=INFO` duplicates `application-prod.yaml`; nothing overrides `com.bfi.bravo.adapter`, which stays at DEBUG — but the custom logger does not use that package's logger, so the DEBUG level produces nothing. See §1 for what this measures to in Datadog. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
 
-**Which Java wrapper applies here (15 September 2026).** Spring Boot 3.5.16, no shared logging library: this is the first service that should adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) — see §1 and *What to do* above.
+**Which Java wrapper applies here (17 September 2026).** Spring Boot 3.5.16, no shared logging library: this is the first service that should adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September, publish pending) — see §1 and *What to do* above. Every setting the squad asked for on #10463 (a sanitize flag, the body cap, payload logging for the inbound filter, all in `application.yaml` with an environment variable behind each) has a direct equivalent in the starter's `bravo.logging.*` properties, so nothing configured now is lost in the move.
 ---
 
 ## Implementation status
 
 **Pull request: [bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463)** — open, not merged.
-Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-bpm-service/tree/fix/logging), head `ec17912d55`, branched from `master`.
+Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-bpm-service/tree/fix/logging), head `c47f1cb504`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bravo-bpm-service/pull/10463/files) · [Commits](https://github.com/bfi-finance/bravo-bpm-service/pull/10463/commits) · [Compare against master](https://github.com/bfi-finance/bravo-bpm-service/compare/master...fix/logging)
 
+**Update, 17 September 2026 — where this pull request fits now.**
+
+This repository is on Spring Boot 3.5.16. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It is not yet published — `bfi-java-pkg` releases a module only through a manual *Deploy Package* run, which has not happened for the new modules — so the dependency cannot be added yet. **This pull request stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `logback*.xml` and any hand-written `feign.Logger` bean in the same change).
+
+Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September with one condition: the service's SA confirms the rollout restart before merge.
+
+The squad's review of 16 September (four comments) is answered in the thread and in a fourth commit — see the pull request.
+
+CI re-runs on the new head; on the previous one only SonarQube and the container scan were red, both gates that were red before this branch.
+
 | | |
 |---|---|
-| Commits | 2 |
-| Files changed | 6 |
+| Commits | 4 |
+| Files changed | 7 |
 
 Commits:
 
 - fix(logging): stop the inbound request filter capturing payloads
 - fix(logging): mask and truncate Feign bodies, drop full Feign logging by default
+- style: satisfy spotless (prettier-java) in CustomFeignLogger
+- fix(logging): make the Feign sanitizer JSON-aware and put every switch in application.yaml (17 September, after the squad's review)
 
 Files:
 
@@ -494,6 +506,18 @@ Files:
 - `src/main/java/com/bfi/bravo/config/feign/FeignCustomLogConfig.java`
 - `src/main/resources/application-prod.yaml`
 - `src/main/resources/application.yaml`
+- `src/test/java/com/bfi/bravo/config/feign/FeignBodySanitizerTest.java`
+
+**The squad reviewed it on 16 September 2026** (four comments from the Scoring and Underwriting reviewer), and every one was about control rather than direction:
+
+| Asked | Answer, and what changed in `c47f1cb504` |
+|---|---|
+| Can the body cap be set from `application.yaml`? | It could already (`setting.feign-custom-log-config.max-body-length`, env `FEIGN_CUSTOM_LOG_MAX_BODY_LENGTH`); the reviewer was reading the Java, not the YAML hunk. A `sanitize` switch (`FEIGN_CUSTOM_LOG_SANITIZE`, default on) now sits beside it, and `masked-fields` stays overridable there |
+| Is there a way to still see what the user sent? | Yes, three: the inbound payload switch is now a property (`setting.request-logging.include-payload`, env `REQUEST_LOGGING_INCLUDE_PAYLOAD`, default off — it logs the raw body, hence off in prod); the process variables in the BPM database; and, durably, Live Debugger once Remote Configuration works, or the starter's masked `RequestLoggingFilter` when this service adopts it |
+| Add a flag to enable the sanitizer | Added, as above. Masking is also JSON-aware now: a body that parses is walked as a tree and any listed key is masked whatever its value — nested object, array, number — which also closes Codacy's "nested values leak" comment; non-JSON bodies get one alternation pass instead of one per key |
+| If `loggerLevel` is `basic`, is the payload gone — so what are the sanitizer and the 2048 cap for? | Two loggers. `loggerLevel` drives Feign's built-in logger, which only writes at DEBUG and so writes nothing in production at `full` *or* `basic`; the change removes the one-env-var route to a payload dump. The bodies in production come from `CustomFeignLogger`, switched on by the manifest and writing at INFO regardless — 86,630 body entries a day. That is where the sanitizer and the cap apply, and bodies keep being logged there, masked and bounded |
+
+Seven unit tests cover the sanitizer (`FeignBodySanitizerTest`): scalar types, nested objects and arrays, case-insensitive keys, the text fallback, truncation, the off switch. Compiled and run on 17 September; Spotless clean on every changed file. The full 18,306-test suite was not re-run for this commit — CI does that.
 
 **Compiled locally on 14 September 2026** — `mvn -DskipTests compile` passes with Temurin 17 and Maven 3.9 via `mise`. (Three earlier versions of this note said Java could not be built on this machine. A JDK was one `mise x` away; that claim is withdrawn everywhere.) **Unit tests: 18306 run, 0 failures, 0 errors** (`mvn test`, whole module). Every changed file is also `prettier-java` clean at the repository's pinned settings.
 

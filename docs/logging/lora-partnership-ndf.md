@@ -62,10 +62,16 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 **Scope of [#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) was reduced on 14 September 2026, on SRE's guidance.** The commit that gave the `*_JSON_MASKED_FIELDS` config fields a default list was reverted; masked fields are set per environment in `app-deployment`, not defaulted in code. What remains is the code the deployment setting depends on — the scrubber actually wired to the field list the environment provides — and any log-level fixes.
 
-**Pull request: [lora-partnership-ndf#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493)** — open.  
+**Pull request: [lora-partnership-ndf#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/lora-partnership-ndf/tree/fix/logging), head `9d1bbff9`, branched from `master` at `7817c9d1`.
 
 [Files changed](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493/files) · [Commits](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493/commits) · [Compare against master](https://github.com/bfi-finance/lora-partnership-ndf/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI: the unit-test job on the previous head was cancelled, not failed; the branch was refreshed from `master` on 17 September (merge commit) to re-run it. The SNYK jobs are red on dependency and image CVEs that predate the branch.
 
 | | |
 |---|---|

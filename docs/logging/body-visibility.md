@@ -83,15 +83,27 @@ at 1.3.10. What it does, read on 14 September 2026: `REQUEST_BODY_LOGGING` and
 `Authorization` is not `authorization`; **`FeignClientFilter` logs both Feign bodies
 unmasked** and ignores both switches; there is no body size cap; and `CustomAppender` copies
 every Hibernate SQL statement into the MDC, where it rides along on the next log line.
-[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) fixes the masking,
-the case and the size cap in one place. Whether a service logs bodies at all stays a
-deployment setting — set the two switches in `values-prod.yaml`, as the Go services do.
+[bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) fixed the masking,
+the case and the size cap in one place — and **was closed on 16 September 2026**, the day
+#122 merged, so that the estate has one Java logging library to maintain rather than two.
+`bravo-lib-logging` therefore keeps the defaults above. For the seven Boot 2.7 repositories
+on it the fix is the per-service pull request plus the two switches in `values-prod.yaml`
+(as the Go services do), until they move to Boot 3.3 and the starter (§2a).
 
-### 2a. The new Java starter — bfi-java-pkg#122, read 15 September 2026
+### 2a. The new Java starter — bfi-java-pkg#122, read 15 September 2026, merged 16 September
 
 A colleague opened [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) on 14 September: `bfi-logging-core` (a Logback/logstash JSON
 encoder with volume controls) and `bfi-logging-spring-boot-starter` (Spring Boot 3.3+/4.x
-auto-configuration), alongside `bravo-lib-logging`, not replacing it. Read in full.
+auto-configuration). Read in full. **Merged to `master` on 16 September 2026** (`dfeb6ac`,
+24 commits, 67 files) as version 0.1.0 of both modules. It is now the one Java logging
+library this programme points at: `bravo-lib-logging` stays as it is, and its fix (#123)
+was closed the same day.
+
+**Merged is not published.** The repository releases a module only when someone runs the
+manual *Deploy Package* workflow for that module's directory; it last ran on 30 January 2026
+and has not run for `logging-core` or `logging-starter`. Until Platform runs it twice (core
+first, then the starter), no service can add the dependency — a build would fail to resolve
+it. That single step is now the gate on every Java item in this programme.
 
 **What it gets right, and why it matters here:**
 
@@ -118,7 +130,7 @@ auto-configuration), alongside `bravo-lib-logging`, not replacing it. Read in fu
 | The PII regex never ran over the `message` field — a body logged as a plain string was capped but not masked | `maskPii` on the message provider, default on, `LOG_MASK_MESSAGE_PII` to turn off |
 | `request_body` was regex-masked only — the key deny-list never saw a body's fields | `MaskingValueUtil.maskJson`: parse JSON, mask every field by key whatever its type, regex fallback |
 | Both READMEs linked a guideline at `../docs` that is not in the repository | Plain text; new properties documented |
-| Spring Boot 3 only — and, as found on the second review, **Boot 3.3 or newer**: on Boot 3.2 (Logback 1.4) the format include runs before the Spring property that names it exists, and the service starts with no appender and logs nothing | Not fixable for 2.7 (jakarta). 14 of 34 Java repositories are on Boot 2.7; #123 is their bridge. For 3.2 the fifth commit adds a startup check that fails the boot with the reason instead of running silent; `bravo-insurance-service` (3.2.11) must move to 3.3 first |
+| Spring Boot 3 only — and, as found on the second review, **Boot 3.3 or newer**: on Boot 3.2 (Logback 1.4) the format include runs before the Spring property that names it exists, and the service starts with no appender and logs nothing | Not fixable for 2.7 (jakarta). 14 of 34 Java repositories are on Boot 2.7; #123 was to be their bridge and was closed on 16 September, so they stay on their current code and manifest switches until they upgrade to Boot 3.3. For 3.2 the fifth commit adds a startup check that fails the boot with the reason instead of running silent; `bravo-insurance-service` (3.2.11) must move to 3.3 first |
 
 **Second review, 15 September afternoon.** The author rebased the branch onto master and
 added eight commits: the PR pipeline now builds and scans the two new modules; a `.codacy.yml`
@@ -406,9 +418,11 @@ Two exceptions, both of which go now on their own schedule:
   source is not in `squads/`, so what its `RequestLoggingFilter` and `FeignClientFilter`
   actually capture and mask is unknown.~~ **Resolved 14 September 2026** — the source is
   `bfi-finance/bfi-java-pkg`; eighteen repos depend on it; both filters capture bodies by
-  default and `FeignClientFilter` masks nothing. See above and
-  [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123); for Boot 3.x
-  services the target is now the starter in [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) (§2a).
+  default and `FeignClientFilter` masks nothing. See above. The library-level fix
+  ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) was closed on
+  16 September; the target for every Java service is the starter merged in
+  [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) (§2a), reached
+  by Boot 3.3+ services once it is published and by Boot 2.7 services after they upgrade.
 - **`ConfinsRequestLog` in `bravo-edoc-service`.** Size, retention and read access unknown.
 - **The Node.js tracer version actually running.** `lms-calculation-service`'s lockfile says
   5.109.0 and `package.json` says `^5.81.0`. Production spans carry no tracer version tag.

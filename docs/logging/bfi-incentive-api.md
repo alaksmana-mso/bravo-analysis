@@ -96,15 +96,21 @@ Read from `bfi-app-deployment/bfi-incentive-api/values-prod.yaml` on 14 Septembe
 This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the library's `RequestLoggingFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
 
 
-**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 2.7.18, so the new starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), Boot 3.x only) is not available to it until it upgrades. It stays on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) — Feign bodies masked, case-insensitive `SENSITIVE_KEYS`, body cap — and the body-logging switches in `values-prod.yaml`.
+**Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 2.7.18, so the starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026, Boot 3.3+ only) is out of reach until it upgrades. It stays on `bravo-lib-logging`, whose fix ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) **was closed on 16 September** when the starter merged, so the library keeps unmasked Feign bodies, case-sensitive `SENSITIVE_KEYS` and no body cap: set `REQUEST_BODY_LOGGING=false`, `RESPONSE_BODY_LOGGING=false` and a written `SENSITIVE_KEYS` in `values-prod.yaml`, merge the per-service pull request, and put the Boot 3.3 upgrade on the roadmap — it is the only route to the starter.
 ---
 
 ## Implementation status
 
-**Pull request: [bfi-incentive-api#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698)** — open.  
+**Pull request: [bfi-incentive-api#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-incentive-api/tree/fix/logging), head `2a738ed6`, branched from `master` at `554a48b7`.
 
 [Files changed](https://github.com/bfi-finance/bfi-incentive-api/pull/1698/files) · [Commits](https://github.com/bfi-finance/bfi-incentive-api/pull/1698/commits) · [Compare against master](https://github.com/bfi-finance/bfi-incentive-api/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+This repository is on Spring Boot 2.7.18. The shared Java logging library every service moves to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)), but it is Boot 3.3+ only (jakarta), so it is out of reach here until the repository upgrades. The fix to the old library that would have bridged that gap, [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123), **was closed the same day** so that one library carries the standard. That leaves **this pull request, plus `REQUEST_BODY_LOGGING=false`, `RESPONSE_BODY_LOGGING=false` and a written `SENSITIVE_KEYS` in `values-prod.yaml`, as the fix for this service** until a Boot 3.3 upgrade, which is the only route to masked, capped, single-line logs for it.
+
+CI on the current head is red only on **`Security Container Scan`, `Static Analysis - SonarQube`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

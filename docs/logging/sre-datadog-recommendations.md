@@ -594,10 +594,15 @@ The five findings that matter:
   `RESPONSE_BODY_LOGGING` to `true`. Of 18 repositories on it, four set `SENSITIVE_KEYS` in
   production and four turn response bodies off; the rest log both bodies of every request at
   INFO because nobody set the switch. `bravo-onboarding-service` — 64 KB request bodies —
-  is the one the proposal touches. **From 15 September Java is two layers:** the 20 Boot 3.x/4.x
-  repositories (Boot 3.3 or newer; `bravo-insurance-service` must leave 3.2.11 first) should move to `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) — 8 KB message
-  cap, request logging off, Feign bodies opt-in and never headers); the 14 Boot 2.7
-  repositories stay on `bravo-lib-logging` with [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123). Manifest trap for SRE: the starter
+  is the one the proposal touches. **From 16 September Java is one layer again:** `bfi-logging-spring-boot-starter`
+  ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged that day — 8 KB message
+  cap, request logging off, Feign bodies opt-in and never headers) is the library every Java
+  service moves to. The 19 repositories on Boot 3.3 or newer can take it as soon as Platform
+  publishes it (the *Deploy Package* workflow is manual and has not run for the new modules);
+  `bravo-insurance-service` leaves 3.2.11 first. The 14 Boot 2.7 repositories cannot take it,
+  and the library-level fix for `bravo-lib-logging` ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123))
+  was closed with #122's merge, so for them the per-service pull request and the manifest
+  switches are the fix until they upgrade. Manifest trap for SRE: the starter
   reads `LOG_LEVEL` and `LOG_SENSITIVE_KEYS`, not `LOGGER_LEVEL` and `SENSITIVE_KEYS`.
 
 Two side findings from the same read: `bravo-scheduling-service` and
@@ -664,7 +669,7 @@ so no attributes are extracted from either.
 
 Large log lines are not just expensive. **They are actively destroying the log pipeline.**
 
-For Java there is now a wrapper-level answer: `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122))
+For Java there is now a wrapper-level answer: `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September, awaiting its first publish)
 caps every message at 8 KB and every stack trace at 8 KB / 20 frames at the encoder, so a
 service that adopts it cannot emit a line the runtime has to split. The reassembly work
 below is still needed for Go, Node.js and the Java services that have not moved yet.
@@ -993,8 +998,8 @@ half of that coverage continuously, rather than in a weekly cron.
 | 7d | 1 | Datadog source-code integration on the Java services, so `git.repository_url` answers "which repo is this?" (§3a) | 2 d | none | — |
 | 7e | 1 | **Apply [deployment-proposal.md](deployment-proposal.md)** — nine services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off (§3a item 5) | 2 h | reduces | volume and exposure |
 | 7f | 1 | **Reconcile Datadog's log-ingestion estimate (≈1.3 TB/day) against the Usage & Cost page and the invoices** — if it is right, log ingestion is ~150× the 256 GB/month commitment and about $4,000/month in overage (§0) | 2 h | none | sizes the next renewal |
-| 7g | 2 | Review and merge the three wrapper fixes: [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (mask non-string values), [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) (the new Boot 3 starter: JSON lines, 8 KB cap, Feign logger — the target for 20 Java repos) and [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) (the bridge for the 14 Boot 2.7 repos: Feign bodies masked, case-insensitive keys, body cap), then bump the dependency in the consuming services | 1 d | none | closes the masking gap estate-wide |
-| 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3). 48 pull requests are already open and waiting on squad review (§3a) | 4–6 wks | reduces | feeds every item below |
+| 7g | 2 | **Publish the merged Java starter and merge the Go wrapper fix.** [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) merged on 16 September but nothing can depend on it until the manual *Deploy Package* workflow is run for `logging-core` and then `logging-starter` (last run 30 January 2026). [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (mask non-string values) is still open. [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123), the `bravo-lib-logging` fix, was closed on 16 September — the 14 Boot 2.7 repositories keep their per-service fixes and manifest switches until they upgrade | 1 h + 1 d | none | closes the masking gap for every Java service on Boot 3.3+, and the Go one |
+| 8 | 2 | **Squads cut log volume** — hold the gate, track weekly (§3). 47 pull requests are open and waiting on squad review, one is merged (§3a) | 4–6 wks | reduces | feeds every item below |
 | 9 | 3 | Reassembly + logs injection + trace remapper + per-service exclusion filters (§4) | 2 d | small, gated | — |
 | 10 | 3 | Trace KrakenD then `prod-lora-task`, with sampling from day one (§5) | 3 d | moderate | — |
 | 11 | 3 | Log collection on the silent traced services, `prod-ms-agreement` first (§5) | 3 d | moderate | — |

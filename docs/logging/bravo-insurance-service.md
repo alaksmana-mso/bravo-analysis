@@ -58,15 +58,21 @@ Read from `app-deployment/insurance/values-prod-sharia.yaml`, `app-deployment/in
 This is a Java service that does **not** depend on `bravo-lib-logging`, so the library's `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` / `SENSITIVE_KEYS` switches do not apply here. The body logging this service does comes from its own filters and Feign loggers, described above, and the production levers in this file are the `LOGGING_LEVEL_*` variables in the table — Spring Boot reads each one as `logging.level.<package>`. Where the table is empty, the service's own `application*.yaml` decides. *(An earlier version of this paragraph described `bfi-go-pkg` defaults; that text was generated for Go services and never applied to this one.)*
 
 
-**Which Java wrapper applies here (15 September 2026).** This repository is on Spring Boot 3.2.11. Its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) — single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers — **but the starter needs Boot 3.3 or newer (Logback 1.5).** On 3.2 the format include is evaluated before the Spring property that names it exists, so the service would start with no appender and log nothing; a Boot 3.2.11 test app confirmed it. The starter now refuses to start in that state and says why. Move this service to Boot 3.3 first (or pin `logback.version` to 1.5.x), then add the starter. It has no shared logging library today, so the starter is an addition, not a swap.
+**Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 3.2.11, one minor below what `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026) needs: on Boot 3.2 Logback 1.4 evaluates the starter's format include before the property that names it exists, and the service would start and log nothing — the starter now refuses to start in that state and says why. Move to Boot 3.3 first, then adopt the starter once Platform publishes it (the *Deploy Package* workflow is manual and has not run for the new modules).
 ---
 
 ## Implementation status
 
-**Pull request: [bravo-insurance-service#820](https://github.com/bfi-finance/bravo-insurance-service/pull/820)** — open.  
+**Pull request: [bravo-insurance-service#820](https://github.com/bfi-finance/bravo-insurance-service/pull/820)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-insurance-service/tree/fix/logging), head `5e917468`, branched from `master` at `242768ce`.
 
 [Files changed](https://github.com/bfi-finance/bravo-insurance-service/pull/820/files) · [Commits](https://github.com/bfi-finance/bravo-insurance-service/pull/820/commits) · [Compare against master](https://github.com/bfi-finance/bravo-insurance-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+This repository is on Spring Boot 3.2.11. The shared Java logging library every service moves to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) but requires **Boot 3.3 or newer**: on 3.2 Logback 1.4 evaluates the starter's format include before the property that names it exists, and the service would start and log nothing (the starter now refuses to start in that state). So the order here is: merge this pull request, move to Boot 3.3+, then adopt the starter once Platform publishes it (the *Deploy Package* workflow is manual and has not run for it yet).
+
+CI on the current head is red only on **`Security Scan - SNYK`, `SonarQube Code Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|

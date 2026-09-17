@@ -63,7 +63,7 @@ Read from `app-deployment/integrity/values-prod.yaml` on 14 September 2026. **Th
 
 **Pull request [#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change is [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175).
 
-**Pull request: [bravo-integrity-service#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29)** — open.  
+**Pull request: [bravo-integrity-service#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29)** — closed 14 September 2026 (see above).  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-integrity-service/tree/fix/logging), head `f325ad4`, branched from `master` at `1000b35`.
 
 [Files changed](https://github.com/bfi-finance/bravo-integrity-service/pull/29/files) · [Commits](https://github.com/bfi-finance/bravo-integrity-service/pull/29/commits) · [Compare against master](https://github.com/bfi-finance/bravo-integrity-service/compare/master...fix/logging)

@@ -86,10 +86,16 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 **Wrapper follow-up (14 September 2026).** The `pkg/logbody` package this branch adds is the kind of thing that belongs in the shared library, and [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) adds `logger.Payload(b, scrub, limit)` for exactly this use — a queue consumer that has no HTTP middleware to bound and mask a body for it. Once that ships, the 70 call sites here can move to `logger.Payload(msg.Body, logger.JSONScrubberFunc(cfg.MaskedFields), 2048)` and `pkg/logbody` can go, with the field list coming from the environment as SRE asks. The branch is left as it is so the fix does not wait on a library release.
 
-**Pull request: [bravo-partnership-service#2367](https://github.com/bfi-finance/bravo-partnership-service/pull/2367)** — open.  
+**Pull request: [bravo-partnership-service#2367](https://github.com/bfi-finance/bravo-partnership-service/pull/2367)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-partnership-service/tree/fix/logging), head `08dc1d0c9`, branched from `master` at `a676689bf`.
 
 [Files changed](https://github.com/bfi-finance/bravo-partnership-service/pull/2367/files) · [Commits](https://github.com/bfi-finance/bravo-partnership-service/pull/2367/commits) · [Compare against master](https://github.com/bfi-finance/bravo-partnership-service/compare/master...fix/logging)
+
+**Update, 17 September 2026 — where this pull request fits now.**
+
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+
+CI on the current head is red only on **`Security Scan - SNYK`, `Static Analysis - SonarQube`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
 | | |
 |---|---|
