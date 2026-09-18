@@ -354,6 +354,8 @@ CI on the current head is red only on **`SonarQube Code Analysis`** — gates th
 
 **SonarQube new-lines cap and SNYK, 18 September 2026.** With coverage fixed, SonarQube still failed on 2,858 new lines against a 2,000 cap, for a pull request that adds 377. The cause is the Sonar job's shallow clone (`fetch-depth: 1`): the scanner cannot find the merge base with `master` and counts far more as new. Master's own analysis is current, so the baseline is not the problem. `f827265` gives that job a full-history checkout. The same commit moves `moment` 2.30.1 to 2.31.0 and, through `express`, `proxy-addr` 2.0.7 to 2.0.8 for two advisories published this week; both stay inside the existing semver ranges and 2,187 tests pass.
 
+**Coverage on new code, second pass, 18 September 2026.** With the full-history checkout SonarQube measured this branch's own lines and reported 86.7%: every new line ran, but the `?.` and `??` fallbacks in the identifier-only log fields were never taken. `4d4fac5` adds tests for partial payloads, malformed axios errors and a non-Error rejection, and fixes what they exposed: an axios error with no response (a network failure) escaped `throwProductCalculationError` as a `TypeError` instead of the `ProductCalculationError` callers expect. 2,198 tests pass; every line and branch the branch adds is covered.
+
 | | |
 |---|---|
 | Commits | 1 |
