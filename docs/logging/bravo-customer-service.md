@@ -247,6 +247,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 3 Codacy thread(s); 3 fixed in `942d5edb` (docs(logging): say what the request filter actually writes; drop the unused payload cap). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

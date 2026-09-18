@@ -93,6 +93,8 @@ Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-
 
 CI on the current head is red only on **`Codacy Diff Coverage`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 2 fixed in `ed3dec5` (refactor(log): one helper for trace and correlation fields; Write logs once). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

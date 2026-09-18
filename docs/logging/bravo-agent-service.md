@@ -71,6 +71,8 @@ This repository is on Spring Boot 3.5.15. The shared Java logging library it sho
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 1 Codacy thread(s); 1 fixed in `b2435677` (refactor(advice): type the PropertyReferenceException handler). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

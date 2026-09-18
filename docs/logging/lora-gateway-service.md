@@ -104,6 +104,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is red only on **`SYNK Security Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 1 Codacy thread(s); 1 pointed at code already reverted or fixed on 14 September. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 2 |

@@ -273,6 +273,8 @@ Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 2 fixed in `eade5f79` (fix(logging): warn when an IAM role revocation fails; trim a comment). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

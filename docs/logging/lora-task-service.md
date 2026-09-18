@@ -259,6 +259,8 @@ Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-
 
 CI: the unit-test job on the previous head failed on `TestGetUserProfilePartnershipOnly`, in a package this branch does not touch; `master` fixed that test on 16 September, so the branch was refreshed from `master` on 17 September (merge commit, no history rewrite) and the package passes locally. CI re-runs on the new head.
 
+**Codacy review, answered 18 September 2026.** 1 Codacy thread(s); 1 fixed in `b40c8238` (fix(logging): one debug line when a websocket read ends). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

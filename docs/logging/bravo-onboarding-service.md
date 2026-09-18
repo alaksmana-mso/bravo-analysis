@@ -362,6 +362,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is red only on **`Codacy Diff Coverage`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 3 Codacy thread(s); 2 fixed in `d67fa4daa` (fix(logging): give the V2 request filter its own level switch; drop the unused payload cap); 1 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

@@ -73,6 +73,8 @@ Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-
 
 CI: the unit-test job on the previous head was cancelled, not failed; the branch was refreshed from `master` on 17 September (merge commit) to re-run it. The SNYK jobs are red on dependency and image CVEs that predate the branch.
 
+**Codacy review, answered 18 September 2026.** 3 Codacy thread(s); 2 pointed at code already reverted or fixed on 14 September; 1 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 2 |

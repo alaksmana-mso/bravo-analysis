@@ -72,6 +72,8 @@ Nothing on the Java side changes this pull request; it stands as written.
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 1 Codacy thread(s); 1 fixed in `f215fa5` (fix(datadog): treat a blank sample-rate variable as unset). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

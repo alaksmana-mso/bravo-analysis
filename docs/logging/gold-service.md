@@ -77,6 +77,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 1 Codacy thread(s); 1 pointed at code already reverted or fixed on 14 September. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 3 |

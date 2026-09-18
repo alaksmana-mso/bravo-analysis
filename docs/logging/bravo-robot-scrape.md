@@ -73,6 +73,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 4 Codacy thread(s); 4 fixed in `66c9e12` (fix(logging): avoid the reserved 'message' key; claim success only with a document_id). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

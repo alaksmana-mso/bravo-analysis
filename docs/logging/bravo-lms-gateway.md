@@ -265,6 +265,8 @@ This repository is on Spring Boot 2.7.18. The shared Java logging library every 
 
 CI on the current head is red only on **`SonarQube Code Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 2 fixed in `770abed57` (docs(logging): say what the request filter actually writes; drop the unused payload cap). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

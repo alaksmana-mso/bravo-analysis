@@ -73,6 +73,8 @@ Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-
 
 CI on the current head is red only on **`Codacy Diff Coverage`, `Security Container Scan - SNYK`, `Security Scan - SNYK`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 3 Codacy thread(s); 2 pointed at code already reverted or fixed on 14 September; 1 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 2 |

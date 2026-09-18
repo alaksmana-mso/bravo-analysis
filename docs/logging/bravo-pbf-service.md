@@ -113,6 +113,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is red only on **`Static Analysis - SonarQube`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 1 fixed in `2bad78d` (fix(logging): static message for the not-applicable debug line); 1 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 3 |

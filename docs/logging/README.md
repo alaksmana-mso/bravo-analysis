@@ -35,6 +35,17 @@ of the programme is written; what is left on it is review, merge, and one publis
 - **CI re-read on 17 September**: of 47 open service pull requests, 11 are fully green and
   36 fail only on gates that were red before this work. Two `lora-*` branches were
   refreshed from `master` to clear a pre-existing test failure and a cancelled job.
+- **Codacy's review of every open pull request was answered on 18 September.** 91 threads on
+  38 pull requests: 63 fixed in a commit on the branch (each thread names it), 14 pointed at
+  code that had already been reverted or fixed on 14 September, 14 declined with the reason in
+  the thread. Three were real defects this pass would otherwise have shipped: an out-of-scope
+  variable in `bfi-digital-web-api`, a reserved `message` key in `bravo-robot-scrape`'s
+  logging call that would have raised at runtime, and validation *values* logged by
+  `bravo-journal-service`. One Codacy suggestion was tried and backed out because the squad's
+  own test pins the behaviour (`bravo-pbf-service`). `bravo-audit-trail-service` still carried
+  a default masked-field list the 14 September revert had missed; it is gone now. Every thread
+  is replied to and resolved; each per-service file records the round under *Implementation
+  status*.
 
 ## Start here
 

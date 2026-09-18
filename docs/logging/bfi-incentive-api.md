@@ -112,6 +112,8 @@ This repository is on Spring Boot 2.7.18. The shared Java logging library every 
 
 CI on the current head is red only on **`Security Container Scan`, `Static Analysis - SonarQube`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 1 fixed in `67f0b8ef` (fix(logging): keep the cause on the rejected message); 1 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 2 |

@@ -74,6 +74,8 @@ This repository is on Spring Boot 3.2.11. The shared Java logging library every 
 
 CI on the current head is red only on **`Security Scan - SNYK`, `SonarQube Code Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 4 Codacy thread(s); 4 fixed in `d56cb48a` (style(logging): SLF4J placeholders in the error advice). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

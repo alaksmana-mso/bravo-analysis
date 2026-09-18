@@ -170,6 +170,8 @@ Nothing on the Java side changes this pull request; it stands as written.
 
 CI on the current head is red only on **`Security Scan - SNYK`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 1 Codacy thread(s); 1 fixed in `3dbbba9e3` (fix(datadog): allowedTracingUrls as a string prefix). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

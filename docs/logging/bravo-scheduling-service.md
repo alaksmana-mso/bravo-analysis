@@ -83,6 +83,8 @@ Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-
 
 CI on the current head is **fully green**.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 2 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

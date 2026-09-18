@@ -85,6 +85,8 @@ This repository is on Spring Boot 3.5.14. The shared Java logging library it sho
 
 CI on the current head is red only on **`Codacy Coverage Variation`, `Codacy Diff Coverage`, `Security Container Scan`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 4 Codacy thread(s); 4 fixed in `b855c5d` (fix(logging): mask the payload in rejection messages; guard blank input; test the masker). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |

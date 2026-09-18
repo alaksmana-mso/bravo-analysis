@@ -248,6 +248,8 @@ Its production manifest is one of the 19 changed by [app-deployment#13820](https
 
 CI on the current head is red only on **`SonarQube Code Analysis`** — gates that were red on `master` before this branch (dependency and image CVEs, SonarQube new-code baselines, a Codacy token the runner lacks); nothing written here fails.
 
+**Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 2 fixed in `ce65d53` (fix(logging): mask the same fields in Feign requests and responses, at any depth). Every thread is replied to and resolved on the pull request.
+
 | | |
 |---|---|
 | Commits | 1 |
