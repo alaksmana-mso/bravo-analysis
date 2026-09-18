@@ -352,6 +352,8 @@ CI on the current head is red only on **`SonarQube Code Analysis`** — gates th
 
 **Coverage gate, 18 September 2026.** SonarQube failed the pull request on coverage of new code: 88.3% against a 89% bar. The new lines no test reached were the tracer initialisation (no test had ever loaded `connection.tracer`), the Postgres query error path, the JSON console transport and the span tagging on a failed downstream call. `98edce9` adds four test files for those paths and turns the tracer and logger option building into pure functions so they can be asserted without starting either. 2187 tests pass locally; the five changed source files are fully line-covered except three pre-existing branches in `connection.logger`. The Postgres test also proves the change: the bound NIK never reaches the log call.
 
+**SonarQube new-lines cap and SNYK, 18 September 2026.** With coverage fixed, SonarQube still failed on 2,858 new lines against a 2,000 cap, for a pull request that adds 377. The cause is the Sonar job's shallow clone (`fetch-depth: 1`): the scanner cannot find the merge base with `master` and counts far more as new. Master's own analysis is current, so the baseline is not the problem. `f827265` gives that job a full-history checkout. The same commit moves `moment` 2.30.1 to 2.31.0 and, through `express`, `proxy-addr` 2.0.7 to 2.0.8 for two advisories published this week; both stay inside the existing semver ranges and 2,187 tests pass.
+
 | | |
 |---|---|
 | Commits | 1 |

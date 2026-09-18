@@ -152,7 +152,7 @@ no ingest. Turn that on now.
 | 7 | **Fix Remote Configuration** — failing on 13 services, ~91k failed polls a week | SRE | 1 d | none |
 | 8 | Turn on `DD_TRACE_HEADER_TAGS` for correlation IDs | SRE | 1 h | none |
 | 9 | **Rotate the Google Chat webhooks** logged by `bau-prod-ms-otrs-report` | Platform / security | 1 d | none |
-| 10 | **Fix the three CI gate faults** — missing Codacy token, broken `codacy-cli.sh`, wrong SonarQube new-code baseline | Platform | 2 h | none |
+| 10 | **Fix the three CI gate faults** — missing Codacy token, broken `codacy-cli.sh`, and SonarQube counting thousands of "new lines" on small pull requests. The last one has a cause now: the Sonar job checks out a shallow clone (`fetch-depth: 1`), so the scanner cannot find the merge base with `master`; `lms-calculation-service#647` carries the one-line fix (`fetch-depth: 0`) as the worked example | Platform | 2 h | none |
 
 None of these increases Datadog spend. Item 2 replaces what used to read "check the prod
 deployment manifests": SRE gave access to them on 14 September 2026, they have been read
