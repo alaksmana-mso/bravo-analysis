@@ -350,6 +350,8 @@ CI on the current head is red only on **`SonarQube Code Analysis`** — gates th
 
 **Codacy review, answered 18 September 2026.** 2 Codacy thread(s); 2 declined with the reason in the thread. Every thread is replied to and resolved on the pull request.
 
+**Coverage gate, 18 September 2026.** SonarQube failed the pull request on coverage of new code: 88.3% against a 89% bar. The new lines no test reached were the tracer initialisation (no test had ever loaded `connection.tracer`), the Postgres query error path, the JSON console transport and the span tagging on a failed downstream call. `98edce9` adds four test files for those paths and turns the tracer and logger option building into pure functions so they can be asserted without starting either. 2187 tests pass locally; the five changed source files are fully line-covered except three pre-existing branches in `connection.logger`. The Postgres test also proves the change: the bound NIK never reaches the log call.
+
 | | |
 |---|---|
 | Commits | 1 |
