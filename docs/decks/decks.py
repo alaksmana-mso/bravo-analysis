@@ -7,4 +7,5 @@ SPECS=[('bravo-people-deck','Is Bravo Faster to Build In?','#8A6318','#D7A84E','
  ('bravo-options-deck','Three Options, One Firm Recommendation','#8E2F3F','#E4909C','body_options.html'),
  ('bravo-workflow-effort-deck','What Best-Practice Workflow Costs','#6A3D8F','#BE9BE0','body_wfeffort.html'),
  ('bravo-logging-deck','Where the Logging Money Goes','#1C5A6B','#74BDD0','body_logging.html'),
- ('bfi-datadog-briefing','What BFI Needs from Datadog','#632CA6','#B39DDB','body_datadog.html')]
+ ('bfi-datadog-briefing','What BFI Needs from Datadog','#632CA6','#B39DDB','body_datadog.html'),
+ ('bfi-engineering-briefing','Two Platforms, Two Team Shapes','#3D5A80','#98C1D9','body_consultant.html')]

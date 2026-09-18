@@ -1,0 +1,417 @@
+<style>
+/* Deck-local pieces for the consultant briefing: the systems map, the two-archetype
+   side-by-side, the glossary table, and a compact problem list. Every grid here has
+   a print pin below, because Chrome's print path collapses narrow-width fallbacks. */
+.verdictbox{border:2px solid var(--ac);border-radius:4px;padding:18px 22px;background:var(--acBg2);display:flex;flex-direction:column;gap:9px}
+.verdictbox .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.verdictbox .txt{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(17px,2.1vw,26px);line-height:1.22;letter-spacing:-.018em;color:var(--ink)}
+.verdictbox .txt em{color:var(--ac);font-style:normal;font-weight:800}
+
+.tw table{width:100%;border-collapse:collapse;font-size:13px}
+.tw th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;text-align:left}
+.tw td.k{font-weight:600;color:var(--ink);white-space:nowrap}
+.tw td.num,.tw th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw td .bad{color:var(--bad);font-weight:700} .tw td .warn{color:var(--warn);font-weight:700} .tw td .ok{color:var(--ok);font-weight:600}
+
+/* systems map */
+.map{display:grid;grid-template-columns:1fr;gap:8px}
+.tier{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:stretch}
+.tier .tl{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;padding:10px 0 0;line-height:1.4}
+.tier .tl b{display:block;color:var(--ink);font-family:Archivo,sans-serif;font-size:12.5px;letter-spacing:0;text-transform:none;margin-bottom:2px}
+.boxes{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.bx{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:9px 11px;display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow)}
+.bx.ac{border-color:var(--ac);background:var(--acBg2)}
+.bx.warnb{border-left:3px solid var(--warn)}
+.bx .h{font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:var(--ink);line-height:1.25}
+.bx .d{font-size:11.5px;line-height:1.4;color:var(--ink2)}
+.bx .d code{font-size:.9em}
+.arrow{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);text-align:center;padding:0}
+
+/* archetypes side by side */
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.acell{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.acell .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.acell .h{font-family:Archivo,sans-serif;font-weight:700;font-size:16px;line-height:1.25;color:var(--ink)}
+.acell p{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+.acell p b{color:var(--ink);font-weight:600}
+.acell ul{margin:0;padding:0 0 0 16px;font-size:12.5px;line-height:1.45;color:var(--ink2);display:flex;flex-direction:column;gap:4px}
+.acell ul b{color:var(--ink);font-weight:600}
+.chain{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.chain span{font-family:Archivo,sans-serif;font-weight:600;font-size:11.5px;background:var(--panel2);border:1px solid var(--rule);border-radius:3px;padding:4px 8px;color:var(--ink);line-height:1.2}
+.chain i{font-style:normal;color:var(--ink3);font-size:11px}
+
+/* problem list */
+.plist{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.prow{background:var(--panel);padding:10px 14px;display:grid;grid-template-columns:190px 1fr;gap:14px;align-items:start}
+.prow .t{font-family:Archivo,sans-serif;font-weight:700;font-size:13px;color:var(--ink);line-height:1.3}
+.prow .t small{display:block;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
+.prow .x{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+.prow .x b{color:var(--ink);font-weight:600}
+.prow.hot{background:var(--badBg)}
+.prow.hot .t small{color:var(--bad)}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,26px);align-items:start}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.tcell{background:var(--panel);padding:13px 15px;display:flex;flex-direction:column;gap:6px}
+.tcell .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.tcell .h{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink)}
+.tcell p{font-size:12px;line-height:1.42;color:var(--ink2)}
+.tcell p b{color:var(--ink);font-weight:600}
+
+@media (max-width:860px){.arch,.two,.three,.tier{grid-template-columns:1fr}.prow{grid-template-columns:1fr}}
+@media print{
+  .arch{grid-template-columns:1fr 1fr} .two{grid-template-columns:1fr 1fr} .three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tier{grid-template-columns:140px 1fr} .boxes{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .prow{grid-template-columns:170px 1fr;padding:7px 12px;gap:12px} .prow .t{font-size:11px} .prow .t small{font-size:8.5px} .prow .x{font-size:10.5px;line-height:1.38}
+  .acell{padding:10px 12px;gap:6px} .acell .h{font-size:13px} .acell p,.acell ul{font-size:10.5px;line-height:1.38}
+  .chain span{font-size:9.5px;padding:3px 6px}
+  .bx{padding:6px 9px;gap:2px} .bx .h{font-size:11px} .bx .d{font-size:9.8px;line-height:1.32}
+  .tier .tl{font-size:8.5px} .tier .tl b{font-size:10.5px}
+  .tcell{padding:9px 11px;gap:4px} .tcell .h{font-size:11.5px} .tcell p{font-size:10px;line-height:1.35}
+  .tw table{font-size:12px} .tw td,.tw th{padding:7px 10px;line-height:1.42}
+  .verdictbox{padding:16px 20px;gap:8px} .verdictbox .txt{font-size:23px}
+  /* This deck runs lighter than the findings decks that share _deck.css, so the shared
+     print scale leaves a third of each page empty. Re-set the scale one step larger. */
+  h1{font-size:50px}
+  h2.st{font-size:30px}
+  .lede{font-size:14px}
+  .claim{font-size:15.5px}
+  .inner{gap:16px}
+  .note{font-size:12.3px;line-height:1.5;padding:12px 14px} .note h4{font-size:10px}
+  .stat{padding:13px 15px} .stat__n{font-size:32px} .stat__l{font-size:10.5px;line-height:1.4}
+  .rec{padding:11px 13px} .rec .tx{font-size:12.2px;line-height:1.5} .rec .tx b{font-size:12.5px}
+  .prow{grid-template-columns:185px 1fr;padding:10px 14px} .prow .t{font-size:12.5px} .prow .t small{font-size:9.2px} .prow .x{font-size:12.2px;line-height:1.45}
+  .acell{padding:13px 15px;gap:8px} .acell .h{font-size:15px} .acell p,.acell ul{font-size:12.2px;line-height:1.45}
+  .chain span{font-size:11px;padding:4px 7px}
+  .bx{padding:9px 11px;gap:3px} .bx .h{font-size:12.8px} .bx .d{font-size:11.3px;line-height:1.4}
+  .tier .tl{font-size:9.5px} .tier .tl b{font-size:12px}
+  .tcell{padding:12px 14px;gap:6px} .tcell .h{font-size:13.5px} .tcell p{font-size:11.8px;line-height:1.45}
+  .meta{font-size:10.5px}
+  /* table-heavy slides: one step back down so the footer stays on the page */
+  .dense .tw table{font-size:11px} .dense .tw td,.dense .tw th{padding:5px 9px;line-height:1.38}
+  .dense .claim{font-size:14px}
+}
+</style>
+
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:20px">
+    <p class="cover-kicker">PT BFI Finance Indonesia &middot; Engineering &middot; A briefing for our engineering and way-of-working consultant</p>
+    <h1>Two loan platforms,<br><span class="thin">two team shapes, and the problems we have measured.</span></h1>
+    <div class="verdictbox" style="max-width:88ch">
+      <span class="lab">What this deck is for</span>
+      <p class="txt">To give you the whole picture in one sitting: <em>what we run</em>, <em>how our teams are cut</em>, and <em>what is broken</em> in logging, testing, Bravo, LORA and the core loan system. Every number here was measured in the last six weeks, and every slide names its source.</p>
+    </div>
+    <div class="verdictbox" style="max-width:88ch;border-color:var(--ruleS);background:transparent">
+      <span class="lab" style="color:var(--ink3)">How to read it</span>
+      <p class="txt" style="font-size:clamp(15px,1.9vw,22px)">The first half is orientation: the systems, the stacks, and the two team archetypes. The second half is the problem list for testing and logging, then the patterns that cut across all of it.</p>
+    </div>
+    <div class="meta">
+      <span><b>Sources</b> &nbsp;Two analysis packs: <code>bravo-analysis/docs</code> and <code>lora-workspace/docs/production-findings</code>. Code in 152 repositories, production telemetry in Datadog, the Jira projects, and the GCP bill.</span>
+      <span><b>As at</b> &nbsp;2026-09-16</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> 13 slides &middot; orientation on 2&ndash;9 &middot; problems on 10&ndash;12</p>
+</section>
+
+<section class="slide" data-nav="Summary">
+  <div class="inner">
+    <p class="eyebrow"><b>Summary</b><span class="sep">/</span>One page</p>
+    <h2 class="st">Two origination platforms, one vendor core, and the same engineering habits on both sides</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">2</span><span class="stat__l">loan origination platforms in production: Bravo (Java, Camunda) and LORA (Go, Temporal)</span></div>
+      <div class="stat"><span class="stat__n plain">1</span><span class="stat__l">vendor core loan system behind both: CONFINS, whose source we do not hold</span></div>
+      <div class="stat"><span class="stat__n plain">~122</span><span class="stat__l">production services on our GKE estate, in Go, Java and Node.js</span></div>
+      <div class="stat"><span class="stat__n neg">Rp 636M</span><span class="stat__l">a month on three logging platforms, about 11&times; the tier the migration would retire</span></div>
+    </div>
+    <div class="two">
+      <div class="note"><h4>What we run and who runs it</h4><strong>Bravo</strong> is the older platform. It carries most of the loan book and most of the money, on a workflow engine whose community support ended in October 2025. Its teams are cut by loan step: scoring and underwriting, survey and verification, operations, contract and collateral. <strong>LORA</strong> is the re-architecture. It runs one product family in production, on Temporal Cloud, with three cross-domain teams that take a loan end to end. <strong>CONFINS</strong> is the vendor servicing core both platforms hand a loan to at go-live.</div>
+      <div class="note note--bad"><h4>What is wrong, in one paragraph</h4>Neither platform tests its orchestration layer. Both built a journey test suite and left it unable to run. Both watch for the wrong failure mode, so the failures they actually have never alert. Logging replaced tracing as the way engineers look at production, and it now costs more than the platform it observes. A security incident in the Bravo engine went unnoticed for three months. And the analysis that found all this was itself wrong several times and had to be corrected, which is a finding about how we measure.</div>
+    </div>
+    <p class="claim">The stacks differ. The habits do not. That is why we are asking a way-of-working consultant, not a platform vendor.</p>
+    <div class="foot"><span class="src">compare.md &sect;3 &middot; logging/README.md &middot; lora-workspace production-findings/README.md</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Terms">
+  <div class="inner">
+    <p class="eyebrow"><b>Orientation</b><span class="sep">/</span>Terms used in this deck</p>
+    <h2 class="st">Terms you will hear us use</h2>
+    <div class="tw"><table>
+      <thead><tr><th style="width:22%">Term</th><th>What it means here</th></tr></thead>
+      <tbody>
+        <tr><td class="k">LOS</td><td>Loan Origination System. Everything from a customer's first application to the loan going live. Bravo and LORA are both an LOS.</td></tr>
+        <tr><td class="k">LMS / CONFINS</td><td>Loan Management System, the servicing core that holds agreements, instalments and payments after go-live. Ours is CONFINS, a vendor product from AdIns.</td></tr>
+        <tr><td class="k">Bravo</td><td>The current LOS. Java, Spring Boot, an embedded Camunda BPMN engine, PostgreSQL, three React operator consoles.</td></tr>
+        <tr><td class="k">LORA</td><td>Loan Origination Re-Architectured. The replacement LOS. Go, Temporal Cloud workflows, ArangoDB document store, JSON Schema everywhere.</td></tr>
+        <tr><td class="k">BPMN / GSM</td><td>Two ways to model a process. BPMN is a flowchart the engine executes. Guard-Stage-Milestone (GSM) is declarative: a step runs when its data preconditions are met. Bravo is BPMN, LORA is a GSM and Temporal hybrid.</td></tr>
+        <tr><td class="k">NDF, DF, 2W, 4W, RO</td><td>Product families. NDF is non-dealer financing (the partnership door), DF is dealer financing, 2W and 4W are two- and four-wheel vehicles, RO is repeat order. So NDF2W is a two-wheel loan through a partner.</td></tr>
+        <tr><td class="k">Data plane</td><td>About 26 shared BFI microservices (customer, agreement, document, scoring, and so on) that both platforms call. Neither platform owns them.</td></tr>
+        <tr><td class="k">Squad</td><td>A BFI delivery team. Bravo squads are named for a loan step. LORA is one squad with three sub-teams.</td></tr>
+        <tr><td class="k">Archetype 1 / 2</td><td>Our two team shapes. Archetype 1: teams split by domain of the loan steps (Bravo). Archetype 2: cross-domain teams that take a loan end to end (LORA 1, 2, 3).</td></tr>
+        <tr><td class="k">Datadog, Coralogix, Cloud Logging</td><td>The three places our logs go today. Datadog also holds traces, metrics and browser telemetry (RUM). We are standardising on Datadog.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="foot"><span class="src">lora-workspace/docs/GLOSSARY.md &middot; bravo-analysis/docs/compare.md</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Systems map">
+  <div class="inner">
+    <p class="eyebrow"><b>Orientation</b><span class="sep">/</span>How the pieces connect</p>
+    <h2 class="st">Two front doors, one shared data plane, one vendor core</h2>
+    <div class="map">
+      <div class="tier">
+        <div class="tl"><b>Channels</b>who starts a loan</div>
+        <div class="boxes">
+          <div class="bx"><span class="h">Partners and dealers</span><span class="d">Digital Partnership API, dealer channels. LORA's only production door is the partnership API.</span></div>
+          <div class="bx"><span class="h">Field staff consoles</span><span class="d">Bravo Surveyor, Operation and Underwriting consoles. React and TypeScript. About 764,000 lines.</span></div>
+          <div class="bx"><span class="h">Customer apps and web</span><span class="d">Customer Platform, mobile apps, marketing sites. Flutter for the mobile apps, React for the web. Feed applications into Bravo.</span></div>
+          <div class="bx"><span class="h">LORA back office</span><span class="d">One SolidJS front end, server-rendered task forms. Surveys, reviews, e-sign.</span></div>
+        </div>
+      </div>
+      <p class="arrow">&darr; applications &darr;</p>
+      <div class="tier">
+        <div class="tl"><b>Orchestration</b>who runs the loan process</div>
+        <div class="boxes" style="grid-template-columns:1fr 1fr">
+          <div class="bx ac"><span class="h">Bravo LOS &mdash; Camunda 7 in Spring Boot Java</span><span class="d">53 BPMN processes, 3 DMN tables, PostgreSQL. Runs NDF2W, NDF4W, RO on per-product processes and DF4W on a newer shared spine. DF2W is in pre-release. About 41% of application volume, most of the value.</span></div>
+          <div class="bx ac"><span class="h">LORA &mdash; Temporal Cloud workers in Go lang</span><span class="d">Two workers per product family: automated steps and human tasks. Seven families exist in code, one (NDF) is deployed. About 59% of application volume, a small share of the value.</span></div>
+        </div>
+      </div>
+      <p class="arrow">&darr; both call the same services &darr;</p>
+      <div class="tier">
+        <div class="tl"><b>Data plane</b>shared, owned by neither</div>
+        <div class="boxes">
+          <div class="bx"><span class="h">~26 BFI microservices</span><span class="d">customer, agreement, document, branch, asset pricing, collateral, notification, e-doc, and more. Mostly Java and Go on GKE.</span></div>
+          <div class="bx"><span class="h">Scoring chain via Apigee</span><span class="d">StrategyOne, one-obligor, Pefindo, AliCloud PD models, anti-fraud, BFI Connect.</span></div>
+          <div class="bx"><span class="h">Identity and gateways</span><span class="d">Keycloak, KrakenD, user-IAM. One shared internal service secret on the Bravo side.</span></div>
+          <div class="bx warnb"><span class="h">Observability</span><span class="d">Datadog (traces, metrics, RUM, some logs), Coralogix and Cloud Logging (logs). Three log platforms, one org.</span></div>
+        </div>
+      </div>
+      <p class="arrow">&darr; at go-live, the agreement is created in &darr;</p>
+      <div class="tier">
+        <div class="tl"><b>Core</b>after go-live</div>
+        <div class="boxes" style="grid-template-columns:1fr 1fr">
+          <div class="bx warnb"><span class="h">CONFINS (AdIns) &mdash; LMS core</span><span class="d">C# / .NET, about 12 services, its own Camunda external-task client and batch workers, in a separate GCP project. Reached through Bravo's core-proxy, LMS gateway and agreement service.</span></div>
+          <div class="bx"><span class="h">Treasury, payments, collections</span><span class="d">BFI-side services around the core: treasury batching and disbursement, payment, collection consumer, LMS operations and calculation.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">lora-workspace/docs/overview.md &middot; bravo-lora-orchestration-cost (cost.md, "Orchestration against orchestration") &middot; logging/coverage.md</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide dense" data-nav="Bravo stack">
+  <div class="inner">
+    <p class="eyebrow"><b>Stack</b><span class="sep">/</span>Bravo</p>
+    <h2 class="st">Bravo: a Java monolith-of-processes with three React consoles around it</h2>
+    <div class="tw"><table>
+      <thead><tr><th style="width:18%">Layer</th><th>What it is</th><th style="width:34%">What we measured</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Runtime</td><td>Java 17, Spring Boot 3.5.16. One service, <code>bravo-bpm-service</code>, plus a separate Sharia deployment of the same code.</td><td><span class="bad">Boot 3.5 open-source support ended 30 Jun 2026.</span> Java 17 premier support ends 30 Sep 2026.</td></tr>
+        <tr><td class="k">Workflow engine</td><td>Camunda 7 Community Edition 7.23, embedded with its web app and REST API. 53 BPMN processes, 3 DMN decision tables, 276 Java delegates.</td><td><span class="bad">Community line closed 14 Oct 2025. No patches, no licence held.</span> A fork swap plus Boot 4 is 18&ndash;33 engineer-days.</td></tr>
+        <tr><td class="k">Data</td><td>PostgreSQL on Cloud SQL. 238 JPA entities. Status history written by a database trigger. 1,350 Flyway migrations. Camunda history kept 90 days.</td><td>The durable substrate is the database, not the logs. Good for reconstruction, poor for alerting.</td></tr>
+        <tr><td class="k">Integration</td><td>113 typed Feign clients, one per upstream. RabbitMQ. Keycloak plus one shared internal secret.</td><td>Per-upstream error attribution is structural. <span class="warn">Test doubles are one static shared mock; nothing can make an upstream fail on demand.</span></td></tr>
+        <tr><td class="k">Front end</td><td>Three React and TypeScript consoles: Surveyor, Operation, Underwriting. 763,861 lines, 829 test files, Vitest. Unit tests block every merge.</td><td>Shared design system drifted to <span class="warn">three versions</span>; React 17 on two, 18 on one; Node 18 and 20; Vite 4 and 7.</td></tr>
+        <tr><td class="k">Journey tests</td><td>Cypress with Cucumber. 595 feature files, 28,268 steps, 46 authors.</td><td><span class="bad">Frozen 21 Nov 2023.</span> The one scheduled workflow cannot fail.</td></tr>
+        <tr><td class="k">Products live</td><td>NDF2W, NDF4W and RO on per-product processes. DF4W on the newer shared spine. DF2W in UAT with a penetration test running.</td><td>118,253 applications in August 2026. The shared spine carries 5.5% of volume.</td></tr>
+        <tr><td class="k">Delivery</td><td>Jira <code>BLCS</code> (Scoring &amp; Underwriting) and <code>LN</code> (Surveyor &amp; Verificator). Four repositories. 25 people committed in the last 12 months.</td><td>Median cycle time 1&ndash;2 days in August. Orchestration tier costs about Rp 58M a month.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="foot"><span class="src">compare.md &sect;0 &middot; bravo-testing.md &sect;1, &sect;1.1, &sect;6, &sect;7.1 &middot; bravo-people.md &sect;2 &middot; option-summary.md</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide dense" data-nav="LORA stack">
+  <div class="inner">
+    <p class="eyebrow"><b>Stack</b><span class="sep">/</span>LORA</p>
+    <h2 class="st">LORA: schema-driven Go workers on Temporal, one document per loan</h2>
+    <div class="tw"><table>
+      <thead><tr><th style="width:18%">Layer</th><th>What it is</th><th style="width:34%">What we measured</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Runtime</td><td>Go. 13 repositories. A shared <code>lora-process-sdk</code> gives every worker its Temporal, document and schema plumbing.</td><td><span class="warn">Four SDK versions live in the fleet</span>, about 60 duplicated activity packages, one 883-line forked task executor. The SDK repo has no CI.</td></tr>
+        <tr><td class="k">Workflow engine</td><td>Temporal Cloud. Guard-Stage-Milestone hybrid: an activity runs when its data preconditions are met (155 precondition sites). Human tasks are hand-written state machines.</td><td>About 12,000 lines of state machine inside the declarative shell. <span class="bad">Retry is unbounded: no maximum attempts, no non-retryable error types.</span></td></tr>
+        <tr><td class="k">Data</td><td>One JSON document per loan, held in workflow memory, checkpointed to ArangoDB. 500+ JSON Schemas in a schema service; Go field constants are generated (about 1,100 for NDF).</td><td>Every business activity costs three Temporal actions. Bookkeeping is 63.5% of activity executions. Temporal is 32% of LORA's bill.</td></tr>
+        <tr><td class="k">Integration</td><td>A gateway with about 290 inner proxies to BFI services and external proxies to partners, all validated against schema. NATS JetStream and RabbitMQ.</td><td><span class="warn">All 290 proxies share one route</span>, so 21,000 gateway 500s a week cannot be attributed to an upstream in APM. LORA calls 26 Bravo data-plane services and never Bravo's engine.</td></tr>
+        <tr><td class="k">Front end</td><td>One back-office app in SolidJS. Task forms are server-rendered HTML (about 300 templates) hydrated by web components.</td><td>416,000 browser errors over 147,000 views in 7 days. About 17,600 content-security-policy violations block the live task stream.</td></tr>
+        <tr><td class="k">Tests</td><td>608 Go test files. QA holds a Playwright suite with nightly runs and <code>lora-super-test</code>, 150 scenario tests with a Go mock interceptor that can fail any upstream on demand.</td><td>Four repositories have zero tests. The planner's scheduling logic has none. <span class="bad">The nightly has failed the same 199 API cases every night; 59 of 83 web cases have never passed.</span></td></tr>
+        <tr><td class="k">Products live</td><td>Seven families in code, each with its own document, worker pair and queue. One is deployed: NDF (90% two-wheel, 10% four-wheel).</td><td>Three of the six others have no production deploy workflow. No feature flag gates a family.</td></tr>
+        <tr><td class="k">Delivery</td><td>Jira <code>BL</code>. One squad, three sub-teams (LORA 1, 2, 3), end-to-end task execution.</td><td>Median cycle time 2 days in August. All-in platform cost about Rp 431M a month, flat with volume.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="foot"><span class="src">lora-workspace/docs/overview.md &middot; production-findings/README.md, reliability.md, testing.md, cost.md, delivery.md &sect;5</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="LMS core">
+  <div class="inner">
+    <p class="eyebrow"><b>Stack</b><span class="sep">/</span>LMS Core</p>
+    <h2 class="st">CONFINS: the core we depend on, cannot read, and did not know we were paying to log</h2>
+    <p class="lede">Both platforms hand a loan to CONFINS at go-live. It is a vendor product, it runs in its own GCP project, and it is the largest single source of production log volume we pay for.</p>
+    <div class="two">
+      <div class="note"><h4>What it is</h4>AdIns CONFINS, written in C# on .NET. About twelve services: accounts receivable, foundation, LOS, amendment, payment, cash and bank, AR maintenance, government regulation, reconciliation, recovery, MoU. Plus its own Camunda external-task client and a family of batch workers. It runs in <code>core-system-prod</code>, a separate project and cluster from the Bravo estate. Bravo reaches it through a core proxy, an LMS gateway and the agreement service. The agreement service alone emits 7.4 million spans a week and <strong>sends zero logs to Datadog</strong>.</div>
+      <div class="note note--bad"><h4>What is wrong with how we run it</h4><strong>52 of our 122 production services have no source code we can see</strong>, and CONFINS and Treasury are most of them. The service catalog owner field is empty. The deployment repository for it is not reachable to the people doing this analysis. Its logger writes every request and response body to disk: agreement numbers, customer numbers, outstanding balances, amortisation schedules. And because the pods write to a shared host path, <strong>the Datadog Agent re-reads a month of dead pods' files at every rollout</strong>. That one service was about a third of all indexed production log events. A first analysis called those lines "blank" because nobody opened the attributes.</div>
+    </div>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">~12</span><span class="stat__l">CONFINS services in production, none with source in our repositories</span></div>
+      <div class="stat"><span class="stat__n neg">~36M</span><span class="stat__l">log events a week ingested from the CONFINS family, about 12M indexed</span></div>
+      <div class="stat"><span class="stat__n neg">~90%</span><span class="stat__l">of the largest service's volume is re-ingestion of dead pods' files, not traffic</span></div>
+      <div class="stat"><span class="stat__n plain">1 day</span><span class="stat__l">of SRE work to fix the collection path, needing no vendor access</span></div>
+    </div>
+    <p class="claim">The way-of-working question here is ownership. A system both platforms depend on has no named owner, no readable source, and a logging bill nobody had attributed to it.</p>
+    <div class="foot"><span class="src">logging/coverage.md &middot; logging/confins-prod-ms-lms-ar-be-findings.md &middot; bfi-datadog-telemetry-coverage</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Two archetypes">
+  <div class="inner">
+    <p class="eyebrow"><b>Teams</b><span class="sep">/</span>The two archetypes</p>
+    <h2 class="st">Archetype 1 cuts teams by loan step. Archetype 2 cuts them by product, end to end.</h2>
+    <div class="arch">
+      <div class="acell">
+        <span class="k">Archetype 1 &middot; Bravo</span>
+        <span class="h">Squads split by domain of the loan-application steps</span>
+        <p>Each squad owns one stage of the journey and the repositories for it. A loan crosses several squads on its way to go-live. The squad folders in our GitHub organisation, with repository counts:</p>
+        <div class="chain">
+          <span>Direct &amp; Tele Marketing <i>21</i></span><i>&rarr;</i>
+          <span>Digital Partnership <i>4</i></span><i>&rarr;</i>
+          <span>Customer Platform <i>12</i></span><i>&rarr;</i>
+          <span>Scoring &amp; Underwriting <i>3</i></span><i>&rarr;</i>
+          <span>Survey &amp; Verification <i>4</i></span><i>&rarr;</i>
+          <span>Operation Pre-Go Live <i>8</i></span><i>&rarr;</i>
+          <span>Contract Collateral &amp; Loan Calculation <i>10</i></span><i>&rarr;</i>
+          <span>Operation Post-Go Live <i>9</i></span>
+        </div>
+        <p>Around them: Insurance 5, Payment 5, Agency 8, Asset Management 8, Supplier Platform 8, Digital Web 5, Customer Mobile Apps 2, and an Internal Service squad with 26 repositories. <b>Two Jira projects carry Bravo LOS delivery</b>: <code>BLCS</code> for Scoring &amp; Underwriting and <code>LN</code> for Surveyor &amp; Verificator. They share a sprint train and have zero cross-project issue links.</p>
+      </div>
+      <div class="acell">
+        <span class="k">Archetype 2 &middot; LORA</span>
+        <span class="h">Cross-domain teams that take a loan end to end</span>
+        <p>LORA is one squad organised as <b>three sub-teams: LORA 1, LORA 2 and LORA 3</b>. They work different features in parallel. Most tasks are executed end to end by one team, so members share a baseline understanding of the whole system. This is a team statement and the VMP LORA plan, not something we measured.</p>
+        <ul>
+          <li><b>Why LORA went this way.</b> A loan is one document with one planner. A "return to survey" change touches survey code and underwriting status writes at once. The architecture has no seam where a domain split would want one.</li>
+          <li><b>The stated condition for leaving a domain team.</b> The departing owner first encodes their domain rules as business tests that guard the domain. Tests are the handover.</li>
+          <li><b>The natural boundary is the product family</b>, not the loan stage. Seven families, each with its own document, workers and queue.</li>
+          <li><b>Supporting squads.</b> LORA Core owns 8 shared repositories; LORA RL owns the revolving-loan family.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="claim">Neither shape is a property of its platform. Both are prior organisational decisions, and both can be changed.</p>
+    <div class="foot"><span class="src">squads/ folder listing 2026-09-16 &middot; bravo-los-repo-scope &middot; bravo-people.md &sect;5 &middot; lora-workspace people.md, "Archetype 2" &middot; "Current LORA challenges in Production"</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Archetypes measured">
+  <div class="inner">
+    <p class="eyebrow"><b>Teams</b><span class="sep">/</span>What each shape produces</p>
+    <h2 class="st">What we can actually see each archetype doing</h2>
+    <div class="arch">
+      <div class="acell">
+        <span class="k">Archetype 1 &middot; observed</span>
+        <ul>
+          <li><b>One change touches one or two repositories.</b> That is the real content of "developing in Bravo is easier". Ticket counts do not support a speed claim in either direction.</li>
+          <li><b>A bus factor of one.</b> In two 50-ticket samples, 18 of 20 long-lived Stories were assigned to a single account, on the service carrying most of origination. Sub-tasks spread; the shape of a change does not.</li>
+          <li><b>Cross-domain work becomes a hand-off.</b> Underwriting return that must sync surveyor status appears as a ticket in one project with no link to the other.</li>
+          <li><b>Three consoles, three toolchains.</b> The same design system at three versions, React 17 and 18, Node 18 and 20. A cutover gate that "runs the console suites" is three different jobs.</li>
+          <li><b>Backlogs are bulk-loaded.</b> 45 of 50 tickets in one sample were created in a 37-minute window. Any created-to-resolved metric over that window measures a programme, not a cadence.</li>
+        </ul>
+      </div>
+      <div class="acell">
+        <span class="k">Archetype 2 &middot; observed</span>
+        <ul>
+          <li><b>One change touches about five repositories.</b> Schema, SDK, worker, gateway, front end. Work is spread across 22 distinct assignees in 100 sampled tickets.</li>
+          <li><b>The team's own complaint: "one team must master all domains."</b> The complaint is confirmed as the organisational cost of one document and one planner. The fix chosen is the end-to-end shape, not merging teams.</li>
+          <li><b>Nobody owns the platform yet.</b> Four SDK versions, about 60 duplicated activity packages and a forked executor are the visible cost of every team being stream-aligned. The plan implies a platform team and does not name one.</li>
+          <li><b>The handover tests do not exist yet.</b> 62% of automated activity packages have a test, the planner's readiness logic has none, four repositories have zero. You cannot exit into a net that is not built.</li>
+          <li><b>The top production incident spans both old domains.</b> 287 survey resets from a survey and task-manager race. A domain-split team structurally could not fix its own top incident.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note note--ok"><h4>Where the analysis already landed</h4>The LORA pack recommends Archetype 2 with a strict order: build the test net first, write the guard packs in pairs with product sign-off, name a platform team, pilot one product family, then roll out. It also names the early-warning signal: <strong>guard tests weakened without sign-off must stay at zero.</strong> This organisation has already silenced an inconvenient alert once rather than fix it, so that rule has to exist before the tests do.</div>
+    <div class="foot"><span class="src">bravo-people.md &sect;3, &sect;5, &sect;6 &middot; bravo-los-repo-scope &middot; lora-workspace people.md "Archetype 2", challenges A1, B3, C1 &middot; cost.md rewind clusters</span><span>09</span></div>
+  </div>
+</section>
+
+
+
+
+<section class="slide" data-nav="Testing">
+  <div class="inner">
+    <p class="eyebrow"><b>Problems</b><span class="sep">/</span>Testing, both platforms</p>
+    <h2 class="st">Testing: two large suites that cannot fail, and no test that runs a routing decision</h2>
+    <div class="three">
+      <div class="tcell"><span class="k">Converges on both</span><span class="h">Neither platform tests its orchestration layer</span><p>Bravo has 2,286 test files across four repositories. <b>Four of them run a process.</b> Its routing lives in BPMN expression strings, a database selector and a JSON matrix that no unit test can reach. LORA has 608 test files; its planner's scheduling logic, the thing that decides what runs, has no test. Neither CI can say which product a change hits.</p></div>
+      <div class="tcell"><span class="k">Converges on both</span><span class="h">Both built a journey suite and left it unable to run</span><p>Bravo: 595 Cypress features, 46 authors, four workflows, <b>frozen November 2023</b>, the one scheduled job written so every step passes. LORA: <code>lora-super-test</code>, 150 scenario tests with real assertions, and <b>a CI workflow with nowhere to run</b>. The nightly Playwright run fails the same 199 API cases every night and the QA dashboard counts them as covered. Neither team knew the other had done the same thing.</p></div>
+      <div class="tcell"><span class="k">Converges on both</span><span class="h">Gates that measure and cannot fail</span><p>Console coverage thresholds are 0%, 0% and 1%. Every SonarQube scan runs without waiting for its quality gate. A Codacy token is missing, so coverage upload fails on every PR. Neither platform sends CI events to Datadog, so nobody can say whether builds are getting slower or redder. <b>The strongest gate in the estate is the consoles' unit tests</b>, which do block a merge.</p></div>
+    </div>
+    <div class="two">
+      <div class="note"><h4>Bravo specific</h4>Bravo cannot make an upstream fail on demand: its mock is one static, shared service. So <strong>50 error handlers, 70 error definitions and 190 escalation paths have never been executed by a test</strong>, including a credit decision that bypasses anti-fraud after three failures. On the other side, its 113 typed clients mean the compiler catches stub drift for free, where LORA needs a script against a live schema registry.</div>
+      <div class="note note--ok"><h4>The cheap part</h4>The Bravo pack lays out a nine-layer ladder, L0 to L8, ordered by cost. <strong>Six layers do not exist.</strong> The two that would catch the most, model lint and gateway-expression evaluation, run in milliseconds and are about seven days of work. Five product-matrix journeys would cover the happy path of 100% of production volume; today zero do. This is a decision nobody made, not a mountain.</div>
+    </div>
+    <div class="foot"><span class="src">bravo-testing.md &sect;1&ndash;&sect;7 &middot; bfi-gherkin-corpus &middot; lora-workspace testing.md, testing-gates.md &middot; compare.md &sect;3 &middot; bfi-ci-failure-causes</span><span>13</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Logging">
+  <div class="inner">
+    <p class="eyebrow"><b>Problems</b><span class="sep">/</span>Logging and observability</p>
+    <h2 class="st">Logging: Rp 636M a month to store what a trace would have answered</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n neg">Rp 636M</span><span class="stat__l">a month: Cloud Logging 272, Coralogix 253, Datadog 111. A third of Cloud Logging is non-production.</span></div>
+      <div class="stat"><span class="stat__n neg">93.6%</span><span class="stat__l">of production log lines cannot be parsed. Lines over 16 KB are split by the container runtime.</span></div>
+      <div class="stat"><span class="stat__n neg">~150&times;</span><span class="stat__l">the contracted log ingestion. 256 GB a month was bought; about 1.3 TB a day is sent.</span></div>
+      <div class="stat"><span class="stat__n neg">0</span><span class="stat__l">log lines anywhere in production that can be joined to a trace.</span></div>
+    </div>
+    <div class="plist">
+      <div class="prow"><div class="t">Why teams log bodies<small>the complaint is correct</small></div><div class="x">Squads log full request and response bodies because Datadog cannot show them. <b>They are right</b>: no tracer setting puts an HTTP body on a span. The answer, Live Debugger, is blocked because Remote Configuration is failing on 13 production services with about 91,000 failed polls a week. So the workaround was rational, and asking teams to stop without a replacement will be resisted, correctly.</div></div>
+      <div class="prow"><div class="t">The wrappers made it the default<small>fix once, not per service</small></div><div class="x">The shared Java logging library turns body logging on by default and masks six keys by exact match. The Go wrapper's masking is a per-service deployment setting, and in production eight services set it to nothing. One Bravo service alone writes 487,000 bodies a week, 44% of its volume, unmasked.</div></div>
+      <div class="prow hot"><div class="t">What ended up in the logs<small>security, not cost</small></div><div class="x">Working chat webhook credentials in the URL of every message sent. A live API secret. Whole HR records about 900,000 times a week: religion, marital status, bank account, personal mobile. Customer phone numbers on every "not found" response. Each has an owner outside the logging programme and a clock on it.</div></div>
+      <div class="prow"><div class="t">Coverage gaps and split names<small>telemetry plumbing</small></div><div class="x">Eleven busy services send no logs to Datadog at all. Eight are split across two service names, one for logs and one for traces, so they can never join. A family of monitors queries service names that do not exist and reports healthy forever. Six services emit neither logs nor traces.</div></div>
+    </div>
+    <p class="claim">The sequencing is the point. Clean the stream first, then enable better ingestion on a stream half the size. Enabling it today moves the waste from one invoice to another.</p>
+    <div class="foot"><span class="src">logging/README.md, logging-cost.md, body-visibility.md, coverage.md, sre-datadog-recommendations.md &middot; bfi-logging-security-findings &middot; bfi-datadog-remote-config-broken</span><span>14</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Patterns">
+  <div class="inner">
+    <p class="eyebrow"><b>Problems</b><span class="sep">/</span>What cuts across all of it</p>
+    <h2 class="st">Five habits that show up on both platforms and in the vendor estate</h2>
+    <div class="three">
+      <div class="tcell"><span class="k">Habit 1</span><span class="h">Signals get silenced, not fixed</span><p>Bravo excluded its most informative engine error from its one business monitor. LORA excluded the go-live message from its activity-error alert and left loans wedged at attempt 26,707. The journey suite's steps all end in "pass anyway". Health monitors filter to 5xx only. <b>In every case the signal was inconvenient and the fix was to stop looking.</b></p></div>
+      <div class="tcell"><span class="k">Habit 2</span><span class="h">Instruments are on, nobody reads them</span><p>All four Bravo consoles and both LORA front ends had browser monitoring switched on for months. 2.4 million and 416,000 errors a week, respectively. Nobody had opened the dashboards. Camunda's engine logs carry activity names and versions; nobody ranked failures by them. LORA's APM spans carry the loan id; nobody grouped stuck loans by them.</p></div>
+      <div class="tcell"><span class="k">Habit 3</span><span class="h">"Absence of one failure" means healthy</span><p>Bravo treats "not 5xx" as healthy and fails by 4xx and by parking a process. LORA treats "still running" as healthy and half its loans never finish. Both platforms' one business monitor is blind to the failure mode each actually has.</p></div>
+      </div>
+    <div class="three" style="grid-template-columns:1fr 1fr">
+      <div class="tcell"><span class="k">Habit 4</span><span class="h">Shared things have no owner</span><p>52 production services with no readable source. Feature flags in five mechanisms with no registry. A design system at three versions. Four SDK versions. Three log platforms and nobody can say what the second one is for. A catalog owner field that is empty for the core system. <b>Every duplication we found sits where ownership stops.</b></p></div>
+      <div class="tcell"><span class="k">Habit 5</span><span class="h">Gates that measure but cannot fail</span><p>Coverage at 0% thresholds. Quality gates never awaited. Scheduled jobs that cannot go red. A nightly that has failed the same cases for six weeks and counts as coverage. The estate is well instrumented for looking good and poorly instrumented for stopping a merge.</p></div>
+    </div>
+    <p class="claim">These are ways of working, not stack choices. Every one of them would survive a platform migration intact.</p>
+    <div class="foot"><span class="src">compare.md &sect;3 (convergences 3, 6, and "rich instrumentation nobody was reading") &middot; bravo-observability.md &middot; lora-workspace observability.md &middot; bfi-ci-failure-causes</span><span>15</span></div>
+  </div>
+</section>
+
+
+
+<section class="slide dense" data-nav="Sources">
+  <div class="inner">
+    <p class="eyebrow"><b>Appendix</b><span class="sep">/</span>Where the evidence lives</p>
+    <h2 class="st">Reading list, in the order we would suggest</h2>
+    <div class="tw"><table>
+      <thead><tr><th style="width:36%">Document</th><th>What it settles</th></tr></thead>
+      <tbody>
+        <tr><td class="k">bravo-analysis/docs/compare.md</td><td>The synthesis. Bravo and LORA side by side on production findings, the eight convergences, the guardrails, Decision A and Decision B.</td></tr>
+        <tr><td class="k">lora-workspace/docs/production-findings/README.md</td><td>The LORA pack's front door. Every production complaint, its verdict, and the document that answers it.</td></tr>
+        <tr><td class="k">production-findings/Current LORA challenges in Production.md</td><td>The LORA team's own problem statement, in their words. Quoted verbatim everywhere else; do not paraphrase it.</td></tr>
+        <tr><td class="k">bravo-people.md &middot; lora people.md</td><td>Team shape, throughput, cycle time, bus factor, onboarding, and the Archetype 2 plan with its challenges and sequencing.</td></tr>
+        <tr><td class="k">bravo-testing.md &middot; lora testing.md, testing-gates.md</td><td>Test inventories, what CI actually gates, the L0&ndash;L8 ladder, the QA strategy, the six merge gates that would have caught the incident.</td></tr>
+        <tr><td class="k">bravo-observability.md &middot; lora observability.md, reliability.md</td><td>What each platform can see, the monitors that cannot fire, infinite retry, wedged loans, the intervention rate.</td></tr>
+        <tr><td class="k">bravo-analysis/docs/logging/</td><td>80 files. Start with README.md and logging-cost.md. One file per service with what it logs, what its production manifest says, and the open pull request.</td></tr>
+        <tr><td class="k">compare-architecture.md</td><td>BPMN versus Guard-Stage-Milestone, claim by claim, against the code. The &sect;7 verdict on how much the paradigm actually decided.</td></tr>
+        <tr><td class="k">option-summary.md, option-1/2/3.md</td><td>Bravo's three runtime options: engine fork, Temporal port, LORA migration, with effort and cost.</td></tr>
+        <tr><td class="k">decks/ (Bravo) &middot; production-findings/*.html (LORA)</td><td>Eleven Bravo-side decks, this one included, and seven LORA-side decks, each with a PDF, for specific audiences: CTO, QA, developers, Datadog account team.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="claim">Every document separates confirmed from refuted claims, cites file and line, and marks its own corrections in place. Please read the corrections. They are where the lessons are.</p>
+    <div class="foot"><span class="src">bravo-analysis (git, branch fix/logging) &middot; lora-workspace/docs &middot; both mirrored to Confluence space EA under "Service Discovery"</span><span>18</span></div>
+  </div>
+</section>
