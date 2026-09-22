@@ -230,7 +230,7 @@ This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the lib
 
 ## Implementation status
 
-**Pull request: [bravo-agency-service#1141](https://github.com/bfi-finance/bravo-agency-service/pull/1141)** — open, not merged.
+**Pull request: [bravo-agency-service#1141](https://github.com/bfi-finance/bravo-agency-service/pull/1141)** — **merged 18 September 2026** by the squad.
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-agency-service/tree/fix/logging), head `f5c5d0e4`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bravo-agency-service/pull/1141/files) · [Commits](https://github.com/bfi-finance/bravo-agency-service/pull/1141/commits) · [Compare against master](https://github.com/bfi-finance/bravo-agency-service/compare/master...fix/logging)
