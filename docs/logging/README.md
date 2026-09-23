@@ -6,10 +6,10 @@ Cost data is GCP billing through FinOps. Log evidence is Datadog production. Cod
 is all 152 repos under `squads/`, pulled to `master` on the day of writing — 149,729 files
 scanned — plus 36 more cloned since.
 
-**73 repositories analysed. On 22 September 2026: 4 service pull requests merged by their squads, 44 open, 16 closed on SRE's guidance; the Java wrapper ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) is merged but not yet published, the Go wrapper ([bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175)) is open and green, the Boot 2.7 bridge ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) is closed; the manifest pull request ([app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)) carries two SRE approvals and waits on the SAs; 80 files in this folder.** The code half
+**73 repositories analysed. On 23 September 2026: 4 service pull requests merged by their squads, 44 open, 16 closed on SRE's guidance; the Java wrapper ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) is merged but not yet published, the Go wrapper ([bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175)) is open and green, the Boot 2.7 bridge ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) is closed; the manifest pull request ([app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)) carries two SRE approvals and waits on the SAs; 80 files in this folder.** The code half
 of the programme is written; what is left on it is review, merge, and one publish step.
 
-## What changed on 15–22 September
+## What changed on 15–23 September
 
 - **The Java wrapper merged.** [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) landed on `master` on 16 September
   (`dfeb6ac`): `bfi-logging-core` and `bfi-logging-spring-boot-starter` 0.1.0, with the
@@ -35,7 +35,7 @@ of the programme is written; what is left on it is review, merge, and one publis
 - **CI re-read on 17 September**: of 47 open service pull requests, 11 are fully green and
   36 fail only on gates that were red before this work. Two `lora-*` branches were
   refreshed from `master` to clear a pre-existing test failure and a cancelled job.
-- **Squads have started merging (checked 22 September).** Four service pull requests are in: `bravo-inventory-management-service#399` (15 Sep), `bfi-rule-engine-service#67` (17 Sep), `bravo-agency-service#1141` (18 Sep) and `lms-calculation-service#647` (18 Sep, after its coverage, SonarQube and SNYK gates were cleared the same day). Forty-four are open and unmerged; none has been closed by a squad. Of the 44, 11 are fully green and 33 are red only on gates that were red before this work — see [the 22 September table](#where-the-44-open-service-pull-requests-stand-on-22-september). The two tables below now carry a status column.
+- **Squads have started merging (checked 22 September, re-checked 23 September).** Four service pull requests are in: `bravo-inventory-management-service#399` (15 Sep), `bfi-rule-engine-service#67` (17 Sep), `bravo-agency-service#1141` (18 Sep) and `lms-calculation-service#647` (18 Sep, after its coverage, SonarQube and SNYK gates were cleared the same day). Forty-four are open and unmerged; none has been closed by a squad. Of the 44, 12 are fully green and 32 are red only on gates that were red before this work — see [the 23 September table](#where-the-44-open-service-pull-requests-stand-on-23-september). The two tables below carry a **Status** column, refreshed by `tools/poll_fix_logging_prs.py` and `tools/logging_pr_status.py`; the next check is due in October.
 - **Codacy's review of every open pull request was answered on 18 September.** 91 threads on
   38 pull requests: 63 fixed in a commit on the branch (each thread names it), 14 pointed at
   code that had already been reverted or fixed on 14 September, 14 declined with the reason in
@@ -191,7 +191,7 @@ accurately. Silencing it would remove the only evidence.
 
 Every recommendation that is a code or configuration change has been implemented on a
 branch called **`fix/logging`** in each of the twenty repositories, branched from `master`,
-pushed, and raised as a pull request. **On 22 September three of the twenty are merged** — `bravo-inventory-management-service`, `bravo-agency-service`, `lms-calculation-service` — and seventeen are open.
+pushed, and raised as a pull request. **On 23 September three of the twenty are merged** — `bravo-inventory-management-service`, `bravo-agency-service`, `lms-calculation-service` — and seventeen are open.
 
 **Corrected 14 September 2026.** This paragraph said the machine had no Node, Go, JDK or
 Maven toolchain. **Go and Node are in fact installed via `mise`** — a bare `which go` is what
@@ -211,7 +211,7 @@ The wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean
 each pull request is still the authority, but "not compiled" is no longer true of anything
 in this programme.
 
-| Repo | Pull request | Status (22 Sep) |
+| Repo | Pull request | Status (23 Sep) |
 |---|---|---|
 | [bfi-digital-web-api](bfi-digital-web-api.md) | [#711](https://github.com/bfi-finance/bfi-digital-web-api/pull/711) | open — red only on SNYK / image CVEs |
 | [bfi-insurance-api](bfi-insurance-api.md) | [#3298](https://github.com/bfi-finance/bfi-insurance-api/pull/3298) | open — red only on SNYK / image CVEs, SonarQube |
@@ -232,7 +232,7 @@ in this programme.
 | [bravo-surveyor-console](bravo-surveyor-console.md) | [#3976](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976) | open — CI green |
 | [bravo-user-iam-service](bravo-user-iam-service.md) | [#521](https://github.com/bfi-finance/bravo-user-iam-service/pull/521) | open — CI green |
 | [lms-calculation-service](lms-calculation-service.md) | [#647](https://github.com/bfi-finance/lms-calculation-service/pull/647) | **merged 18 Sep** by the squad |
-| [lora-task-service](lora-task-service.md) | [#1363](https://github.com/bfi-finance/lora-task-service/pull/1363) | open — red only on unit-test job |
+| [lora-task-service](lora-task-service.md) | [#1363](https://github.com/bfi-finance/lora-task-service/pull/1363) | open — red only on Codacy coverage |
 
 Each per-repo file carries an *Implementation status* section with the branch link, the
 commits, the files touched and a compare view.
@@ -333,9 +333,9 @@ The Java pull requests were compiled on 14 September 2026 once a JDK turned out 
 `mise x` away (22 of 22 compile; 12 of the 12 test suites run pass — see
 each file's verification note). Treat CI as the authority for them still.
 
-| Repository | Production service | Pull request | What it changes | Status (22 Sep) |
+| Repository | Production service | Pull request | What it changes | Status (23 Sep) |
 |---|---|---|---|---|
-| [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss | open — red only on Prettier drift |
+| [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss | open — red only on Prettier |
 | [bfi-incentive-api](bfi-incentive-api.md) | `prod-ms-bfi-incentive-api` | [#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698) | give the consumer failure a stable message | open — red only on SNYK / image CVEs |
 | [bfi-rule-engine-service](bfi-rule-engine-service.md) | `prod-ms-rule-engine` | [#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67) | mask outbound HTTP bodies before they reach the log stream | **merged 17 Sep** by the squad |
 | [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | `prod-agent-marketing` | [#829](https://github.com/bfi-finance/bravo-agent-marketing-service/pull/829) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
@@ -365,7 +365,7 @@ each file's verification note). Treat CI as the authority for them still.
 | [bravo-product-service](bravo-product-service.md) | `prod-ms-product` | [#665](https://github.com/bfi-finance/bravo-product-service/pull/665) | log rejected requests at warn, not error | open — red only on Codacy coverage |
 | [bravo-repeat-order-service](bravo-repeat-order-service.md) | `prod-ms-repeat-order` | [#3503](https://github.com/bfi-finance/bravo-repeat-order-service/pull/3503) | log rejected requests at warn, not error | open — red only on SNYK / image CVEs |
 | [bravo-robot-controller](bravo-robot-controller.md) | `prod-ms-robot-controller` | [#84](https://github.com/bfi-finance/bravo-robot-controller/pull/84) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
-| [bravo-robot-scrape](bravo-robot-scrape.md) | `prod-robot-scrape` | [#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114) | report DMS upload failures as errors, not as stdout text | open — red only on Codacy step, SNYK / image CVEs |
+| [bravo-robot-scrape](bravo-robot-scrape.md) | `prod-robot-scrape` | [#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114) | report DMS upload failures as errors, not as stdout text | open — CI green |
 | [bravo-scheduling-service](bravo-scheduling-service.md) | `prod-ms-scheduling` | [#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300) | mask outbound HTTP bodies before they reach the log stream | open — CI green |
 | [bravo-supplier-service](bravo-supplier-service.md) | `prod-ms-supplier` | [#181](https://github.com/bfi-finance/bravo-supplier-service/pull/181) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [collection-consumer-service](collection-consumer-service.md) | `prod-ms-collection-consumer` | [#143](https://github.com/bfi-finance/collection-consumer-service/pull/143) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
@@ -374,7 +374,7 @@ each file's verification note). Treat CI as the authority for them still.
 | [gold-service](gold-service.md) | `prod-ms-gold-service` | [#190](https://github.com/bfi-finance/gold-service/pull/190) | mask request and response bodies by default | open — CI green |
 | [lora-cdc-foxx-service](lora-cdc-foxx-service.md) | `prod-lora-cdc-foxx-service` | [#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3) | move the Datadog credentials and tags out of source | open — CI green |
 | [lora-gateway-service](lora-gateway-service.md) | `prod-lora-gateway` | [#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263) | actually mask outbound bodies, and log them on failure only | open — red only on SNYK / image CVEs |
-| [lora-partnership-ndf](lora-partnership-ndf.md) | `prod-lora-partnership-ndf` | [#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) | mask request and response bodies by default | open — red only on Codacy coverage, unit-test job |
+| [lora-partnership-ndf](lora-partnership-ndf.md) | `prod-lora-partnership-ndf` | [#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) | mask request and response bodies by default | open — red only on Codacy coverage |
 | [lora-partnership-task-ndf](lora-partnership-task-ndf.md) | `prod-lora-partnership-task-ndf` | [#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126) | mask request and response bodies by default | open — red only on Codacy coverage, SNYK / image CVEs |
 | [lora-schema-service](lora-schema-service.md) | `prod-lora-schema` | [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [notification-service](notification-service.md) | `prod-ms-notification` | [#122](https://github.com/bfi-finance/notification-service/pull/122) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
@@ -491,23 +491,29 @@ compiler was sitting on the machine unused, and — as was found a day later —
 JDK, one `mise x` away. This change could have been tested before pushing and was only
 read. Reading does not catch a null dereference.
 
-### Where the 44 open service pull requests stand on 22 September
+### Where the 44 open service pull requests stand on 23 September
 
-Re-polled on 22 September 2026, every red job classified by name (a pull request can be red on more than one gate):
+Re-polled on 23 September 2026 (no change in merge state since 22 September), every red job classified by name (a pull request can be red on more than one gate):
 
 | | Count |
 |---|---:|
 | Merged by the squad | 4 |
-| Open, fully green | 11 |
-| Open, failing **only** on gates that were red before this work — SonarQube (15), SNYK and container-image CVEs (16), Codacy coverage upload without its token (9), `bfi-connect`'s pre-existing Prettier drift (1), and three jobs explained below (3) | 33 |
+| Open, fully green | 12 |
+| Open, failing **only** on gates that were red before this work — SonarQube (15), SNYK and container-image CVEs (15), Codacy coverage upload without its token (10), `bfi-connect`'s pre-existing Prettier drift (1) | 32 |
 | Failing on anything written here | **0** |
 
-The three that needed reading: `lora-task-service`'s unit-test job fails on `TestTaskCardDescription` in
+The three that needed reading on 22 September: `lora-task-service`'s unit-test job fails on `TestTaskCardDescription` in
 `internal/render/templates/partnership`, a package this branch never touches, and the package passes
 locally; `lora-partnership-ndf`'s test job was **cancelled** again, not failed; `bravo-robot-scrape`'s
 Codacy job dies in `pytest` on an `ImportError` for `SlikOjkAuthConfig` in tests this branch does not
 change — master-side drift at the time of the run. All three branches were refreshed from `master` on
-22 September to re-run.
+22 September to re-run, and the re-runs settled it: on 23 September `bravo-robot-scrape` is fully green,
+and the two `lora-*` test jobs pass, leaving each red only on the Codacy coverage upload.
+
+**How to refresh this next month.** `python3 tools/poll_fix_logging_prs.py status.json` polls every
+`fix/logging` pull request (state, who merged, failing jobs); `python3 tools/logging_pr_status.py status.json`
+rewrites the Status column of the two tables above; `python3 tools/readme_to_confluence.py` produces the body
+of the Confluence page *2026-09 Logging* with every link pointed at its child page.
 
 Merged so far, and by whom: `bravo-inventory-management-service#399` (15 Sep), `bfi-rule-engine-service#67`
 (17 Sep), `bravo-agency-service#1141` (18 Sep), `lms-calculation-service#647` (18 Sep). Approvals without a
