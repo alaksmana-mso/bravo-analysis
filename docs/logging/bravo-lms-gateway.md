@@ -148,6 +148,68 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 283 of 545 request bodies) | 400, code `B0000`, attributes `key: "<rejectedValue>: <message>"` — **echoes the value** | ERROR `Error bad request: <body>` — the values again, in plain text |
+| Downstream Feign 4xx (bad request, not found, unauthorized, forbidden, conflict, unprocessable) | the same status, the upstream body passed through | ERROR `Error handle<Status>: <upstream body>` |
+| Business rule via `BusinessException` (`PettyCashException` 22 sites, `BusinessException` 9, `SPPAException`, `PaymentException`, `ElineException`, …) | Boot's default `/error` body `{timestamp, status, error, message, path}` — the class's own `code` is never rendered, because `ErrorAdvice` handles only `MaintenanceExecutionException` and `BankAccountValidationException` | **nothing from the handler**; the throw sites log with stack traces (117 of them, item 1 above) |
+
+And none of it is in Datadog: this service has **zero log entries** there. Its output is a
+plain-text pattern (the JSON encoder is declared in the pom and unused) with `correlationId`
+and nothing else structured.
+
+### What is already right, and the gaps
+
+Right: `CorrelationIdFilter` reads `x-request-id` and two client configurations forward it
+downstream. The gaps:
+
+1. The id is **not written back** to the caller, and no error body carries it.
+2. Bean validation puts the customer's values in the body and in an ERROR line.
+3. Most business rules bypass `ErrorAdvice` entirely.
+4. This is a gateway with **no database** (Redis only): the record of a request lives in
+   `agreement`, `collateral`, `customer`, `lms-ops` or `payment`, and in the trace. So the
+   reference id and the trace are not a nicety here; they are the only way to follow a
+   rejection to the service that made the decision.
+
+### The best practice for this service
+
+1. **Handle every `BusinessException` and `ResponseStatusException` in `ErrorAdvice`**, with the
+   class's `code` and `message` in the body and one WARN `request_rejected` line: route,
+   status, code, the agreement or petty-cash id from the path, and for a passed-through
+   downstream error the downstream service and status. Drop the rejected value from the
+   bean-validation attributes and from the log line.
+2. **Return `x-request-id`** in the response and in `ErrorResponse`, and forward it on **every**
+   Feign client, not just collateral and customer — then the same id appears in the downstream
+   service's decision line.
+3. **Switch the console appender to the declared `LogstashEncoder`** so `correlationId` and
+   `dd.trace_id` become attributes, and get the service's logs shipped to Datadog (it is one of
+   the eleven silent services).
+4. **The data is downstream.** Answer "what did the customer send" from the owning service's
+   rows, found by the forwarded request id or the trace.
+5. **Leave the payload filter off.** On `master` the `REQUEST DATA :` filter wrote every
+   request's 10 KB payload at DEBUG; the branch turns it off and pins the logger to WARN.
+
+### Runbook: a customer asks why a gateway request was refused
+
+1. Get the `x-request-id` from the console (once step 2 ships) or the agreement number and time.
+2. APM: the gateway's trace shows which downstream span returned the 4xx; open that service's
+   decision line with the same request id.
+3. For the data, the downstream service's rows.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -297,3 +359,6 @@ Files:
 - [ ] Enable log collection **after** the non-production exclusion filters exist
 - [ ] Pin the `CommonsRequestLoggingFilter` level in `application-prod.yaml` before log collection is fixed
 - [ ] Reduce the 117 exception logs first, or fixing collection delivers 117 stack traces per failure
+- [ ] Handle `BusinessException` / `ResponseStatusException` in `ErrorAdvice` with one WARN `request_rejected` line; drop rejected values
+- [ ] Write `x-request-id` back, put it in `ErrorResponse`, forward it on every Feign client
+- [ ] Use the declared `LogstashEncoder` on the console appender; ship the logs to Datadog

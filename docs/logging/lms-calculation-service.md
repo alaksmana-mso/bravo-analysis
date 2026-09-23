@@ -254,6 +254,71 @@ picture and what SRE should enable are in [body-visibility.md](body-visibility.m
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on 23 September 2026 (#647 is merged).
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Joi validation, called by hand in `ValidationHelper` with `abortEarly` (first error only), or one of the 112 `InvalidParamsError` sites | 400 `{code: 400, error: {errorCode: "A0001", message: "<Joi text>"}}` — the field path is in the text, the value is not (except two custom rules that list duplicate coverage codes and invalid years from the input) | **nothing.** No log statement exists on the 400 path |
+| Body is not JSON | Express's default HTML error page — with the stack trace, because `NODE_ENV=prod` is not `production` | nothing |
+| Business rule: `CalculationError` (7 sites), `AdminFeeNotFoundError` (4), `ProductPackageMatrixNotFoundError` (2), `SubDistrictCodeNotFoundError`, `InvalidMaximumLtvError` | **500** with the rule text — they are missing from the status map in `ErrorHelper` | per-tenor ERROR lines for the calculation loop; "not found" rules at ERROR in the clients |
+| Business rule in the map (`ProductNotFound` 28 sites, `InsuranceNotFound` 18, …) | 400 or 404 | ERROR in the client that failed |
+
+There is no central error handler: each controller has its own try/catch that calls
+`responseError`. There is no request id anywhere: no header read, none generated, none on the
+error body, none on the log lines. #647 added `logInjection: true` to the tracer, so
+`dd.trace_id` now reaches the JSON lines that exist.
+
+### The gaps
+
+1. A rejected calculation leaves **no line and no row**. The `loan_calculation` and
+   `collateral_calculation` tables store `request` and `response` JSON, but only after a
+   successful calculation; the fee, yield, amortisation and accrued-interest endpoints store
+   nothing at all.
+2. Nothing the caller receives can be quoted back to find the request.
+3. Five rule classes are 500s.
+
+### The best practice for this service
+
+1. **One Express error middleware, mounted last.** `app.use((err, req, res, next) => …)`:
+   map every `CustomError` subclass to its status (adding the five that fall through today),
+   answer with the existing body shape plus `request_id`, and write one WARN line
+   `request_rejected` with route, status, `errorCode`, the Joi `details[].path` list (run Joi
+   with `abortEarly: false` so the customer hears every problem at once) and the product,
+   package and branch ids from the payload. Unknown errors stay 500 with a stack, and malformed
+   JSON gets a JSON 400 instead of an HTML page. This also retires the per-controller
+   try/catch.
+2. **A request id middleware, mounted first.** Read `x-request-id` or generate one, set it on
+   the response header, keep it in `AsyncLocalStorage`, and add it to winston's default
+   metadata. With log injection already on, every line then carries `request_id` and
+   `dd.trace_id`.
+3. **The record is the caller's.** This service is a calculator: the same input always gives
+   the same answer, and the caller (`bpm`, `agreement`) stores what it sent as process
+   variables or agreement rows. A rejected request needs the decision line, not a copy of the
+   payload; a successful one is already stored with its response and readable by id through
+   `GET /v3/loan-calculation/:id`.
+4. **Keep payload logging where #647 left it.** Inbound bodies at DEBUG (off in production),
+   the outbound "calculate request" INFO lines replaced by identifiers, the interceptor that
+   serialised the whole `AxiosError` — including the API secret — gone.
+
+### Runbook: a customer asks why a calculation was refused
+
+1. Get the `x-request-id` from the console (once step 2 ships) or the application id and time.
+2. `service:prod-ms-calculation @event:request_rejected @request_id:<ref>`: route, `errorCode`
+   and the field paths.
+3. For the input, the caller's record (process variables in `bpm`, or the agreement request);
+   for a successful calculation, `loan_calculation` by id.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -390,3 +455,6 @@ Files:
 - [ ] Put downstream service, status and agreement number on the span with `setTag`
 - [ ] Do not wait for Live Debugger to fix item 1 — the credential goes now
 - [ ] Note the Node.js limit: line probes only, no method probes
+- [ ] Add one Express error middleware: status map for every `CustomError` (the five 500s become 4xx), JSON 400 for malformed bodies, one WARN `request_rejected` line with the Joi field paths
+- [ ] Add a request id middleware: `x-request-id` in, response header and error body out, on every log line
+- [ ] Run Joi with `abortEarly: false` so the caller gets every field at once

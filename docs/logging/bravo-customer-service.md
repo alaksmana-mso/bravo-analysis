@@ -140,6 +140,78 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 10 of 25 request bodies) | 400, one attribute per field with `rejectedValue: message` | one ERROR line `Error bad request: {body}` from `ErrorAdvice` (line 305) — **customer field values at ERROR**, no stack trace |
+| Unreadable body | 400 `Invalid format: …` (contains the value) | nothing |
+| Business rule via `BusinessException` (`CustomerMaintenanceException` 19 sites, `CustomerException` 15, seven `Invalid*Exception` classes 14, and four smaller) | the exception's own status, `error_code`, `message` | **nothing** — `handleBusinessException` has no log statement |
+| `ValidationException` (parse failure of the emergency-relation input), 3 `CustomerMaintenanceException` sites | **500** | nothing |
+| Downstream `FeignException` | **400** with Feign's message (downstream URL and body excerpt) | ERROR line `Error handleFeignException` |
+| Anything else | 500 with the exception message | nothing |
+
+Production over seven days: 24,779 error lines, 319 warn, 16 info. The error stream is
+dominated by `Failed get customers from confins: Data is not exist!` and `400 BAD_REQUEST
+"Cannot find … with code …"`, and 111 lines with an empty message. None of them is a business
+rule decision, because those are not logged.
+
+### What is already right, and the gaps
+
+Right: `CorrelationIdFilter` **writes `x-request-id` back** on every response. Right: a JSON
+`LogstashEncoder` is configured — but only on a file appender to `/tmp/log`, while stdout keeps
+the plain-text pattern, so Datadog sees the pattern. The gaps:
+
+1. Rule rejections are silent, and the one class of rejection that is logged carries the
+   customer's rejected values (name, phone, address fragments) at ERROR.
+2. The reference is not in the error body.
+3. A rule outcome can be a 500 (`ValidationException` by constructor, three
+   `CustomerMaintenanceException` sites), and a downstream failure is reported as the caller's
+   fault (400).
+
+### The best practice for this service
+
+1. **One WARN decision line per rejection, from `ErrorAdvice`.** Add it to
+   `handleBusinessException`, `handleHttpMessageNotReadable` and the catch-all; keep it to
+   route, status, `error_code`, the CIF id or maintenance request id from the path, and field
+   plus rule for bean validation. **Remove `getRejectedValue()` from the bean-validation
+   message** in both the response and the log: this service's fields are identity data.
+2. **Put `x-request-id` in the error body.** The header is already there; add the field to
+   `ErrorResponse`.
+3. **Send JSON to stdout.** Move the `LogstashEncoder` from the `/tmp/log` file appender to the
+   console appender, and `dd.trace_id` comes along with the MDC; the decision line then links
+   to the trace, which already shows the CONFINS call that said "Data is not exist".
+4. **Fix the statuses.** `ValidationException` and the three 500 maintenance sites become 4xx;
+   `FeignException` becomes 502 (or the downstream status), not 400.
+5. **The input is in the database.** A CIF is `Cif` with `CifAddress`, `CifCompany`,
+   `CifEmergency`, `CifDocument` and the rest; a maintenance request is
+   `CustomerMaintenance` / `CustomerMaintenanceDetail` / `CustomerMaintenanceEvent`; every
+   edit publishes a `CustomerLog` row through the `@CustomerHistoryAudit` aspect. Read it there.
+6. **Leave the payload filter off.** `REQUEST DATA :` is off on the branch; `master` had it on
+   with a 10 KB cap and a DEBUG logger in `logback.xml`. If a window is ever needed, 4xx only,
+   masked.
+
+### Runbook: a customer asks why their data change was rejected
+
+1. Get the `x-request-id` from the console (already returned) or the CIF id and the time.
+2. `CustomerMaintenanceEvent` for that request shows the outcome and actor; `CustomerLog` shows
+   what changed.
+3. Once step 1 ships: `service:prod-ms-customer @event:request_rejected @cif_id:<id>`, or
+   `@correlationId:<reference>`.
+4. If the rejection came from CONFINS, open the trace: the outbound span carries its status.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -276,3 +348,8 @@ Files:
 - [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
 - [ ] Pin the `CommonsRequestLoggingFilter` level in `application-prod.yaml`
 - [ ] Add one INFO line per business outcome — five INFO entries a week is not observability
+- [ ] Log one structured WARN decision line per rejected request in `ErrorAdvice`; add it to `handleBusinessException` and the catch-all
+- [ ] Remove `getRejectedValue()` from the bean-validation response and log line
+- [ ] Add `x-request-id` to `ErrorResponse` (already a response header)
+- [ ] Move the `LogstashEncoder` from the `/tmp/log` file appender to the console appender
+- [ ] Return 4xx for `ValidationException` and the 500 maintenance sites; 502 for downstream `FeignException`

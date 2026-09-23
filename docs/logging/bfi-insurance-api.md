@@ -203,6 +203,73 @@ report the same error. SRE has to fix that before anything can be switched on.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 33 of 97 request bodies) | 400, `reason: "<field> (value : <rejectedValue>) <message>"` — **echoes the value** | **nothing** |
+| Business rule via `GeneralException` — **607 throw sites** — and 22 sibling classes | 400 with `message = e.getMessage()`, `reason: "Bad Request From User"` | **ERROR with a full stack trace**, one per rejection |
+| `FailedGenerateExcelException`, `ReportProcessingException`, `FailedContractStatusException`, `FailedGeneratedDocException`, `InsuranceH2hException` (27 sites) | **500** — missing from the handler list | ERROR with stack |
+| Claim validation (`ClaimReceiveValidationException`) | 400 with an errors list | ERROR `Claim validation error: <message>`, no stack |
+
+Production, seven days: **506,193 error lines and 417,620 warn**, against 12,355 info. This
+service logs a rejected request as a crash, 607 different ways. The consumer side is worse:
+`Exception(won't retry, direct to dead queue) … payload {…}`, `RetryableException … payload {…}`
+and `life insurance - Update customer data failed … payload : {…}` each print the whole message
+— agreement numbers, bank account numbers, NIK, phone numbers, addresses — at ERROR, and
+`ConsumerLoggingAspect` prints every consumed payload at INFO with no switch.
+
+### What is already right, and the gaps
+
+Right: `CorrelationIdFilter` **writes `X-Correlation-Id` back**, carries it onto RabbitMQ
+headers and restores it in consumers; the JSON encoder includes the MDC. The gaps:
+
+1. Bean validation is silent and business rules are stack traces. Neither is a decision line.
+2. The rejected value is in the response.
+3. The reference is not in `JsonBaseHeader`.
+4. The consumer payload lines are the largest personal-data exposure in this service, and
+   they are not about validation at all.
+
+### The best practice for this service
+
+1. **One WARN line, no stack, for every `GeneralException`.** In `ApiGenericExceptionHandler`
+   replace `log.error(msg, e)` on the 400 branch with a structured WARN `request_rejected`:
+   route, status, the insurance or claim id from the path, `message`. Keep the stack for the
+   500 branch. This one edit removes most of the half-million error lines a week.
+2. **Log the bean-validation rejection** the same way, with `fields: [{field, rule}]`, and
+   **drop the value** from `reason`.
+3. **Put the correlation id in `JsonBaseHeader`.** The header is already returned.
+4. **Add the five missing classes to the 400 list.** A report that cannot be generated from
+   the given input is a 4xx, not a 500.
+5. **The input is in the database.** `InsuranceCustomerRequest` holds the customer request,
+   `OutboxPolling.messagePayload` every published message, `LogProcess` and `MqLogs` the
+   consumer outcomes per application and reference id, and the audit-trail client records the
+   changes. Read it there.
+6. **Replace the consumer payload lines with identifiers** — `reference_id`, `agreement_number`,
+   `application_id`, the consumer name and the idempotency key — in `BravoConsumerWrapper`
+   (#3298 already switches to byte counts), `ConsumerLoggingAspect` and
+   `CustomerNotificationServiceImpl`. The message itself is in `OutboxPolling` or the dead
+   queue.
+
+### Runbook: a customer asks why an insurance request was refused
+
+1. Get the `X-Correlation-Id` from the console (already returned) or the insurance id and time.
+2. `service:prod-ms-bfi-insurance-api @correlation_id:<ref>` today (note the MDC key is
+   `correlation_id` here); `@event:request_rejected @insurance_id:<id>` once step 1 ships.
+3. For a consumer failure, `LogProcess` by application id, then the dead-queue message.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -342,3 +409,8 @@ Files:
 - [ ] Replace the life-insurance customer payload with `guid`, `cif_id` and `confins_customer_id`
 - [ ] Decide whether `HttpJsonLoggingFilter` is meant to be live; if kept, give it field masking
 - [ ] Chase SRE on the Remote Configuration failure — 579 failed polls in two days
+- [ ] In `ApiGenericExceptionHandler`, WARN without a stack for the 400 branch (607 `GeneralException` sites); keep the stack for 500
+- [ ] Log bean-validation rejections with the field list; drop the value from `reason`
+- [ ] Put `X-Correlation-Id` in `JsonBaseHeader`
+- [ ] Add the five report/contract exception classes to the 400 list
+- [ ] Replace consumer payload lines (`ConsumerLoggingAspect`, `BravoConsumerWrapper`, `CustomerNotificationServiceImpl`) with identifiers

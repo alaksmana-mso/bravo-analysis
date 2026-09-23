@@ -252,6 +252,74 @@ Remote Configuration has to work first, and it does not: 207 failed polls in two
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 240 of 301 request bodies) | **422** `{message: "Validation Error", errors: [{object, field, rejected_value, rejected_reason}]}` — **the rejected value is echoed**, masked only for `CreateLeadRequest` | **nothing** (`APISchemaValidationExceptionHandler` has only a DEBUG line for unreadable bodies) |
+| Business rule via `BusinessException` (about 100 subclasses: `FormNotFound` 143 sites, `VerificationException` 95, `LeadSubmissionException` 72, `AgentNotFoundException` 54, `InvalidParameterException` 33, …) | the exception's status with `code` and `message` | **nothing** — none of the eight advice classes logs |
+| Any `RuntimeException` | **500 "server error"**, cause dropped | **nothing** |
+| Required fields missing on a form group (the completeness check in the service layer) | 400 | one WARN line `Validation error for group id <id>, with required fields : $.customer.address[KTP].rt, …` |
+
+That last row matters. Production writes about **4,700 of those lines a week** (755,588 warn
+lines in total), and each one is exactly the decision line this write-up asks for: the group
+id, the JSON paths of the fields that failed, and no values. Onboarding already has the model;
+it just is not applied at the exception handlers, and it is not searchable by field because the
+paths are a comma-joined string inside the message.
+
+### What is already right, and the gaps
+
+Right: `CorrelationIdFilter` **writes `X-Correlation-Id` back** on every response. Right: the
+lib's `CustomLogstashEncoder` makes production JSON with the MDC. Right: the completeness line.
+The gaps:
+
+1. The two handlers that see every rejection log nothing, and the 500 path swallows the cause.
+2. The 422 body ships the customer's rejected values — NIK, phone, income — back to whatever
+   client and proxy log sits in between, for every form except the lead form.
+3. The reference is a header only; no error body carries it.
+
+### The best practice for this service
+
+1. **Log the decision in `BusinessExceptionHandler` and `APISchemaValidationExceptionHandler`.**
+   One WARN `request_rejected` with route, status, `code`, the application form or group id
+   from the path, and the field list as an array (`fields: [{field, rule}]`). Give the
+   `RuntimeException` catch-all an ERROR with the stack; today a real fault is a silent 500.
+   Move the completeness line to the same shape, with `required_fields` as an array instead
+   of a comma string, so Datadog can facet on it.
+2. **Drop `rejected_value` from the 422 body.** The field and the reason are the answer; the
+   value is what the customer typed and already knows.
+3. **Put the correlation id in the error bodies** (`ApiSchemaValidationException`, the
+   `BusinessException` JSON). The header is already there.
+4. **The input is in the database three times over.** The application form is `ApplicationForm`
+   and its 60 sibling entities; the vendor calls are stored with request and response in
+   `ExternalServiceHistory`; and `AuditTrailLogInterceptor` writes before-and-after snapshots
+   per group id for every `@AuditTrailLog` method. "What did the customer input" is a query by
+   group id.
+5. **Keep the payload paths off.** `ApplicationRequestLoggingFilter` is masked and DEBUG-gated
+   and the manifest sets it OFF; `FeignSlf4jLogger` is DEBUG-gated behind
+   `com.bfi.bravo.adapter`, which `application.yaml` sets to DEBUG and the prod profile does
+   not override — the manifest is what keeps it quiet (8 body entries in 7 days). Do not open
+   either to answer a customer question.
+
+### Runbook: a customer asks why their application form was refused
+
+1. Get the `X-Correlation-Id` from the console (already returned) or the group id and time.
+2. `service:prod-ms-onboarding "Validation error for group id" @correlationId:<ref>` today;
+   `@event:request_rejected @group_id:<id>` once step 1 ships.
+3. For the data, `ApplicationForm` by group id, and the audit-trail snapshots for what changed.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -395,3 +463,7 @@ Files:
 - [ ] Lower `setMaxPayloadLength` from 64,000 to 10,000 in both `WebConfig.java` sites
 - [ ] Keep `FeignSlf4jLogger` — it is the reference masking implementation for the estate
 - [ ] Offer the `maskedField` list to the `bravo-lib-logging` maintainers and the bpm squad
+- [ ] Log one WARN `request_rejected` line in `BusinessExceptionHandler` and `APISchemaValidationExceptionHandler`; ERROR with stack for the `RuntimeException` catch-all
+- [ ] Drop `rejected_value` from the 422 body
+- [ ] Put `X-Correlation-Id` in the error bodies (already a response header)
+- [ ] Emit the "Validation error for group id" line with `required_fields` as an array

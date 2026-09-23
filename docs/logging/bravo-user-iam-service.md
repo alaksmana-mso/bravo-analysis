@@ -220,6 +220,64 @@ tracing-stack decision is in
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the caller asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this Go service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Input validation (hand-rolled per handler; 18 `NewMultipleFieldValidation` sites, 20 `NewFieldValidation`) | 400, `fields[]` with `field` and `code` (`REQUIRED` or `INVALID_FORMAT`), no value | the wrapper's access line at WARN: method, `code=InvalidArgument`. No field list. Two methods (`CheckPermission`, `GetAssignedPermission`) are excluded from the access log altogether |
+| Business rule (`NotFoundError` → 404, `UsedEntityError` → 400 "role is used by another entity") | the status and a message | the same WARN access line, no reason |
+| Token or API-secret rejection | 401 or 403 | Keycloak: DEBUG only. API secret: **nothing** |
+| Anything else (62 `NewServerInternal` sites) | **500 with the raw store error text** in 54 of them | ERROR with `request_data` = **the whole request**, unmasked, via the internal-error event |
+
+So the only time a request body reaches this service's log is on a 500, and then all of it.
+
+### What is already right, and the gaps
+
+Right: `request_id` and `dd.trace_id` on every line, JSON, request id in the response header.
+Right: no values in validation responses. The gaps are the same three as `bravo-cnv-service`,
+plus one of its own:
+
+1. The reason is not on the access line; the reference is not in the error body (both are
+   `bfi-go-pkg` changes, see below).
+2. Authentication rejections are DEBUG or silent, so a locked-out user cannot be traced.
+3. On a 500 the response leaks the database error text and the log takes the whole request.
+
+### The best practice for this service
+
+1. **Wrapper changes, shared with every Go service:** the field list and business code on the
+   access line (`requestloggerinterceptor`), and `requestID` written into the error body
+   (`grpcerror`). Nothing in this repository changes for those two.
+2. **Log denials at WARN.** In `keycloaktoken/interceptor.go` and `apisecret/interceptor.go`,
+   one WARN line with method, the reason (expired, wrong audience, missing secret) and the
+   employee number when known.
+3. **Fix the 500 path.** Replace `WithInfo(err.Error())` on the 54 sites with a fixed message,
+   and change `NewAppInternalError`'s `request_data` to the identifiers of the request (role
+   id, permission id, employee number) rather than the proto. The trace already shows the
+   failing store call.
+4. **The input is in the database.** Every mutation is one row in `role`, `permission`,
+   `domain`, `web_menu` or their join tables, with `created_by` / `updated_by` set to the
+   actor's employee number. "Who changed this role and to what" is a query.
+5. **Keep body logging off**, as it is: the HTTP client transport only logs with
+   `HTTP_LOG_ENABLED=true`, which production does not set.
+
+### Runbook: an admin asks why a role change was refused
+
+1. Get the request id from the console (once the wrapper change ships) or the role id and time.
+2. `service:prod-ms-user-iam @request_id:<ref>`: the access line, and after the wrapper change
+   the fields or the business code.
+3. For the data, the `role` / `role_has_permission` rows and their `updated_by` columns.
+
+---
+
 ## In the production deployment
 
 Read from `app-deployment/user-iam/values-prod-sharia.yaml`, `app-deployment/user-iam/values-prod.yaml`, `bfi-app-deployment/user-iam/values-prod.yaml` on 14 September 2026. **This is what the running service actually uses** — a struct default in the code only applies when the variable is absent here, and where a variable is set to `""` the default never applies at all.
@@ -279,3 +337,6 @@ Files:
 - [ ] Confirm both `HTTP_CLIENT_*_BODY_LOGGING` flags are false in both deployment manifests
 - [ ] Do not enable IAM body logging in production under any circumstances
 - [ ] Feed this repo into the tracing-stack decision — on OpenTelemetry there is no Live Debugger
+- [ ] Same two `bfi-go-pkg` asks as `bravo-cnv-service`: field list on the access line, `requestID` in the error body
+- [ ] Log token and API-secret rejections at WARN with the reason
+- [ ] Stop returning raw store error text on 500 and stop attaching the whole request as `request_data`; log identifiers

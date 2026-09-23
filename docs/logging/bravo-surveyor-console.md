@@ -123,6 +123,71 @@ complaint, arriving from the other end.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463`
+lands here from the other side: this console is where the surveyor sees a rejection, and where
+the reference id has to be shown. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** For a browser
+application that means: show the decision, show the reference, and send nothing to RUM that
+the backend would not log. Read from the code on `fix/logging` on 23 September 2026.
+
+### What the surveyor sees today when the server says no
+
+| Situation | What is shown |
+|---|---|
+| A `bpm` 400 with `details[].fields` on the dynamic survey form | the field-level errors, mapped onto the form by `handleBadRequestSubmissionError` — the one place that does this right (6 callers) |
+| Any other failed call, 7 toast sites | a fixed title plus the server's `message` |
+| The other 90 of 97 toast sites | a fixed string: "Gagal memuat data.", "Gagal mengambil data.", "Gagal proses reguler.", "Something went wrong" |
+| Fallback | axios's own text, "Request failed with status code 400" |
+| Any reference id | **never.** No response header is read except `content-type`, and no id is sent on requests |
+
+So when the surveyor calls support, support asks the squad, and the squad reads the payload in
+`bpm`'s log — because the console showed nothing that could be searched for.
+
+### What goes to Datadog RUM today
+
+RUM is on in production at 100% session and replay sampling, with `mask-user-input`. Errors are
+sent from three places (`setup.js`, `sharia-setup.js`, `axiosWrapper.js`), and each one passes
+**the whole `AxiosError` as context**: `config` (URL, method, headers **including the bearer
+token**, and `data`, the request payload) and `response` (status and body). Every failed call
+therefore already ships the request body and the server's verdict to RUM. Check the RUM error
+context in Datadog before assuming any redaction; this is the console's own version of the
+payload-logging habit.
+
+One correction to this branch's own change: `allowedTracingUrls: [REACT_APP_API_URL]` points at
+`surveyor.bfi.co.id`, which almost no call uses. The 1,549 `bpm` calls, 44 `master` and 15
+`onboarding` calls go to `microservices.prod.bravo.bfi.co.id`; the setting has to name that
+host, or RUM resources never join a backend trace. That is fixed on the branch, not merged.
+
+### The best practice for this console
+
+1. **One error-to-message helper, used everywhere.** Generalise `handleBadRequestSubmissionError`:
+   render `details[].fields` (bpm), `errors[]` (agreement, customer) or `message` when that is
+   all there is, and stop the 90 fixed-string toasts. The decision the backend made is in the
+   body; show it.
+2. **Show and forward the reference.** Read `x-request-id` from every error response and put
+   "Ref: …" in the toast; `bravo-agreement-service` and `bravo-customer-service` already return
+   it, `bpm` will. Also *send* `x-request-id` on every request from `axiosWrapper.js`, so one
+   id spans console, `bpm` and the downstream call.
+3. **Send identifiers to RUM, not the request.** `log.sendError` should pass `{status, method,
+   url, request_id, code}`, never `error.config` or `error.response.data`. The bearer token
+   must not be in RUM.
+4. **Fix `allowedTracingUrls`** to `microservices.prod.bravo.bfi.co.id` so the RUM resource and
+   the backend trace share an id; then the reference in the toast is also the trace.
+5. **The data is in `bpm`.** What the surveyor submitted is a process variable in `bpm`'s
+   Camunda history for 90 days; nothing needs to be logged in the browser to answer it.
+
+### Runbook: a surveyor asks why a submission was refused
+
+1. The toast shows the fields and the reference (once steps 1 and 2 ship).
+2. Support searches `@correlationId:<ref>` across `prod-ms-bpm`; the RUM session for the same
+   time shows the click and the failed resource.
+3. For the data, `bpm`'s process variables by process instance id.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -199,3 +264,7 @@ Files:
 - [ ] Add `allowedTracingUrls` to `datadogRum.init`, copying `bravo-inventory-management-system`
 - [ ] Confirm the production RUM sample rates — the code defaults to 1, not 100
 - [ ] Do not wait for Live Debugger; it has no browser implementation
+- [ ] Generalise `handleBadRequestSubmissionError` into one error-to-toast helper and retire the 90 fixed-string toasts
+- [ ] Read `x-request-id` from error responses into the toast and send it on every request
+- [ ] Pass identifiers, not the `AxiosError`, to `datadogRum.addError` (the bearer token and request payload go to RUM today)
+- [ ] Point `allowedTracingUrls` at `microservices.prod.bravo.bfi.co.id`, not `surveyor.bfi.co.id`

@@ -159,6 +159,74 @@ local store`. Thirteen production services report the same error.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from `master` (#399 is merged) and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 14 of 32 request bodies) | 400, code `B0000`, attributes `key: "<rejectedValue>: <message>"` — **echoes the value** | ERROR `Error handleMethodArgumentNotValid: <body>` — the values again, inside the message string |
+| Business rule via `BusinessException` (**130 throw sites**, one class, optional `errorCode`) | the exception's status, `error_code`, `message` | ERROR `Error handleBusinessException: <body>`, no stack |
+| Downstream `FeignException` | **400** with the downstream message in the body | ERROR |
+| Unreadable body, missing parameter | 400 | nothing |
+| `IllegalArgumentException` (7 sites), anything unexpected | 500 | ERROR with the stack |
+
+Production, seven days: 403,660 info, 8,663 error, 6,838 warn, with the root logger at WARN in
+the prod profile. Every rejection is an ERROR; only eleven `Error handleBusinessException` lines
+appeared in the week, so rejections are rare here and the volume is elsewhere.
+
+### What #399 changed, and the side effect it had
+
+#399 (merged 15 September) turned `setting.features.enableBfiLogger` off by default, so the
+lib's request and Feign body loggers stop writing payloads in production. Right. But
+`LoggerConfiguration` carries the same condition on the **class**, so the lib's
+`CorrelationIdFilter` went with them: production log lines from this service lose their
+`correlationId` once that release deploys, and the prod manifest does not set the flag.
+**Fixed in [#409](https://github.com/bfi-finance/bravo-inventory-management-service/pull/409)**
+(opened 23 September): the correlation filter is registered unconditionally, the two body
+loggers stay behind the flag. Compiled and format-checked locally.
+
+### The gaps
+
+1. Rejections are ERROR with the rejected values in the message string, so they neither carry
+   a level that means anything nor facet on anything.
+2. The lib's `CorrelationIdFilter` reads `X-Correlation-Id` into the MDC and never returns it;
+   no error body has an id.
+3. A downstream failure is reported as the caller's fault (400).
+
+### The best practice for this service
+
+1. **Shape `ErrorAdvice` into the standard event.** WARN `request_rejected` with route, status,
+   `error_code`, the agreement number or asset id from the path, `fields: [{field, rule}]` for
+   bean validation — as structured arguments, not a body concatenated into the message — and
+   **drop `getRejectedValue()`** from the body and the line. Keep ERROR with the stack for the
+   500 branch only.
+2. **Return the correlation id.** A one-line filter that sets `X-Correlation-Id` on the response
+   (the lib filter cannot), and the same value on the error body. #409 is the precondition; this
+   is the next step.
+3. **Return 502 or the downstream status for `FeignException`**, not 400.
+4. **The input is in the database.** An inbound agreement is `AgreementInboundProcessEntity`
+   with its `referenceId`, then `AgreementInventoryEntity` and the collateral, checklist,
+   grading and relocation entities; every published change is in `EventStore`. Read it there.
+5. **Keep the body loggers off** (`enableBfiLogger=false`, Feign `basic`), as #399 left them.
+
+### Runbook: a branch asks why an inventory update was refused
+
+1. Get the reference (once step 2 ships) or the agreement number and time.
+2. `service:prod-inventory-management @correlationId:<ref>` (after #409 deploys), or
+   `@event:request_rejected @agreement_number:<n>` once step 1 ships.
+3. For the data, `AgreementInboundProcessEntity` by reference id and `EventStore`.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -301,3 +369,7 @@ Files:
 - [ ] Set `SETTING_FEATURES_ENABLEBFILOGGER=false` in production, or flip the YAML default
 - [ ] Read `bravo-lib-logging` and record what `RequestLoggingFilter` actually captures
 - [ ] Volunteer this service as SRE's log-to-trace correlation pilot — 5,819 entries already carry `dd.trace_id`
+- [ ] Merge and deploy #409 so `correlationId` returns to the log lines
+- [ ] Shape `ErrorAdvice` into a WARN `request_rejected` event with identifiers; drop `getRejectedValue()`
+- [ ] Return `X-Correlation-Id` on the response and in the error body
+- [ ] Map downstream `FeignException` to 502 or the downstream status, not 400

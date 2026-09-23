@@ -158,6 +158,68 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 40 of 68 request bodies), 39 of 41 controllers | 400 `"Some required parameter is not sent"` — **no field list** | ERROR `Exception ` **with the full stack trace**, whose first line carries `rejected value [...]` |
+| Bean validation on `DocumentControllerV2` (its own handler) | 400 with `ex.getMessage()` — **the rejected values, echoed** | nothing |
+| Business rule: **292 raw `ResponseStatusException` sites** (132 → 400, 84 → 404, 22 → 500), `StateMachineException` 29 (403), `NotFoundException` 8 | Boot's default `/error` body with the reason | **nothing** from any handler |
+| `IllegalArgumentException` (33 sites) | 400 under `DocumentControllerV2`, **500** everywhere else | nothing |
+
+This service is silent in Datadog (no log entries in seven days). It also has three advice
+classes that disagree with each other: the global one hides the fields from the caller and
+prints them to the log; the V2 one does the reverse; the PBF one covers one exception.
+
+### What is already right, and the gaps
+
+Right: `ConfinsRequestLog` — every outbound CONFINS call is stored in the database with path,
+method, request payload, response payload and status. That is the "keep the data in the
+database" pattern, already built. One correction to this branch: the first commit of #1525 set
+`ApigeeApiClient` to `loggerLevel: basic`, and `FeignConfinsLogger` only writes those rows when
+the level is above `HEADERS`, so the audit table silently stopped filling. **Restored to `full`
+on 23 September** (`77683260`, explained on the pull request); the logger's own output is DEBUG,
+so `full` adds nothing to stdout. The gaps:
+
+1. No handler logs a decision, and 292 rule sites bypass the handlers entirely.
+2. The reference never returns: the lib's `CorrelationIdFilter` reads `X-Correlation-Id` into
+   the MDC and sets no header; no error DTO has an id field.
+3. The one logged rejection is a stack trace with the customer's values in it.
+
+### The best practice for this service
+
+1. **One `ErrorAdvice` for the whole service.** Fold the V2 and PBF handlers into it; add
+   `ResponseStatusException` and `BusinessException` handlers so the 292 sites return the
+   same body shape (`code`, `message`, field list) and write one WARN `request_rejected` line:
+   route, status, the document or agreement number from the path, `fields: [{field, rule}]`.
+   Drop the stack and the rejected values from the bean-validation line; return the field list
+   to the caller instead of "Some required parameter is not sent".
+2. **Return the correlation id.** A one-line filter that sets `X-Correlation-Id` on the
+   response (the lib filter cannot), and the same value on the error body.
+3. **The input is in the database.** Documents, custody, delivery and relocation requests are
+   55 entities with `EventStore` and `NotificationOutbox`; CONFINS calls are in
+   `ConfinsRequestLog`; the one audit-trail call covers document downloads. Read it there.
+4. **Ship the logs to Datadog** (item 2 of this file) so the decision line can be searched.
+5. **Keep the lib body loggers behind `enableBfiLogger`**, as the branch does; on `master` they
+   ran unconditionally.
+
+### Runbook: a branch asks why a document request was refused
+
+1. Get the reference (once step 2 ships) or the agreement number and time.
+2. `service:prod-ms-edoc @event:request_rejected @agreement_number:<n>` once the logs arrive.
+3. For the data, the `AssetDocument*` rows; for a CONFINS answer, `confins_request_log`.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -311,3 +373,6 @@ Files:
 - [ ] Answer three questions about `ConfinsRequestLog`: how big, how long kept, who can read it
 - [ ] Say in the repo whether that table exists for audit or for debugging
 - [ ] Put the `bravo-lib-logging` beans behind `@ConditionalOnProperty`, defaulting to false
+- [ ] One `ErrorAdvice` with `ResponseStatusException` / `BusinessException` handlers and a WARN `request_rejected` line; field list to the caller, no stack, no values
+- [ ] Return `X-Correlation-Id` on the response and in the error body
+- [ ] Keep `ApigeeApiClient` at `full` — `FeignConfinsLogger` persists to `confins_request_log` only above `HEADERS` (restored on the branch 23 Sep)

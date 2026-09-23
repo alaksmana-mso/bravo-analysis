@@ -135,6 +135,68 @@ store`. Thirteen production services report the same error.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 34 of 109 request bodies) | 400, `code: "NotValidException"`, `message: "[field: message, …]"`, no value | ERROR `MethodArgumentNotValidException: ` **with the stack trace** — and the exception's own message, which lists `rejected value [...]` per field |
+| Wrong parameter type | 400, message echoes the value | ERROR with stack |
+| Business rule via `BusinessException` (`BadRequestException` 27 sites, `AgentException` 27, `AgentProductException` 14, `OnboardingClientException` 7) | the exception's status, `code`, `message`, `path`, `timestamp` | ERROR `BusinessException: ` / `AgentProductException: ` with the stack |
+| Anything unexpected | 500 with the exception message | ERROR with stack |
+
+Production, seven days: 36,373 error lines against 82,977 info and 243 warn. The error patterns
+are `AgentProductException:`, `BusinessException:`, `OnboardingClientException:` and
+`Data map is null or not of expected type` — rejections, logged as faults, with stacks.
+
+### What is already right, and the gaps
+
+Right: `CorrelationIdFilter` **writes `X-Correlation-Id` back**, and the lib encoder gives JSON
+with the MDC. Right: the response body names fields, not values. The gaps:
+
+1. Every rejection is an ERROR with a stack trace; the level carries no information and the
+   traces are most of the service's error volume.
+2. The bean-validation log line prints the rejected values through the exception message.
+3. The reference is a header only; the body has `path` and `timestamp` but no id.
+4. **No database** (Redis for cache and locks): this is a BFF over Apigee, onboarding, KYC,
+   incentive, bpm and agreement. The record of an agent's request is in `bravo-onboarding-service`
+   or the partner API, so the reference id has to travel.
+
+### The best practice for this service
+
+1. **WARN without a stack for every 4xx** in `AgentProductExceptionHandler`: one
+   `request_rejected` line with route, status, `code`, the agent or lead id from the path, and
+   for bean validation the field list from `getFieldErrors()` — not `e.getMessage()`. Keep
+   ERROR and the stack for the 500 branch only.
+2. **Put the correlation id in `AgentException`'s body** next to `path` and `timestamp`.
+   `CorrelationIdFeignInterceptor` already forwards it downstream, so the same id reaches
+   onboarding's decision line.
+3. **The data is downstream.** A lead or application submitted through this service is an
+   `ApplicationForm` in onboarding with its audit-trail snapshots; answer from there by the
+   forwarded correlation id.
+4. **Keep the three payload routes closed.** `CommonsRequestLoggingFilter` payload off and WARN
+   (the branch), the lib's `RequestLoggingFilter` governed by `REQUEST_BODY_LOGGING` in the
+   manifest, and `FeignSlf4jLogger` behind `FEIGN_LOGGER_LEVEL=BASIC` — its DEBUG gate on
+   `com.bfi.bravo.adapter` is open in the prod profile, so the manifest is what keeps it quiet.
+
+### Runbook: an agent asks why a lead was refused
+
+1. Get the `X-Correlation-Id` from the console (already returned) or the lead id and time.
+2. `service:prod-ms-agency @correlationId:<ref>` today (the ERROR line); `@event:request_rejected`
+   once step 1 ships. The same id in `service:prod-ms-onboarding` shows the rule that fired.
+3. For the data, onboarding's `ApplicationForm` by group id.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -271,3 +333,5 @@ Files:
 - [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
 - [ ] Pin `FEIGN_LOGGER_LEVEL` to `BASIC` in the production manifest — it defaults to `FULL`
 - [ ] Add body entries to `FeignSlf4jLogger.MASKED_FIELD`; today it masks headers only
+- [ ] `AgentProductExceptionHandler`: WARN without a stack for 4xx, field list from `getFieldErrors()` instead of `e.getMessage()`
+- [ ] Put `X-Correlation-Id` in the `AgentException` body (already a response header)

@@ -156,6 +156,82 @@ store`.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+Three generations of code answer differently:
+
+| Generation | How the request fails | Caller gets | Log says |
+|---|---|---|---|
+| v1 | `express-validator` chains | 422 `{header: {status, errors: [{value, msg, param, location}]}}` — **the rejected value is echoed** | nothing |
+| v2 | Joi middleware (`validate.js`, 8 route files) | 400 `{errors: [<every Joi message>]}` | nothing |
+| v3 | Joi inline in the handler | 400 `{errors: […]}` | ERROR `"message":"Validate"` with a `tracer_id` — no field names |
+| v3 | `AppError` business rule (109 sites) through `handleCatchError` | its own status and code | ERROR **with a stack trace**, even for a 400 |
+| all | anything unhandled | 500 `Internal Server Error` | `console.error(err.stack)` to stderr, plain text, no trace id |
+
+Of 236 places that answer 400 or 422, 39 log anything within three lines; about 197 return in
+silence. A second error handler with a winston line exists (`src/v2/middleware/errorHandler.js`)
+and is never mounted.
+
+### What is already right, and the gaps
+
+Right: `requestLogger.js` derives a trace id from the Datadog span (or `x-trace-id`, or a UUID)
+and attaches it to `req.log`, and the tracer runs with `logInjection: true`, so lines written
+through winston carry `dd.trace_id`. The gaps:
+
+1. **The trace id never leaves the process.** It is not set on a response header and not in
+   any error body, so the customer-facing app has nothing to show and support nothing to quote.
+2. **Rejections are silent in v1 and v2, and faults-with-stacks in v3.** Neither is a decision line.
+3. **v1 echoes the rejected value** to the caller. For this service that is a phone number, a
+   plate or an identity number typed into a public web form.
+4. **Most handler "fields" are inside the message string** (`"service_app":"…","message":"…"`
+   written as text), so Datadog cannot facet on them.
+5. One thing to verify rather than assume: on `master`, `requestLogger.js` logs **every**
+   request at INFO with the masked body and the parsed response, unconditionally (`LOG_MASK_ENABLED`
+   is forced on and there is no off switch). The per-service doc says this service does not log
+   bodies, and its 3,369 lines a week say the deployed build predates that change. Check
+   `service:digital-prod-ms-bfi-digital-web-api @http.status_code:*` before relying on either.
+
+### The best practice for this service
+
+1. **One decision line, in the two places every generation passes through.** Mount the unused
+   `errorHandler.js` with a winston WARN/ERROR line as the last middleware, and add one WARN
+   `request_rejected` line to `validate.js` (v2) and `customException.handle` (v1, 327 call
+   sites go through it). Fields: route, status, the Joi `details[].path` or express-validator
+   `param` list, the submission id or lead id when present, `trace_id`. Log as an object, not a
+   pre-serialised string, so the fields become attributes.
+2. **Drop `value` from the v1 error body.** `errors.array()` returns it by default; map to
+   `{param, msg}` before answering.
+3. **Return the reference.** `requestLogger.js` already has `req.traceId`; set it as
+   `x-trace-id` on the response and add it to the three error body shapes.
+4. **v3: WARN without a stack for `AppError` below 500.** Keep the stack for the 500 branch.
+5. **The input is in the database.** Submissions are `nt_submission_*`, `customerapps_submission`,
+   `partner_submission` and `partnerbravo_submission` rows; the calls this service makes to
+   Bravo and Centrix are recorded with request and response in `log_bravo` and
+   `partnerbravo_submitapplication_log`. A rejected inbound request is the one thing not stored,
+   and the decision line is what covers it.
+6. **Decide on `requestLogger.js`.** If the every-request body line is deployed, restrict it to
+   4xx and 5xx; if it is not, do not deploy it as is. This service also sends five file-only
+   loggers to `./logger/*/info.log`, which nobody reads in Datadog.
+
+### Runbook: a customer asks why their web application was refused
+
+1. Get the `x-trace-id` shown by the site (once step 3 ships) or the phone number's submission
+   id and the time.
+2. `service:digital-prod-ms-bfi-digital-web-api @event:request_rejected @submission_id:<id>`, or
+   `@dd.trace_id:<ref>`.
+3. For the data, the `nt_submission_*` row; for what Bravo answered, `log_bravo` by submission.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -300,3 +376,8 @@ Files:
 - [ ] Fix the env tag first — nothing SRE enables for `env:prod` reaches this service
 - [ ] Check what `JSON.stringify(err)` produces for a failed MSSQL connection before calling it harmless
 - [ ] Find out why 679 `console.log` calls produce only 3,369 log entries a week
+- [ ] Mount `errorHandler.js` last with a winston line; add one WARN `request_rejected` line to `validate.js` and `customException.handle`, as an object with field paths
+- [ ] Drop `value` from the v1 `express-validator` error body
+- [ ] Set `x-trace-id` on the response and put it in the error bodies
+- [ ] v3 `handleCatchError`: WARN without a stack for `AppError` below 500
+- [ ] Verify whether `requestLogger.js`'s every-request body line is deployed; restrict it to 4xx/5xx either way

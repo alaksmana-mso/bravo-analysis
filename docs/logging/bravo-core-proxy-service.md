@@ -124,6 +124,73 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 24 of 171 request bodies — 14%) | 400 with `field: message` errors | **nothing** |
+| Wrong parameter type | 400, the cause message echoes the rejected value | nothing |
+| Business rule (`PaymentException` 9 sites, `IdempotencyException`, `AgreementException`, `MaintenanceException`, `NewCoreClientException`) | the exception's own status; downstream errors passed through | **nothing** |
+| `UnsupportedOperationException` (12 sites), `NotImplementedException` (3), anything unexpected | **500 with the exception message** | **nothing** |
+
+`ControllerAdvice` has no logger at all: not one `log.` statement in 330 lines. This service
+sends 746,000 spans a week and **zero log entries** to Datadog. A rejected request leaves no
+record anywhere except the response the caller received.
+
+### The two gaps
+
+1. **The reference never goes back to the caller.** `CorrelationIdFilter` reads
+   `X-Correlation-Id`, generates a UUID, puts it in the MDC, propagates it into executors and
+   AMQP headers — and sets no response header. `BaseResponse` has no trace field. The console
+   pattern prints only `%X{correlationId}`; `dd.trace_id` is in the MDC and never printed.
+2. **Nothing is recorded, and there is nowhere to look.** This is a proxy: it stores mapping
+   tables and an outbox, not the proxied request. Only 4 entities exist. So unlike the other
+   services, "read it from the database" is not available here; the record of the request is
+   in the core system downstream and in the trace.
+
+### The best practice for this service
+
+1. **One WARN decision line per rejection, from `ControllerAdvice`.** Give the class a logger
+   and add one statement to `handleBusinessException`, `handleMethodArgumentNotValid`,
+   `handleNewCoreClientException` and the catch-all: event `request_rejected`, route, status,
+   the error code, the agreement or payment id from the path, the field and rule for bean
+   validation, and the downstream status for a passed-through core error. No stack trace for a
+   rule; keep one for the catch-all, which today returns 500 silently.
+2. **Return the reference.** One `setHeader` line in `CorrelationIdFilter`, plus a field on
+   `BaseResponse`. Because this service already forwards the id into AMQP headers, the same
+   reference then follows the request into the consumers.
+3. **The trace is the record here.** For a proxy the Datadog trace is where the request and the
+   downstream answer meet: the outbound span carries the core system's status and URL. Print
+   `dd.trace_id` (the pattern has room, or use a JSON encoder) so the decision line opens the
+   trace. For the body itself, Live Debugger on the client method once Remote Configuration
+   works, or the downstream system's own record.
+4. **Fix the 500s that are really 4xx.** Twelve `UnsupportedOperationException` sites and three
+   `NotImplementedException` sites reach the catch-all as 500 with no line. Map them to 501 or
+   400 with a code, and log them.
+5. **Keep the payload switch off.** `LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER=WARN` and
+   `FEIGN_LOGGER_LEVEL=BASIC` on the branch close both routes (`master` had `DEBUG` with a 64 KB
+   payload and Feign `FULL` with the `com.bfi.bravo.client` logger at DEBUG in prod). If a
+   window is ever needed, capture on 4xx only and through a masker.
+
+### Runbook: a customer asks why a core transaction was rejected
+
+1. Get the reference (once step 2 ships) or the agreement number and the time.
+2. Datadog APM: `service:prod-ms-bravo-core-proxy` traces for that time window, filter by the
+   resource; the outbound span shows the core system's status. Once step 1 ships, start from the
+   decision line instead: `@event:request_rejected @agreement_number:<n>`.
+3. For the data, ask the downstream core system by its own reference; this service does not hold it.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -282,3 +349,7 @@ Files:
 - [ ] Enable log collection **after** the non-production exclusion filters exist
 - [ ] Fix the payload filter default **before** log collection is fixed, not after
 - [ ] Ask SRE for `DD_TRACE_HEADER_TAGS` — for a proxy this carries the caller's request id across the hop
+- [ ] Give `ControllerAdvice` a logger and one structured WARN decision line per rejected request; keep the stack trace for the catch-all only
+- [ ] Return `X-Correlation-Id` in the response and put it on `BaseResponse`
+- [ ] Print `dd.trace_id` in the log output so a rejection opens its trace
+- [ ] Map `UnsupportedOperationException` / `NotImplementedException` to a 4xx/501 with a code instead of a silent 500

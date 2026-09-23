@@ -147,6 +147,70 @@ report the same error.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 27 of 156 request bodies) | Boot's default body, no field list — no handler exists in any of the eight advice classes | Spring's own WARN `Resolved [… rejected value [...]]` |
+| Unreadable body | 400 with the message; the enum case echoes the invalid value; the BRI partner handler answers **500** `UNEXPECTED_ERROR` | nothing |
+| Business rule via `BusinessException` (about 80 partner-specific classes: `TransferErrorException` 34 sites, `AccountInquiryErrorException` 32, `BillNotFoundBriException` 19, `TokopediaException` 15, `GotoException` 14, …) | the exception's status with `cause`, `message`, `code`, `reason` | **nothing** in `GlobalExceptionHandler`; only the CentralPaymentPoint handler (WARN) and the Jago handler (ERROR) log |
+| `PaymentPointException`, `BillNotFoundException`, `OnlinePaymentTransactionException` (20 sites, no handler, no `@ResponseStatus`) | **500** | Spring's WARN |
+| `AccessDeniedException` (payment-point handler) | **401**, should be 403 | nothing |
+
+Production, seven days: 73,520 warn, 16,986 error. Among the warn lines: the BCA account-inquiry
+400s, logged with the **raw partner response including the beneficiary account number**.
+
+### The gaps
+
+1. No decision line, and eight handler classes that each do a little of the job.
+2. The reference never returns: `CorrelationIdFilter` reads `X-Correlation-Id` into the MDC and
+   sets no header; `BaseJsonErrorResponseDto` has no id field. For the BCA virtual-account flow
+   the service *does* create a reference — the `HostToHostVaNotificationLog` row id, saved in the
+   auth filter before processing, kept as `X-Internal-Log-Id` on the request — and never returns it.
+3. Two handler bugs seen in passing: `@ExceptionHandler(ParsingException.class)` on a method
+   whose parameter is `HandleDatabaseErrorException` (never matches, falls to 500), and
+   `AccessDeniedException` mapped to 401.
+4. `application-prod.yaml` is an empty file, so every production level and switch comes from
+   the manifest.
+
+### The best practice for this service
+
+1. **One decision line in `GlobalExceptionHandler`**, WARN, for every `BusinessException` and a
+   new `MethodArgumentNotValidException` handler with the field list: route, status, `code`,
+   the partner (`bca`, `bri`, `doku`, `goto`, `tokopedia`, `jago`), the partner reference number
+   and the virtual-account or bill id — never the account number. Keep ERROR and the stack for
+   the true 500 branch. Give the twenty unhandled rule sites a status.
+2. **Return the reference.** `setHeader` in `CorrelationIdFilter` plus a field on
+   `BaseJsonErrorResponseDto`. For the virtual-account flow, return the existing internal log id
+   as well; it already points at the stored request.
+3. **The input is already persisted before processing** for the flows that matter:
+   `HostToHostVaNotificationLog` (saved in the auth filter), `PaymentPointLogTransaction` and
+   its Goto and Tokopedia variants, `HostToHostJagoCallbackTransactionLog`,
+   `AutoDebitTransactionLog`, `AccountValidationLog`. That is the pattern this write-up asks
+   for; the rows hold reference numbers and response codes, not raw payloads, which is right.
+4. **Take the account number out of the partner-error lines.** The BCA `Invalid Field Format
+   beneficiaryAccountNo` line prints the raw response twice; log the response code and the
+   partner reference only.
+5. **Fix the two handler bugs** and the BRI 500-for-bad-input while there.
+
+### Runbook: a customer asks why a payment was refused
+
+1. Get the reference (once step 2 ships) or the partner reference number and time.
+2. `service:prod-ms-bfi-payment-api @event:request_rejected @partner_reference:<n>`.
+3. For the data, the transaction log row for that partner and reference.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -282,3 +346,7 @@ Files:
 - [ ] Leave the two-bean `RequestLoggingFilterConfig` alone — it is the pattern, not a leftover
 - [ ] Volunteer this service as the Live Debugger pilot: cleanest logging, highest Remote Configuration failure count
 - [ ] Ask SRE for `DD_TRACE_HEADER_TAGS` so partner correlation ids land on spans
+- [ ] One WARN `request_rejected` line in `GlobalExceptionHandler` for every `BusinessException`; add a `MethodArgumentNotValidException` handler with the field list; give the 20 unhandled rule sites a status
+- [ ] Write `X-Correlation-Id` back and put it (and the VA internal log id) on `BaseJsonErrorResponseDto`
+- [ ] Log partner error responses as code and reference, not the raw body with the account number
+- [ ] Fix the `ParsingException` handler signature and the 401-for-`AccessDeniedException` mapping

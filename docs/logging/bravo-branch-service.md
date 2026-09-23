@@ -126,6 +126,60 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on all 24 request bodies) | Boot's default body: `"Validation failed for object='…'. Error count: 2"` — **no field list**, because no handler exists | Spring's own WARN `Resolved [MethodArgumentNotValidException … rejected value [...]]` — the values, in the framework's line |
+| `JsonValidationException` (93 sites, e.g. "active cannot be null") | 400 `{code: "INVALID_ARGUMENT", message}` | **nothing** |
+| Other `BusinessException` (`LimitException`, `DuplicateIdException`, `CsvHeaderValidationException`, …) and 24 raw `ResponseStatusException` sites | Boot's default body | **nothing** |
+| `IllegalArgumentException` | 400 with the message | nothing |
+
+This service is one of the six that emit **no logs and no traces** in production, so even the
+framework's line goes nowhere today.
+
+### The gaps
+
+1. The caller is told a count, not a field. The one place the field names exist is the
+   framework's WARN, which nobody indexes.
+2. Nothing logs a business rule.
+3. The lib's `CorrelationIdFilter` puts `X-Correlation-Id` in the MDC and does not return it;
+   the app's own `LoggingConstants` says `x-request-id` but is never used.
+
+### The best practice for this service
+
+1. **Add `MethodArgumentNotValidException` and `BusinessException` handlers to
+   `ApiExceptionHandler`**, returning the field list (`field`, `message`) and the class's code,
+   and writing one WARN `request_rejected` line with route, status, code, the branch or cluster
+   id from the path and `fields: [{field, rule}]`. No values, no stack.
+2. **Return the correlation id.** The lib filter cannot; add a one-line filter (or wait for the
+   starter, whose filter has the same gap and needs the same fix) that sets `X-Correlation-Id`
+   on the response, and put it in the error body.
+3. **The input is in the database.** Branches, sub-branches, areas, clusters and coverage are 32
+   entities with an `EventStore` and `OutboxPolling` for every published change. Read it there.
+4. **Keep the payload filter off** — `master` had `REQUEST DATA :` with a 10 KB payload and the
+   lib's request/response body filters registered unconditionally; the branch turns both off.
+5. **Get the service into Datadog** first; item 2 in this file. A decision line nobody can search
+   is not a decision line.
+
+### Runbook: a user asks why a branch change was refused
+
+1. Get the reference (once step 2 ships) or the branch code and time.
+2. `service:prod-ms-branch @event:request_rejected @branch_code:<code>` once the logs arrive.
+3. For the data, the `Branch` / `SubBranch` rows and `EventStore`.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -279,3 +333,5 @@ Files:
 - [ ] Enable log collection **after** the non-production exclusion filters exist
 - [ ] Put the `bravo-lib-logging` beans behind `@ConditionalOnProperty`, defaulting to false
 - [ ] Pin the `CommonsRequestLoggingFilter` level in `application-prod.yaml` before log collection is fixed
+- [ ] Add `MethodArgumentNotValidException` and `BusinessException` handlers to `ApiExceptionHandler` with a field list and one WARN `request_rejected` line
+- [ ] Return `X-Correlation-Id` on the response and in the error body

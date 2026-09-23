@@ -147,6 +147,75 @@ service as it stands.** Do not promise it to this squad until the tracing-stack 
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Backend route, body does not decode or validate | 400 `{type: "type.client", code: "code.body_decoding" or "code.validation", message}` | ERROR "failed to decode request body" / "failed to validate service task" — the second embeds the **whole task struct** in the error text |
+| Frontend (HTMX) route, any rule | an `HX-Trigger` header carrying `{details, error_code}` and an error fragment — **with HTTP 200**, because `common.WriteError` returns before `WriteHeader` | the wrapper's access line records **status 200**. The rejection is invisible to any status-based search |
+| Business rule ("unassigned task has no write permission", "task already completed", "requester not authorized to upload document", "filter expression is invalid", …) | 400 | **ERROR**, same level as a real fault |
+| A form field that fails the schema cast | the submission is accepted with the field **skipped** | ERROR "error converting form submission" with `field` and the raw `form_value` |
+| Temporal update fails | 500 "could not submit data to workflow - try later?" | ERROR |
+
+Production, seven days: 3.87 million warn lines and 46,700 error lines. The warn stream is the
+routine noise item 1 of this file describes; the rejections are inside the error stream, mixed
+with faults.
+
+### What is already right, and the gaps
+
+Right: `request_id` and `dd.trace_id` on every line, JSON, and the request id in the response
+header when the service minted it. The gaps:
+
+1. **HTMX rejections are 200s.** The one central place, `WriteError`, does not record the
+   decision anywhere: no status, no log line, no reference in the fragment.
+2. **Client mistakes and server faults share ERROR.** A customer typing an invalid filter and a
+   broken Temporal connection look the same on a dashboard.
+3. **A cast failure drops data silently** instead of rejecting the submission. That is the one
+   case where "what did the user input" really is unanswerable later, because it was never
+   stored.
+4. **Server body logging is wired on by code default**, on error, unmasked: the masked-field
+   configuration exists and is never passed to the middleware. The doc's count of zero captured
+   bodies in production holds only if the manifest sets `HTTP_SERVER_BODY_LOGGING=false`,
+   which this repository cannot show. The cookie middleware also logs the access token at
+   DEBUG and at ERROR.
+
+### The best practice for this service
+
+1. **Make `WriteError` the decision line.** It already has the `error_code` and `details`; log
+   one WARN `request_rejected` with route, `error_code`, the task id and the requester's
+   employee number, and put `request_id` into the `DisplayableError` fragment so the user sees
+   a reference. Keep the 200 if HTMX needs it for the swap, or move to HTMX's `responseHandling`
+   so a 4xx swaps too; either way the log line, not the status, carries the outcome.
+2. **WARN for rules, ERROR for faults.** The permission, "task not found", "already completed"
+   and filter rejections move to WARN. Temporal and Arango failures stay ERROR.
+3. **Reject the cast failure.** A field that cannot be converted is a 400 with the field name,
+   not a skipped value.
+4. **The input is in Arango and in Temporal.** The task document holds the definition,
+   `form_data_initial` and `form_data_cache`; a completion is a Temporal update on the process
+   workflow, whose history lives in the process service. Read it there.
+5. **Close the body switch and the token lines.** Pass the masked-field function to
+   `requestloggermw` or set `HTTP_SERVER_BODY_LOGGING=false` in the manifest explicitly, and
+   remove the token from the cookie middleware's two lines. Six handlers log the whole
+   `requester` or `payload` at DEBUG; that is off in production and should stay off.
+
+### Runbook: a surveyor asks why a task submission was refused
+
+1. Get the reference from the fragment (once step 1 ships) or the task id and the time.
+2. `service:prod-lora-task @event:request_rejected @task_id:<id>`, or `@request_id:<ref>`.
+3. For the data, the `task` document in Arango; for a completed step, the process workflow's
+   history in Temporal.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -292,3 +361,7 @@ Files:
 - [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
 - [ ] Keep the `requester` and `payload` Debug logs at Debug while fixing the warning levels
 - [ ] Feed this repo into the tracing-stack decision — on OpenTelemetry there is no Live Debugger
+- [ ] Log one WARN `request_rejected` line from `common.WriteError` and show `request_id` in the error fragment
+- [ ] Move rule rejections from ERROR to WARN; keep ERROR for Temporal and Arango faults
+- [ ] Reject a form field that fails the schema cast instead of skipping it
+- [ ] Pass the masked-field function to `requestloggermw` or set `HTTP_SERVER_BODY_LOGGING=false` explicitly; remove the access token from the cookie middleware's log lines

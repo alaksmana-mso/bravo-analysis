@@ -122,6 +122,75 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 16 of 17 request bodies) | 400, code `B0000`, one attribute per field with `field: message`, no rejected value | one ERROR line `Error bad request: {body}` from `ControllerAdvice` (line 248), no stack trace |
+| Wrong parameter type | 400, message echoes the rejected value | nothing |
+| Constraint violation, missing parameter, unreadable body | 400 | nothing |
+| Business rule via `ApprovalException` (22 throw sites: 13 map to 400, 5 to 401, 3 to 404, 1 to 409) | the exception's own status, body with `code`, `message`, `path` | **nothing** — `handleBusinessException` has no log statement |
+| Anything else (`IllegalStateException` and friends) | **500 with the exception message** | **nothing**, not even the stack trace |
+
+And none of it reaches Datadog anyway: this service sends spans but **zero log entries** (see
+*Service identity in Datadog* below). Today "read the log" means the pod's stdout in Cloud
+Logging, in a plain-text pattern that carries `correlationId` and nothing else structured.
+
+### The two gaps
+
+1. **The reference never goes back to the caller.** `CorrelationIdFilter` reads
+   `X-Correlation-Id`, generates a UUID when absent and puts it in the MDC, but sets no response
+   header. Neither `ErrorResponse` nor `BaseResponse` has a trace or correlation field. The
+   Datadog `dd.trace_id` exists in the MDC at runtime (the agent is in the image) and is never
+   printed, because the console pattern prints only `%X{correlationId}`.
+2. **Rule outcomes are silent.** An approval request rejected by a rule produces a response and
+   no line. The only rejection that is logged is bean validation.
+
+### The best practice for this service
+
+1. **One WARN decision line per rejection, from `ControllerAdvice`.** Add it to
+   `handleBusinessException` and the catch-all: event `request_rejected`, route, status, the
+   `code` already in the body, the request id and approver ids from the path, and for bean
+   validation the field and rule (the `attributes` list already built). No stack trace for a
+   rule; keep it for the catch-all, which today hides real faults behind a silent 500.
+2. **Return the reference.** One line in `CorrelationIdFilter`: `response.setHeader("X-Correlation-Id", id)`,
+   and the same value as a field on `ErrorResponse`. Then the console can show it and support can quote it.
+3. **Print the trace id.** Switch the console appender to the `LogstashEncoder` that is already
+   on the classpath (`logstash-logback-encoder` 7.4 is declared and unused), or add
+   `%X{dd.trace_id}` to the pattern. Either way the decision line links to the trace, which is
+   the only telemetry this service ships today.
+4. **The input is already in the database.** An approval request is a `Request` /
+   `RequestDetail` row with `Approval` and `ApprovalEvent` history, JPA-audited with created-by
+   and modified-by. "What did they send" is a query by request id, behind database access
+   control, not a log line readable by everyone with Datadog access.
+5. **Keep the payload switch off.** `LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER` is `WARN` on the
+   branch (it was `DEBUG` with a 64 KB payload on `master`). If a window is ever needed, capture
+   on 4xx only and through a masker. One more thing the code reading found: `com.bfi.bravo.client`
+   is at DEBUG in `application.yaml` and not overridden in `application-prod.yaml`, so on
+   `master` the Feign body logger's gate was open — `FEIGN_LOGGER_LEVEL=BASIC` on the branch is
+   what closes it. Do not reopen it to answer a customer question.
+
+### Runbook: a customer asks why an approval request was rejected
+
+1. Get the reference (once step 2 ships) or the approval request id and the time.
+2. Read the `Request` and `ApprovalEvent` rows for that id: the status, the actor and the
+   timestamp of the rejection are there today.
+3. Once step 1 ships: `service:prod-ms-approval-engine @event:request_rejected @request_id:<id>`,
+   or `@correlationId:<reference>`. Until the service ships logs to Datadog, the same search
+   runs in Cloud Logging.
+4. If the rejection came from a downstream call, open the trace by `trace_id`.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -280,3 +349,7 @@ Files:
 - [ ] Enable log collection **after** the non-production exclusion filters exist
 - [ ] Fix the payload filter default **before** log collection is fixed, not after
 - [ ] Do not ask for Live Debugger until this service's ordinary logs are visible
+- [ ] Log one structured WARN decision line per rejected request in `ControllerAdvice`; add it to `handleBusinessException` and the catch-all
+- [ ] Return `X-Correlation-Id` in the response and put it on `ErrorResponse`
+- [ ] Print `dd.trace_id` (switch the console appender to the declared `LogstashEncoder`, or add it to the pattern)
+- [ ] Keep `LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER=WARN` and `FEIGN_LOGGER_LEVEL=BASIC`; answer "what did they send" from `Request` / `RequestDetail`

@@ -136,6 +136,82 @@ store` on thirteen production services.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 89 of 167 request bodies) | 400, code `VALIDATION_ERROR_CODE`, one attribute per field with `field: message`, no rejected value | one ERROR line `Error bad request: {body}` from `ErrorAdvice` (line 342), no stack trace |
+| Bind error on a form or query object | 400, message `rejectedValue: message` | the same ERROR line — **with the rejected value in it** |
+| Unreadable body | 400 `Invalid request payload` with the field path | nothing |
+| Business rule via `BusinessException` (`MaintenanceException` 85 sites, `AgreementException` 37, `MouException` 25, `SpecialOrderSelectionException` 17, `MouMaintenanceException` 15, and ten smaller classes) | the exception's own status with `error_code` and `message` | one ERROR line `Error handleBusinessException: {body}`, no stack trace; the two pass-through paths (custom response, downstream body) log nothing |
+| `FeeException` (8 sites) and `ValidationException` (2 sites, a parse failure of the branch or product-package input) | **500** | ERROR line |
+| `ResponseStatusException` (28 direct throws), `IllegalStateException` (8), `StateException`, `NonRetryableMessageQueueException` | Boot's default `/error` page, message included | no handler line; the container prints the stack trace |
+
+This service is the busiest one in Bravo without logs: 7.5 million spans a week and **zero
+log entries** in Datadog. Whatever the handler writes goes to stdout in a plain-text pattern
+and stops there.
+
+### What is already right, and the gaps
+
+Right: `CorrelationIdFilter` **does write `x-request-id` back** on every response, so the
+reference already exists for the console to show. Right: every business rule is logged, once,
+from the handler, without a stack trace. The gaps:
+
+1. The reference is not in the error body, and the decision line is plain text: the JSON
+   encoder is declared in the pom (`logstash-logback-encoder` 7.3) and unused, and the pattern
+   prints only `%X{correlationId}`, so `dd.trace_id` never appears.
+2. `handleBindException` puts the rejected value in the response and in an ERROR line.
+3. Two rule classes are 500s: `FeeException` at all 8 sites and `ValidationException` by its
+   constructor. A rejected input is a 4xx.
+4. Unhandled `ResponseStatusException` and `IllegalStateException` bypass `ErrorAdvice`
+   entirely, so 36 throw sites produce Boot's error page and a stack trace instead of the one
+   line the others get.
+
+### The best practice for this service
+
+1. **Turn the existing handler lines into one structured WARN event.** `ErrorAdvice` already
+   sees every rejection; make the line `request_rejected` with route, status, `error_code`,
+   the agreement number or maintenance request id from the path, and the field list for bean
+   validation. WARN, not ERROR: a rejected request is the service working. Drop the rejected
+   value from `handleBindException`.
+2. **Put the reference in the body too.** `x-request-id` is already a response header; add it
+   to `ErrorResponse` so the console can render "Reference: …" without reading headers.
+3. **Add the missing handlers.** A `ResponseStatusException` handler and a catch-all, both
+   logging the same event, so nothing reaches Boot's error page.
+4. **Make `FeeException` and `ValidationException` 4xx.**
+5. **The input is in the database, twice over.** An agreement request becomes `LoanAgreement`
+   and its children, a maintenance request becomes `MaintenanceRequest` / `MaintenanceDetail` /
+   `MaintenanceRequestEvent` / `MaintenanceRequestApproval`, MOU changes have their own audit
+   tables (`MouAuditHistory`, `MouMaintenanceAuditHistory`). The v3 create flow also keeps the
+   whole request as Temporal workflow input, visible in workflow history. Nothing about "what
+   did they send" needs the log.
+6. **Leave the payload filter alone.** `RequestLoggingFilterConfig` is set to include a 10 KB
+   payload, but its anonymous subclass logs under `RequestLoggingFilterConfig$1`, which the
+   `logback.xml` DEBUG entry does not match, so it is dormant — that is why `Incoming Request:`
+   never appears in production. Do not "fix" the logger name to answer a customer question;
+   remove the payload flag instead.
+
+### Runbook: a customer asks why an agreement change was rejected
+
+1. Get the `x-request-id` from the console (it is already returned) or the agreement number
+   and the time.
+2. `MaintenanceRequestEvent` for that request, or `LoanAgreementStatus`, shows the outcome and
+   the actor.
+3. Once step 1 ships: `@event:request_rejected @agreement_number:<n>` in Datadog, or the
+   reference in Cloud Logging until this service ships logs.
+4. For a v3 create, the Temporal workflow history holds the full input and each step's result.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -290,3 +366,8 @@ Files:
 - [ ] Enable log collection **after** the non-production exclusion filters exist
 - [ ] Pin the `CommonsRequestLoggingFilter` level in `application-prod.yaml` before log collection is fixed
 - [ ] Leave `CachedBodyFilter` and `ResponseWrapperFilter` alone — they are not logging code
+- [ ] Make the `ErrorAdvice` lines one structured WARN `request_rejected` event; drop the rejected value from `handleBindException`
+- [ ] Add `x-request-id` to `ErrorResponse` (it is already a response header)
+- [ ] Add a `ResponseStatusException` handler and a catch-all so no rejection reaches Boot's error page
+- [ ] Return 4xx for `FeeException` and `ValidationException`
+- [ ] Print `dd.trace_id` (the declared `LogstashEncoder` is unused)

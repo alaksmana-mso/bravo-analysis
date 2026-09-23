@@ -166,6 +166,70 @@ and nobody should promise it to this squad until the tracing-stack decision in
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this Go service, read from the code on `fix/logging` on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Input validation (`validator/v10` behind `pkg/validator`; 59 `NewMultipleFieldValidation` sites, 12 `NewFieldValidation`, 23 `NewBadRequest`) | 400, `fields[]` with `field`, `code` (`REQUIRED` or `INVALID_FORMAT`) and a translated `info` such as "loan_amount is required"; never the value | the wrapper's access line at WARN: the full gRPC method, `code=InvalidArgument`, `error="Multiple input validation failed"`. **No field list** — it exists only in the response |
+| Business rule (typed errors such as `ApplicationNotFoundError`, `ConflictError`, `EmployeeResignedError`, mapped per handler) | 400 or 404 with a code; two handlers map unknown errors to 500 with `err.Error()` in the body | the same WARN access line, no reason |
+| Permission denied (`iam_interceptor.go`) | `PERMISSION_DENIED` | **nothing** — while every *allowed* call logs "permission found" at INFO |
+| Unexpected failure (14 `NewServerInternal` sites) | 500 with the raw error text | ERROR |
+
+Production, seven days: 1.40 million error lines, 929,000 info, 323,000 warn. The warn stream is
+where the rejections are, and each one says only "validation failed".
+
+### What is already right, and the gaps
+
+Right: every log line carries `request_id` (`x-bfi-req-id`) and `dd.trace_id`, JSON to stdout,
+and the wrapper puts the request id in the response header. Right: field names, not values, in
+the response. The gaps:
+
+1. **The reason is not on the line.** The access line says a request was invalid; which field
+   and which rule is only in the response, which is gone once the console has shown it.
+2. **The reference is not in the body.** `grpcerror` has a `requestID` field on every error and
+   never writes it into the response — dead code in `bfi-go-pkg`, so the console has nothing
+   to show and support nothing to quote.
+3. Permission denials are silent; permission grants are logged. That is backwards.
+
+### The best practice for this service
+
+1. **Put the field list on the access line, in the wrapper.** When the interceptor logs an
+   `InvalidArgument` whose details carry a `Validation` block, add `fields=[{field, code}]` and
+   for `Business` errors the `code`/`sub_code`. One change in `bfi-go-pkg`'s
+   `requestloggerinterceptor` fixes this service and every other Go service at once; nothing in
+   this repo changes.
+2. **Fill `requestID` into the error body**, also in `bfi-go-pkg` (`grpcerror/errors.go`). Then
+   the console shows "Ref: …" and the engineer searches `@request_id:<ref>`.
+3. **Log the denial, not the grant.** In `iam_interceptor.go`, WARN on `PERMISSION_DENIED` with
+   `emp_no`, method and the missing permission; drop the INFO "permission found" line, which is
+   volume with no reader.
+4. **The input is already in the database.** A SLIK or Pefindo submit is a `process_request`
+   row (product, customer check, segment, priority, rating, file name) with `process_entity`
+   and `process_event` history; an access request is `user_access_approval` and its detail
+   rows. The one call to `bravoaudittrail` is the Pefindo submit. Rejected-before-write
+   requests are exactly what the field list on the access line covers.
+5. **Keep bodies out of the log.** Client-side body logging stays off in production, as it is
+   today. The credit-scoring RabbitMQ consumer logs the whole message at INFO in four places
+   (`credit_scoring_result_consumer.go`); replace those with the identifiers.
+
+### Runbook: a customer asks why a check was rejected
+
+1. Get the request id from the console (once step 2 ships) or the process id and the time.
+2. `service:prod-ms-cnv @request_id:<ref>` in Datadog: the access line, and after step 1 the
+   fields and codes. `@dd.trace_id` opens the trace, including the SLIK or Pefindo call.
+3. For the data, `process_request` and `process_event` by process id.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -304,3 +368,6 @@ Files:
 - [ ] Keep the logged transport as it is, and keep both body-logging flags off in production
 - [ ] Offer `JSONScrubberFunc` and its field list to the `bravo-lib-logging` maintainers and the bpm squad
 - [ ] Feed this repo into the tracing-stack decision — on OpenTelemetry there is no Live Debugger
+- [ ] Ask for the field list and business code on the wrapper's access line (`bfi-go-pkg` `requestloggerinterceptor`) and `requestID` in the error body (`grpcerror`)
+- [ ] Log `PERMISSION_DENIED` at WARN in `iam_interceptor.go`; drop the INFO "permission found" line
+- [ ] Replace the full-message INFO lines in the credit-scoring consumer with identifiers

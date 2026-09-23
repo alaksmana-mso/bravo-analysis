@@ -131,6 +131,72 @@ local store`. Thirteen production services report the same error.
 
 ---
 
+## Why did validation fail? Answering the customer without logging the payload
+
+The same question the Scoring and Underwriting reviewer asked on `bravo-bpm-service#10463` applies
+here: when a request is rejected and the customer asks why, the engineer reads the payload in the
+log because nothing else says. The estate-level answer is in
+[bravo-bpm-service.md](bravo-bpm-service.md#why-did-validation-fail-answering-the-customer-without-logging-the-payload):
+**log the decision, return the reference, keep the data in the database.** This section is what
+that means for this service, read from the code on `fix/logging` and seven days of production
+logs on 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | Caller gets | Log says |
+|---|---|---|
+| Bean validation (`@Valid` on 117 of 146 request bodies) | 400, code `B0000`, attributes `key: "<rejectedValue>: <message>"` — **echoes the value** — plus `request_id` | WARN `Error handleMethodArgumentNotValid: ` with the attributes as structured data, no stack |
+| Business rule via `BusinessException` (about 45 classes: `PaymentException` 163 sites, `RefundException` 89, `PdcValidationException` 50, `DisbursementException` 39, …) | the exception's status, `error_code`, `message`, `request_id` | WARN, twice: `Handling BusinessException` and `Error handleBusinessException: <body>` |
+| `HostToHostDisbursementTransactionException` (1 site) | **500** | WARN |
+| Anything unexpected | 500 `Internal Server Error` | ERROR with the stack |
+
+Production, seven days: 15,783 warn, 12,450 error, 775 info. The error stream is Remote
+Configuration failures and `Error accessDenied: Permission denied`, not rejections.
+
+### This service is the in-house reference
+
+Two things here are what every other service in this pack should copy:
+
+- `CorrelationIdFilter` reads `x-request-id`, generates one when absent, and **writes it back**
+  on the response.
+- `ResponseBodyAdviceHandler` merges **`request_id` into every JSON body the service returns,
+  error bodies included.** A caller of this service already receives a reference on every
+  rejection, and every log line carries the same value as `correlationId`.
+
+Rules are WARN, structured, without stacks; unexpected failures are ERROR with a stack. That is
+the level discipline the rest of the pack lacks.
+
+### The gaps
+
+1. The bean-validation attributes carry the rejected value — into the body and, as structured
+   data, into the WARN line. For a payment service that is account numbers and amounts.
+2. `BusinessException` is logged twice per rejection.
+3. One rule class is a 500.
+4. The line is a message prefix plus a body dump; there is no `event` field and no
+   `agreement_number` or `payment_id` attribute to search on.
+
+### The best practice for this service
+
+1. **Shape the existing WARN into the standard event.** `event: request_rejected`, route,
+   status, `error_code`, the agreement number or payment id from the path, `fields: [{field,
+   rule}]` for bean validation — and **drop `getRejectedValue()`** from both the body and the
+   log. One line, not two.
+2. **Return 4xx for `HostToHostDisbursementTransactionException`.**
+3. **The input is in the database.** A payment is `Payment` and `PaymentAllocation`, a refund a
+   `Refund` row, a disbursement `Disbursement`, all through `BaseEntity` with created-by and
+   modified-by, plus `EventStore` for every published message and the audit-trail client for
+   changes. Read it there.
+4. **Keep the payload filter off.** `master` had `REQUEST DATA :` with a 10 KB payload and Feign
+   at `full`; the branch turns the payload off, pins the logger to WARN and sets Feign to `basic`.
+
+### Runbook: a customer asks why a payment was refused
+
+1. The console already receives `request_id` in the error body; support quotes it.
+2. `service:prod-ms-payment @correlationId:<ref>`: the WARN line with the error code.
+3. For the data, `Payment` by id, `EventStore` for what was published.
+
+---
+
 ## Service identity in Datadog
 
 Measured over seven days to 12 September 2026, production.
@@ -265,3 +331,5 @@ Files:
 - [ ] Move service identity to `tags.datadoghq.com/*` labels on the pod template so logs and traces cannot drift apart
 - [ ] Pin the `CommonsRequestLoggingFilter` level in `application-prod.yaml`
 - [ ] Ask who owns `com.bfi.bravo:bravo-lib-logging` and where its source lives
+- [ ] Shape the `ErrorAdvice` WARN into one `request_rejected` event with identifiers; drop `getRejectedValue()` from the body and the log
+- [ ] Return 4xx for `HostToHostDisbursementTransactionException`
