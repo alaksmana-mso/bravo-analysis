@@ -344,7 +344,7 @@ switched on from the Datadog UI until SRE fixes it.
    ability, and that will be resisted — correctly.
 2. **Adopt `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026) as soon as Platform publishes it** — the *Deploy Package* workflow is manual and has not run for the new modules yet. This repo is on
    Boot 3.5.16 and uses no shared logging library, so it can take the starter directly: the
-   plain-text console pattern becomes single-line JSON, every message is capped at 8 KB (the
+   JSON output it already has through its own `logback.xml` keeps working, every message is capped at 8 KB (the
    Feign lines are 76 KB+ today), and the starter's own Feign logger — one line per call, no
    headers, bodies only when you ask — replaces `CustomFeignLogger` once the bean is deleted.
    Until then the masking and size cap in #10463 stand.
@@ -369,6 +369,154 @@ switched on from the Datadog UI until SRE fixes it.
 
 5. Once Live Debugger works, set a method probe on the client method, capture one example,
    remove the probe, and delete `CustomFeignLogger`.
+
+---
+
+## Why did validation fail? Answering the customer without logging the payload
+
+The Scoring and Underwriting reviewer asked on [#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463/changes/BASE..f234da81be5dcd45e2d106eeae04a6e9c5c0ad89#diff-267c70ab9bcb25d7dbfde1922e70479c1a3faa40175d392dc662585f137d3f24),
+against `RequestLoggingFilterConfig`, whether there is still a way to know what the user sent.
+The reason behind the question: when a request fails validation and the customer asks why,
+today the engineer only finds out by reading the payload in the log. That is a real need, and
+it deserves a real answer. The payload log is the wrong tool for it. This section says what to
+use instead. It is written from the code on `fix/logging` and from seven days of production
+logs, 16 to 23 September 2026.
+
+### What happens today when a request is rejected
+
+| How the request fails | What the caller gets back | What the log says | Lines, 7 days |
+|---|---|---|---:|
+| Bean validation (`@Valid` sits on 609 of the 690 request bodies) | 400, `errors: ["field : message"]` | one ERROR line from `ErrorHandlerController`. Spring fills it with the field, the constraint and the rejected value | 1,745 |
+| A path or query parameter of the wrong type | 400 | one ERROR line naming the parameter and the value. The `undefined` bug in §5 is most of these | 3,393 |
+| Body that does not parse | 400 | one ERROR line | 117 |
+| A business rule thrown as `BravoCommonException` (258 places in the code) | 400 with a code, a sub-code and `details[].fields` | **nothing.** `handleBravoCommonException` has no log statement | 0, by design |
+| A business rule thrown as `BusinessErrorException` (334 places: "Application list not found", "Workflow still on progress", the alternative-offer limit, and so on) | **500 Internal Server Error** with the rule text as the message | ERROR with a full stack trace, as if the service had crashed | inside the 7,047 `Exception = ` lines from the same handler class |
+
+Every one of those lines already carries two identifiers. `correlationId` comes from
+`CorrelationIdFilter`: the `x-request-id` header if the caller sent one, otherwise a fresh
+UUID. `trace_id` comes from the Datadog tracer. Both are attributes on the line, because
+production logs go through the `LogstashEncoder` in `logback.xml`. So the log side is better
+than it looks. Two things are missing, and they are why the payload gets read:
+
+1. **The correlation id never goes back to the caller.** `CorrelationIdFilter` puts it in the
+   MDC and the request context, and sets no response header. The console cannot show it, so
+   customer service cannot quote it, so the engineer has nothing to search for except a
+   customer name and a time window. The payload is the only thing in the log that contains
+   something the customer can be matched on. That is the whole reason it feels necessary.
+   The starter in `bfi-java-pkg` has the same gap in its own `CorrelationIdFilter`; it reads
+   the header and never writes it back.
+2. **Business-rule rejections are either silent or logged as faults.** The
+   `BravoCommonException` path leaves no line at all. The `BusinessErrorException` path
+   returns a 500 and a stack trace for what is a decision, not a failure.
+
+### The best practice for this service
+
+The rule is short: **log the decision, return the reference, keep the data in the database.**
+The payload is the input. The customer's question is about the outcome. Record the outcome
+where it happens, once, and make it findable.
+
+**1. Log one decision line per rejected request, from the handler, not from 592 throw sites.**
+`ErrorHandlerController` sees every rejection, so it is the one place to write the line. One
+WARN, no stack trace, structured:
+
+```json
+{
+  "level": "WARN",
+  "event": "request_rejected",
+  "http": { "route": "/v2/surveyor-assignment/{id}/asset", "status_code": 400 },
+  "application_id": "APP-…",
+  "error_code": "INVALID_ARGUMENT",
+  "fields": [ { "field": "vehicleOwnershipNumber", "rule": "Pattern", "rejected": "…" } ],
+  "correlationId": "…", "dd.trace_id": "…"
+}
+```
+
+- Field name and rule always. The rejected value only when the field is not in the masked
+  list from `FeignBodySanitizer`; a NIK or a phone number that failed a pattern check is still
+  a NIK or a phone number.
+- Add the missing statement to `handleBravoCommonException`, with the code, the sub-code and
+  the `fields` it already builds for the response.
+- Put `application_id` on the line whenever the route has one. A small interceptor that
+  copies the `{applicationId}` path variable into the MDC does it for every controller at
+  once.
+
+With that line in place, "why was application X rejected on Tuesday" is one search:
+`service:prod-ms-bpm @event:request_rejected @application_id:X`.
+
+**2. Return the reference.** One line in `CorrelationIdFilter`:
+`response.setHeader("x-request-id", requestCorrelationId)`. Then put the same value in
+`BaseErrorResponse` and in the error branch of `BravoCommonResponse`, so the console can show
+"Reference: …" in its error message. The path from the customer to the answer becomes:
+customer service asks for the reference, the engineer searches `@correlationId:<reference>`,
+reads the decision line, and opens the linked trace if the rejection came from an upstream
+call. Two minutes, no payload, and the same reference works across every service the request
+touched if the console forwards the header.
+
+**3. Stop treating rule outcomes as faults.** `BusinessErrorException` is a rejected input or
+a state the rule does not allow, so return a 4xx (422 fits, 400 is acceptable) and log at WARN
+without the trace. The six 400 handlers that call `log.error` today (bean validation, type mismatch, bind, unreadable body, missing parameter, invalid format) should be WARN too. A
+rejected request is the service working. This also removes a share of the stack traces in §2
+and §4.
+
+**4. When the input itself is needed, it is in the database, not in the log.** Camunda's
+history level is FULL in production (`act_ge_property.historyLevel = 3`, the Spring Boot
+starter default; nothing in the configuration lowers it), and history is kept for 90 days
+(`historyTimeToLive: P90D`). Every process variable value, and every change to it, is in
+`act_hi_varinst` and `act_hi_detail`, by process instance id or business key. The application
+entities are in the service's own tables. That is where "what did the user input" lives, and
+it is behind database access control. A log line is readable by everyone with Datadog access
+and is copied into Cloud Logging. That difference is the reason the payload does not belong
+in the log.
+
+**5. For the rest, a payload window that is scoped and masked, never the default.**
+#10463 makes the inbound payload a per-environment switch (`REQUEST_LOGGING_INCLUDE_PAYLOAD`,
+off). Two refinements make the switch safe to use when a squad does need it:
+
+- capture the body only when the response status is 4xx. `CustomRequestLoggingFilter` can
+  read the response inside `afterRequest` through `ServletRequestAttributes.getResponse()`,
+  so "every request, raw" becomes "rejected requests only";
+- run the captured body through `FeignBodySanitizer` and the same cap before it is written.
+
+The same two refinements are worth asking for in the starter's `RequestLoggingFilter`
+(`request-logging.include-payload` is all-or-nothing there too). They are not in #10463; they
+are the next step if the squad wants the window at all.
+
+**6. Live Debugger stays the durable answer for a one-off look at a live request** once SRE
+fixes Remote Configuration; see *What to do* above.
+
+### What not to do
+
+- Do not log the raw body of every request at INFO. That was the `master` default
+  (`setIncludePayload(true)`), and the outbound equivalent is the 86,600 body lines a day
+  measured in §1. Scoring requests carry NIK, phone numbers and income.
+- Do not log the rejected value of a masked field. The field name and the rule are enough
+  to answer the customer.
+- Do not add a log line at each `throw`. The handler already sees them all; one line there
+  is complete and consistent.
+- Do not answer "we cannot see the payload" with `loggerLevel: full` or a DEBUG level on
+  `com.bfi.bravo.adapter`. That is the one-variable route to a credit-bureau dump.
+
+### Runbook: a customer asks why their application was rejected
+
+1. Get the reference from the console error (once step 2 ships) or the application id and
+   the time from customer service.
+2. Datadog, us5: `service:prod-ms-bpm @correlationId:<reference>`, or
+   `service:prod-ms-bpm @event:request_rejected @application_id:<id>`.
+3. Read the decision line: route, code, field, rule. For a bean-validation rejection today,
+   the existing `Method arguments not valid exception` line already names the field, the
+   constraint and the value.
+4. If the rejection came from an upstream call, open the trace by `trace_id`: the Feign span
+   shows which service said no and with which status.
+5. If the value itself matters and the field is masked, read it from `act_hi_varinst` or the
+   application table by process instance id. Do not switch on payload logging for this.
+
+### Where this sits against #10463
+
+Nothing in #10463 has to change. Steps 1 to 3 are two small commits: a log statement and a
+status change in `ErrorHandlerController`, and one `setHeader` line plus a field on the two
+error responses. They can ride on #10463 if the squad wants them there, or go in a follow-up
+owned by the squad; either way they are the answer to the reviewer's question, and the
+payload switch is the fallback, not the plan.
 
 ---
 
@@ -478,7 +626,7 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-bpm-service/tree/fi
 
 **Update, 17 September 2026 — where this pull request fits now.**
 
-This repository is on Spring Boot 3.5.16. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It is not yet published — `bfi-java-pkg` releases a module only through a manual *Deploy Package* run, which has not happened for the new modules — so the dependency cannot be added yet. **This pull request stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `logback*.xml` and any hand-written `feign.Logger` bean in the same change).
+This repository is on Spring Boot 3.5.16. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON (which this repo already emits through its own `logback.xml`), an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It is not yet published — `bfi-java-pkg` releases a module only through a manual *Deploy Package* run, which has not happened for the new modules — so the dependency cannot be added yet. **This pull request stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `logback*.xml` and any hand-written `feign.Logger` bean in the same change).
 
 Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September with one condition: the service's SA confirms the rollout restart before merge.
 
@@ -513,7 +661,7 @@ Files:
 | Asked | Answer, and what changed in `c47f1cb504` |
 |---|---|
 | Can the body cap be set from `application.yaml`? | It could already (`setting.feign-custom-log-config.max-body-length`, env `FEIGN_CUSTOM_LOG_MAX_BODY_LENGTH`); the reviewer was reading the Java, not the YAML hunk. A `sanitize` switch (`FEIGN_CUSTOM_LOG_SANITIZE`, default on) now sits beside it, and `masked-fields` stays overridable there |
-| Is there a way to still see what the user sent? | Yes, three: the inbound payload switch is now a property (`setting.request-logging.include-payload`, env `REQUEST_LOGGING_INCLUDE_PAYLOAD`, default off — it logs the raw body, hence off in prod); the process variables in the BPM database; and, durably, Live Debugger once Remote Configuration works, or the starter's masked `RequestLoggingFilter` when this service adopts it |
+| Is there a way to still see what the user sent? | Yes, three: the inbound payload switch is now a property (`setting.request-logging.include-payload`, env `REQUEST_LOGGING_INCLUDE_PAYLOAD`, default off — it logs the raw body, hence off in prod); the process variables in the BPM database; and, durably, Live Debugger once Remote Configuration works, or the starter's masked `RequestLoggingFilter` when this service adopts it. **On 23 September the reviewer explained the need behind the question** (a customer asks why validation failed, and only the payload log says); the answer is in [Why did validation fail?](#why-did-validation-fail-answering-the-customer-without-logging-the-payload): log the decision, return the reference, read the input from the database |
 | Add a flag to enable the sanitizer | Added, as above. Masking is also JSON-aware now: a body that parses is walked as a tree and any listed key is masked whatever its value — nested object, array, number — which also closes Codacy's "nested values leak" comment; non-JSON bodies get one alternation pass instead of one per key |
 | If `loggerLevel` is `basic`, is the payload gone — so what are the sanitizer and the 2048 cap for? | Two loggers. `loggerLevel` drives Feign's built-in logger, which only writes at DEBUG and so writes nothing in production at `full` *or* `basic`; the change removes the one-env-var route to a payload dump. The bodies in production come from `CustomFeignLogger`, switched on by the manifest and writing at INFO regardless — 86,630 body entries a day. That is where the sanitizer and the cap apply, and bodies keep being logged there, masked and bounded |
 
@@ -540,3 +688,7 @@ Seven unit tests cover the sanitizer (`FeignBodySanitizerTest`): scalar types, n
 - [ ] Add a size limit and a masking step to `CustomFeignLogger`; copy the field list from `bravo-onboarding-service`
 - [ ] Scope the custom Feign logger to the clients you debug, not `default`
 - [ ] Chase SRE on the Remote Configuration failure — 191 failed polls in two days blocks Live Debugger
+- [ ] Log one structured WARN decision line per rejected request in `ErrorHandlerController`; add the missing statement to `handleBravoCommonException`
+- [ ] Return `x-request-id` in the response and put it on the two error response types, so the console can show a reference
+- [ ] Return a 4xx and log at WARN without a trace for `BusinessErrorException`; downgrade the six 400 handlers from `log.error` to `log.warn`
+- [ ] If the payload window is ever used, capture only on 4xx and run the body through `FeignBodySanitizer` first
