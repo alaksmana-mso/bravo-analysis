@@ -69,7 +69,18 @@ def _cue_count(body):
                   lambda m: "%s%d slides" % (m.group(1), n), body, count=1, flags=re.S)
 
 
+def _inline_images(body):
+    """Decks ship as one file and print from a temp dir, so img/ references become data URIs."""
+    import re, base64
+    def sub(m):
+        f = D / m.group(1)
+        mime = 'image/png' if f.suffix == '.png' else 'image/jpeg'
+        return 'src="data:%s;base64,%s"' % (mime, base64.b64encode(f.read_bytes()).decode())
+    return re.sub(r'src="(img/[^"]+)"', sub, body)
+
+
 def build(slug, title, accent_light, accent_dark, body):
+    body = _inline_images(body)
     body = _renumber(body)
     body = _cue_count(body)
     ov = (":root{--ac:%s;--acBg:%s1f;--acBg2:%s0f}\n"
