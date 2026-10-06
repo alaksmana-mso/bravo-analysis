@@ -23,7 +23,7 @@
 | 4 | **Money-affecting defects that nobody is watching for** | 0% interest contracts ran for four weeks. Split-funding paid the whole amount to the supplier on 26 contracts. 1,918 contracts were under-billed for late charges. 2,850 payments sat unposted. All found by users, none by monitoring. |
 | 5 | **The data pipeline that feeds Collection** | Collection started late at least seven mornings this year because Airflow, Kafka CDC or the DB2DB inbound failed. The data team finds it in a chat group, not an alert. |
 | 6 | **Third-party dependencies** | Pefindo, Dukcapil, VIDA, Telkom, Grahacom. Eleven tickets and five post-mortems. Detection is fine. There is no fallback and contract or link expiries are not tracked. |
-| 0 | **Incident learning discipline (foundation for all of the above)** | 4 of 44 post-mortems have a real why-chain. 8 have no action item. 45 of 84 action items have an owner, 9 are marked done. At least 11 of the 41 P0 tickets have no post-mortem page. 605 of 873 tickets have no squad, 110 have no root cause text. |
+| 0 | **Incident learning discipline (foundation for all of the above)** | 4 of 44 post-mortems have a real why-chain. 8 have no action item. 45 of 84 action items have an owner, 9 are marked done. At least 11 of the 41 P0 tickets have no post-mortem page. 605 of 873 tickets have no squad. The structured Root Cause field is empty on all 873; the cause lives only in the description text. |
 
 **Why this order.** Priority 1 is where the pain is right now and where the next migration wave will add more. Priority 2 is the control that stops priority 1 from repeating and is the top cause we can fix ourselves. Priority 3 has the widest blast radius per event and the most unresolved root causes. Priorities 4 to 6 are real but smaller or less controllable. Priority 0 is cheap and without it the other five cannot be measured.
 
@@ -122,7 +122,7 @@ CONFINS R3 has only two post-mortems against 301 tickets and 24 batch failures. 
 - 301 tickets, 191 P1 and 10 P0. 105 are about journals, GL, COA or posting. 53 about payment and allocation. 52 about agreement and go-live. 22 about EOD or EOM.
 - The jump in August is the R1-to-R3 contract migration. The ticket "Impact Area" field was introduced in August and already shows 27 tickets tagged "Issue Migrasi" and 23 "Issue Workflow". The migrated-contract defects are concrete: double allocation, reversal errors, PSAK values wrong, journals not formed, payment columns dropped, pocket retention not migrated.
 - The month-end and daily batch has failed 24 times this year. Four were P0: 1 Mar, 30 Mar, 14 Jul (right after the Phase 2 deployment), 8 Sep. The 8 Sep page says, as of 1 Oct, "the root cause investigation is still in progress by the ADINS Team". Five follow-up actions on that page have no owner, date or ticket. The two newest tickets (3 and 4 Oct) report EOD running slower than before.
-- 147 tickets name "Adins - Confins r3" as the fixing squad. Root cause text on 110 tickets across the project is "-" or empty, and much of that is in this bucket. Resolution for CONFINS R3 tickets runs at a median of 9 days, 90th percentile 46 days.
+- 147 tickets name "Adins - Confins r3" as the fixing squad. The Symptom field on 110 tickets across the project is "-" or empty, and much of that is in this bucket. Resolution for CONFINS R3 tickets runs at a median of 9 days, 90th percentile 46 days.
 - Autorekon broke 10 times since June, ending in the P0 of 5 Oct.
 
 **What to improve first.**
@@ -238,7 +238,7 @@ This is the foundation. It is cheap, and without it the five areas above cannot 
 
 **Coverage.** 41 P0 tickets, 44 post-mortem pages, but they do not line up. At least 11 P0 tickets have no page: LORA failed go-live (27 Jan), CONFINS R3 expired-before-effective date (30 Jan), prepaid settlement (12 Mar), ready-to-golive stuck (25 Mar), two Digital Partnership P0s (16 and 17 Apr), S1 scoring stuck (23 May), Autorekon (5 Oct), and others.
 
-**Tickets.** 605 of 873 have no Squad Fixing. 92 have no Root Cause Category, 110 have "-" or nothing as the root cause, and "Functionality Issue" is used 260 times as a catch-all. The Impact Area field was only introduced in August. Resolution is recorded, but not time to detect or time to mitigate.
+**Tickets.** 605 of 873 have no Squad Fixing. 92 have no Root Cause Category, and "Functionality Issue" is used 260 times as a catch-all. The structured Root Cause field is empty on every 2026 ticket; the cause is typed into the description by the intake form, so it cannot be filtered or charted. The Impact Area field was only introduced in August. Resolution is recorded, but not time to detect or time to mitigate. The companion document [prd-ticket-model-proposal.md](prd-ticket-model-proposal.md) proposes the fix.
 
 **What to improve first.**
 
