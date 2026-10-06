@@ -331,6 +331,8 @@ This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the lib
 ## Implementation status
 
 **Pull request: [bravo-edoc-service#1525](https://github.com/bfi-finance/bravo-edoc-service/pull/1525)** — open, not merged.
+
+**Review, 29 September 2026 — changes requested**, by the squad (rjiandybfi), for one concrete reason: gating the shared body loggers broke `LoggerConfigurationTest`, which autowired the gated beans from a bare context (3 errors in CI). The reviewer agreed with the rest: the flag defaulting to `false`, `CorrelationIdFilter` staying unconditional, and keeping the CONFINS client at `full` so `confins_request_log` keeps being written. **Fixed on 6 October** (`00c69a62`): the test is rewritten with `ApplicationContextRunner` — `CorrelationIdFilter` always present, the two body loggers absent by default and with the flag `false`, present with the flag `true`; 3 tests pass locally. The description was rewritten to match the final diff and the review re-requested. Still open from the review: a ticket, owned by the squad, on the retention and PII exposure of `confins_request_log`.
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-edoc-service/tree/fix/logging), head `81903540`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bravo-edoc-service/pull/1525/files) · [Commits](https://github.com/bfi-finance/bravo-edoc-service/pull/1525/commits) · [Compare against master](https://github.com/bfi-finance/bravo-edoc-service/compare/master...fix/logging)

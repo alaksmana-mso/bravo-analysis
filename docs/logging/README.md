@@ -6,18 +6,30 @@ Cost data is GCP billing through FinOps. Log evidence is Datadog production. Cod
 is all 152 repos under `squads/`, pulled to `master` on the day of writing — 149,729 files
 scanned — plus 36 more cloned since.
 
-**73 repositories analysed. On 23 September 2026: 4 service pull requests merged by their squads, 44 open, 16 closed on SRE's guidance; the Java wrapper ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) is merged but not yet published, the Go wrapper ([bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175)) is open and green, the Boot 2.7 bridge ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) is closed; the manifest pull request ([app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)) carries two SRE approvals and waits on the SAs; 80 files in this folder.** The code half
+**73 repositories analysed. On 6 October 2026: 5 service pull requests merged by their squads, 43 open, 16 closed on SRE's guidance; the Java wrapper ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)) is merged and **published on 23 September**, the Go wrapper ([bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175)) is open, refreshed from `main` on 6 October and still unreviewed, the Boot 2.7 bridge ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) is closed; the manifest pull request ([app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)) carries two SRE approvals and waits on the SAs; 80 files in this folder.** The code half
 of the programme is written; what is left on it is review, merge, and one publish step.
+
+## What changed on 24 September–6 October
+
+- **Platform published the Java starter on 23 September.** Two *Deploy Package* runs on `bfi-java-pkg` pushed `bfi-logging-core` 0.1.0 and then `bfi-logging-spring-boot-starter` 0.1.0 to the artifact registry. The dependency can be added today. **No service has added it yet** (GitHub code search, 6 October): item 2a in the table below is now adoption, `bravo-bpm-service` first.
+- **One more squad merge: `bravo-insurance-service#820`**, approved and merged by the Insurance squad on 24 September. That makes five. It shipped in `v5.6.0` and production has run `v5.6.1` since 1 October.
+- **Four of the five merged changes are in production.** `bravo-inventory-management-service#399` (prod `v1.13.8-rc1` since 30 September), `bfi-rule-engine-service#67` (`v1.1.0` since 1 October), `lms-calculation-service#647` (`v2.674.1` since 1 October), `bravo-insurance-service#820` (`v5.6.1`). `bravo-agency-service#1141` is in `v2.28.0-beta2` and later, but production still runs `v2.27.1`, so it is merged and not live.
+- **The inventory regression is live.** Because #399 is deployed, the lib's `CorrelationIdFilter` is switched off in production: of 40,000 to 160,000 lines a day from `prod-inventory-management` in the last week, only 1,000 to 2,000 carry a `correlationId` (the RabbitMQ and scheduler paths, which set it themselves). [#409](https://github.com/bfi-finance/bravo-inventory-management-service/pull/409), opened 23 September, restores the filter; **it has no review yet.**
+- **`bravo-onboarding-service#6328` was approved** by the Customer Platform squad on 25 September and is not merged; its branch is now behind `master` and red on the SNYK gate as well as Codacy coverage.
+- **`bravo-edoc-service#1525` got a review on 29 September: changes requested**, for one concrete reason — the branch's gate on the shared body loggers broke `LoggerConfigurationTest`, which autowired the gated beans from a bare context. The reviewer agreed with the direction, including keeping the CONFINS client at `full` so `confins_request_log` keeps being written. Fixed on 6 October (test rewritten with `ApplicationContextRunner`, 3 tests pass locally), description rewritten, review re-requested. The reviewer also asked for a ticket on the retention of `confins_request_log`; that belongs to the owning squad.
+- **`bfi-go-pkg#175` had gone stale, and `main` had overtaken it.** `main` moved on 22–30 September (#176–#182): the wrapper now masks every value under a sensitive key — numbers, booleans, null, arrays, objects — which was the point of #175, and the branch conflicted. Refreshed from `main` on 6 October, taking `main`'s semantics; what is left in #175 is the empty-list identity shortcut, blank entries dropped from the field list, and the `Payload` helper for queue consumers. Nobody from Platform has reviewed it since 18 September.
+- **`app-deployment#13820`** still carries its two SRE approvals from 15 September and no SA confirmation: three weeks without movement on the one change that switches nine production services off `debug`.
+- **Nothing else moved.** No comment, review or close from any squad on the other 40 open service pull requests between 23 September and 6 October. No comments on this page.
 
 ## What changed on 15–23 September
 
 - **The Java wrapper merged.** [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) landed on `master` on 16 September
   (`dfeb6ac`): `bfi-logging-core` and `bfi-logging-spring-boot-starter` 0.1.0, with the
-  five gaps this programme found fixed on the branch before merge. **It is not published.**
-  `bfi-java-pkg` releases a module only through a manual *Deploy Package* workflow, which
-  last ran on 30 January 2026 and has not run for the new modules. Until Platform runs it
-  (core, then starter) no service can add the dependency. That is now the first Java item
-  in the table below.
+  five gaps this programme found fixed on the branch before merge. It was not published at
+  first — `bfi-java-pkg` releases a module only through a manual *Deploy Package* workflow —
+  and **Platform ran it on 23 September** for `bfi-logging-core` 0.1.0 and then
+  `bfi-logging-spring-boot-starter` 0.1.0, so any Boot 3.3+ service can add the dependency
+  now. Adoption is the first Java item in the table below.
 - **Java is one layer again.** [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123), our fix to `bravo-lib-logging` for the 14
   Boot 2.7 repositories, was closed on 16 September so that one library carries the
   standard. Those 14 repositories keep their per-service pull requests and manifest
@@ -35,7 +47,7 @@ of the programme is written; what is left on it is review, merge, and one publis
 - **CI re-read on 17 September**: of 47 open service pull requests, 11 are fully green and
   36 fail only on gates that were red before this work. Two `lora-*` branches were
   refreshed from `master` to clear a pre-existing test failure and a cancelled job.
-- **Squads have started merging (checked 22 September, re-checked 23 September).** Four service pull requests are in: `bravo-inventory-management-service#399` (15 Sep), `bfi-rule-engine-service#67` (17 Sep), `bravo-agency-service#1141` (18 Sep) and `lms-calculation-service#647` (18 Sep, after its coverage, SonarQube and SNYK gates were cleared the same day). Forty-four are open and unmerged; none has been closed by a squad. Of the 44, 12 are fully green and 32 are red only on gates that were red before this work — see [the 23 September table](#where-the-44-open-service-pull-requests-stand-on-23-september). The two tables below carry a **Status** column, refreshed by `tools/poll_fix_logging_prs.py` and `tools/logging_pr_status.py`; the next check is due in October.
+- **Squads have started merging (checked 22 September, re-checked 23 September).** Four service pull requests are in: `bravo-inventory-management-service#399` (15 Sep), `bfi-rule-engine-service#67` (17 Sep), `bravo-agency-service#1141` (18 Sep) and `lms-calculation-service#647` (18 Sep, after its coverage, SonarQube and SNYK gates were cleared the same day). Forty-four are open and unmerged; none has been closed by a squad. Of the 44, 12 are fully green and 32 are red only on gates that were red before this work — see [the 23 September table](#where-the-44-open-service-pull-requests-stand-on-23-september). The two tables below carry a **Status** column, refreshed by `tools/poll_fix_logging_prs.py` and `tools/logging_pr_status.py`; the next check is due in November (checked 6 October).
 - **"Why did validation fail?" — answered for all twenty pack-one services on 23 September.** The Scoring and Underwriting reviewer's reason for logging payloads on `bravo-bpm-service#10463` — a customer asks why a request was rejected, and only the payload in the log says — was taken to every service in the [per-repo table](#per-repo-recommendations). Each per-service file now has a section *Why did validation fail? Answering the customer without logging the payload*: what the caller gets and what the log says today when a request is rejected, whether a reference id goes back to the caller, where the input is already stored, and the steps for that service. The pattern is the same everywhere — **log the decision, return the reference, keep the data in the database** — and the facts differ: three services return the request id to the caller today (`bravo-payment-service` also puts `request_id` in every error body; `agreement`, `customer`, `onboarding`, `insurance-api`, `agency` return it as a header only), the rest never do; business-rule rejections are silent in seven services, stack traces in three; six services echo the rejected value back to the caller or into an ERROR line. Two side effects of this programme's own branches were found and fixed the same day: `bravo-edoc-service#1525` had set the CONFINS client to `basic`, which silently stopped the `confins_request_log` audit table being written (restored to `full`, `77683260`); and `bravo-inventory-management-service#399`, merged, had switched off the lib's `CorrelationIdFilter` along with the body loggers ([#409](https://github.com/bfi-finance/bravo-inventory-management-service/pull/409) opened). Two wrapper asks come out of it for Platform: the Go wrapper should fill its dead `requestID` field into error bodies and put the validation field list on its access line; neither `bravo-lib-logging`'s nor the new starter's `CorrelationIdFilter` writes the id back to the response.
 - **Codacy's review of every open pull request was answered on 18 September.** 91 threads on
   38 pull requests: 63 fixed in a commit on the branch (each thread names it), 14 pointed at
@@ -145,7 +157,7 @@ no ingest. Turn that on now.
 | # | Action | Owner | Effort | Datadog cost |
 |---|---|---|---|---|
 | 1 | Fix `HttpHelper.ts` and rotate the leaked secret | Contract Collateral | 2 h | none |
-| 2a | **Publish the merged [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), then adopt it in `bravo-bpm-service` first.** Merged 16 September; nothing can depend on it until Platform runs the manual *Deploy Package* workflow for `logging-core` and then `logging-starter`. bpm is Boot 3.5.16 with no shared logging library today, and the 76 KB Feign lines that make it the largest log producer in Bravo | Platform + S&U | review + 1 d | reduces |
+| 2a | **Adopt the published [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) starter, `bravo-bpm-service` first.** Merged 16 September; **published by Platform on 23 September** (*Deploy Package* for `bfi-logging-core` 0.1.0, then `bfi-logging-spring-boot-starter` 0.1.0). No service had added the dependency by 6 October. bpm is Boot 3.5.16 with no shared logging library today, and the 76 KB Feign lines that make it the largest log producer in Bravo | Platform + S&U | review + 1 d | reduces |
 | 2 | **Merge [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820)** — approved by SRE on 15 September, waiting on each service's SA to confirm the rollout restart; nine production services off `debug`, five given a masked-field list, three to failure-only bodies, onboarding's request bodies off, `bpm`'s sharia header logging (with `Authorization`) off, two Java packages off `DEBUG`. 20 `values-prod*.yaml` files, one variable each; the reasoning is [deployment-proposal.md](deployment-proposal.md) | SRE + owning squads | review only | reduces |
 | 3 | Exclusion filter and 7-day retention on non-prod projects | Platform | 1 d | none |
 | 4 | Fix the monitors that query service names that do not exist | SRE | 2 d | none |
@@ -193,7 +205,7 @@ accurately. Silencing it would remove the only evidence.
 
 Every recommendation that is a code or configuration change has been implemented on a
 branch called **`fix/logging`** in each of the twenty repositories, branched from `master`,
-pushed, and raised as a pull request. **On 23 September three of the twenty are merged** — `bravo-inventory-management-service`, `bravo-agency-service`, `lms-calculation-service` — and seventeen are open.
+pushed, and raised as a pull request. **On 6 October three of the twenty are merged** — `bravo-inventory-management-service`, `bravo-agency-service`, `lms-calculation-service` — and seventeen are open.
 
 **Corrected 14 September 2026.** This paragraph said the machine had no Node, Go, JDK or
 Maven toolchain. **Go and Node are in fact installed via `mise`** — a bare `which go` is what
@@ -213,7 +225,7 @@ The wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean
 each pull request is still the authority, but "not compiled" is no longer true of anything
 in this programme.
 
-| Repo | Pull request | Status (23 Sep) |
+| Repo | Pull request | Status (6 Oct) |
 |---|---|---|
 | [bfi-digital-web-api](bfi-digital-web-api.md) | [#711](https://github.com/bfi-finance/bfi-digital-web-api/pull/711) | open — red only on SNYK / image CVEs |
 | [bfi-insurance-api](bfi-insurance-api.md) | [#3298](https://github.com/bfi-finance/bfi-insurance-api/pull/3298) | open — red only on SNYK / image CVEs, SonarQube |
@@ -229,7 +241,7 @@ in this programme.
 | [bravo-edoc-service](bravo-edoc-service.md) | [#1525](https://github.com/bfi-finance/bravo-edoc-service/pull/1525) | open — red only on SNYK / image CVEs, SonarQube |
 | [bravo-inventory-management-service](bravo-inventory-management-service.md) | [#399](https://github.com/bfi-finance/bravo-inventory-management-service/pull/399) | **merged 15 Sep** by the squad |
 | [bravo-lms-gateway](bravo-lms-gateway.md) | [#2519](https://github.com/bfi-finance/bravo-lms-gateway/pull/2519) | open — red only on SonarQube |
-| [bravo-onboarding-service](bravo-onboarding-service.md) | [#6328](https://github.com/bfi-finance/bravo-onboarding-service/pull/6328) | open — red only on Codacy coverage |
+| [bravo-onboarding-service](bravo-onboarding-service.md) | [#6328](https://github.com/bfi-finance/bravo-onboarding-service/pull/6328) | open — red only on Codacy coverage, SNYK / image CVEs |
 | [bravo-payment-service](bravo-payment-service.md) | [#2661](https://github.com/bfi-finance/bravo-payment-service/pull/2661) | open — red only on SonarQube |
 | [bravo-surveyor-console](bravo-surveyor-console.md) | [#3976](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976) | open — CI green |
 | [bravo-user-iam-service](bravo-user-iam-service.md) | [#521](https://github.com/bfi-finance/bravo-user-iam-service/pull/521) | open — CI green |
@@ -304,8 +316,8 @@ matching fix to the old library — was closed the same day so that the estate m
 library. The rule from here: **every Java service moves to the starter. The 19 on Boot 3.3+
 (20 with `bravo-insurance-service`, once it leaves 3.2.11) can do so as soon as Platform
 publishes it; the 14 on Boot 2.7 keep their per-service fixes and manifest switches, and
-their route to masked, capped, single-line logs is a Boot 3.3 upgrade.** Publishing is a
-manual *Deploy Package* run that has not happened yet. Full assessment in [body-visibility.md](body-visibility.md) §2a.
+their route to masked, capped, single-line logs is a Boot 3.3 upgrade.** Publishing was a
+manual *Deploy Package* run; Platform ran it on 23 September, so the starter is available. Full assessment in [body-visibility.md](body-visibility.md) §2a.
 
 So: the commit that added a struct default was reverted on every branch that had one.
 **Sixteen branches were left identical to their base and their pull requests closed**, each
@@ -335,7 +347,7 @@ The Java pull requests were compiled on 14 September 2026 once a JDK turned out 
 `mise x` away (22 of 22 compile; 12 of the 12 test suites run pass — see
 each file's verification note). Treat CI as the authority for them still.
 
-| Repository | Production service | Pull request | What it changes | Status (23 Sep) |
+| Repository | Production service | Pull request | What it changes | Status (6 Oct) |
 |---|---|---|---|---|
 | [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss | open — red only on Prettier |
 | [bfi-incentive-api](bfi-incentive-api.md) | `prod-ms-bfi-incentive-api` | [#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698) | give the consumer failure a stable message | open — red only on SNYK / image CVEs |
@@ -351,7 +363,7 @@ each file's verification note). Treat CI as the authority for them still.
 | [bravo-database-catalog](bravo-database-catalog.md) | `prod-database-catalog` | [#41](https://github.com/bfi-finance/bravo-database-catalog/pull/41) | mask request and response bodies by default | open — CI green |
 | [bravo-employee-service](bravo-employee-service.md) | `prod-ms-employee` | [#172](https://github.com/bfi-finance/bravo-employee-service/pull/172) | stop writing whole HR records to the log stream | open — red only on Codacy coverage |
 | [bravo-gen-ai](bravo-gen-ai.md) | `prod-ms-gen-ai` | [#359](https://github.com/bfi-finance/bravo-gen-ai/pull/359) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
-| [bravo-insurance-service](bravo-insurance-service.md) | `prod-ms-insurance` | [#820](https://github.com/bfi-finance/bravo-insurance-service/pull/820) | log rejected requests at warn, not error | open — red only on SNYK / image CVEs, SonarQube |
+| [bravo-insurance-service](bravo-insurance-service.md) | `prod-ms-insurance` | [#820](https://github.com/bfi-finance/bravo-insurance-service/pull/820) | log rejected requests at warn, not error | **merged 24 Sep** by the squad |
 | [bravo-integrity-service](bravo-integrity-service.md) | `prod-ms-integrity` | [#29](https://github.com/bfi-finance/bravo-integrity-service/pull/29) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [bravo-inventory-management-system](bravo-inventory-management-system.md) | `bravo-inventory-management-system` | [#232](https://github.com/bfi-finance/bravo-inventory-management-system/pull/232) | stop putting the request body and Authorization header in RUM errors | open — red only on SNYK / image CVEs |
 | [bravo-journal-service](bravo-journal-service.md) | `prod-ms-journal` | [#297](https://github.com/bfi-finance/bravo-journal-service/pull/297) | log rejected requests at warn, and close the payload trap | open — red only on SNYK / image CVEs, SonarQube |
@@ -493,15 +505,15 @@ compiler was sitting on the machine unused, and — as was found a day later —
 JDK, one `mise x` away. This change could have been tested before pushing and was only
 read. Reading does not catch a null dereference.
 
-### Where the 44 open service pull requests stand on 23 September
+### Where the 43 open service pull requests stand on 6 October
 
-Re-polled on 23 September 2026 (no change in merge state since 22 September), every red job classified by name (a pull request can be red on more than one gate):
+Re-polled on 6 October 2026 (one merge since 23 September: `bravo-insurance-service#820`), every red job classified by name (a pull request can be red on more than one gate):
 
 | | Count |
 |---|---:|
-| Merged by the squad | 4 |
+| Merged by the squad | 5 |
 | Open, fully green | 12 |
-| Open, failing **only** on gates that were red before this work — SonarQube (15), SNYK and container-image CVEs (15), Codacy coverage upload without its token (10), `bfi-connect`'s pre-existing Prettier drift (1) | 32 |
+| Open, failing **only** on gates that were red before this work — SonarQube (14), SNYK and container-image CVEs (15), Codacy coverage upload without its token (10), `bfi-connect`'s pre-existing Prettier drift (1) | 31 |
 | Failing on anything written here | **0** |
 
 The three that needed reading on 22 September: `lora-task-service`'s unit-test job fails on `TestTaskCardDescription` in
@@ -518,8 +530,10 @@ rewrites the Status column of the two tables above; `python3 tools/readme_to_con
 of the Confluence page *2026-09 Logging* with every link pointed at its child page.
 
 Merged so far, and by whom: `bravo-inventory-management-service#399` (15 Sep), `bfi-rule-engine-service#67`
-(17 Sep), `bravo-agency-service#1141` (18 Sep), `lms-calculation-service#647` (18 Sep). Approvals without a
-merge yet: none on the service pull requests; `app-deployment#13820` holds two SRE approvals.
+(17 Sep), `bravo-agency-service#1141` (18 Sep), `lms-calculation-service#647` (18 Sep), `bravo-insurance-service#820`
+(24 Sep). Approvals without a merge yet: `bravo-onboarding-service#6328` (25 Sep); `app-deployment#13820` holds two
+SRE approvals since 15 Sep. In production on 6 October: all of the merged five except `bravo-agency-service#1141`
+(prod runs `v2.27.1`, the change is in `v2.28.0-beta2`).
 
 ### Where the 47 open service pull requests stand on 17 September
 

@@ -402,7 +402,7 @@ tell the two apart: results there mean the logs are arriving under a different s
 
 ## Implementation status
 
-**Pull request: [lms-calculation-service#647](https://github.com/bfi-finance/lms-calculation-service/pull/647)** — **merged 18 September 2026** by the squad.
+**Pull request: [lms-calculation-service#647](https://github.com/bfi-finance/lms-calculation-service/pull/647)** — **merged 18 September 2026** by the squad. In production since 1 October (`v2.674.1`; the change first shipped in `v2.674.0`).
 Branch: [`fix/logging`](https://github.com/bfi-finance/lms-calculation-service/tree/fix/logging), head `305f74a`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/lms-calculation-service/pull/647/files) · [Commits](https://github.com/bfi-finance/lms-calculation-service/pull/647/commits) · [Compare against master](https://github.com/bfi-finance/lms-calculation-service/compare/master...fix/logging)

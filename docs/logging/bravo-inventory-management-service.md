@@ -192,7 +192,11 @@ lib's request and Feign body loggers stop writing payloads in production. Right.
 `correlationId` once that release deploys, and the prod manifest does not set the flag.
 **Fixed in [#409](https://github.com/bfi-finance/bravo-inventory-management-service/pull/409)**
 (opened 23 September): the correlation filter is registered unconditionally, the two body
-loggers stay behind the flag. Compiled and format-checked locally.
+loggers stay behind the flag. Compiled and format-checked locally. **On 6 October #409 has no
+review, and the regression is live:** #399 has been in production since 30 September, and of
+40,000 to 160,000 lines a day from `prod-inventory-management` only 1,000 to 2,000 carry a
+`correlationId` — the RabbitMQ and scheduler paths, which set it themselves. Every HTTP
+request's lines are unsearchable by request until #409 merges and deploys.
 
 ### The gaps
 
@@ -327,17 +331,17 @@ Read from `app-deployment/inventory-management/values-prod.yaml` on 14 September
 This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the library's `RequestLoggingFilter` and `FeignClientFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
 
 
-**Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 3.5.15, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), **merged 16 September 2026**): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It is not published yet — Platform must run `bfi-java-pkg`'s manual *Deploy Package* workflow for `logging-core` and then `logging-starter` before any `pom.xml` can name it. Migrating off `bravo-lib-logging` means deleting the `logback*.xml` files and the manual filter beans, and telling SRE that the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`.
+**Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 3.5.15, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), **merged 16 September 2026**): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It was not published when this was written; **Platform published it on 23 September 2026** (*Deploy Package* runs for `bfi-logging-core` 0.1.0 and then `bfi-logging-spring-boot-starter` 0.1.0), so the dependency can be added now — no service had done so by 6 October. Migrating off `bravo-lib-logging` means deleting the `logback*.xml` files and the manual filter beans, and telling SRE that the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`.
 ---
 
 ## Implementation status
 
-**Pull request: [bravo-inventory-management-service#399](https://github.com/bfi-finance/bravo-inventory-management-service/pull/399)** — **merged 15 September 2026** by the squad.
+**Pull request: [bravo-inventory-management-service#399](https://github.com/bfi-finance/bravo-inventory-management-service/pull/399)** — **merged 15 September 2026** by the squad. In production since 30 September (`v1.13.8-rc1`; the change first shipped in `v1.13.5-rc1`).
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-inventory-management-service/tree/fix/logging), head `249119f`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bravo-inventory-management-service/pull/399/files) · [Commits](https://github.com/bfi-finance/bravo-inventory-management-service/pull/399/commits) · [Compare against master](https://github.com/bfi-finance/bravo-inventory-management-service/compare/master...fix/logging)
 
-**Update, 17 September 2026.** Merged by the squad on 15 September 2026 — the first service pull request of this programme to land. This repository is on Spring Boot 3.5.15. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It is not yet published — `bfi-java-pkg` releases a module only through a manual *Deploy Package* run, which has not happened for the new modules — so the dependency cannot be added yet. **What merged here stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `bravo-lib-logging`, its filter beans and `logback*.xml` in the same change; the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`).
+**Update, 17 September 2026.** Merged by the squad on 15 September 2026 — the first service pull request of this programme to land. This repository is on Spring Boot 3.5.15. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON, an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It was not published when this was written; **Platform published it on 23 September 2026** (*Deploy Package* runs for `bfi-logging-core` 0.1.0 and then `bfi-logging-spring-boot-starter` 0.1.0), so the dependency can be added now — no service had done so by 6 October. **What merged here stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `bravo-lib-logging`, its filter beans and `logback*.xml` in the same change; the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`).
 
 | | |
 |---|---|

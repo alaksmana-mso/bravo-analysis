@@ -335,9 +335,9 @@ service moves to. Its fix for the old library ([bfi-java-pkg#123](https://github
 `bravo-lib-logging` will not change. Which side you are on depends on your Spring Boot
 version.
 
-*One thing first, for Platform, not squads:* the starter is merged but **not yet published**.
-`bfi-java-pkg` releases a module only when someone runs the manual *Deploy Package*
-workflow for that directory, and it has not run for `logging-core` or `logging-starter`.
+*One thing that was blocking squads is done:* the starter was merged on 16 September and
+**published by Platform on 23 September 2026** (*Deploy Package* for `logging-core`, then
+`logging-starter`, both 0.1.0). The dependency can be added today.
 Until it does, a `pom.xml` that names the starter will not build. Ask Platform to run it
 (core first, then the starter) before you start.
 

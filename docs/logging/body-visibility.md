@@ -99,9 +99,9 @@ auto-configuration). Read in full. **Merged to `master` on 16 September 2026** (
 library this programme points at: `bravo-lib-logging` stays as it is, and its fix (#123)
 was closed the same day.
 
-**Merged is not published.** The repository releases a module only when someone runs the
-manual *Deploy Package* workflow for that module's directory; it last ran on 30 January 2026
-and has not run for `logging-core` or `logging-starter`. Until Platform runs it twice (core
+**Merged, and since 23 September published.** The repository releases a module only when someone runs the
+manual *Deploy Package* workflow; Platform ran it on 23 September 2026 for `logging-core`
+and then `logging-starter`, both 0.1.0, so the dependency can be added now. Until Platform runs it twice (core
 first, then the starter), no service can add the dependency — a build would fail to resolve
 it. That single step is now the gate on every Java item in this programme.
 
