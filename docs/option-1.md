@@ -10,7 +10,19 @@
 >
 > The correction comes from the Bravo team's decision memo, [Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf) (2026-09-09). We re-verified its counts against the tree for this revision (§8).
 
-**Verdict in one line.** Option 1 costs roughly **1–1.5 engineer-months**. It lands Bravo on a fully supported engine *and* a supported Spring Boot. There is no licence to buy, no data migration, and rollback is clean. That makes it the cheapest of the three options by an order of magnitude, and it removes the end-of-support exposure outright rather than postponing it.
+> **Added 2026-10-01. Option 1 now has three sub-options.** They all keep Bravo on the Camunda 7 engine lineage. They differ in who maintains the engine and what it costs.
+>
+> | Sub-option | Engine | Licence | Where in this document |
+> |---|---|---|---|
+> | **1a** | **Camunda 7 Enterprise Edition**, from Camunda | **Yes** — USD 148,400 a year, quoted 2026-09-30 | [§3a](#3a-sub-option-1a--stay-on-camunda-with-an-enterprise-subscription) |
+> | **1b** | **Operaton**, Apache 2.0 community fork | None | §3 (Path B1), §4 |
+> | **1c** | **CIB seven**, Apache 2.0 community fork | None; paid support is purchasable | §3 (Path B2), §4 |
+>
+> Sub-option 1a came in after Camunda's assessment call on 2026-09-29. The quote is attached as [Camunda_estimates.pdf](camunda-vendor-package/Camunda_estimates.pdf). The pack we sent Camunda is in [camunda-vendor-package/](camunda-vendor-package/README.md).
+>
+> **Whichever sub-option is chosen, the hardening in §1 is done first.** It does not depend on the engine decision. The choice between 1a, 1b and 1c, and between Option 1 and [Options 2](option-2.md) and [3](option-3.md), is the CTO's, on cost and effort. [compare.md §0a](compare.md) sets the five side by side.
+
+**Verdict in one line.** Option 1 costs roughly **1–1.5 engineer-months**. It lands Bravo on a fully supported engine *and* a supported Spring Boot. On sub-options 1b and 1c there is no licence to buy, no data migration, and rollback is clean. That makes them the cheapest of the three options by an order of magnitude, and they remove the end-of-support exposure outright rather than postponing it. Sub-option 1a does the same job with less migration work, but adds a licence of about USD 148,400 a year, which is roughly 3.6× Bravo's whole orchestration run-rate ([§3a](#3a-sub-option-1a--stay-on-camunda-with-an-enterprise-subscription)).
 
 ---
 
@@ -60,7 +72,7 @@ Both are published on Maven Central, and we confirmed both for this revision. `o
 
 **Camunda 8 is not an upgrade path, and it is out of scope here.** It removes the embedded engine. It replaces all 272 `JavaDelegate` classes with external job workers. It drops the `ACT_` tables from the database. And it requires a paid licence for self-managed production use. That is a multi-quarter rewrite programme with its own budget line, not a version bump. It is comparable in size to [option-2.md](option-2.md), and it should be evaluated there.
 
-| | **A — Sequenced** | **B1 — Combined, Operaton** | **B2 — Combined, CIB seven** |
+| | **A — Sequenced** | **B1 — Combined, Operaton (sub-option 1b)** | **B2 — Combined, CIB seven (sub-option 1c)** |
 |---|---|---|---|
 | Engine | CIB seven 2.2.0 | Operaton 2.1.4 | CIB seven 2.2.0 (`-4`) |
 | Spring Boot | **3.5.14 — backwards** | **4.0.8** | **4.0.6** |
@@ -76,6 +88,76 @@ Its cost is real. It pays the full regression bill twice. It moves Spring Boot *
 **Approaches B1 and B2** are the same shape and differ only in which fork is adopted. Both land on a supported engine and a supported Spring Boot in a single regression cycle.
 
 **Target Spring Boot 4.0.x, not 4.1.x.** `spring-cloud` Oakwood (2025.1.x) is the only GA release train, and it pins `spring-boot.version` to 4.0.8. So Boot 4.1 waits until a `spring-cloud` train targets it. *(This corrects the earlier version of this document, which proposed 4.1.x.)*
+
+---
+
+### 3a. Sub-option 1a — stay on Camunda with an Enterprise subscription
+
+**Added 2026-10-01.** This is the route the two earlier revisions of this document dismissed, first as too expensive and then as unnecessary. It is back on the table because Camunda has now quoted it, and because a vendor-backed engine answers the one question §4 cannot: *can we buy a support contract for the workflow engine?* With Camunda the answer is yes, today, on published terms.
+
+**What it is.** Replace the 7.23.0 Community artifacts with the Camunda 7 Enterprise artifacts at the current EE minor, from Camunda's private Maven repository, with a licence key in configuration. The package names, the `ACT_` schema, the 53 BPMN files and the Cockpit plugins are all unchanged, so **the 687-file OpenRewrite rename is not needed**. Camunda 8 is a different programme and is not what this sub-option buys ([§3](#3-the-options)); the quote happens to price both the same.
+
+**The quote.** From Camunda's account team on 2026-09-30, after the assessment call of 2026-09-29. Source: [Camunda_estimates.pdf](camunda-vendor-package/Camunda_estimates.pdf).
+
+| Item | Quoted |
+|---|---|
+| Basis | **1,600,000 process instances a year** (≈135,000 a month) |
+| Success plan | Essential (base support). Two higher plans exist, not priced here |
+| **Investment** | **USD 148,400 a year**, flat for years 1, 2 and 3 |
+| Users | Unlimited — users are not charged |
+| Process size | Steps and sub-processes are not counted |
+| Features | All platform features, including the AI components |
+| C7 EE vs C8 EE | **Same price** |
+| Purchase route | GCP Marketplace private offer is available |
+| Pending | MNDA for signature; Camunda has asked for our security concern, BPMN diagrams and architecture before the next meeting |
+
+**In rupiah, at the Rp16,800/USD rate this pack uses elsewhere:**
+
+| | Amount |
+|---|---|
+| Licence per year | **≈Rp2.49B** |
+| Licence per month | **≈Rp208M** |
+| Three-year total | USD 445,200 ≈ **Rp7.48B** |
+| Bravo's orchestration tier today (`ms-bpm` pods + Cloud SQL, prod) | ≈Rp58M a month |
+| Licence as a multiple of that tier | **≈3.6×** |
+| For scale: BFI's Temporal Cloud commitment | ≈Rp140M a month |
+
+So 1a does not change the engineering cost class of Option 1. It changes the **run-rate** class. Over three years the licence is roughly 60–160× the one-off engineering cost of 1b or 1c.
+
+**The volume basis needs checking before this quote is relied on.** Camunda priced on 1.6M instances a year, which matches our *root* instance count: the production page counts 106,722 / 117,996 / 118,253 / 114,561 main-workflow starts for June to September 2026, plus about 8,000 operation-workflow starts a month, so about 1.5M a year. But a Camunda 7 call activity starts a **separate process instance**, and the unified spine fans each application out into several. Counted that way, production started **1,278,214 process instances in 90 days**, about 5.1M a year ([camunda-vendor-package/04](camunda-vendor-package/04-production-footprint.md)). Camunda's note says sub-processes are not counted, but a called process is not a sub-process. **Ask Camunda in writing whether called processes count.** If they do, the basis is about 3.2× what was quoted.
+
+**Effort, our estimate, pending Camunda's own assessment.**
+
+| Work | Estimate | Note |
+|---|---|---|
+| Engine swap to EE artifacts | 3–8 days | Private Maven repository credentials in CI, licence key, the §7.1 schema-log check, §7.3 PROD-clone rehearsal. No code rename |
+| Spring Boot 4 half | 12–20 days | **Available — verified 2026-10-02, see below.** Camunda 7.24.3-ee and later ship `-4` starter artifacts for Spring Boot 4. The 12–20 days are BFI's own Boot 4 work (§8), unchanged |
+| **Total** | **15–28 days** | Reconciled: ≈Rp35M–110M one-off at Rp30–50M per engineer-month, before the licence |
+
+> **Verified 2026-10-02: Camunda 7 Enterprise runs on Spring Boot 4, and the support dates are published.** The user found this online; we confirmed it against Camunda's own documentation. (docs.camunda.org refuses connections from this network, so the pages were read through a reader proxy. The forum thread is reachable directly.)
+>
+> | Fact | Source |
+> |---|---|
+> | "Starting with Camunda 7.24.3, we additionally provide Spring Boot Starter 4 artifacts while ensuring compatibility with both Spring Boot 3 and Spring Boot 4." Patch 7.24.3 / 7.23.8 / 7.22.11, January 2026. New artifacts `camunda-bpm-spring-boot-starter-4`, `-4-rest`, `-4-webapp`; the unsuffixed artifacts stay on Spring Boot 3 | [Patch level update guide](https://docs.camunda.org/manual/7.24/update/patch-level/#spring-boot-starter-4-support-7-24-3-only) |
+> | Compatibility table: Camunda 7.24.3+ ↔ Spring Boot **3.5.x and 4.0.x**. Example dependency `org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-4:7.24.3-ee` | [Spring Boot version compatibility](https://docs.camunda.org/manual/7.24/user-guide/spring-boot-integration/version-compatibility/) |
+> | 7.24.6 (April 2026 environment update): "Support for Spring 7", "Support for Spring Boot 4.0"; `camunda-engine-spring` compiled against Spring Framework 7 | [Enterprise announcements](https://docs.camunda.org/enterprise/announcement/) · patch guide |
+> | October 2026 environment update: Spring Boot 4.1, Java 25, Jackson 3. 7.24.10: "Camunda Run and the Camunda Spring Boot Starter are now based on Spring Boot 4.1.0", override to 4.0.7 possible | Enterprise announcements · patch guide |
+> | April 2027 environment update, planned: Spring Boot 4.2 | Enterprise announcements |
+> | Supported Java: 11 / 17 / 21 / 25 | [Supported environments](https://docs.camunda.org/manual/7.24/introduction/supported-environments/) |
+> | 7.24 LTS is the **last minor release**, released 14 October 2025. Full support to **13 April 2030**; extended support, for a fee, April 2030 to April 2032. Environment updates every April and October | Enterprise announcements · [EoL extension blog, Feb 2025](https://camunda.com/blog/2025/02/camunda-7-enterprise-end-of-life-extension/) |
+> | Enterprise only. The `-ee` artifacts sit in Camunda's private repository (anonymous browsing is refused). Community Edition stopped at 7.24.0 and will not get the `-4` starters | [Forum: Camunda 7 and Spring Boot 4, Feb 2026](https://forum.camunda.io/t/camunda-7-and-spring-boot-4/67071) · artifacts.camunda.com |
+>
+> **What this changes for 1a.** The Spring Boot 4 half is no longer conditional. The engine step becomes: EE repository credentials in CI, swap the three starter artifact ids to the `-4` variants at `7.24.x-ee`, drop the explicit `spring-framework-bom` pin, and let Boot 4.0.x govern (Oakwood still pins 4.0.8, so pin Boot 4.0.x explicitly rather than taking 7.24.10's 4.1.0 default). Two things still to check in the spike: the community `camunda-platform-7-keycloak` identity plugin at 7.23.0 has no stated Spring Boot 4 line, though [camunda-vendor-package/03](camunda-vendor-package/03-engine-integration.md) records that a custom read-only identity provider is what actually runs; and `camunda-bpm-process-test-coverage` / `camunda-bpm-assert` against the `-ee` engine. **Two of the three questions below are now answered. Only the instance-count basis is open.**
+
+**What 1a buys that 1b and 1c do not.** A contract with the company that wrote the engine. A published support calendar: full support to 13 April 2030, extended support to April 2032, with environment updates every April and October (verified above). CVE fixes from the original maintainers. And no 7.24 hop, no bundle relocation, no missing `CollectionUtil`.
+
+**What it does not buy.** It does not fix the security finding. The shared `INTERNAL_SERVICE_KEY`, the missing `ProcessEngineAuthenticationFilter` and the `permitAll()` on `/camunda/**` are BFI configuration, not engine defects, and §1's hardening is owed under 1a exactly as under 1b, 1c, 2 and 3. It also ties Bravo to a vendor whose own roadmap is Camunda 8, so a future "upgrade" conversation is a migration conversation. 7.24 is the final minor release, so the engine gets environment updates and fixes but never a new feature. And it adds ≈Rp2.49B a year to a tier that currently costs ≈Rp0.7B a year to run.
+
+**Three things to settle with Camunda before 1a is costed as firm** — *two answered from Camunda's public documentation on 2026-10-02, see the verification block above:*
+
+1. **Open.** Does the 1.6M basis count called-process instances? (Decides whether the price is right or 3× too low.)
+2. ~~Which EE version is recommended, and does its Spring Boot starter support Boot 4.0.x?~~ **Answered:** 7.24.x-ee; the `-4` starters support Spring Boot 4.0 (since 7.24.3, official since 7.24.6) and 4.1 (since 7.24.10). Confirm the recommended patch level in the meeting.
+3. ~~The committed Camunda 7 Enterprise end-of-maintenance date, in the contract.~~ **Answered:** 13 April 2030 full support, April 2032 extended. Still write it into the contract.
 
 ---
 
@@ -143,6 +225,7 @@ One engineer, excluding review, deployment soak and any work arising from the op
 
 | Path | Total | Cycles |
 |---|---|---|
+| **1a — Camunda 7 Enterprise** | 15–28 days, our estimate (§3a); plus USD 148,400 a year | one |
 | **B2 — CIB seven combined** | **18–30 days** | one |
 | **B1 — Operaton combined** | **20–33 days** | one |
 | A — sequenced | 25–40 days | two |
@@ -332,6 +415,7 @@ Standard promotion is SIT → soak → UAT → soak → PROD. Run the §7.1 diag
 | 3 | What does `ACT_GE_SCHEMA_LOG` report in SIT, UAT and PROD? | The cutover plan | Engineering — SQL in §7.1 |
 | 4 | CIB seven's property prefix and webapp URL path | Accurate B2 estimate | Engineering — spike |
 | 5 | What deployment window is actually available? | Cutover design | Release management |
+| 6 | **Sub-option 1a:** does Camunda's 1.6M-instance basis count called-process instances? *(The Spring Boot 4 and end-of-maintenance questions were answered from Camunda's public docs on 2026-10-02 — §3a.)* | Whether 1a's price is firm | Architect — in the next Camunda meeting |
 
 **Question 1 is the critical path. Questions 3 and 4 are answerable in hours.**
 
@@ -355,6 +439,8 @@ There is one belief under which Option 1 is *not* enough: that Bravo's **archite
 
 - **[Camunda 7 Exit Plan](production-findings/Camunda%207%20Exit%20Plan.pdf)** — Bravo team decision memo, 2026-09-09. It is the substance of §2 to §9 above. We verified its version and artefact facts against `repo1.maven.org` directory listings and release-tag POMs. Project health came from the GitHub API. Schema and namespace behaviour came from extracting and inspecting the published engine and webapp jars. Repository counts were measured against the working tree
 - Re-verification for this revision, 2026-09-10. We checked: 351 main and 336 test files importing `org.camunda`; 308 `@MockBean` across 186 files; both Flyway migration filenames and their exact DDL; `CollectionUtil` in exactly 2 files; 96 `userTask` elements across 26 of the 53 BPMN files; and Maven Central metadata for `org.operaton.bpm:operaton-engine` (2.1.4 GA), `org.cibseven.bpm:cibseven-engine` (2.2.0 GA) and both Spring Boot starters
+- [Camunda_estimates.pdf](camunda-vendor-package/Camunda_estimates.pdf) — Camunda's ballpark licence quote, email of 2026-09-30, and the [information package](camunda-vendor-package/README.md) it answers
+- Camunda 7.24 documentation, read 2026-10-02: [patch level update guide](https://docs.camunda.org/manual/7.24/update/patch-level/), [Spring Boot version compatibility](https://docs.camunda.org/manual/7.24/user-guide/spring-boot-integration/version-compatibility/), [supported environments](https://docs.camunda.org/manual/7.24/introduction/supported-environments/), [enterprise announcements](https://docs.camunda.org/enterprise/announcement/); [Camunda 7 EoL extension blog](https://camunda.com/blog/2025/02/camunda-7-enterprise-end-of-life-extension/); [forum: Camunda 7 and Spring Boot 4](https://forum.camunda.io/t/camunda-7-and-spring-boot-4/67071)
 - [SECURITY-FINDING-camunda-rce.md](SECURITY-FINDING-camunda-rce.md) — the live RCE exposure
 - [compare.md](compare.md) — cost tier, capability comparison, where product and lifecycle logic live
 - [workflow-gap.md §8](workflow-gap.md) — production volumes by root definition

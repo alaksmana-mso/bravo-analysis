@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  participant SCH as Scheduler
+  participant BQ as Count job and BigQuery
+  participant FIN as Finance
+  participant OWN as Owner
+  participant DBT as dbt and checks
+  participant CTO as CTO and teams
+  Note over SCH,CTO: Working day 1
+  SCH->>BQ: Run the monthly loan count
+  BQ-->>OWN: Last month's loans and workload are in
+  Note over FIN: Working days 1 to 3
+  FIN->>BQ: Enter vendor invoices and contract changes
+  Note over DBT: Every night
+  DBT->>BQ: Rebuild the numbers from billing, inputs and counts
+  DBT-->>OWN: Check results, for example a missing invoice or totals that do not match the GCP invoice
+  OWN->>FIN: Chase missing or odd items
+  Note over OWN: Working day 5
+  OWN->>DBT: Close the month and freeze it
+  DBT-->>CTO: Dashboards show the closed month
+  CTO->>OWN: Monthly review of cost per loan, re-processing cost, budget against actual
+  OWN->>FIN: Agreed changes to allocation keys or budget scenarios

@@ -1,0 +1,2041 @@
+[
+  {
+    "page_id": "2002223954",
+    "title": "[20260104] [MYBRO DAN MYSIS] - AirFlow Not Running",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2002223954",
+    "incident_date": "2026-01-04",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 216,
+    "duration_as_written": "3 jam 36 menit",
+    "affected_services": [
+      "MYBRO dan MYSIS"
+    ],
+    "business_impact": "Data MyBRO dan MySIS tidak tersync (daily Airflow sync for MyBRO and MySIS failed, so repeat-order data was not refreshed). No transaction or user counts given.",
+    "system_area": "Data platform (Airflow/ETL/DB2DB)",
+    "root_cause_verbatim": "Penyebab failed proses running Airflow, dikarenakan terdapat value null pada filed Full Name. value Null pada field Full Name cust id 2025129990350493 dikarenakan data customer gagal terkirim ke confins dari bravo, yang disebebkan ada data customer yang truncated",
+    "root_cause_category": "data quality / bad data",
+    "contributing_factors": [
+      "Bravo-to-CONFINS customer publish failed silently (outbox routing key confins-rtn-cust-initial-fo had an error)",
+      "Airflow pipeline not tolerant of a single null row (null full_name stopped the whole daily sync)",
+      "about 2.5 hours of discussion (08:01-09:23) before deciding to take the customer out",
+      "manual take-out, parquet regeneration and re-run required"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Airflow failure alert in channel ro-dwh-sync-alert-prod; 24x7 monitoring escalated to production digital support via WhatsApp at 06:44. Executive summary says 04:36, timeline says 06:23.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Customer id 2025129990350493 was taken out of the Airflow process, parquet regenerated and Airflow re-run (10:18); customer data to be fixed and republished to CONFINS.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records field only links the warroom chat; no earlier incident named.",
+    "action_items": [
+      {
+        "text": "Mysis dan Mybro Failed (issue row only, no action text)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Only a two-step why chain. Follow-up table has an issue title but no owner, action or ticket. Detection field contains diagnosis, not detection. Timing inconsistent (exec summary 04:36 vs timeline 06:23). Impact has no numbers. Root cause of the truncated customer data upstream in Bravo not investigated."
+  },
+  {
+    "page_id": "2030174209",
+    "title": "[20260108] [LMS Core] - [Max Usage JDBC Connection]",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2030174209",
+    "incident_date": "2026-01-08",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 90,
+    "duration_as_written": "90 minutes",
+    "affected_services": [
+      "Agreement"
+    ],
+    "business_impact": "High latency p90 and degraded success rate on the Agreement service; active connections on prod-postgres-agreement rose to more than 2,500. No transaction counts given.",
+    "system_area": "Agreement/Collateral/LoanCalc (Bravo)",
+    "root_cause_verbatim": "1. Degradation internet link performance of Biznet to International, since our gateway use apigee which the server is in international zone. 2. Impacting retry mechanism since transaction mostly timeout",
+    "root_cause_category": "third-party / vendor outage",
+    "contributing_factors": [
+      "Apigee gateway hosted in an international zone, so a domestic ISP international-link degradation breaks internal flows",
+      "retry on timed-out transactions multiplied load and exhausted the JDBC connection pool (>2,500 connections)",
+      "no cap or backpressure on the connection pool",
+      "single ISP (Biznet) active until manual swing to Linknet"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "JDBC connection alert in Google Chat alert space; Biznet also asked about degradation at 18:25.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Network team switched the link from Biznet to Linknet (18:38); Agreement connection pool recovered at 19:42 and Biznet recovered at 20:13.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related incidents and Related records fields are empty.",
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "Title says LMS Core but affected service is Agreement and root cause is an ISP link. Follow-up table empty. Related incidents empty. Timeline out of order (18:34 listed before 18:30). Lessons learned is one generic line. No action on retry storm or pool sizing."
+  },
+  {
+    "page_id": "2059960321",
+    "title": "[20260115][CONFINS R3] Penurunan SR Many Services",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2059960321",
+    "incident_date": "2026-01-15",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 81,
+    "duration_as_written": "1 hour 21 minutes",
+    "affected_services": [
+      "prod-ms-partnership",
+      "prod-ms-bfi-payment-api",
+      "prod-ms-onboarding",
+      "prod-ms-agency",
+      "prod-ms-collateral",
+      "prod-customer-bff",
+      "prod-ms-lms-ar-be",
+      "prod-ms-bfi-payment-net-api-http-client",
+      "prod-ms-bravo-core-proxy",
+      "prod-lora-partnership-ndf",
+      "prod-lora-gateway"
+    ],
+    "business_impact": "Unable to access several services (11 listed); LORA success rate degraded and agreement go-live creation failed; prod-ms-agreement went down with connection pool above 2,000. No transaction counts given.",
+    "system_area": "CONFINS R3 (AdIns core)",
+    "root_cause_verbatim": "1. OOM pada pods Prod-ms-lms-ar-be 2. Possible impact user high request 3. Prod-ms-lms-ar-be all Pods down 4. Insufficient pod resource",
+    "root_cause_category": "capacity / connection pool / resource exhaustion",
+    "contributing_factors": [
+      "lms-ar-be max replica only 2; utilisation often reached 100% until OOM crash",
+      "all pods of lms-ar-be down at once (no headroom)",
+      "cascading failure into prod-ms-agreement connection pool and LORA",
+      "payment point issue on the same day with OOM in logs",
+      "planned PBF contract migration on 14 Feb 2026 expected to add load"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Detected from Argo and Datadog at 08:00; monitoring escalated to production digital support at 08:15.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Team troubleshot and restarted prod-ms-lms-ar-be pods at 09:16; all impacted services recovered by 09:35.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the same Jira PRD-6705.",
+    "action_items": [
+      {
+        "text": "Kirim email current condition resource usage service CONFINS R3 ke tim AdIns untuk validasi, lalu ke tim SRE sebagai justifikasi request perubahan max replica lms-ar-be",
+        "owner": "Tim Monitoring",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Perubahan max replica service lms-ar-be dari 2 menjadi 4",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Generate monitoring report spesifikasi & utilisasi per deployment service Confins R3 untuk analisa tim AdIns",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": true,
+    "quality_notes": "Four-step list labelled 5 whys, shallow. Executive summary says 5:45 AM while timeline starts 08:00 (timezone inconsistency). Follow-up table empty; next actions live only in Lessons learned with no due dates or ticket. Recovery field mixes in unrelated notes (PBF migration plan). AdIns MOM kept in an external Google Doc."
+  },
+  {
+    "page_id": "2074214552",
+    "title": "[20260119][Notification]DBNotification CPU high",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2074214552",
+    "incident_date": "2026-01-19",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 207,
+    "duration_as_written": "3 jam 27 menit",
+    "affected_services": [
+      "prod-ms-agency",
+      "prod-ms-onboarding",
+      "prod-lora-gateway",
+      "prod-customer-bff",
+      "prod-ms-auth",
+      "prod-ms-backoffice",
+      "prod-ms-notification"
+    ],
+    "business_impact": "Unable to access several services; success rate fell on prod-ms-auth and on services depending on auth and notification (agency, onboarding, customer-bff, backoffice, lora-gateway, notification). No user or transaction counts given.",
+    "system_area": "Notification",
+    "root_cause_verbatim": "Suspect pada database notification nyangkut after activity housekeeping dan partitioning pada table vendor_log untuk solving terkait memory yang sudah alert >70%. Dan suspect karena ada FK ke table message yang belum di create sehingga based on top query pada query insight GCP yang consume resource CPU tertinggi ada pada table message dan message_status",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "DB schema change (housekeeping and partitioning of vendor_log) done without a validation checklist",
+      "FK/index to message table not created after the change",
+      "prior memory alert above 70% on the notification DB",
+      "69 minutes between first escalation (07:36) and production support starting checks (08:45)",
+      "auth depends on notification DB, so one DB took down login paths"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Centralized Alert High CPU on prod-postgres-notification-d2fon at 07:09, followed by SR alerts at 07:13-07:14.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "SRE restarted the GCP notification instance, scaled pods to 0, DBA recreated table vendor_log and its index, instance restarted again; recovered 10:41.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the same Jira PRD-6715.",
+    "action_items": [
+      {
+        "text": "Every database schema change (partitioning, housekeeping, FK, index) must go through a complete validation checklist; pre-check (schema, FK, index, query plan)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause is stated as 'suspect' only. Follow-up table empty; the checklist rule has no owner or ticket. Timeline out of order (09:00 before 08:58). The 69-minute response lag is recorded but not analysed. Postmortem owner is a team link, not a person."
+  },
+  {
+    "page_id": "2091679783",
+    "title": "[20260122] [Network] Gamas Issue Telkom",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2091679783",
+    "incident_date": "2026-01-22",
+    "priority_as_written": "P0",
+    "duration_minutes": 145,
+    "duration_as_written": "2 hours 25 minutes",
+    "affected_services": [
+      "Network Branch Devices"
+    ],
+    "business_impact": "159 branch, gerai and POS network devices listed as down (Telkom national outage); branches with dual links recovered by swinging to the non-Telkom link, POS and Gerai on single Telkom links could not be recovered until Telkom came back.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "Terjadi anomali routing pada jalur peering. 1. Ping to 8.8.8.8 using telkom down 2. Ping to ovi 2 Astinet down 3. Lost connection if only telkom 4. GAMAS Nasional impact peer routing isu 5. Tracert down",
+    "root_cause_category": "third-party / vendor outage",
+    "contributing_factors": [
+      "POS and Gerai sites have a single Telkom link, no backup",
+      "recovery only possible at branches with dual Telkom and non-Telkom links",
+      "swing to backup ISP done manually per site"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Critical alerts in Google Space and Centralized Alert plus ManageEngine OPM device-down at 10:38; escalated to IT Regional at 10:45.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Network team swung impacted branches to the backup non-Telkom ISP (from 11:04); Telkom recovered around 12:00 and all branches confirmed by 13:00 except Gerai and POS.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records links Telkom's RFO document only.",
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "The '5 whys' is a list of ping and traceroute tests, not a causal chain. Follow-up table still has template placeholders ('@ owner', '1 incomplete 2 incomplete'). No action item for single-link POS and Gerai. Recovery time for Gerai and POS not stated. Executive summary is two bold lines."
+  },
+  {
+    "page_id": "2105081956",
+    "title": "[20260124] [LMS] - Tidak Bisa Payment Receive & Open Menu Prepaid Allocation , AP Inquiry",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2105081956",
+    "incident_date": "2026-01-24",
+    "priority_as_written": "P1",
+    "duration_minutes": null,
+    "duration_as_written": "e.g., 39 minutes (template placeholder left in; timeline runs 10:48 to 12:40, about 112 minutes)",
+    "affected_services": [
+      "Payment"
+    ],
+    "business_impact": "Branch users could not do payment receive in LMS (error HV000028: Unexpected exception during isValid call) and could not open the Prepaid Allocation and AP Inquiry menus. No counts given.",
+    "system_area": "LMS Core / Payment",
+    "root_cause_verbatim": "issue ini terjadi dikarenakan informasi SID pada JWT token keycloak berubah value dari yang tipe data UUID menjadi random String, dikarenakan backend seervice terdapat mapping tipe data utk informasi SID menyebabkan error terjadi, Penyebab berubah value JWT token dari keycloak masih belum diketahui.",
+    "root_cause_category": "code defect / logic bug",
+    "contributing_factors": [
+      "backend mapped the Keycloak SID claim as UUID although the format is not guaranteed",
+      "cause of the Keycloak SID format change unknown",
+      "backend reads the JWT SID although it is not needed (to be removed)",
+      "no periodic review of design assumptions in the existing system"
+    ],
+    "detection": "user/business report",
+    "detection_note": "Branch user reported via OTRS at 10:48.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Squad LMS Fund deployed a hotfix changing the SID data type from UUID to String (12:32); branch users reprocessed successfully at 12:40.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records field empty.",
+    "action_items": [
+      {
+        "text": "Investigasi root cause",
+        "owner": "@Chandra.Definta @william",
+        "due_date": null,
+        "status": "incomplete (template checklist placeholders)"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Template line 'Duplicate/copy this template... delete this line before page published' left at top. Incident duration still 'e.g., 39 minutes', response teams 'e.g., Application support', responders '@ responders'. Follow-up action items are template placeholders. Why Keycloak changed the SID format is unknown and not tracked. Removal of JWT parsing from backend has no ticket."
+  },
+  {
+    "page_id": "2154758145",
+    "title": "[20260206] [CNV] SSL Certificate Failed Impact",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2154758145",
+    "incident_date": "2026-02-06",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 1110,
+    "duration_as_written": "18 hours 30 minutes",
+    "affected_services": [
+      "prod-ms-lora-task",
+      "prod-ms-lora-gateway",
+      "prod-ms-lora-partnership-task-ndf",
+      "prod-ms-bpm",
+      "prod-ms-backoffice"
+    ],
+    "business_impact": "Unable to access several services: LORA task, LORA gateway, LORA partnership-task-ndf and BPM failed calls to CNV with 'SSL certificate verify failed'. No transaction counts given.",
+    "system_area": "CNV / bureau integration",
+    "root_cause_verbatim": "Saat GKE Upgrade pada Cluster Bravo, harus melakukan manual delete untuk current Istio version baru kemudian diinstall kembali secara manual untuk versi terbaru. Dikarenakan versi GKE upgrade pada saat itu terjadi lompatan versi yang cukup jauh karena dari September 2025 dimatikan terlebih dahulu feature upgrade-nya agar aplikasi yang ada saat itu minim terjadi Impact. (Recovery: difference TLS between Istio (v.1.3) and CNV (v.1.2))",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "GKE auto-upgrade disabled since September 2025, causing a large version jump",
+      "Istio had to be manually deleted and reinstalled during the GKE upgrade",
+      "TLS version mismatch between new Istio (TLS 1.3) and CNV (TLS 1.2) not tested before the change",
+      "about 4.5 hours from first SR alert (22:56) to L1 finding the SSL error in logs (03:20)",
+      "no maintenance window agreed for upgrades"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Centralized Alert SR degradation on LORA services seen on Datadog at 22:56; root error found in logs at 03:20.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "SRE adjusted the TLS configuration of the Istio external service for Bravo (CNV) at 05:20; CNV tested OK at 05:25 and status resolved 05:30.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the same Jira PRD-6793.",
+    "action_items": [
+      {
+        "text": "Feature auto upgrade akan diaktifkan kembali, dan window maintenance time akan ditentukan bersama-sama",
+        "owner": "cc @Gilang Zulwanda Putra",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Executive summary empty. Stated duration 18h30 does not match the timeline (22:56 to 05:30, about 6.5 hours). Follow-up table empty. CNV itself not in affected services. Impact lists 4 of the 5 services. Several empty timeline rows. No GKE/Istio upgrade change record linked."
+  },
+  {
+    "page_id": "2172256283",
+    "title": "[20260212] [CNV] - Authentication error_Pefindo Not Result",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2172256283",
+    "incident_date": "2026-02-12",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 47,
+    "duration_as_written": "47 menit 6 detik",
+    "affected_services": [
+      "CNV",
+      "BPM",
+      "LORA"
+    ],
+    "business_impact": "LORA (prod-lora-task, prod-lora-gateway) and BPM success rate degraded: Pefindo scoring calls through CNV returned 406 Not Acceptable / HTML, so the count of CNV Pefindo transactions without a result kept growing. No final count given.",
+    "system_area": "CNV / bureau integration",
+    "root_cause_verbatim": "Info dari Pefindo: adanya anomali proses yaitu lonjakan sesaat pada penggunaan processor yang menyebabkan salah satu service mengalami down",
+    "root_cause_category": "third-party / vendor outage",
+    "contributing_factors": [
+      "issue on Pefindo's legacy system",
+      "CNV could not parse the non-JSON 406 response and surfaced INTERNAL_FAILURE to LORA and BPM",
+      "vendor RCA only as attached PDF (RCA CBS Incident_12Feb2026.pdf)"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Alert APP-URL-FO.PEFINDO down at 08:35 plus Centralized Alert, Google Space, Datadog and Pefindo transaction email.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Pefindo normalised transactions and restarted their service (and added this to routine maintenance); transactions succeeded again at 09:20.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the warroom chat.",
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "Executive summary is the placeholder 'Kindly update the unfilled field so the documentation can proceed'. Follow-up table corrupted (cell text 'kedaluwarsa)' and 'Type /link'). Lessons learned duplicates the recovery text. No BFI-side action (for example, handling non-JSON vendor responses). Root cause is the vendor's one line."
+  },
+  {
+    "page_id": "2172585772",
+    "title": "[20260213] | [CDB] - Service Database (Port 1433) Is Not Available",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2172585772",
+    "incident_date": "2026-02-12",
+    "priority_as_written": "P0",
+    "duration_minutes": 21,
+    "duration_as_written": "21 mins 5 secs (two outages: 18:11:09 for 3 mins 9 secs and 18:26:56 for 17 mins 57 secs)",
+    "affected_services": [
+      "CONFINS R1"
+    ],
+    "business_impact": "Users were not able to access CONFINS R1; applications could not connect to the CDB SQL Server on port 1433 during two outages totalling about 21 minutes.",
+    "system_area": "Database",
+    "root_cause_verbatim": "The root cause is still investigation, but from our checking the possibility issue is IO anomaly in the VM. Because we found from Rubrik at 5.52PM the backup log is very big size +-10GB so the rubrik already allocate the resource from the VM center.",
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "Rubrik backup log of about 10 GB at 17:52 competing for VM IO (suspected)",
+      "MSSQL hung and needed two restarts",
+      "monitoring needed 3 consecutive failed polls before alerting (to be reduced to 2)"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "ManageEngine APM monitor DB-MSSQL-CDB-DC reported port 1433 connect timeout; users also reported CDB down.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "IT DBA restarted MS-SQL twice; CDB and CONFINS R1 were up again at 18:21.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records field empty.",
+    "action_items": [
+      {
+        "text": "CDB MS-SQL was hang: Validate RCA Draft",
+        "owner": "@Muh Firdaus @Musa Qawiyyun Amin",
+        "due_date": null,
+        "status": "incomplete"
+      },
+      {
+        "text": "Monitoring: decrease consecutive polling from 3 times to 2 times per 1 minute",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Executive summary is template text. Root cause still under investigation; page promised an update but last edit (2026-04-01) added none. Title date 13 Feb vs body 12 Feb. Overview start times (18:11, 18:26) differ from timeline (18:05, 18:09). No action on Rubrik backup scheduling."
+  },
+  {
+    "page_id": "2192377148",
+    "title": "[20260225] [RO] Issue Loading Lambat pada MySIS & MyBRO",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2192377148",
+    "incident_date": "2026-02-25",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 99,
+    "duration_as_written": "1 jam 39 menit",
+    "affected_services": [
+      "MySIS",
+      "MyBRO",
+      "prod-ms-repeat-order",
+      "prod-ms-notification"
+    ],
+    "business_impact": "Seluruh Cabang tidak bisa melakukan inputan RO pada aplikasi MySIS & MyBRO karena loading (all branches unable to enter repeat orders); prod-ms-notification postbacks to repeat-order also failed. No transaction counts given.",
+    "system_area": "MyBRO/MySIS (repeat order)",
+    "root_cause_verbatim": "1. Adanya CPU tinggi 2. Database Connection/Hikari pool yang naik 3. Impact karena adanya proses bulk wa blast yang mempublish ke MQ sehingga menyebabkan kenaikan utilisasi CPU Database, selain itu juga menyebabkan connection pool database nya full.",
+    "root_cause_category": "capacity / connection pool / resource exhaustion",
+    "contributing_factors": [
+      "user-triggered bulk WhatsApp blast published to MQ during office hours",
+      "bulk MQ consumer not throttled, saturating repeat-order DB CPU and Hikari pool",
+      "team had to wait for the bulk process to finish (already ACKed in MQ), no kill switch",
+      "blast goes through internal notification service and Vonage"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Centralized Alert High CPU on prod-postgres-repeat-order-d2rod at 09:40; user reports via WhatsApp group at 09:49.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Waited for the bulk MQ blast process to finish; MySIS and MyBRO normal at 10:50. Temporary mitigation: schedule bulk publishes outside operating hours.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the warroom chat.",
+    "action_items": [
+      {
+        "text": "Permanent: Squad akan melakukan perbaikan dari bulk MQ tersebut",
+        "owner": "Squad RO",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Temporary: penjadwalan proses bulk publish message ke MQ hanya di luar jam operasional",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": true,
+    "quality_notes": "Three-step causal chain, shallow. Follow-up table empty; permanent fix has no owner name, due date or ticket. Squad RCA lives on a separate page (link is an edit-v2 URL). Lessons learned shifts the fix to user behaviour. Timeline slightly out of order (09:50 after 09:52)."
+  },
+  {
+    "page_id": "2211840029",
+    "title": "[20260228] [Payment Point] Payment Point Failed Posting To Confins",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2211840029",
+    "incident_date": "2026-02-27",
+    "priority_as_written": "p1 high",
+    "duration_minutes": 210,
+    "duration_as_written": "3 Jam 30 Menit",
+    "affected_services": [
+      "Payment"
+    ],
+    "business_impact": "Konsumen sudah melakukan pembayaran via payment point di masing-masing channel tapi paymentnya tidak masuk ke system Confins; 2,850 transactions sat in the Dead queue q.core.create-posting-transaction.",
+    "system_area": "LMS Core / Payment",
+    "root_cause_verbatim": "issue ini disebabkan karena di sisi aplikasi legacy kurang tepat untuk handlling koneksi ke database sehingga ketika ada transaksi yg sedang berjalan dan terputus tiba tiba akan menyebabkan broken connection pool, ketika ada transaksi yg reuse connection tersebut maka akan menyebabkan issue yg sama",
+    "root_cause_category": "code defect / logic bug",
+    "contributing_factors": [
+      "legacy webcore 5 application reuses broken DB connections from its pool",
+      "no alert on the dead-letter queue (found by manual log inspection)",
+      "anomalous log size growth was the first clue, not an alert",
+      "failed transactions needed manual republish"
+    ],
+    "detection": "user/business report",
+    "detection_note": "IT Production noticed abnormal log growth on webcore 5 at 13:30 during a manual H2H log check; branch users reported missing payments at 13:52. No alert fired.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Restarted the application pool on webcore 5 and republished the failed posting transactions; all posted to CONFINS by 17:00.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the warroom chat.",
+    "action_items": [
+      {
+        "text": "Permanent fix: perubahan handling koneksi ke database (LMS Payment)",
+        "owner": "Squad LMS Payment",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Sweeping semua process kritikal di aplikasi legacy yang masih menggunakan cara koneksi yang kurang tepat",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Executive summary is the placeholder 'Kindly update the unfilled field'. Follow-up table corrupted ('kedaluwarsa)'). Date typo '2027-02-28' in symptom; title says 28 Feb, incident date field says 27 Feb. Responders field says 'User'. No action to alert on the dead queue. Trigger of the connection drop not identified."
+  },
+  {
+    "page_id": "2210562274",
+    "title": "[20260228] [CONFINS R3] Error in EOM R3 Process",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2210562274",
+    "incident_date": "2026-02-28",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 296,
+    "duration_as_written": "4 Jam 56 Menit",
+    "affected_services": [
+      "CONFINS R3"
+    ],
+    "business_impact": "Process EOM Confins R3 stopped: end-of-month batch was blocked at the Journal Write-Off step from 20:00 until about 01:30 (page says 20.00 - 01.30; timeline finish 00:56).",
+    "system_area": "CONFINS R3 (AdIns core)",
+    "root_cause_verbatim": "1. Error 42P01: relation \"AR_REF_PREPAID_PURPOSE\" does not exist: kesalahan / bugs table naming di dalam SP jurnal WO, sehingga memanggil ke tabel yang salah (seharusnya \"REF_PREPAID_PURPOSE\"). 2. Unauthorized Access http://prod-ms-lms-ar-be/v1/ArHist/GetListArHistDataByTrxNo: bugs di dalam proses getUserToken mendapatkan respon null, untuk getUserToken akan di revert langsung mengambil dari Redis.",
+    "root_cause_category": "code defect / logic bug",
+    "contributing_factors": [
+      "wrong table name in the write-off stored procedure not caught before EOM",
+      "getUserToken returned null, breaking service-to-service auth to lms-ar-be",
+      "a required deployment was missing ('Menaikan deployment yang kurang')",
+      "three failed recovery attempts (pod restart, Redis key, new image v3.0.3) before the manual API workaround",
+      "dependence on vendor AdIns at night during month-end"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Datadog monitor 'Production Monitoring - Confins R3 EOD' triggered at 20:06.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "DBA altered the write-off SP, Journal WO was created manually via API v1/WriteOffX/GenerateJournalForWriteOff and the WO journal step was skipped in EOM; EOM re-run finished at 00:56.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the warroom chat.",
+    "action_items": [
+      {
+        "text": "Fix untuk unauthorized ketika eod journal wo: menaikan deployment yang kurang; getUserToken di revert langsung mengambil dari Redis",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Postmortem owner and responders empty. Executive summary is the placeholder text. Lessons learned is '…..'. Follow-up table corrupted ('kedaluwarsa)'). AdIns RCA referenced only via Jira. Timeline crosses midnight without dates and is slightly out of order (20:20 before 20:13). Which deployment was missing is not named."
+  },
+  {
+    "page_id": "2231762949",
+    "title": "[20260307] [Contract Collateral and Loan Calculation] Agreement DB Locking Impacting Multiple Services",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2231762949",
+    "incident_date": "2026-03-07",
+    "priority_as_written": "P1",
+    "duration_minutes": 90,
+    "duration_as_written": "90 minutes",
+    "affected_services": [
+      "prod-ms-cnv",
+      "prod-ms-partnership",
+      "prod-ms-backoffice",
+      "prod-ms-ams",
+      "prod-ms-bfi-payment-api",
+      "prod-ms-lms-gateway",
+      "prod-ms-onboarding",
+      "prod-ms-agency",
+      "prod-ms-collateral",
+      "prod-ms-bravo-core-proxy"
+    ],
+    "business_impact": "Penurunan success rate service serta timeout pada proses payment across more than ten services dependent on the Agreement DB; timeline also records intermittent connection reports for Old Centerix, CMS and Artajasa. Impact field itself is empty; no counts given.",
+    "system_area": "Agreement/Collateral/LoanCalc (Bravo)",
+    "root_cause_verbatim": "cron job CDC pada database Agreement menghasilkan akumulasi query dan locking pada DB, sehingga resource database menjadi terbatas dan menyebabkan penurunan performa pada beberapa service yang bergantung pada DB tersebut.",
+    "root_cause_category": "database locking or query performance",
+    "contributing_factors": [
+      "CDC / reconciliation batch job run by cron during business hours (around 12:20 WIB)",
+      "batch not isolated from OLTP traffic on the Agreement DB",
+      "connection pool alert on prod-ms-agreement and high DB CPU",
+      "many services share the Agreement DB dependency"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "Production alerts (SR degradation, high latency on partnership, connection pool on agreement, high DB CPU); first alert about 12:20 WIB.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Stopped the CDC process on the Agreement DB and disabled the cron job after the batch finished (13:15); issue resolved 13:20 (summary says 13:30).",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related incidents and Related records fields are empty / template.",
+    "action_items": [
+      {
+        "text": "Do not use CRON anymore, it should migrate to Airflow",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Template line left at top. Incident (Jira) field empty, Related incidents placeholder, Impact field empty, Five-whys field empty, Response teams 'e.g., Application support', Responders '@ responders', Follow-up table placeholders. Symptom field ends with template sentence 'You can @ mention team members...'. Resolution time 13:20 vs 13:30 inconsistent. Cron job called CDC in one place and reconciliation batch in another."
+  },
+  {
+    "page_id": "2231730780",
+    "title": "[20260309] [Server] Degraded Connection on NIC 2 on node118",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2231730780",
+    "incident_date": "2026-03-09",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 77,
+    "duration_as_written": "1 hour 17 minutes",
+    "affected_services": [
+      "Payment Point",
+      "CONFINS",
+      "MySIS",
+      "MyBRO",
+      "Centerix"
+    ],
+    "business_impact": "Cabang lambat mengakses CONFINS, MySIS, MyBRO, Centerix; terdapat gagal transaction di Payment Point (branches slow to access core apps and some Payment Point transactions failed). No counts given.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "Adanya degradasi link di VM 118 pada NIC Primary dimana degradasi ke 100 MB yang normalnya itu 10 GB, sehingga yang kita lakukan switch ke secondary NIC dan disable/matikan NIC primary",
+    "root_cause_category": "infrastructure hardware or network",
+    "contributing_factors": [
+      "primary NIC on host 118 degraded from 10 Gb to 100 Mb without automatic failover to the secondary NIC",
+      "gateway gw.bfi.co.id VM sat on the affected host",
+      "network team checked first and found nothing; escalation to server team took until 08:14",
+      "physical cause of the NIC degradation not determined on the page"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "ManageEngine healthcheck showed high response time on gw.bfi.co.id at 07:35; user reports at 07:45. Executive summary says detected 08:14.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Server team disabled the degraded primary NIC and enabled the secondary NIC (08:35), connectivity recovered about 08:45, then migrated VMs off host 118 (09:00).",
+    "repeat_of_earlier_incident": false,
+    "repeat_note": "Related records field says '-'.",
+    "action_items": [
+      {
+        "text": "(not specified; template placeholders '1 incomplete / 2 incomplete')",
+        "owner": "@Nicko Anggoro",
+        "due_date": null,
+        "status": "incomplete"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Symptom field contains text copied from the 7 Mar Agreement DB locking page (mentions prod-ms-agreement connection pool, watchdog on collateral/onboarding, and the template sentence 'You can @ mention...'). Follow-up has an owner but no action text. Detection time inconsistent (07:35 timeline vs 08:14 summary). Lessons learned is one line; physical NIC/cable/switch cause not closed out."
+  },
+  {
+    "page_id": "2240610305",
+    "title": "[20260310] [Agency] Agent Error Timeout Impacted Dari Upgrade Postgres ke versi 16",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2240610305",
+    "incident_date": "2026-03-10",
+    "priority_as_written": "p1 Critical",
+    "duration_minutes": 372,
+    "duration_as_written": "6 Jam 12 Menit",
+    "affected_services": [
+      "prod-ms-agent",
+      "prod-ms-agency",
+      "prod-ms-onboarding",
+      "prod-ms-incentive-api",
+      "prod-ms-repeat-order"
+    ],
+    "business_impact": "Untuk agent tidak bisa menggunakan aplikasi agent platform dan diarahkan menggunakan salestrax selama issue berlangsung; Agent, Onboarding, Repeat Order and Incentive services degraded with timeouts to the agent service. No counts given.",
+    "system_area": "Database",
+    "root_cause_verbatim": "Terdapat perbedaan treatment query existing jadi butuh penyesuaian dan butuh di lookup seluruh query agar tidak terjadi lagi (suspect merupakan impact dari upgrade version DB Postgres dari versi 13 ke 16)",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "Postgres 13 to 16 upgrade of the Agent DB on the evening of 9 Mar without query-plan regression testing",
+      "JPA library compatibility with PostgreSQL 16",
+      "CPU alert fired at 20:52 on 9 Mar during the upgrade and again at 04:10, but work started only after the 07:45 user report",
+      "no fast rollback path: a new Postgres 13 instance had to be built and SQL proxy rerouted, accepting a data gap back to the 20:00 backup",
+      "crossplane rolling-update loop blocked concurrent index creation; autovacuum and data dump added CPU load during recovery"
+    ],
+    "detection": "monitoring alert",
+    "detection_note": "High CPU alert on the Agent DB at 20:52 on 9 Mar (resolved 00:10) and again at 04:10 on 10 Mar; user report of agent platform errors at 07:45 triggered the response.",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Rolled the Agent DB back to Postgres 13 on a new instance (SQL proxy rerouted 12:24) and reverted the agent service to v2.23.1; services normal at 13:12.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records only links the warroom chat.",
+    "action_items": [
+      {
+        "text": "impact upgrade version postgres (no action text)",
+        "owner": "DBA Team, SRE Team Squad Agent",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Lookup dan penyesuaian seluruh query agar sesuai PostgreSQL 16 sebelum upgrade ulang",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause is one line. Follow-up row has owners but no concrete action or ticket. Responders field says 'User'. Data restored from the 20:00 backup; whether the gap data (20:00 to 12:20) was reconciled is not stated. Overnight CPU alerts not acted on for about 11 hours. No change record or pre-upgrade test plan linked."
+  },
+  {
+    "page_id": "2307915875",
+    "title": "[20260331] [InternalService] Error Dukcapil pada KYC Proxy",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2307915875",
+    "incident_date": "2026-03-31",
+    "priority_as_written": "P0 (CRITICAL)",
+    "duration_minutes": 156,
+    "duration_as_written": "2 jam 36 menit 1 detik",
+    "affected_services": [
+      "prod-ms-kyc-proxy",
+      "pbf",
+      "verifone"
+    ],
+    "business_impact": "User get result failed on Status Check and Checking Result in VerifyOne Web; POST /v1/id-verification/submit failed with ~30 s response time then timeout/canceled on the call to Dukcapil.",
+    "system_area": "KYC / eKYC",
+    "root_cause_verbatim": "Anomali kontrak end date sehingga link H2H dukcapil status suspend",
+    "root_cause_category": "third-party / vendor outage",
+    "contributing_factors": [
+      "ISP (Telkom) suspended the H2H link to Dukcapil because of a contract end-date anomaly",
+      "long escalation and coordination chain (monitoring -> prod support -> squad -> network -> ISP)",
+      "no fast escalation path to ISP (WhatsApp group created afterwards)",
+      "contract/link expiry not tracked"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Network team escalated to the ISP (Telkom), which reactivated the suspended order and unblocked the Dukcapil link; link up again at 13:58.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related incidents field holds only a Google Chat war-room link; no earlier incident named.",
+    "action_items": [
+      {
+        "text": "Create WhatsApp escalation group with user, risk team, IT Production and SRE for faster escalation (lessons learned; meeting already held)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause is one line, no 5-whys. Follow-up table is template placeholder ('@ owner', two empty 'incomplete' checkboxes, 'Type /link to add a ticket'). Timeline is in local time, not UTC as template asks. Executive summary names prod-ms-cnv while affected services say prod-ms-kyc-proxy. Evidence of the root cause is a Google Drive link only."
+  },
+  {
+    "page_id": "2310373395",
+    "title": "[20260401] [CONFINS R3] EOM R3 berjalan tidak sesuai jadwal",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2310373395",
+    "incident_date": "2026-03-31",
+    "priority_as_written": "P1",
+    "duration_minutes": 30,
+    "duration_as_written": "30 minutes",
+    "affected_services": [
+      "CONFINS R3"
+    ],
+    "business_impact": "Tim Production mengidentifikasi terdapat 17 transaksi yang terdampak; transaksi tersebut merupakan pembayaran yang masuk pada rentang waktu 19.00 - 20.00. Mitigation covered 18 journals (17 payment, 1 disburse) and daily aging for 31 March.",
+    "system_area": "CONFINS R3 (AdIns core)",
+    "root_cause_verbatim": "Behaviour CronJob on Kubernetes tetap akan jalan dalam rentang beberapa waktu ke depan walaupun set time sudah dirubah. Sehingga mengakibatkan set time yang lama tetap berjalan walaupun tidak sesuai.",
+    "root_cause_category": "batch job scheduling or orchestration (EOD/EOM/Airflow)",
+    "contributing_factors": [
+      "schedule change merged same day (PR 09:17) without ArgoCD sync (prune/force/replace) after merge",
+      "manual check at 09:18 only confirmed the merge, not the live CronJob",
+      "EOD and EOM share one CronJob so a schedule change to one redeploys the other",
+      "no procedure/SOP standard for EOD/EOM schedule changes with SRE"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "SRE deleted the 20:00 cron to avoid double execution, DBA altered sp eodsetflag as a guard, and Production corrected 18 journals, daily aging and posting dates with AdIns scripts.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records field holds a Google Chat link only.",
+    "action_items": [
+      {
+        "text": "Meeting dengan SRE untuk menetapkan standar prosedur perubahan tanggal EOD/EOM confins R3 (issue: Cron tidak menjalankan konfigurasi terbaru)",
+        "owner": null,
+        "due_date": null,
+        "status": "Open (incomplete)"
+      },
+      {
+        "text": "Short term: tambah action lanjutan pada SOP, setelah merge lakukan sync (checklist prune, force, replace)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Coba alternatif cron tidak menggunakan CronJob tetapi Argo Event",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Long term: cronjob terpisah dengan jadwal masing-masing antara EOD dan EOM",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Single-line root cause, no 5-whys chain. Follow-up owner left as template '@ owner'. Page title date (20260401) differs from incident date (2026-03-31). Priority field just 'P1'. Stray text '22flatpipe' at top of page and '. elated records' typo."
+  },
+  {
+    "page_id": "2309881874",
+    "title": "[20260401] [CNV] PEFINDO Authentication Error",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2309881874",
+    "incident_date": "2026-04-01",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 66,
+    "duration_as_written": "66 Menit",
+    "affected_services": [
+      "CNV"
+    ],
+    "business_impact": "Tidak mendapatkan result dari Pefindo; by 07:10 there were 83 CNV Pefindo transactions with no result in APP Result Pefindo and the count kept rising.",
+    "system_area": "CNV / bureau integration",
+    "root_cause_verbatim": "Sistem CBS error Nasional dari sisi Pefindo , Berikut terlampir RCA dari Pefindo",
+    "root_cause_category": "third-party / vendor outage",
+    "contributing_factors": [
+      "ping check to bo.pefindobirokredit.com passed while the API returned Authentication error (network check not sufficient)",
+      "dependency on vendor to detect and fix (no action possible on BFI side)"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": 1,
+    "recovery_action": "Pefindo fixed its national CBS issue; no action on BFI side (Action dilakukan dari sisi Tim Pefindo).",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty.",
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "No 5-whys, root cause delegated to vendor RCA PDF attachment (RCA Incident_01April2026.pdf). Lessons learned empty. Related records empty. Follow-up table is template placeholder with no owner or task. No retry/replay note for the 83+ failed transactions."
+  },
+  {
+    "page_id": "2310701119",
+    "title": "[20260401] [Contract Collateral and Loan Calculation] Degradation Link NGINX Gateway",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2310701119",
+    "incident_date": "2026-04-01",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 120,
+    "duration_as_written": "2 hours",
+    "affected_services": [
+      "prod-ms-agency",
+      "prod-ms-collateral",
+      "prod-ms-partnership (high latency)",
+      "prod-ms-onboarding",
+      "prod-ms- agreement",
+      "prod-ms-lora-gateway",
+      "prod-ms-lms-ar-be",
+      "prod-ms-bravo-core-proxy",
+      "prod-ms-payment-api",
+      "prod-ms-customer-bff",
+      "prod-lora-partnership-ndf",
+      "prod-ms-bpm",
+      "BFI Mobile",
+      "MySIS",
+      "GW",
+      "prod-ms-operation-api"
+    ],
+    "business_impact": "User tidak bisa submit pada aplikasi MySIS, BFI Mobile, Agent Tools. Agreement connection pool exceeded the 2,500 database connection threshold and success rate dropped across several services.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "Server Team @Nicko Anggoro found a link degradation occurred on primary NIC host VM114, which the Nginx VM is located. This issue directly impacted connection to gw.bfi.co.id. He switch to secondary NIC.",
+    "root_cause_category": "infrastructure hardware or network",
+    "contributing_factors": [
+      "Agreement DB connection pool hit the 2,500 threshold under the slow gateway",
+      "OOM on Agreement service pods",
+      "first mitigation (ISP switch Biznet -> Linknet) targeted the wrong layer and cost ~35 minutes",
+      "no NIC/port health monitoring on the Nginx host VM114",
+      "single Nginx gateway VM on one host"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Server team switched host VM114 from the degraded primary NIC to the secondary NIC; traffic normal at 11:50.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty on this page; it is later cited as related by the 20260514 GW01 Down page.",
+    "action_items": [
+      {
+        "text": "Coordinate with the Network team to ensure there are no issues with the ports or cabling on the host servers, including a contingency plan if full cabling replacement is required (lessons learned)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Narrative root cause, not a 5-whys; does not explain why the NIC degraded or why the agreement pool saturated (symptom vs cause mixed). Follow-up table is template placeholder with no owner. Title names 'Contract Collateral and Loan Calculation' but cause was infra."
+  },
+  {
+    "page_id": "2325741628",
+    "title": "[20260407] [LORA] Anti Fraud Timeout",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2325741628",
+    "incident_date": "2026-04-07",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "prod-lora-partnership-ndf",
+      "prod-lora-gateway"
+    ],
+    "business_impact": "Success rate drop on prod-lora-gateway and prod-lora-partnership-ndf with HTTP 500 on POST /proxy/inner/request-v1 (anti-fraud-engine-v2 upstream); user impact 'Masih dalam pengecekan tim terkait'.",
+    "system_area": "LORA",
+    "root_cause_verbatim": "Dilakukan penambahan spesifikasi dari server database sehingga dapat mengembalikan performa ke normal",
+    "root_cause_category": "capacity / connection pool / resource exhaustion",
+    "contributing_factors": [
+      "anti-fraud database CPU > 90% pushing response time over 30 s",
+      "no automated/periodic check on the anti-fraud database server",
+      "gateway surfaced it as 'failed to parse upstream error response' which hid the real cause"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Database server specification was increased, which restored anti-fraud response time and the success rate.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related incidents field holds a Google Chat link only.",
+    "action_items": [
+      {
+        "text": "Akan dilakukan pengecekan pada server database secara automate dan berkala",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause field contains the fix, not the cause (the cause - DB CPU > 90% - is written in the Recovery row). Incident duration empty. Impact left as 'still being checked'. Lessons learned empty. Related records empty. Timeline ends at 13:00 with no resolution time. Follow-up table is template placeholder."
+  },
+  {
+    "page_id": "2338816033",
+    "title": "[20260410] [PAYMENT] Object Optimistic Locking Failure Exception",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2338816033",
+    "incident_date": "2026-04-10",
+    "priority_as_written": "HIGH (P1)",
+    "duration_minutes": 102,
+    "duration_as_written": "1 jam 42 menit",
+    "affected_services": [
+      "prod-ms-bfi-payment-api",
+      "prod-ms-partnership"
+    ],
+    "business_impact": "Gagal pembayaran dari GOTO; Payment Point transactions for BANK PERANTARA PP GOTO DDE showed zero transactions, and POST /v1/partner/loan/repayment returned 5xx.",
+    "system_area": "LMS Core / Payment",
+    "root_cause_verbatim": "Upgrade library Hibernate pada deployment terakhir menyebabkan perubahan behavior pada ORM yang tidak kompatibel dengan implementasi existing, sehingga proses insert transaksi ke database gagal. versi sebelum deploy 6.6.0.CR1, versi sesudah deploy 6.6.42.Final",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "core library (Hibernate) upgraded without impact analysis or breaking-change review",
+      "no regression test of unrelated features after deployment",
+      "entity PaymentPointGotoLogTransaction#0 relies on unsaved-value mapping that changed behaviour"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Squad downgraded hibernate-core from 6.6.42.Final back to 6.6.0.CR1 and redeployed; success rate normal at 10:18.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty; related incidents field is a Google Chat link.",
+    "action_items": [
+      {
+        "text": "Setelah deploy pastikan semua fitur masih berjalan normal walaupun tidak related dengan fitur yang dideploy",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Upgrade library (terutama core seperti Hibernate) harus melalui impact analysis, dicek breaking changes, regression testing",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Single-level root cause; no 5-whys asking why the upgrade reached prod untested. Rollback to a CR1 (pre-release) version is recorded as the fix with no forward-fix plan. Follow-up table is template placeholder with no owner or ticket."
+  },
+  {
+    "page_id": "2400518226",
+    "title": "[20260421] [GATEWAY] GW01 Shutdown",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2400518226",
+    "incident_date": "2026-04-21",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 31,
+    "duration_as_written": "31 minutes",
+    "affected_services": [
+      "prod-ms-bfi-payment-net-api-http-client",
+      "prod-ms-bfi-connect",
+      "prod-lora-partnership-ndf",
+      "prod-ms-agreement",
+      "prod-ms-bfi-payment-api",
+      "prod-lora-gateway",
+      "prod-ms-bpm",
+      "prod-ms-bfi-operation-api",
+      "prod-ms-partnership",
+      "prod-ms-collateral",
+      "prod-ms-backoffice",
+      "prod-ms-onboarding",
+      "prod-customer-bff",
+      "prod-ms-ams",
+      "prod-iad-ams",
+      "prod-ms-cnv",
+      "prod-lora-task",
+      "prod-ms-bfi-insurance-api",
+      "prod-ms-agency"
+    ],
+    "business_impact": "Traffic error several service, error return 5xx; Error Response 504 from gateway across 19 listed services.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "Connection error to gw01, currently under investigation with the infra team",
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "Edge Micro service running but unable to process requests ([GET][499][source request aborted])",
+      "GW01 is a single gateway node; failover to GW02 was manual",
+      "root cause left under investigation"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Restarted the Edge Micro service and rerouted all GW01 traffic to GW02; resolved at 16:04.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty; later pages (20260514, 20260518) cite this one as the first occurrence.",
+    "action_items": [
+      {
+        "text": "Investigation of Connection to GW01",
+        "owner": "@Andres Wijaya",
+        "due_date": null,
+        "status": "Open (incomplete)"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "No root cause ('under investigation'). Lessons learned and related records empty. Executive summary is one line. Page created 4 May for a 21 Apr incident. Only one follow-up item, no due date or ticket."
+  },
+  {
+    "page_id": "2405957639",
+    "title": "[20260507] [CMS] BOD Inbound Data Delays",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2405957639",
+    "incident_date": null,
+    "priority_as_written": "HIGH (P1)",
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "CMS",
+      "New Centerix"
+    ],
+    "business_impact": "Assignment CMS tidak turun (Digital, Tele, Field); CMS BOD was stuck at the DWH Inbound step and New Centerix operations were delayed until 09:45 when calling could resume.",
+    "system_area": "Collection (CMS/Centerix)",
+    "root_cause_verbatim": "Data JORG CMS tidak ter-capture di DM sehingga harus ada penarikan data kembali. Rootcausenya terjadi karena data ORG pada Holo tidak terupdate sedangkan pada database CMS terupdate hasil inputan ORG pada menu CMS. Hal tersebut dikarenakan Tim DM tidak mendapat informasi Log bahwa adanya perubahan pada sisi CMS.",
+    "root_cause_category": "data quality / bad data",
+    "contributing_factors": [
+      "JORG changes made in CMS UI were not communicated to the DM team",
+      "no change log/alert from CMS to DM when ORG master data changes",
+      "DMS join with ORG in Hologres failed on mismatched data",
+      "BOD depends on a manual inbound from DW with no estimate of readiness"
+    ],
+    "detection": "vendor notified",
+    "time_to_detect_minutes": null,
+    "recovery_action": "DW team adjusted JORG CMS data and re-ran the extraction in DWH and DM; CMS BOD continued at 07:14 and finished 09:43.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty.",
+    "action_items": [
+      {
+        "text": "Perubahan di JORG CMS di informasikan ke Tim DM",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Tim Tech koordinasikan ke tim Juris apakah terdapat query yang meng-enable lognya ataupun hal lainnya",
+        "owner": "Tim Tech",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Tim DM explore apakah ada trigger yang dapat menjadi alert jika terjadi error log",
+        "owner": "Tim DM",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "User Collection cek pada Hologres (table juris.vw_jcollect_jorg) ketika ada penambahan/perubahan data melalui JORG UI CMS",
+        "owner": "User Collection",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Tambahkan penambahan data di JORG (request to @Kristian Bayu @Cecep.Sugianto)",
+        "owner": "@Kristian Bayu, @Cecep.Sugianto",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Incident date and duration fields empty (date only in title). Detection was an internal DW team WhatsApp notice, not an alert. Root cause row contains a chat-style request to colleagues. Timeline out of order (05:10 after 05:58). Follow-up table is template placeholder; next actions only in lessons learned with team-level owners, no due dates."
+  },
+  {
+    "page_id": "2429681755",
+    "title": "[20260514] [GATEWAY] GW01 Down",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2429681755",
+    "incident_date": "2026-05-14",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 50,
+    "duration_as_written": "50 Minutes",
+    "affected_services": [
+      "prod-ms-partnership",
+      "prod-ms-agency",
+      "prod-ms-agreement",
+      "prod-ms-bfi-payment-api",
+      "prod-ms-bfi-payment-net-api",
+      "prod-ms-kyc-proxy",
+      "prod-lora-gateway",
+      "prod-lora-partnershi-ndf",
+      "prod-lora-atsk"
+    ],
+    "business_impact": "Low business impact since it's public holiday; Error Response 504 from gateway and SR degradation on 9 services.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "Connection error to gw01, currently under investigation. cc Mas @Gilang Zulwanda Putra @Nicko Anggoro @Andres Wijaya",
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "GW01 health check unreachable (cannot ping)",
+      "same failure as 20260421 recurring with root cause still open",
+      "manual failover to GW02",
+      "single point of failure GW01"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Restarted Edge-Micro, then rerouted all GW01 traffic to GW02; resolved at 18:26.",
+    "repeat_of_earlier_incident": true,
+    "repeat_note": "Related records: [20260421] [GATEWAY] GW01 Shutdown and [20260401] Degradation Link NGINX Gateway.",
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "No root cause (second occurrence, still 'under investigation'). Lessons learned: 'It still needs to check more detail.' Follow-up table is template placeholder with no owner. Incident date written as 'May, 14 2026'. Page created 18 May."
+  },
+  {
+    "page_id": "2429386766",
+    "title": "[20260518] [GATEWAY] GW01 DOWN",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2429386766",
+    "incident_date": "2026-05-18",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 64,
+    "duration_as_written": "1 hours 4 minutes",
+    "affected_services": [
+      "prod-ms-collateral",
+      "prod-ms-partnership (High Latency)",
+      "prod-ms-bpm",
+      "prod-lora-gateway",
+      "prod-ms-bfi-connect",
+      "prod-ms-bfi-operation-api",
+      "prod-ms-payment",
+      "prod-ms-bfi-payment-net-api-http-client",
+      "prod-ms-agreement",
+      "prod-ms-kyc-proxy",
+      "prod-lora-partnership-ndf"
+    ],
+    "business_impact": "Pada transaksi Payment BFI terpantau banyak transaksi direspon RC68; user reported failed transactions from Artajasa; success rate drop on 11 services.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "error [GET][499][source request aborted] yang ada di log GW01.",
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "third GW01 outage in four weeks with no root cause found",
+      "GW01 health check down on ManageEngine APM",
+      "manual failover to GW02 took ~36 minutes from first SR drop",
+      "single point of failure GW01"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Moved all GW01 traffic to GW02, restarted Edgemicro, rebooted the GW01 server, then returned traffic to GW01 and GW02; GW01 up at 09:43.",
+    "repeat_of_earlier_incident": true,
+    "repeat_note": "Related records: [20260421] [GATEWAY] GW01 Shutdown; same PRD-7083 ticket as the 20260514 incident.",
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "Root cause field is a log symptom (HTTP 499), not a cause. Lessons learned are check steps, not preventive actions. Follow-up table is template placeholder with no owner or ticket. Incident ticket PRD-7083 is shared with the 14 May incident."
+  },
+  {
+    "page_id": "2432761925",
+    "title": "[RCA] 20260218 eKYC Face Capture Success Rate Drop",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2432761925",
+    "incident_date": "2026-02-18",
+    "priority_as_written": null,
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "Face Capture / Liveness BE",
+      "Krakend gateway",
+      "KYC Proxy",
+      "BFI Mobile"
+    ],
+    "business_impact": "Face capture and liveness failures reduced eKYC success rates; some users could not submit loans if unregistered or unverified. Impact score Low (one process) but business impact High.",
+    "system_area": "KYC / eKYC",
+    "root_cause_verbatim": "While migrating the encryption key to Google KMS, we forgot the impact on dependencies, specifically the Krakend gateway token validation. Integration and regression tests passed in lower environments, but we missed this issue in production.",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "dependency impact (Krakend token validation) not assessed in deployment",
+      "no monitoring on Krakend gateway / liveness APIs (reliability of detection Low)",
+      "Krakend deployment PICs unavailable at 21:30 so fix waited until next morning 08:00",
+      "lower-environment changes not recorded in the Deployment Form"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": 120,
+    "recovery_action": "Deployed bravo-krakend-gateway v1.2.81 the next morning at 08:00 to fix token validation.",
+    "repeat_of_earlier_incident": false,
+    "repeat_note": "Page says it occurred only once during the previous deployment session.",
+    "action_items": [
+      {
+        "text": "Install alerting and monitoring on the liveness backend APIs (short term)",
+        "owner": "@Samuel Christian Putra / BFI Mobile",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Record all changes in the lower environment in the single source of truth document - Deployment Form",
+        "owner": "@Samuel Christian Putra / BFI Mobile",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Encourage engineers to monitor post-deployment results in production proactively",
+        "owner": "@Samuel Christian Putra / BFI Mobile",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Squad RCA format, not the ITPROD template: no priority, no duration, no PRD ticket. Detection was via MixPanel funnel (product analytics), ~2 h after deploy. Fix delayed ~11 h by PIC availability but no action item on on-call coverage for Krakend. Template helper text duplicated ('What will we do...' twice). Posted to ITPROD 3 months after the incident."
+  },
+  {
+    "page_id": "2432761962",
+    "title": "[RCA] 20260223 0% Interest Rate in MyBRO and MySIS Submission",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2432761962",
+    "incident_date": "2026-02-23",
+    "priority_as_written": null,
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "MyBRO",
+      "MySIS",
+      "Loan Calculation Service (lms-calculation-service)",
+      "Agreement Service"
+    ],
+    "business_impact": "Agreements created with 0% interest rate from MyBRO/MySIS between the 6 Jan 2026 deployment and the 2 Feb 2026 hotfix. Impact score High ('huge monitory cost'); 'Lost profit of X agreements with total amount of profit at Y IDR' left unfilled.",
+    "system_area": "MyBRO/MySIS (repeat order)",
+    "root_cause_verbatim": "What MyBRO and MySIS didn't realize is that custom pricing flag impact ALL of POT setup components in loan calculation, not only life insurance part. With custom pricing ... the validation of interest rate was lost ... it translate interest rate not found to 0 because of custom pricing flag.",
+    "root_cause_category": "code defect / logic bug",
+    "contributing_factors": [
+      "custom pricing flag reused for life insurance without understanding it disables all POT validation",
+      "whole TM squad (PO, SA, QA, engineers) unaware of full impact; tests focused on life insurance only",
+      "no business-rule monitoring (reliability of detection Zero); system monitoring saw no error",
+      "issue reported 29 Jan, discussion in chat with no conclusion, hotfix only 2 Feb"
+    ],
+    "detection": "user/business report",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Contract-Collateral-Calculation squad hotfixed lms-calculation-service on 2 Feb 2026 (PR 569) to handle custom pricing when package rate is null; TM squad added an enhancement (TRO-3556) to prevent 0% interest.",
+    "repeat_of_earlier_incident": false,
+    "repeat_note": "Likelihood of recurrence stated Low after the 2 Feb hotfix.",
+    "action_items": [
+      {
+        "text": "Set up alert for critical revenue related data before application goes live, in Agreement Service",
+        "owner": "Contract-Collateral-Calculation Squad",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Be more cautious in product requirements: validate what makes sense for the business and configure it as validation",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Hotfix CORE-5060 handling custom pricing when package rate is null (lms-calculation-service PR 569)",
+        "owner": "Contract-Collateral-Calculation Squad",
+        "due_date": null,
+        "status": "Done (2 Feb 2026)"
+      },
+      {
+        "text": "TRO-3556 enhancement to prevent 0% interest rate in MyBRO/MySIS",
+        "owner": "Tele Marketing Squad",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": true,
+    "quality_notes": "Squad RCA format: no priority, duration or PRD ticket. Impact placeholders 'X agreements' and 'Y IDR' never filled in. Date of issue (23 Feb) is after the hotfix (2 Feb) and the first report (29 Jan). No count of affected agreements. Posted to ITPROD on 19 May, three months later. Has a genuine causal chain (why missed in tests, why no detection)."
+  },
+  {
+    "page_id": "2431483976",
+    "title": "[RCA] 20260513 Deployment New Unified & New Assistance Platform",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2431483976",
+    "incident_date": "2026-05-13",
+    "priority_as_written": null,
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "Customer Platform (Unified)",
+      "New Assistance Platform",
+      "IPV / MKYC",
+      "LOS",
+      "IAM",
+      "Onboarding",
+      "RO (repeat order)",
+      "DF"
+    ],
+    "business_impact": "Rasio golive di bravo turun (sebagian diarahkan ke BAU); banyak lead tidak bisa lanjut; banyak lead yang tidak bisa dibantu oleh verif ataupun ARE. Impact HIGH. Rolled back 14 May 12:00 WIB.",
+    "system_area": "Other",
+    "root_cause_verbatim": "Tidak terdeploy krakend url untuk endpoint baru di IPV; Skenario dari Rescoring ke NST belum di test; Di environtment UAT testing selalu menggunakan Mock data ... sehingga di production hasil nya sedikit berbeda; Miss config IAM; Miss requirement alignment antara customer platform dengan LOS; skenario testing (cabang 405/537, direct confirm RO, DF, email kosong) tidak masuk skenario test.",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "big-bang release to all branches instead of a pilot",
+      "UAT used mock data because VerifyOne prod cannot be used in UAT",
+      "Krakend route for the new IPV endpoint not deployed",
+      "IAM scope misconfigured for head surveyor",
+      "requirement misalignment between Customer Platform and LOS (allowed characters)",
+      "test scenarios missed edge flows (branches 405/537, direct-confirm RO leads, DF leads, missing email, collaboration after submit)",
+      "no risk assessment before release",
+      "rollback left data in mixed unified/non-unified state causing MKYC and rescoring errors on 15 May"
+    ],
+    "detection": "user/business report",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Hotfixes on 13 May (13:00 and 22:00 WIB), then rollback on 14 May 12:00 WIB (disabled unified feature flag, redeployed new assistance apps, data fixes), with further data fixes on 15 May.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [
+      {
+        "text": "Mapping skenario yang lebih variatif dan unique dari setiap proses",
+        "owner": "Squad Onboarding (QA) dan Surrounding Squad (QA): @Subhan Mulkan Wahid @Yosef Samuel @Arie.Pamungkas @Rudi Hermanto",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Mekanisme handle lead existing ketika dilanjutkan di unified maupun new assistance apps",
+        "owner": "Squad Onboarding: @Subhan Mulkan Wahid",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Alignment requirement antar squad (Unified / New Assistance vs surrounding squads)",
+        "owner": "Squad Onboarding dan Surrounding: @Budi Prasetyo @Seno Adhi @Hanifah Sakinah @Ryandika Bestari Prabowo",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Release di specific cabang (piloting, jangan bigbang)",
+        "owner": "Squad Onboarding dan Surrounding: @Subhan Mulkan Wahid @Budi Prasetyo @Seno Adhi",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Mock atau stubbing data di non prod env harus ada yang owned di setiap service",
+        "owner": "Squad Onboarding & IS: @Subhan Mulkan Wahid @Ade Bambang Kurnia",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Risk assessment untuk proses release, eskalasi sampai ke pak Karim jika dibutuhkan",
+        "owner": "Squad Onboarding: @Subhan Mulkan Wahid @Budi Prasetyo @Seno Adhi",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Setiap platform yang impacted dalam sebuah release harus full support ketika dibutuhkan",
+        "owner": "Squad Onboarding dan Surrounding: @Subhan Mulkan Wahid @Yosef Samuel @Arie.Pamungkas @Rudi Hermanto @Ade Bambang Kurnia",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Squad RCA format: no priority, duration, PRD ticket or quantified impact (lead counts missing). Per-issue causes listed (10 + 3 + 2) but no deeper 'why' beyond missed test scenarios. Likelihood of recurrence section describes data fixing, not likelihood. Owners named but no due dates or status. Duplicated note paragraphs from template macros."
+  },
+  {
+    "page_id": "2576353110",
+    "title": "[20260714] [LMS Core] AP Not Splited in Split Funding Contract",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2576353110",
+    "incident_date": "2026-07-14",
+    "priority_as_written": "HIGH (P1)",
+    "duration_minutes": 300,
+    "duration_as_written": "5 Hours",
+    "affected_services": [
+      "LOS",
+      "LMS (LMS Core)",
+      "R1",
+      "R3"
+    ],
+    "business_impact": "Dana yang seharusnya di-split ke supplier dan bank koreksi seluruhnya ter-transfer ke supplier sebesar total nilai funding. Total 26 kontrak terdampak: 19 sudah paid, 7 on progress (salah transfer dana/salah alokasi); konsumen menunggu, perbaikan harus selesai sebelum EOD. Golive requests and H2H were held.",
+    "system_area": "LMS Core / Payment",
+    "root_cause_verbatim": "Terdapat enhancement untuk Support roadmap RFF takeover ... namun terdapat process yang terkena impact pada proses agreement creation untuk data on the fly split funding yang digunakan untuk pembentukan mapping ke Confins R1 tidak terkirim. ... Confins R1 mempunyai perhitungan sendiri untuk pencairan pada Main PO Funding dan nominal Main Funding dari agreement diabaikan system confins R1",
+    "root_cause_category": "code defect / logic bug",
+    "contributing_factors": [
+      "RFF takeover enhancement (beneficiary takeover) regressed the split-funding payload in agreement creation",
+      "Confins R1 recalculates Main PO Funding itself and ignores the agreement amount (unexpected flow)",
+      "regression on Confins R1 golive passed but did not cover split funding",
+      "UAT not detailed enough across the two parallel core systems (Confins R1 and R3)",
+      "detected only after money had been transferred (19 contracts already paid)"
+    ],
+    "detection": "user/business report",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Mitigation deployed to production at 12:00 so golive requests could flow with correct data, permanent fix deployed at 15:00, and AdIns is correcting data for the 7 in-progress contracts.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty.",
+    "action_items": [
+      {
+        "text": "Planning before production dilakukan UAT lebih detail terhadap 2 system yang berjalan beriringan Confins R1 dan Confins R3",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Data fix di production untuk 7 kontrak on progress (AdIns), menunggu validasi user",
+        "owner": "Ad Ins Team",
+        "due_date": null,
+        "status": "In Progress"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause is a narrative, not a 5-whys. Contract counts inconsistent: 26/19 in impact row vs 27/20 in timeline. How the anomaly was identified at 09:00 is not stated. Follow-up table is template placeholder (no owner, no ticket). Attachments include unrelated screenshots copied from the 10 Apr payment page."
+  },
+  {
+    "page_id": "2578842091",
+    "title": "[20260714] [CONFINS R3] EoD R3 Error",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2578842091",
+    "incident_date": "2026-07-14",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 150,
+    "duration_as_written": "2.5 Hours",
+    "affected_services": [
+      "CONFINS R3"
+    ],
+    "business_impact": "EoD R3 stuck di proses notification; jurnal Account Receivable dan Finance pada 14 Juli 2026 bisa tidak terbentuk.",
+    "system_area": "CONFINS R3 (AdIns core)",
+    "root_cause_verbatim": "Melengkapi dan menyesuaikan parameter konfigurasi yang diperlukan pada appsettings Batch Engine. 1. Melakukan deployment versi terbaru komponen Data Access AR. 2. Memperbarui konfigurasi endpoint/URL AR sesuai dengan versi service terbaru. 3. Menghapus dependency koneksi database Journal dari Batch Worker AR",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "Batch Engine appsettings incomplete/mismatched after deployment (AR Data Access version and AR endpoint URL)",
+      "Batch Worker AR still held a connection to the Journal DB although Journal has its own workflow",
+      "UAT and production configuration not identical so the error was not caught before prod",
+      "no config comparison tool used before deploy",
+      "dependency on AdIns (vendor) for diagnosis and fix"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Deployed config fixes, retried EoD, then removed the Journal DB connection from the AR batch worker; EoD R3 finished at 22:25.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Related records empty.",
+    "action_items": [
+      {
+        "text": "Menggunakan comparing tools untuk memastikan appsetting",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Melakukan sweeping untuk service yang mengarah ke lebih dari 1 DB",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Disamakan secara konfigurasi antara server UAT & Production",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause field lists the fix steps, not the cause; real cause only in a linked AdIns Google Doc. How the 19:05 error was identified (alert vs manual) not stated. Related records empty. Follow-up table is template placeholder with no owner; lessons learned attributed to AdIns RCA. Attachments are unrelated screenshots copied from the 10 Apr payment page."
+  },
+  {
+    "page_id": "2611118083",
+    "title": "[20260725] [MySIS] Daily ETL, MYSIS, MYBRO-DELAY NOTIFICATION",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2611118083",
+    "incident_date": "2026-07-25",
+    "priority_as_written": "MEDIUM (P2)",
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "Daily ETL",
+      "MYSIS",
+      "MYBRO Delay"
+    ],
+    "business_impact": "Google Chat notification for Daily RO-Partnership, RO-DWH-Tele (MySIS) and RO-DWH-Daily-etl (MYBRO) did not appear before 06:00 as usual; 'user tidak dapat notification'. Airflow processes themselves ran normally.",
+    "system_area": "MyBRO/MySIS (repeat order)",
+    "root_cause_verbatim": null,
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "Airflow task retry delayed the notification",
+      "no root cause analysis performed"
+    ],
+    "detection": "unknown",
+    "time_to_detect_minutes": null,
+    "recovery_action": "No recovery action needed; data had already been processed, only a retry occurred ('belum ada karena data sudah terproses selesai cuma terjadi retry').",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "Incident date field empty (date taken from title). Duration empty. Detection, Related records, Lessons learned, timeline all empty. Five-whys cell contains only '-'. Follow-up tasks table contains unfilled template checkboxes and '@ owner' placeholder. No root cause stated. Jira PRD-7238 linked."
+  },
+  {
+    "page_id": "2611970559",
+    "title": "[20260727] [NEW CENTERIX] - Agent cannot connected to TELCO",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2611970559",
+    "incident_date": "2026-07-27",
+    "priority_as_written": "HIGH CRITICAL (P1)",
+    "duration_minutes": 79,
+    "duration_as_written": "01:19:00",
+    "affected_services": [
+      "NEW CENTERIX, specific for some Campaigns"
+    ],
+    "business_impact": "Agent cannot connect to Telco (Grahacom) for campaigns NC1 Tele2-MCYNonJabo and NC2 Tele1-WOCAR, Tele-ICLCAR, Tele1-Others; calls were processed but not connected to agents.",
+    "system_area": "Collection (CMS/Centerix)",
+    "root_cause_verbatim": "Checking log to see of Trunk is problem. Indicated by No route to destination. (no explicit root cause section; five-whys cell empty)",
+    "root_cause_category": "third-party / vendor outage",
+    "contributing_factors": [
+      "dependency on single telco provider (Grahacom) per campaign",
+      "detected only by user report in WhatsApp group",
+      "no five-whys performed"
+    ],
+    "detection": "user/business report",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Switched the affected campaigns to the SME telco provider (done 09:38, testing passed).",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [],
+    "five_whys_present": false,
+    "quality_notes": "Five whys, Related records and Lessons learned empty. Root cause only implied by timeline ('No route to destination' on trunk) with no vendor confirmation. Follow-up tasks table left as template with '@ owner' and unfilled checkboxes. Incident field contains free text instead of a Jira link. Timeline present (08:36-09:55 WIB)."
+  },
+  {
+    "page_id": "2617737894",
+    "title": "[20260728] [Payment Point] - Payment Info Not Include Late Charge",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2617737894",
+    "incident_date": "2026-07-28",
+    "priority_as_written": "Critical (P0)",
+    "duration_minutes": 300,
+    "duration_as_written": "05:00:00",
+    "affected_services": [
+      "prod-ms-bravo-core-proxy",
+      "LMS Payment"
+    ],
+    "business_impact": "Customers may potentially underpay due to uncalculated Late Charges (LC). Approximately 1,918 contracts were impacted; agreement inquiry returned D-1 data because the business date was not updated.",
+    "system_area": "LMS Core / Payment",
+    "root_cause_verbatim": "Root Cause: The WAL Replication from the DWH Team was undropped in the core-proxy database. Culprit: The Debezium Kafka Connector configuration is not optimal, causing the logical replication slot to fail to acknowledge and release WAL files normally. As a result, PostgreSQL continues to retain WAL files, causing uncontrolled WAL growth until the database storage becomes full.",
+    "root_cause_category": "capacity / connection pool / resource exhaustion",
+    "contributing_factors": [
+      "Debezium CDC connector misconfiguration (replication slot not releasing WAL)",
+      "business date mechanism changed in Phase 2 deployment 13 Jul 2026 to depend on R3 EOD notification",
+      "core-proxy DB down when R3 EOD completed so MQ EOD notification not processed",
+      "disk-full alert on 22 Jul handled only by adding storage (10 to 15 GB)",
+      "continuous incident management not maintained 26 Jul 13:52-23:14 (no bridge call, no sustained escalation)",
+      "no alert for a dead/inactive DB instance",
+      "CDC rolled out to production 20 Jul despite DB going down twice in UAT (20 and 28 Jun)",
+      "DBA aware only at 16:19, disk increased next morning 06:50"
+    ],
+    "detection": "user/business report",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Reversed 1,918 contracts paid on 27 Jul with applicable LC, temporarily set Support Payment Hierarchy to 'N', re-processed Support Payment Receipts, then restored hierarchy to 'Y' (completed 19:10).",
+    "repeat_of_earlier_incident": true,
+    "repeat_note": "Related incident PRD-7231 listed; timeline shows the same WAL/disk-full alert on 22 Jul 2026 before the 26 Jul outage, and the DB went down twice in UAT (20 and 28 Jun) after the Kafka connector was activated.",
+    "action_items": [
+      {
+        "text": "New Alert CPU <5% (CPU DB load alert at 0% to indicate inactive instance)",
+        "owner": "Tech Availability Service Team",
+        "due_date": null,
+        "status": "Done"
+      },
+      {
+        "text": "Verification Business Date 3 Database (Bravo Core, R1, R3)",
+        "owner": "Yola Nasareth",
+        "due_date": null,
+        "status": "Done"
+      },
+      {
+        "text": "Discussion with DWH Team (MOM 29 Jul: re-examine Debezium CDC config + UAT testing, regroup for E2E testing, temporarily disable CDC in production)",
+        "owner": "Tech Availability Service Team",
+        "due_date": null,
+        "status": "Done"
+      },
+      {
+        "text": "Enhanced Validation",
+        "owner": "Said.Pamungkas, Chandra.Definta",
+        "due_date": null,
+        "status": "Open"
+      },
+      {
+        "text": "UAT Testing (PostgreSQL CDC)",
+        "owner": "Musa Qawiyyun Amin, Ferry TM Silaban, Dion Azani, Muh Firdaus",
+        "due_date": null,
+        "status": "Done"
+      },
+      {
+        "text": "UAT Testing Part II (31 Jul 2026)",
+        "owner": "Musa Qawiyyun Amin, Ferry TM Silaban, Dion Azani, Muh Firdaus",
+        "due_date": null,
+        "status": "Done"
+      },
+      {
+        "text": "Enhance Configuration: add heartbeat.interval.ms 5000 and heartbeat.action.query to Debezium, disable include.schema.changes, create pg_logical_emit_message function with execute grant for bfi-data-management",
+        "owner": "Muh Firdaus, Musa Qawiyyun Amin, Ferry TM Silaban",
+        "due_date": null,
+        "status": "Done"
+      }
+    ],
+    "five_whys_present": true,
+    "quality_notes": "Most complete postmortem in the set: 6-step five-whys, timeline with dates, named owners, completion status. Detection cell describes the 26 Jul disk alert but the business impact was only found by user report 2 days later. 'Done in 2027-07-29' is a typo for 2026. Impact count given as 'approximately 1,918'. No due dates on action items."
+  },
+  {
+    "page_id": "2631041082",
+    "title": "[20260803] [CONFINS] Payment Point & H2H Service Disruption Due to Cloud Armor Blocking BAU NAT IP",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2631041082",
+    "incident_date": "2026-08-03",
+    "priority_as_written": "CRITICAL (P0)",
+    "duration_minutes": 194,
+    "duration_as_written": "3 Hour 14 minute",
+    "affected_services": [
+      "Open PP",
+      "H2H",
+      "Payment Point"
+    ],
+    "business_impact": "No transactions on Payment Point and H2H; users could not open Payment Point in CONFINS ('User tidak dapat melakukan open pp di CONFINS'). CONFINS could not be hit by LMS Payment (Bravo).",
+    "system_area": "CONFINS R3 (AdIns core)",
+    "root_cause_verbatim": "1. CONFINS tidak dapat di hit oleh lms payment (bravo) 2. Spiking warning error log 403 3. Terdapat rule yang memblock NAT BAU di cloudarmor 4. SOAR mendeteksi banyak attempt SSRF dari IP 34.101.178.178",
+    "root_cause_category": "security control misconfiguration (WAF/Cloud Armor/firewall)",
+    "contributing_factors": [
+      "Cloud Armor rule blocked the BAU NAT IP (34.101.178.178) after SOAR flagged SSRF-like attempts / special characters",
+      "security team not involved in the change or alert loop until 10:02",
+      "about 3 hours between first monitoring escalation (07:04) and identifying the 403 (09:44)"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Security team disabled the blocking rule in Cloud Armor at 10:10; PP open and H2H/PP transactions resumed by 10:18.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [
+      {
+        "text": "Alerting (template checkboxes only, no text)",
+        "owner": null,
+        "due_date": null,
+        "status": "Open"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Five-whys cell is a 4-item symptom chain, not a why analysis; it does not say who created the Cloud Armor rule or why it matched the BAU NAT IP. Lessons learned and Related records empty. Follow-up table has 'Alerting' item with no owner and unfilled template checkboxes. Security team responders left blank. Executive summary is one sentence. Jira PRD-7270. A Google Drive link is appended without description."
+  },
+  {
+    "page_id": "2666758268",
+    "title": "RCA Incident-08152026-CMS-DB2DB Inbound Data Delay",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2666758268",
+    "incident_date": "2026-08-15",
+    "priority_as_written": "High (P1)",
+    "duration_minutes": 57,
+    "duration_as_written": "57 minutes",
+    "affected_services": [
+      "CMS",
+      "New Centerix"
+    ],
+    "business_impact": "CMS assignments were delayed for Digital Collection, Telecollection, and Field Collection; Digital Telecollection and Field Collection operations were delayed (CMS BOD completed 08:13 instead of on schedule).",
+    "system_area": "Data platform (Airflow/ETL/DB2DB)",
+    "root_cause_verbatim": "As part of the R1 to R3 data migration on August 15, 2026, the DA Operations team planned to increase the Kafka server specifications by adding two node pools. This activity caused Kafka to become unstable due to the rebalancing process between node pools. ... some data had not been delivered to Alibaba Cloud. Therefore, the DA Operations team performed a data re-pull, which took until 02:00 on August 15, 2026.",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "Kafka node pool expansion during R1 to R3 migration caused rebalancing instability",
+      "7 hours between expansion (01:00) and SRE being asked to check (08:00)",
+      "remediation took until 22:30 then data re-pull until 02:00",
+      "DW EOD depends on Kafka delivery to Alibaba Cloud",
+      "same expansion had worked 3 weeks earlier so treated as anomaly"
+    ],
+    "detection": "vendor notified",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Waited for the DB2DB inbound data from the DM team to complete, then ran CMS inbound and BOD.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Same symptom class (CMS DB2DB inbound delay) recurs on 2026-09-05 (page 2731671576) and 2026-09-11 (page 2750185511), but this page does not link them.",
+    "action_items": [
+      {
+        "text": "Regroup with the DM team",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Stated duration '57 minutes' contradicts start 04:00 / end 08:13 (253 minutes). Detection was the DM team's own WhatsApp message at 00:52, not monitoring. Lessons learned ('reconfigure Kafka cluster', 'review SSD usage') have no owner or ticket. Single follow-up action with no owner or date. No timeline before 00:52 on 15 Aug within the chronology section; the 14 Aug events are only in the root cause text. Jira PRD-7317."
+  },
+  {
+    "page_id": "2692579403",
+    "title": "RCA Incident-24082026-Gateway-GW01 DOWN",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2692579403",
+    "incident_date": "2026-08-24",
+    "priority_as_written": "High (P1)",
+    "duration_minutes": 30,
+    "duration_as_written": "30 minutes",
+    "affected_services": [
+      "prod-ms-collateral",
+      "prod-ms-partnership (high latency)",
+      "prod-ms-bpm",
+      "prod-lora-gateway",
+      "prod-ms-bfi-connect",
+      "prod-ms-bfi-operation-api",
+      "prod-ms-payment",
+      "prod-ms-bfi-payment-net-api-http-client",
+      "prod-ms-agreement",
+      "prod-ms-kyc-proxy",
+      "prod-lora-partnership-ndf"
+    ],
+    "business_impact": "An increase in failed requests and timeouts across several services; impacted GW01, LORA, Partnership, Agreement, Onboarding, Collateral, Customer BFF, Agency, CNV, and Payment API.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "Based on the investigation conducted on 2026-08-27, the suspected root cause was a difference in DNS server priority configuration between GW01 and GW02. ... An issue was also found with access to DNS server 172.16.0.11 at the branch.",
+    "root_cause_category": "infrastructure hardware or network",
+    "contributing_factors": [
+      "GW01 resolv.conf listed 172.16.0.11 first while GW02 listed 172.16.0.33 first",
+      "DNS server 172.16.0.11 not reachable from branch",
+      "health check 5 s even at low traffic after failover",
+      "agreement service showed high DB connection pool and timeouts as symptom",
+      "root cause only 'suspected', confirmed 3 days later"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": 3,
+    "recovery_action": "Server team rerouted all traffic from GW01 to GW02 at 14:40 as a temporary fix; DNS configuration on GW01 and GW02 was later aligned.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Not linked on page, but page 2728165406 (2026-09-04) is the mirror event on GW02 with the same impact list.",
+    "action_items": [
+      {
+        "text": "Monitoring team (Muhammad Reza Akbar, Gilang Zulwanda Putra, Dion Azani) will hold a meeting with the server team (Nicko Anggoro, Andres Wijaya)",
+        "owner": "Monitoring team",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Root cause is explicitly 'suspected'; no explanation of why GW01 went down fully rather than degraded. Time to detect inferred from 14:22 SR drop vs 14:25 alert. Duration '30 minutes' vs stated 14:25-14:51 (26 min). Problem Impact list copies the same service list later reused verbatim in the 04 Sep RCA. Only one follow-up action (a meeting), no permanent fix ticket. Jira PRD-7370."
+  },
+  {
+    "page_id": "2728165406",
+    "title": "RCA Incident-04092026-Server-Host 120 I/O Error",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2728165406",
+    "incident_date": "2026-09-04",
+    "priority_as_written": "High (P1)",
+    "duration_minutes": 25,
+    "duration_as_written": "25 Minutes",
+    "affected_services": [
+      "APIGEE",
+      "prod-ms-payment",
+      "prod-ms-customer",
+      "prod-ms-kyc-proxy",
+      "prod-customer-bff",
+      "prod-ms-partnership",
+      "prod-ms-bfi-payment-api",
+      "prod-ms-agreement",
+      "prod-ms-bpm",
+      "prod-lora-gateway",
+      "NOTIFDB"
+    ],
+    "business_impact": "GW02 health check down; increase in failed requests and timeouts across several services. The impacted services were GW01, LORA, Partnership, Agreement, Onboarding, Collateral, Customer BFF, Agency, CNV, and Payment API.",
+    "system_area": "Gateway / network / infra",
+    "root_cause_verbatim": "1. I/O error occurred on Windows and Linux VMs during host migration in the Sangfor environment. 2. Different storage driver used: Virtio-BLK for Sangfor.",
+    "root_cause_category": "infrastructure hardware or network",
+    "contributing_factors": [
+      "Sangfor live host migration causes I/O errors on VMs (known issue, patch pending from vendor)",
+      "Virtio-BLK storage driver difference",
+      "GW02 and NOTIFDB on the same host 120",
+      "agreement service again the first visible symptom"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": 6,
+    "recovery_action": "Traffic temporarily rerouted from GW02 to GW01 at 10:55 and VMs under host 120 restarted; GW02 back to normal 11:09.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Not linked on page, but mirrors GW01 down on 2026-08-24 (page 2692579403); also the Sangfor migration caused the 2026-09-07 Centerix DB link listener incident (page 2732228843).",
+    "action_items": [
+      {
+        "text": "Monitoring team (Muhammad Reza Akbar, Gilang Zulwanda Putra, Dion Azani) will hold a meeting with the server team (Aditya Eka Saputra)",
+        "owner": "Monitoring team",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "ESE team opened a ticket with Sangfor Principal and is waiting for feedback on mitigation steps and workaround",
+        "owner": "ESE team",
+        "due_date": null,
+        "status": "In Progress"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Impact paragraph is copied verbatim from the GW01 RCA (lists 'GW01' as impacted although GW02 was down). Time to detect inferred from 10:38 SR drop vs 10:44 alert. Lessons learned describes a vendor workaround rather than a lesson. No action on host placement / anti-affinity for gateways. Jira PRD-7442."
+  },
+  {
+    "page_id": "2731671576",
+    "title": "RCA Incident-05092026-CMS-DB2DB Inbound Data Delay",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2731671576",
+    "incident_date": "2026-09-05",
+    "priority_as_written": "High (P1)",
+    "duration_minutes": 13,
+    "duration_as_written": "13 Minutes",
+    "affected_services": [
+      "CMS",
+      "New Centerix"
+    ],
+    "business_impact": "Data updated and created in Confins R3 on 4 Sep 2026 was not available in Alibaba Hologres; CMS BOD completed late (08:10), delaying the tele-collection start time.",
+    "system_area": "Data platform (Airflow/ETL/DB2DB)",
+    "root_cause_verbatim": "The Kafka connector in Alibaba to the Confins R3 database experienced intermittent connectivity. Issue resolution started at 20:30 and was completed at 22:00. The data extraction process continued until 00:40. The September 4 EOD process in DW started at 00:41 on September 5.",
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "Alicloud Kafka connector to Confins R3 intermittent connectivity (cause of the connectivity loss not stated)",
+      "DW EOD started late (00:41) so DB2DB inbound finished 06:06",
+      "connector recreated with slot.drop.on.stop = false suggests slot was dropped on stop",
+      "no EOD checkpoint strong enough to catch the delay earlier"
+    ],
+    "detection": "vendor notified",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Recreated the Kafka connector and set slot.drop.on.stop = false, then waited for DW EOD and DB2DB inbound to complete.",
+    "repeat_of_earlier_incident": true,
+    "repeat_note": "Same symptom as 2026-08-15 CMS DB2DB inbound delay (page 2666758268) three weeks earlier; page does not link it.",
+    "action_items": [
+      {
+        "text": "Follow-up discussion with the SRE team by DW Team regarding the current Kafka condition",
+        "owner": "DW Team",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "No action from SRE; only suggests DWH Team set slot.drop.on.stop = false when creating connectors",
+        "owner": "SRE",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "DW team will strengthen the EOD checkpoint process (listed under Lesson Learned)",
+        "owner": "DW Team",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Stated duration '13 Minutes' contradicts start 07:00 / end 08:21 (81 min). Root cause restates the symptom ('intermittent connectivity') without saying why. Detection was DW team's own notice at 04:19. No owner names except Cecep.Sugianto in the chronology. Jira PRD-7450."
+  },
+  {
+    "page_id": "2732228843",
+    "title": "RCA Incident-07092026-New Centerix-Tele Collection not connected to New Centerix Server",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2732228843",
+    "incident_date": "2026-09-07",
+    "priority_as_written": "High (P1)",
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "Tele collection",
+      "New Centerix"
+    ],
+    "business_impact": "Tele collection data did not reach New Centerix Tele, so tele collection experienced a delayed start.",
+    "system_area": "Collection (CMS/Centerix)",
+    "root_cause_verbatim": "DB Link Listener Tele is not activate due to Sangfor migration yesterday. It needs to be manual start.",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "manual step after migration (DB link listener not auto-started on reboot)",
+      "New Centerix staging email not noticed",
+      "no post-reboot checklist existed before this incident",
+      "Sangfor migration (same change as host 120 I/O error 2026-09-04)"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Activated the DB Link Listener Tele and re-ran the CMS BOD Tele sync step; NC data staging consumption rescheduled to 12:00 WIB.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Caused by the same Sangfor migration as page 2728165406 (2026-09-04), not linked on page.",
+    "action_items": [
+      {
+        "text": "JURIS Team to re-run Tele Sync step (CMS BOD)",
+        "owner": "JURIS Team",
+        "due_date": null,
+        "status": "Done"
+      },
+      {
+        "text": "Schedule NC Data Staging consumption at 12:00 WIB",
+        "owner": "Tommy Gunawan",
+        "due_date": null,
+        "status": "Done"
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Duration field empty; no start/end times. Detection described as a staging email that was not noticed, then a DB link error found manually (classified as monitoring alert but it was missed). Both follow-up actions are recovery steps, not prevention; the preventive item (server reboot checklist, Confluence link /wiki/x/BoDqog) sits under Lesson Learned with no owner. Jira PRD-7453."
+  },
+  {
+    "page_id": "2741534724",
+    "title": "RCA Incident-08092026-CONFINS R3 - EOD Step Error Null Keys",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2741534724",
+    "incident_date": "2026-09-08",
+    "priority_as_written": "Critical (P0)",
+    "duration_minutes": 124,
+    "duration_as_written": "124 minutes",
+    "affected_services": [
+      "EOD CONFINS R3"
+    ],
+    "business_impact": "The EOD process was delayed and became stuck because the auto retry mechanism reached the maximum retry limit without succeeding, requiring manual intervention; 14 EOD job steps plus the post-EOD JOBGENERICSPLMSAR failed with 'A NULL KEY IS NOT VALID IN THIS CONTEXT'.",
+    "system_area": "CONFINS R3 (AdIns core)",
+    "root_cause_verbatim": "The root cause investigation is still in progress by the ADINS Team. Initial findings indicate a potential issue at the connection limit level, but this has not yet been definitively confirmed. Updates will be provided once the investigation is complete.",
+    "root_cause_category": "unknown / not stated",
+    "contributing_factors": [
+      "auto retry exhausted max retry limit without success",
+      "suspected application-level connection limit / Camunda connection pool",
+      "connections possibly not released after retry",
+      "dependency on vendor (AdIns) for root cause",
+      "infra metrics all normal so no alert fired on cause"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Manual retry of the failed EOD steps at 20:24 followed by a restart of prod-ms-ce-camunda as a workaround; post-EOD (Generate Billing OLP) finished 21:07.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [
+      {
+        "text": "Investigate and identify the connection limit at the application level",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Perform an in-depth application-level analysis of the cause of the auto retry failure, considering that no anomalies were found on the infrastructure side",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Review the Billing OLP error notification mechanism to determine whether each error triggers a broadcast to all destinations via Camunda",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Review the maximum Camunda connection to the application and the connection pool",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Review the auto retry mechanism, especially the process for closing or releasing connections after a retry",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "P0 incident with root cause still 'in progress' as of last update 1 Oct 2026 (23 days later); lessons learned 'still under investigation'. Five follow-up actions have no owner, date or ticket. Duration 124 min vs 19:05-21:07 (122 min). Jira PRD-7467."
+  },
+  {
+    "page_id": "2750185511",
+    "title": "RCA Incident-11092026-CMS-Invalid Number Outbond RAL Step EOD",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2750185511",
+    "incident_date": "2026-09-11",
+    "priority_as_written": "HIGH (P1)",
+    "duration_minutes": 290,
+    "duration_as_written": "4 jam 50 menit",
+    "affected_services": [
+      "CMS"
+    ],
+    "business_impact": "BOD CMS had not yet commenced operation and tele collection experienced a delayed start; CMS BOD for 2026-09-11 finished 07:05 after RAL EOD was skipped.",
+    "system_area": "Data platform (Airflow/ETL/DB2DB)",
+    "root_cause_verbatim": "Terdapat ketidaksesuaian tipe data pada field RL_EXEC_USER yang berisi nilai string (A072076) pada outbound RPT_DWH_RAL_MONITORING, sehingga memicu SQL Error [1722] ORA-01722: invalid number pada query SQL di Airflow.",
+    "root_cause_category": "data quality / bad data",
+    "contributing_factors": [
+      "Airflow SQL implicitly casts RL_EXEC_USER to number",
+      "no input validation that RL_EXEC_USER is numeric NIK",
+      "Airflow retry so fast logs were hard to capture",
+      "RAL outbound blocks CMS inbound BOD (serial dependency)",
+      "detected at 01:45 by DM team, root cause found 03:01, decision to skip at 04:54"
+    ],
+    "detection": "vendor notified",
+    "time_to_detect_minutes": null,
+    "recovery_action": "RAL EOD for 2026-09-11 was skipped so CMS inbound could proceed; squad to fix the query/data.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Third CMS BOD inbound delay in four weeks (after 15 Aug and 5 Sep), not linked on page.",
+    "action_items": [
+      {
+        "text": "Validasi data ke User",
+        "owner": "Ricky Rumantio",
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Validasi SQL Query di sisi Airflow",
+        "owner": "Ricky Rumantio",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Lesson Learned section is empty. 'Fixing Squad' listed as recovery with no detail. Detection was DM team message in WhatsApp group (internal team, not monitoring). Detailed timeline 01:45-07:05 present. Jira PRD-7481."
+  },
+  {
+    "page_id": "2784297041",
+    "title": "RCA INCIDENT - 20260922-CONFINS-AGREEMENT CONNECTION POOL ISSUE",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2784297041",
+    "incident_date": "2026-09-22",
+    "priority_as_written": "HIGH (P1)",
+    "duration_minutes": 94,
+    "duration_as_written": "94 Minutes",
+    "affected_services": [
+      "Database",
+      "Agreement",
+      "Collateral",
+      "Partnership"
+    ],
+    "business_impact": "Decrease in success rate (SR) for the Agreement, Collateral, and Partnership services after the Collateral Hikari pool reached its 300-connection maximum.",
+    "system_area": "Agreement/Collateral/LoanCalc (Bravo)",
+    "root_cause_verbatim": "A DBA reindexing job was running and became blocked, causing a bottleneck in the Confins R1 asset process.",
+    "root_cause_category": "database locking or query performance",
+    "contributing_factors": [
+      "SSIS Migration R3 activity created a DB indexing queue on CDB",
+      "DBA reindex job ran during live traffic (22:40)",
+      "Collateral Hikari pool exhausted at 300 (50 per pod x 6)",
+      "pods scaled down in evening window",
+      "spGetAssetSupplierInfo_API under review",
+      "idle connections held in Agreement DB"
+    ],
+    "detection": "unknown",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Stopped the indexing job, killed idle Collateral connections in the Agreement DB, restarted Agreement and Collateral pods, and raised Collateral Hikari pool from 50 to 100 per pod (300 to 600 total).",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": "Agreement connection pool / timeouts also appeared as the first symptom in the 24 Aug and 4 Sep gateway incidents; not linked on page.",
+    "action_items": [
+      {
+        "text": "Review the SSIS Migration R3 Add-Ins process",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Review spGetAssetSupplierInfo_API",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Review the CDB database indexing process",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Increase window time scale down (Lesson Learned)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Add cron to increase pod at 17.00-22.00 (Lesson Learned)",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "No detection method or who raised it. Chronology is a numbered causal list without timestamps. 'Issues: Database' is vague. No owners, dates or tickets on follow-ups. Doubling the pool size treats the symptom; no change-management action on running reindex during traffic. Jira PRD-7552."
+  },
+  {
+    "page_id": "2800451731",
+    "title": "RCA INCIDENT - 20260929-AGREEMENT- GET Agreement API Returns 500 Due to Duplicate Key PREPAID_ETM",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2800451731",
+    "incident_date": "2026-09-29",
+    "priority_as_written": "HIGH (P1)",
+    "duration_minutes": 37,
+    "duration_as_written": "36 menit 40 detik",
+    "affected_services": [
+      "prod-ms-bfi-payment-api",
+      "prod-ms-agreement",
+      "prod-ms-edoc",
+      "prod-ms-bravo-core-proxy",
+      "prod-ms-lms-gateway",
+      "prod-customer-bff",
+      "prod-ms-backoffice"
+    ],
+    "business_impact": "Users could not access LMS CORE and EDOC applications ('User tidak dapat akses aplikasi LMS CORE dan EDOC'); GET /v1/agreement/{agreement-id} returned HTTP 500 across the agreement chain.",
+    "system_area": "Agreement/Collateral/LoanCalc (Bravo)",
+    "root_cause_verbatim": "Terjadi duplikasi data pada master mapping dari LMS ke Confins R3 dengan nilai Confins Code yang sama, yaitu PREPAID_ETM. ... dilakukan penambahan mapping PREPAID_ETM <-> PREPAID_ETM karena data tersebut sebelumnya tidak muncul pada hasil query. Duplikasi key ini memicu IllegalStateException saat proses mapping data agreement dieksekusi.",
+    "root_cause_category": "data quality / bad data",
+    "contributing_factors": [
+      "manual master-data change in production under support ticket PRD-7571",
+      "no uniqueness constraint on Confins Code in mapping table",
+      "code builds a map with toMap-style merge that throws on duplicate key",
+      "no validation of source and target before executing the change"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": 5,
+    "recovery_action": "Soft-deleted the duplicated mapping row for Confins Code PREPAID_ETM (solved 10:11, SR normal 10:15).",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [
+      {
+        "text": "Follow Up Action lists only names: Martinus, Danny Prasetyo, Fadhil.Chedry, Jaka Yudha Utama (no action text)",
+        "owner": "Martinus, Danny Prasetyo, Fadhil.Chedry, Jaka Yudha Utama",
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Follow Up Action contains only @mentions with no action. Lesson learned is 'be more careful' with no control (constraint, review, or code hardening). Time to detect 09:38 alert to 09:43 check. Related support ticket PRD-7571 and incident PRD-7574."
+  },
+  {
+    "page_id": "2814312517",
+    "title": "RCA INCIDENT - 20261002 - LMS Core - tidak bisa melakukan pencetakan RAL dan perubahan Status menjadi Inventory",
+    "url": "https://bfifinance.atlassian.net/wiki/spaces/ITPROD/pages/2814312517",
+    "incident_date": "2026-10-02",
+    "priority_as_written": "MEDIUM (P2)",
+    "duration_minutes": null,
+    "duration_as_written": null,
+    "affected_services": [
+      "LMS Core (Collateral module)",
+      "request-ral API",
+      "request-inventory API"
+    ],
+    "business_impact": "Collection team could not print RAL (Rencana Pengambilalihan Asset) or change asset status to Inventory; limited to R1 murni / non-Bravo demographic payloads.",
+    "system_area": "LMS Core / Payment",
+    "root_cause_verbatim": "Terjadi missed commit saat cherry-pick perbaikan validasi tipe data dari development ke production. Akibatnya, production menjalankan validasi yang mewajibkan cif_id berformat UUID. Ini menyebabkan API request-ral dan request-inventory gagal validasi saat memproses payload demografi R1 murni / non-Bravo yang menggunakan format String.",
+    "root_cause_category": "config or deployment change (change management)",
+    "contributing_factors": [
+      "cherry-pick to release branch missed a fix commit",
+      "no diff/checklist verification on release branch",
+      "no segmented regression test for R1 non-Bravo vs Bravo payloads",
+      "DF2W release deployed the night before",
+      "no workaround available"
+    ],
+    "detection": "monitoring alert",
+    "time_to_detect_minutes": null,
+    "recovery_action": "Picked up the missed commit (removed strict UUID validation on cif_id), redeployed the patch to production at 07:46, verified at 08:04.",
+    "repeat_of_earlier_incident": null,
+    "repeat_note": null,
+    "action_items": [
+      {
+        "text": "Periodic post-fix monitoring of APM Datadog error rate for endpoints request-ral and request-inventory",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      },
+      {
+        "text": "Evaluate and tighten the release checklist, especially diff-commit verification in the cherry-pick procedure",
+        "owner": null,
+        "due_date": null,
+        "status": null
+      }
+    ],
+    "five_whys_present": false,
+    "quality_notes": "Duration field empty although the chronology gives 06:07-08:04 (about 117 min). Problem description says 'User melaporkan' but chronology says squad found it in Datadog APM; detection ambiguous. Follow-up actions have no owner, date or ticket. Title says DF2W release went to production on 1 Oct 2026. Jira PRD-7615."
+  }
+]

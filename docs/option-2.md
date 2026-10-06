@@ -4,6 +4,8 @@
 
 **Status of the wider decision.** No decision has been taken about Bravo's long-term platform. This document assesses Option 2 on its own merits.
 
+> **Update 2026-10-03.** The effort figures below are our own. An information package was sent to Temporal on 2026-10-02 ([temporal-vendor-package/](temporal-vendor-package/README.md)) and their written assessment is pending. Until it arrives, treat 31–57 engineer-months (8–14 for the pilot) as a placeholder, not a planning input.
+
 **Verdict in one line.** This is the only option that removes the workflow-engine vendor dependency for good **while keeping the imperative workflow paradigm the team already thinks in**. It runs on infrastructure BFI already owns, in the same language, against the same database. The direct route costs 31–57 engineer-months. Consolidating the legacy monoliths onto the unified spine first brings it to 30–54 ([§5](#5-sequencing-consolidate-onto-unified-first)).
 
 **Scope of "pure workflow".** This option deliberately does *not* adopt LORA's Guard-Stage-Milestone planner. The BPMN spine is ported to imperative Temporal workflow code: the same steps, in the same order, with the same gateways written as `if` statements. `JavaDelegate` implementations become Temporal Activities. Order stays explicit and authored. It does not emerge from data readiness. This is the "same design, different engine" option.

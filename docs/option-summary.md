@@ -83,7 +83,7 @@ flowchart TB
 |---|---|---|---|
 | **What it is** | **Path B:** swap Camunda 7.23 CE for an Apache-2.0 fork (Operaton 2.1.4 or CIB seven 2.2.0) **and** upgrade Spring Boot 3.5.16 → 4.0.x in one change. Automated OpenRewrite recipe; `ACT_` schema, 53 BPMN and Java 17 all unchanged | Port ~60 BPMN definitions to Temporal Java SDK workflow code; 225 `JavaDelegate`s become Activities; the other 94% of the service stays put | Close LORA's coverage gap, prove parity, cut the remaining book over, switch Bravo off |
 | **Paradigm change** | **None** | **None** — imperative workflow, same language | **Yes** — data-centric GSM, Go, custom SDK and planner |
-| **Effort (eng-months)** | **≈1–1.5** build (18–33 eng-days), **1.5–2.5** with review and soak | **31–57** (or **8–14** for a DF4W-only pilot) | **30–57** (some overlaps LORA's existing roadmap) |
+| **Effort (eng-months)** | **≈1–1.5** build (18–33 eng-days), **1.5–2.5** with review and soak | **Pending Temporal’s assessment** (package sent 2026-10-02; our estimate was **31–57**, or **8–14** for a DF4W-only pilot) | **30–57** (some overlaps LORA's existing roadmap) |
 | **Elapsed** | 1–2 months, one engineer | 12–18 months, 5–8 engineers | 15–24 months |
 | **Indicative one-off** (Rp30–50M/eng-month) | **Rp45M – Rp125M** | Rp930M–2.85B | Rp900M–2.85B |
 | **New licences** | **None** — both forks are Apache 2.0 | None — Temporal already contracted at Rp140M/month | None |

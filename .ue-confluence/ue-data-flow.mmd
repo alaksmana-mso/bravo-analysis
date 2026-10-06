@@ -1,0 +1,32 @@
+flowchart LR
+  subgraph SRC["Sources, automatic"]
+    GCP["GCP billing export<br/>BigQuery, daily"]
+    DD["Datadog usage"]
+    BPM["Bravo applications<br/>from the lakehouse"]
+    AR["LORA applications<br/>monthly job"]
+  end
+  subgraph IN["Entered by people, Google Sheets in a shared drive"]
+    C["Contracts and licences"]
+    V["Vendor invoices<br/>SMS, WhatsApp, EKYC, bureaus"]
+    K["Allocation keys<br/>approved by CTO and Finance"]
+  end
+  subgraph BQ["BigQuery: unit_economics"]
+    R["Raw tables"]
+    M["dbt models<br/>cost buckets, shared split,<br/>cost per loan, re-processing"]
+    T{"Checks<br/>dbt tests"}
+  end
+  subgraph OUT["Who sees it"]
+    LS["Looker Studio<br/>CTO and team dashboards"]
+    CS["Connected Sheets<br/>Finance and budget scenarios"]
+  end
+  GCP --> R
+  DD --> R
+  BPM --> R
+  AR --> R
+  C --> R
+  V --> R
+  K --> R
+  R --> M --> T
+  T -- pass --> LS
+  T -- pass --> CS
+  T -- fail --> X["Alert to the owner<br/>month stays open"]

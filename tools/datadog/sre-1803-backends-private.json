@@ -1,0 +1,1051 @@
+{
+  "title": "SRE-1803: backend services private behind the KrakenD gateway",
+  "description": "Step-by-step verification of SRE-1803 (one group per stage of the ticket). Production is measured from Istio mesh metrics, gateway logs and RUM; SIT and UAT keep the curl checks on the ticket, RUM excepted.",
+  "layout_type": "ordered",
+  "reflow_type": "auto",
+  "template_variables": [],
+  "widgets": [
+    {
+      "definition": {
+        "type": "note",
+        "content": "**SRE-1803: make all backend services private, KrakenD as the only public API gateway.** One group per stage of the ticket, in the ticket's order. Each widget says which step it proves and what \"done\" looks like.\n\n**What Datadog can and cannot see.** Istio mesh metrics and application logs exist only for the production clusters (`prod-bravo-cluster`, `bfi-project-prod`). SIT and UAT are not monitored by Datadog, with one exception: RUM covers the consoles in every environment (`\u2026 Platform Test` applications). So production steps are measured here; the SIT and UAT steps keep the curl checks written on the ticket, repeated in the grey notes below.\n\nSources: the request counter `istio.mesh.request.count.total` (reporter: destination), the gateway's own logs (`service:prod-ms-krakend-gateway`, plugins `server-observer` and `server-realtime-proxy`), and RUM resource events. Ticket: [SRE-1803](https://bfifinance.atlassian.net/browse/SRE-1803). Programme page: [Make all backend services private behind gateway](https://bfifinance.atlassian.net/wiki/spaces/EA/pages/2819948675).",
+        "background_color": "white",
+        "font_size": "14",
+        "text_align": "left",
+        "has_padding": true,
+        "show_tick": false
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Overall: how much production traffic still bypasses the gateway",
+        "background_color": "vivid_blue",
+        "widgets": [
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Requests from the public ingress straight to backends (sum over the timeframe)",
+              "title_align": "left",
+              "title_size": "16",
+              "autoscale": true,
+              "precision": 0,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "d",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller AND NOT destination_workload:prod-ms-krakend-gateway}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "d"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Share of public traffic that goes through the gateway, %",
+              "title_align": "left",
+              "title_size": "16",
+              "autoscale": true,
+              "precision": 1,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "g",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller AND destination_workload:prod-ms-krakend-gateway}.as_count()",
+                      "aggregator": "sum"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "d",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller AND NOT destination_workload:prod-ms-krakend-gateway}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "g / (g + d) * 100"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Direct to backends vs through the gateway (per interval)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "line",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "direct",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller AND NOT destination_workload:prod-ms-krakend-gateway}.as_count()"
+                    },
+                    {
+                      "data_source": "metrics",
+                      "name": "gateway",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller AND destination_workload:prod-ms-krakend-gateway}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "alias": "straight to backends",
+                      "formula": "direct"
+                    },
+                    {
+                      "alias": "through KrakenD",
+                      "formula": "gateway"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "toplist",
+              "title": "Backends still called from the public ingress (this list must shrink to the gateway only)",
+              "title_align": "left",
+              "title_size": "16",
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller} by {destination_workload}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "limit": {
+                        "count": 50,
+                        "order": "desc"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Step A1 (SIT/UAT) and D1 (prod): Camunda engine REST API cluster-internal",
+        "background_color": "vivid_orange",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "**What proves it.** After app-deployment 14179 merges in prod, the Istio sidecar of `prod-ms-bpm` answers **403** to the ingress controllers for `/bpm/engine-rest/*`; those 403s show below as a step up from today's baseline (the business API already returns about 400 403s an hour to the public ingress, measured 5 Oct 2026); the deny adds a 403 for every engine REST call that reaches the edge. Both controllers are denied: public (`nginx-ingress-protected-controller`) and VPN (`prod-nginx-ingres-private-controller`).\n\n**SIT and UAT (not visible here, app-deployment 14169):** `curl -sI https://microservices.sit.bravo.bfi.co.id/bpm/engine-rest/version` returns 403 (was 401); from a pod in the mesh the same path still returns 401; Cockpit `/bpm/camunda` and `/bpm/v1/**` unchanged. Then the same on UAT.",
+              "background_color": "gray",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true,
+              "show_tick": false
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "prod-ms-bpm: responses to the two ingress controllers, by code (403 = the deny firing)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-ms-bpm AND source_workload IN (nginx-ingress-protected-controller,prod-nginx-ingres-private-controller)} by {source_workload, response_code}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "403s from prod-ms-bpm to the ingress controllers (timeframe sum; baseline about 400 an hour before the deny)",
+              "title_align": "left",
+              "title_size": "16",
+              "autoscale": true,
+              "precision": 0,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-ms-bpm AND source_workload IN (nginx-ingress-protected-controller,prod-nginx-ingres-private-controller) AND response_code:403}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Steps A2, A3 (SIT/UAT) and D4 (prod): lora-schema hairpin, then public routes off",
+        "background_color": "vivid_purple",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "**What proves it.** `prod-lora-schema` has no outside callers; its public traffic is LORA's own services going out through the public host and back in. After app-deployment 14181 (callers moved to the cluster-local address) the line from `nginx-ingress-protected-controller` must reach **zero within a day** and the lines from the LORA services must carry the same volume. Only then does 14178 (public Ingress off) merge; 14176 does the same for `lora-cdc-bridges` and `lora-diff-inspector`.\n\n**SIT and UAT (app-deployment 14180, then 14182):** no schema-fetch errors in the LORA workers, lora-task, cdc-bridges, bfi-connect and partnership for 24 h; then `curl -I https://microservices.sit.bravo.bfi.co.id/lora-schema/` returns 404 while the same path on `microservices-private.sit\u2026` over VPN still answers.",
+              "background_color": "gray",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true,
+              "show_tick": false
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "prod-lora-schema: requests by source (the ingress line must go to zero after 14181)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "line",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-lora-schema} by {source_workload}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "prod-lora-schema: requests from the public ingress (must be 0 before 14178)",
+              "title_align": "left",
+              "title_size": "16",
+              "autoscale": true,
+              "precision": 0,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-lora-schema AND source_workload:nginx-ingress-protected-controller}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "prod-lora-cdc-bridges and prod-lora-diff-inspector: requests from the ingress controllers (must be 0 before 14176)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload IN (prod-lora-cdc-bridges,prod-lora-diff-inspector) AND source_workload IN (nginx-ingress-protected-controller,prod-nginx-ingres-private-controller)} by {destination_workload, source_workload}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Steps B and D2: the gateway carries bpm and lora-task",
+        "background_color": "vivid_green",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "**What proves it.** The two migration curves: requests to `prod-ms-bpm` and `prod-lora-task` split by source. As the consoles and the LORA back office switch to `gateway.prod\u2026`, the `nginx-ingress-protected-controller` line falls and the `prod-ms-krakend-gateway` line rises by the same amount. The gateway's own logs show the routed paths and their response codes, and the realtime plugin logs every proxied socket and stream (zero in prod until the prod lists are filled by the follow-up gateway PR and 14184 merges).\n\n**SIT and UAT (not visible here):** after the gateway tag with the plugin and app-deployment 14183: a WebSocket to `wss://gateway.sit.bravo.bfi.co.id/lora-task/messaging/ws/<task_id>` with a back-office session stays open past 60 s; `curl -N https://gateway.sit.bravo.bfi.co.id/lora-task/subscribe/tasks` streams past 60 s; `/lora-task/subscriber` returns 404; after the route PRs 417 and 419, `curl -sI https://gateway.sit.bravo.bfi.co.id/bpm/v1/users/me | head -1` shows 401, not 404.",
+              "background_color": "gray",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true,
+              "show_tick": false
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "prod-ms-bpm: requests by source (ingress falls, gateway rises)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "line",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-ms-bpm AND source_workload IN (nginx-ingress-protected-controller,prod-nginx-ingres-private-controller,prod-ms-krakend-gateway)} by {source_workload}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "prod-lora-task: requests by source (ingress falls, gateway rises)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "line",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-lora-task AND source_workload IN (nginx-ingress-protected-controller,prod-nginx-ingres-private-controller,prod-ms-krakend-gateway)} by {source_workload}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Gateway logs: /bpm and /lora-task requests by response code (prod)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "warm",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "logs",
+                      "name": "l",
+                      "indexes": [
+                        "*"
+                      ],
+                      "search": {
+                        "query": "service:prod-ms-krakend-gateway @plugin:server-observer (@req_path:\\/bpm\\/* OR @req_path:\\/lora-task\\/*)"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "group_by": [
+                        {
+                          "facet": "@res_status",
+                          "limit": 10,
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "l"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Gateway logs: sockets and streams proxied by the realtime plugin, by kind (0 until the prod lists are filled)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "cool",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "logs",
+                      "name": "l",
+                      "indexes": [
+                        "*"
+                      ],
+                      "search": {
+                        "query": "service:*-ms-krakend-gateway @plugin:server-realtime-proxy \"Proxying\""
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "group_by": [
+                        {
+                          "facet": "@kind",
+                          "limit": 10,
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "l"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Gateway logs: 5xx on any route (should not rise during the cut-over)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "warm",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "logs",
+                      "name": "l",
+                      "indexes": [
+                        "*"
+                      ],
+                      "search": {
+                        "query": "service:prod-ms-krakend-gateway @plugin:server-observer @res_status:[500 TO 599]"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "group_by": [
+                        {
+                          "facet": "@req_path",
+                          "limit": 10,
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "l"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Steps B4, C and D3: consoles call bpm through the gateway (RUM, every environment)",
+        "background_color": "vivid_yellow",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "**What proves it.** RUM records every `/bpm/*` call the three consoles make and the host they send it to. The `microservices.*` hosts must fall to zero and `gateway.*` must take over: SIT first (`\u2026 Platform Test` applications on `microservices-private.sit\u2026`), then UAT (`microservices.uat\u2026`), then prod (`\u2026 Platform Prod` on `microservices.prod\u2026`). Pick the environment with the `env`-less application names in the legend.\n\n**bpm-service 10562 (engine identity on the REST API)** has no traffic signature of its own; its check is the table on the PR. The last widget counts Camunda authorization denials in the bpm logs, which only exist once the filter is live: a few are expected (callers without grants), a flood means a legitimate caller lost its grants.",
+              "background_color": "gray",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true,
+              "show_tick": false
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Consoles: /bpm calls by destination host (all environments)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "rum",
+                      "name": "r",
+                      "search": {
+                        "query": "@type:resource @resource.url_path:\\/bpm\\/*"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "group_by": [
+                        {
+                          "facet": "@resource.url_host",
+                          "limit": 10,
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Consoles still calling bpm directly, per console application",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "warm",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "rum",
+                      "name": "r",
+                      "search": {
+                        "query": "@type:resource @resource.url_path:\\/bpm\\/* @resource.url_host:microservices*"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "group_by": [
+                        {
+                          "facet": "@application.name",
+                          "limit": 10,
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Consoles calling bpm through the gateway, per console application",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "cool",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "rum",
+                      "name": "r",
+                      "search": {
+                        "query": "@type:resource @resource.url_path:\\/bpm\\/* @resource.url_host:gateway*"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      },
+                      "group_by": [
+                        {
+                          "facet": "@application.name",
+                          "limit": 10,
+                          "sort": {
+                            "aggregation": "count",
+                            "order": "desc"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "prod-ms-bpm logs: Camunda authorization denials on the REST API (after 10562)",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "bars",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "warm",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "logs",
+                      "name": "l",
+                      "indexes": [
+                        "*"
+                      ],
+                      "search": {
+                        "query": "service:prod-ms-bpm (\"AuthorizationException\" OR \"does not have\")"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      }
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "l"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Step D5: public /bpm Ingress off. Both numbers must read zero for 7 days first",
+        "background_color": "vivid_pink",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Merge app-deployment 14175 only when, over a 7-day timeframe, the public ingress sends nothing to `prod-ms-bpm` and no console resource targets `/bpm/*` on `microservices.prod.bravo.bfi.co.id`. Set the dashboard timeframe to **Past 1 Week** before reading these two.",
+              "background_color": "gray",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true,
+              "show_tick": false
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Requests from the public ingress to prod-ms-bpm (timeframe sum; must be 0)",
+              "title_align": "left",
+              "title_size": "16",
+              "autoscale": true,
+              "precision": 0,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND destination_workload:prod-ms-bpm AND source_workload:nginx-ingress-protected-controller}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Console /bpm resources on microservices.prod.bravo.bfi.co.id (timeframe count; must be 0)",
+              "title_align": "left",
+              "title_size": "16",
+              "autoscale": true,
+              "precision": 0,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "rum",
+                      "name": "r",
+                      "search": {
+                        "query": "@type:resource @resource.url_path:\\/bpm\\/* @resource.url_host:microservices.prod.bravo.bfi.co.id"
+                      },
+                      "compute": {
+                        "aggregation": "count"
+                      }
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "r"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "show_title": true,
+        "title": "Done when: nothing but the gateway behind the public ingress",
+        "background_color": "gray",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "The acceptance criteria on the ticket, in two widgets. The list on the left is every backend workload the public ingress still reaches; done means it holds `prod-ms-krakend-gateway` and the agreed exceptions only. The number on the right is the same list's length. The production ingress controller itself (ingress-nginx v1.10.1, retired March 2026) is a separate SRE item, not part of this ticket.",
+              "background_color": "gray",
+              "font_size": "14",
+              "text_align": "left",
+              "has_padding": true,
+              "show_tick": false
+            }
+          },
+          {
+            "definition": {
+              "type": "toplist",
+              "title": "Workloads reached from the public ingress (7-day view)",
+              "title_align": "left",
+              "title_size": "16",
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "q",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller} by {destination_workload}.as_count()",
+                      "aggregator": "sum"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "q",
+                      "limit": {
+                        "count": 50,
+                        "order": "desc"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Number of distinct backend workloads reached from the public ingress",
+              "title_align": "left",
+              "title_size": "16",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [
+                "avg",
+                "max",
+                "value"
+              ],
+              "requests": [
+                {
+                  "display_type": "line",
+                  "response_format": "timeseries",
+                  "style": {
+                    "palette": "dog_classic",
+                    "line_type": "solid",
+                    "line_width": "normal"
+                  },
+                  "queries": [
+                    {
+                      "data_source": "metrics",
+                      "name": "r",
+                      "query": "sum:istio.mesh.request.count.total{reporter:destination AND source_workload:nginx-ingress-protected-controller AND NOT destination_workload:prod-ms-krakend-gateway} by {destination_workload}.as_count()"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "alias": "backends still public",
+                      "formula": "count_nonzero(r)"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

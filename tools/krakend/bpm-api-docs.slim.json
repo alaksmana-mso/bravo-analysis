@@ -1,0 +1,10342 @@
+{
+ "info": {
+  "title": "com.bfi.bravo",
+  "version": "3.0"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/v1/admin/areas": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/admin/areas/simple": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/admin/branch-coverages": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/branches": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/admin/branches/simple": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/admin/category": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "platform"
+     },
+     {
+      "in": "query",
+      "name": "menuType"
+     }
+    ]
+   }
+  },
+  "/v1/admin/content": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "contentRequestParam"
+     },
+     {
+      "in": "query",
+      "name": "sort"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/content/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/employee-data-updates": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "searchParam"
+     }
+    ]
+   }
+  },
+  "/v1/admin/employee-data-updates/count": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/employee-data-updates/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/employee-report": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "searchParam"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/employee-report/batches": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "param"
+     }
+    ]
+   }
+  },
+  "/v1/admin/employee-report/excel": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "searchParam"
+     }
+    ]
+   }
+  },
+  "/v1/admin/employee-report/{employeeId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "employeeId"
+     }
+    ]
+   },
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "employeeId"
+     }
+    ]
+   }
+  },
+  "/v1/admin/employee/{nik}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v1/admin/operation/user": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "param"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/operation/user/{userId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "userId"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "userId"
+     }
+    ]
+   }
+  },
+  "/v1/admin/operation/users/download": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "roles"
+     }
+    ]
+   }
+  },
+  "/v1/admin/prior-to-po": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "typePot"
+     },
+     {
+      "in": "query",
+      "name": "typeDoc"
+     }
+    ]
+   }
+  },
+  "/v1/admin/products": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/regions": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/admin/surveyor/on-leave": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/surveyor/on-leave/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/surveyor/on-leave/{surveyorId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorId"
+     }
+    ]
+   }
+  },
+  "/v1/admin/surveyor/on-leave/{surveyorId}/status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorId"
+     }
+    ]
+   }
+  },
+  "/v1/admin/underwriting/roles": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/underwriting/users": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/underwriting/users/product-setting": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/underwriting/users/product-setting/{userDetailId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "userDetailId"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "userDetailId"
+     }
+    ]
+   }
+  },
+  "/v1/admin/underwriting/users/reset-credentials": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/underwriting/users/{nik}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v1/admin/underwriting/users/{nik}/supervisor": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "userSearchParam"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user-alternative-map": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user-alternative-map/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user-management/audit-trail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "userManagementAuditTrailSearchParam"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/assignment/manual-reassign": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/branch/{branchId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "branchId"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/change-coverage-level": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/export": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/find-option-category": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/find-prior-to-po": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/find-service-excellent": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/option-category": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/option-category/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/prior-to-po": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/prior-to-po/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/reset-credentials": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/service-excellent": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/service-excellent/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/supervisors": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/user/{nik}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/{nik}/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     },
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/{nik}/assignment/auto-reassign": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/{nik}/subordinates": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     },
+     {
+      "in": "query",
+      "name": "queryParam"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user/{nik}/subordinates/reassign": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v1/admin/user={surveyorId}&role={userRole}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "surveyorId"
+     },
+     {
+      "in": "path",
+      "name": "userRole"
+     }
+    ]
+   }
+  },
+  "/v1/admin/work-location-map": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/work-location-map/{code}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "code"
+     }
+    ]
+   }
+  },
+  "/v1/admin/work-location-map/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/admin/work-location-user-map": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/admin/work-location-user-map/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/airflow/address-data-encryption": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/airflow/customer-encryption": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/airflow/emergency-contact-data-encryption": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/airflow/guarantor-data-encryption": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/airflow/personal-data-encryption": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/alicloud/city/{city_code}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "city_code"
+     }
+    ]
+   }
+  },
+  "/v1/application": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "applicationTrackingParam"
+     }
+    ]
+   },
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application-agreement-document/status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/application-document-tracking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "assignment_id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "assignment_id"
+     }
+    ]
+   }
+  },
+  "/v1/application-error-tracking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "applicationErrorTrackingParam"
+     }
+    ]
+   }
+  },
+  "/v1/application-error-tracking/{applicationErrorTrackingId}/assign-branch": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationErrorTrackingId"
+     }
+    ]
+   }
+  },
+  "/v1/application-error-tracking/{applicationErrorTrackingId}/assign-surveyor": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationErrorTrackingId"
+     }
+    ]
+   }
+  },
+  "/v1/application-error-tracking/{applicationErrorTrackingId}/cancel": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationErrorTrackingId"
+     }
+    ]
+   }
+  },
+  "/v1/application-error-tracking/{applicationErrorTrackingId}/send-salestrax": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationErrorTrackingId"
+     }
+    ]
+   }
+  },
+  "/v1/application-loan-restructure/asset": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/application-loan-restructure/assignment/{assignmentId}/notify": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/application-loan-restructure/loan": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/application-loan-restructure/recalculate/decision": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/application-loan-restructure/tenure/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/application-loan-restructure/value-estimate": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/application-reason": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_ids"
+     },
+     {
+      "in": "query",
+      "name": "reason_type"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/application-status-history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "lead_id"
+     }
+    ]
+   }
+  },
+  "/v1/application-status-log/{appId}/all-assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   }
+  },
+  "/v1/application/cancel": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application/cancel-customer": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application/cancel-internal": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/application/cas": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application/cumulative-outstanding-loan/{customerId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "customerId"
+     },
+     {
+      "in": "query",
+      "name": "product_ids"
+     }
+    ]
+   }
+  },
+  "/v1/application/digital-sign-status": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/application/duplicate-check": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "licenseNumber"
+     }
+    ]
+   }
+  },
+  "/v1/application/expired": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application/follow-up": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application/max-funding-ratio": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "lead_id"
+     }
+    ]
+   }
+  },
+  "/v1/application/surveyor/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/application/unsecured": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/application/update-branch": {
+   "patch": {
+    "parameters": []
+   }
+  },
+  "/v1/application/{applicationId}/check-digital-partnership": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/application/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/asset-pricing/price-availability": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "product_id"
+     },
+     {
+      "in": "query",
+      "name": "level"
+     },
+     {
+      "in": "query",
+      "name": "asset_parent_code"
+     },
+     {
+      "in": "query",
+      "name": "asset_code"
+     },
+     {
+      "in": "query",
+      "name": "asset_type_id"
+     },
+     {
+      "in": "query",
+      "name": "type_group"
+     },
+     {
+      "in": "query",
+      "name": "parent_type_group"
+     },
+     {
+      "in": "query",
+      "name": "exclude_postfix_codes"
+     },
+     {
+      "in": "query",
+      "name": "area_pl_id"
+     },
+     {
+      "in": "query",
+      "name": "branch_id"
+     },
+     {
+      "in": "query",
+      "name": "city_code"
+     },
+     {
+      "in": "query",
+      "name": "zip_code"
+     },
+     {
+      "in": "query",
+      "name": "active_only"
+     },
+     {
+      "in": "query",
+      "name": "price_available_only"
+     },
+     {
+      "in": "query",
+      "name": "brand"
+     },
+     {
+      "in": "query",
+      "name": "manufacturing_year"
+     },
+     {
+      "in": "query",
+      "name": "fuel_types"
+     },
+     {
+      "in": "query",
+      "name": "q"
+     },
+     {
+      "in": "query",
+      "name": "search_by"
+     },
+     {
+      "in": "query",
+      "name": "search_method"
+     },
+     {
+      "in": "query",
+      "name": "sort_by"
+     },
+     {
+      "in": "query",
+      "name": "is_sorted"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/2w-asset-validation": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/2w-scoring": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/asset-validation": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/capital-detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/collateral-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/collateral-information-replacement": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/detail-info": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/document-sign": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/emergency-contact": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/guarantor-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/loan-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/long-survey": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/occupation-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/other-business": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/pefindo-summary": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/personal-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/physical-document": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/scoring-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/simple-survey": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/source-checking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/status-history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     },
+     {
+      "in": "query",
+      "name": "includes"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/surveyor-question": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/take-over-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/audit/assignments/{surveyorAssignmentId}/underwriting-approvals": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/auth/user-info": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/bank-account": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/bank-account/agent-bank-account": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     },
+     {
+      "in": "query",
+      "name": "bank_account_number"
+     }
+    ]
+   }
+  },
+  "/v1/bank-account/msa": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "branch_ids"
+     }
+    ]
+   }
+  },
+  "/v1/bank-account/online-gambling-bank-account": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/bank-account/validate": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     },
+     {
+      "in": "query",
+      "name": "bank_id"
+     },
+     {
+      "in": "query",
+      "name": "account_number"
+     },
+     {
+      "in": "query",
+      "name": "account_name"
+     },
+     {
+      "in": "query",
+      "name": "account_type"
+     }
+    ]
+   }
+  },
+  "/v1/branch": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/branch-availability/check/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     },
+     {
+      "in": "query",
+      "name": "date"
+     },
+     {
+      "in": "query",
+      "name": "daysForward"
+     }
+    ]
+   }
+  },
+  "/v1/branch-availability/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/branch-availability/reserve": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/branch-quota/check/{branchId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "branchId"
+     }
+    ]
+   }
+  },
+  "/v1/branch-quota/release": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/branch-quota/reserve": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/branch/bravo": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "product_id"
+     }
+    ]
+   }
+  },
+  "/v1/branch/check-branch-booking": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/branch/check-non-pd-model-area": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "product_id"
+     },
+     {
+      "in": "query",
+      "name": "district_code"
+     },
+     {
+      "in": "query",
+      "name": "subdistrict_code"
+     },
+     {
+      "in": "query",
+      "name": "zipcode"
+     }
+    ]
+   }
+  },
+  "/v1/branch/check-r3-eligibility": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "booking_branch"
+     },
+     {
+      "in": "query",
+      "name": "product_id"
+     }
+    ]
+   }
+  },
+  "/v1/branch/current-user": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/branch/map/current-user": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/branch/simple": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "branch_name"
+     }
+    ]
+   }
+  },
+  "/v1/cas-assignment/calls/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/cas-assignment/dashboard": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/cas-assignment/filter": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/cas-assignment/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/cas-assignment/internal/status": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/cas-assignment/open-status/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/cas-assignment/status": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/cas-assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/cnv-negative-list": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/cnv-pefindo": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/collateral/verification": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/commission-information": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/commission-information/application/{applicationId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/commission-information/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/cre/user": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/credit-engine-mock/{mock_code}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "mock_code"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/data-mart-customer/{application_id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/external-data-cnv/{application_id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/kyc-proxy/{outbound_type}/{application_id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application_id"
+     },
+     {
+      "in": "path",
+      "name": "outbound_type"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/pefindo/{subject_check}/{application_id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application_id"
+     },
+     {
+      "in": "path",
+      "name": "subject_check"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/pre-approval-scoring/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/unsecured-booking/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/decrypt/unsecured-pefindo/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/document-analysis/assignments": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/document-analysis/{leadGroupId}/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/document-analysis/{leadGroupId}/assignment/document/{documentCategory}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     },
+     {
+      "in": "path",
+      "name": "documentCategory"
+     }
+    ]
+   }
+  },
+  "/v1/document-analysis/{leadGroupId}/detail-info": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/dummy/tab-mechanic-configuration": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/dupcheck-phone-number": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     },
+     {
+      "in": "query",
+      "name": "phone_number"
+     },
+     {
+      "in": "query",
+      "name": "phone_number_type"
+     }
+    ]
+   }
+  },
+  "/v1/employee-user-recon": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "param"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/employee-user-recon/batches": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "year"
+     }
+    ]
+   }
+  },
+  "/v1/employee-user-recon/excel": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "param"
+     }
+    ]
+   }
+  },
+  "/v1/employee/surveyor-coverage": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/external-asset-funding": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/external-asset-funding/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/external-asset-funding/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/external-asset-validation": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/external-asset-validation/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/external-asset-validation/application/{applicationId}/user-task-status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/external-asset-validation/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/faq": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/faq/trending": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/faq/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/form-configuration": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "sort"
+     },
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/form-configuration/mapping": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/form-configuration/mapping/{formConfigurationMasterId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "formConfigurationMasterId"
+     }
+    ]
+   }
+  },
+  "/v1/form-configuration/sections": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "sort"
+     },
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/form-configuration/sections/{section}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "section"
+     }
+    ]
+   }
+  },
+  "/v1/form-configuration/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/funding-document/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   },
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/general/config/survey-form": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "product_id"
+     },
+     {
+      "in": "query",
+      "name": "type"
+     },
+     {
+      "in": "query",
+      "name": "customer_type"
+     },
+     {
+      "in": "query",
+      "name": "business_type"
+     },
+     {
+      "in": "query",
+      "name": "risk_type"
+     },
+     {
+      "in": "query",
+      "name": "user_type"
+     },
+     {
+      "in": "query",
+      "name": "assignment_type"
+     },
+     {
+      "in": "query",
+      "name": "version"
+     },
+     {
+      "in": "query",
+      "name": "group"
+     }
+    ]
+   }
+  },
+  "/v1/general/customer-confirmation-appointment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/general/expired-agreement": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/general/expired-customer-approval": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/general/expired-scheduler": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/general/insurance-check-approval": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/general/retry-failed-go-live": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/general/surveyor-auto-reassign": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/go-live-result/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/head-surveyor": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/assignment-request/cancel": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/assignment-request/reprocess": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/assignment-request/reprocess-void": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/assignment-request/take": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/assignment-request/void": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/assignment-request/{assignmentRequestId}/reprocess-void": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentRequestId"
+     }
+    ]
+   }
+  },
+  "/v1/head-surveyor/assignment-request/{assignmentRequestId}/reprocess-void-take-over": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentRequestId"
+     }
+    ]
+   }
+  },
+  "/v1/head-surveyor/assignment-request/{id}/void": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/head-surveyor/assignment/all": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/head-surveyor/assignment/{assignmentId}/void": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/head-surveyor/customer-form": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/summary": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/summary/performance": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/head-surveyor/void": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/insurance-approval/status/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/internal/data-enums": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "key"
+     }
+    ]
+   }
+  },
+  "/v1/internal/data-generator": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "key"
+     },
+     {
+      "in": "query",
+      "name": "start"
+     },
+     {
+      "in": "query",
+      "name": "end"
+     },
+     {
+      "in": "query",
+      "name": "sort"
+     }
+    ]
+   }
+  },
+  "/v1/internal/general-lov": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "group_name"
+     },
+     {
+      "in": "query",
+      "name": "parent_group_name"
+     }
+    ]
+   }
+  },
+  "/v1/internal/general-lov-category": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "parent_group_name"
+     }
+    ]
+   }
+  },
+  "/v1/keycloak/logout": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/kyc-proxy": {
+   "post": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "appId"
+     }
+    ]
+   }
+  },
+  "/v1/lead-reserve": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/lead-reserve/extend": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/lead-reserve/release": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/lead-reserve/revive": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/long-survey/status/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/manager-verificator": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/master/general": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "category"
+     }
+    ]
+   }
+  },
+  "/v1/master/general/document-type": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/master/general/fee-type": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/master/general/group": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "groupName"
+     }
+    ]
+   }
+  },
+  "/v1/master/general/home-owner": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/master/general/multiple": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "categories"
+     }
+    ]
+   }
+  },
+  "/v1/merchant_branch": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "merchant_branch_id"
+     }
+    ]
+   }
+  },
+  "/v1/multi-asset-survey/fetch-score/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/multi-asset-survey/generate-score/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/negative-list/asset-check": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/negative-list/asset-check/result/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "query",
+      "name": "outbound_type"
+     }
+    ]
+   }
+  },
+  "/v1/notifications/{id}/resend": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/obligor": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/obligor/check": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/obligor/summary": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-data": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-data/{assignmentAssetDataId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentAssetDataId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data-replacement": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data-replacement/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data-replacement/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/assignment/{assignmentId}/photo": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/checklist": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/tax-notice": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/update-license-number": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/vehicle-ownership": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/vehicle-registration": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/view/doc-sign/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/view/funding-information/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/view/physical-document/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/view/third-party-information/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-asset-document-data/{assignmentAssetDocumentDataId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentAssetDocumentDataId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/approval": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-check-nst/approval/{approvalId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "approvalId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/assignment/{assignmentId}/approval": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "role"
+     },
+     {
+      "in": "query",
+      "name": "branchId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/assignment/{assignmentId}/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/branch-eligibility": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-check-nst/deviation/{deviationId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "deviationId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "deviationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/download/approval": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "start_date"
+     },
+     {
+      "in": "query",
+      "name": "end_date"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/{checkNSTId}/approvals": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "checkNSTId"
+     },
+     {
+      "in": "query",
+      "name": "approval_ids"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/{id}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-check-nst/{id}/deviation": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-delay-reason": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-delay-reason/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-delay-reason/check/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-document-sign": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-document-sign/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-document-sign/{assignmentDocumentSignId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentDocumentSignId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-funding-information": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-funding-information/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-funding-information/assignment/{assignmentId}/accrued-interest": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-funding-information/assignment/{assignmentId}/recalculate-ro": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-funding-information/cdd-matrix/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-funding-information/{assignmentFundingInformationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentFundingInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-history/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-other-request/branch": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "param"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-other-request/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-other-request/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-pending-information/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "create"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-pending-information/request": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-pending-information/{pendingInformationId}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pendingInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-pending-information/{pendingInformationId}/approve": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pendingInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-pending-information/{pendingInformationId}/decline": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "pendingInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-physical-document": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-physical-document/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-physical-document/bpkb-details": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-physical-document/bpkb-details/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-physical-document/vehicle-ownership-photo": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-physical-document/{assignmentPhysicalDocumentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentPhysicalDocumentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-third-party-information": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment-third-party-information/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment-third-party-information/{assignmentThirdPartyInformationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentThirdPartyInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/agreement": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "agreement_number"
+     },
+     {
+      "in": "query",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/agreement/{agreementId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "agreementId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/application-number/{applicationNumber}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationNumber"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/application/{applicationId}/request-go-live/eligibility": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/asset": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "agreement_id"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/branch-operation": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/branch/application-number/{applicationNumber}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationNumber"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/branch/pending": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/branch/pending-take-over": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/branch/pending-take-over/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/branch/pending-take-over/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/branch/pending/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/branch/pending/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/branches/distinct-list": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/cancel": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/change-badged": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/close": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch-check-verification": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch-head/release-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch-verification": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch/check/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch/global/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/branch/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/head-office-verification": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/head-office/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/release-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/data-enrichment/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/digi-sign-manual/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/digi-sign-manual/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/digi-sign-manual/{assignmentId}/download-agreement": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/digi-sign-manual/{assignmentId}/take-assignment": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/documents/zip": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "assignment_id"
+     },
+     {
+      "in": "query",
+      "name": "page"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/generate-agreement": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/handlers": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "handlerType"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/handlers/distinct-list": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/head-office/pending-take-over": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/head-office/pending-take-over/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/mock/application/{applicationId}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/pending/approval": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/pending/approval/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/release-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/reprocess": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/request-go-live/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/request-go-live/head-office-go-live": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/request-go-live/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/request-go-live/release-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/request-go-live/take-assignment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/request-go-live/unsecured": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/tracking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/void": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-assignment/{assignmentId}/retry-agreement-document": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation-notification/branch": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-notification/head-office": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/operation-underwriting/approvals": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/operation/assignment/{assignmentId}/take-over": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation/delete": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "document_id"
+     }
+    ]
+   }
+  },
+  "/v1/operation/document/delete": {
+   "delete": {
+    "parameters": []
+   }
+  },
+  "/v1/operation/download": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "document_id"
+     }
+    ]
+   }
+  },
+  "/v1/operation/download/{documentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "documentId"
+     }
+    ]
+   }
+  },
+  "/v1/operation/upload": {
+   "post": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "document_id"
+     },
+     {
+      "in": "query",
+      "name": "reference_id"
+     },
+     {
+      "in": "query",
+      "name": "id_type"
+     },
+     {
+      "in": "query",
+      "name": "document_type"
+     },
+     {
+      "in": "query",
+      "name": "document_sequence"
+     },
+     {
+      "in": "query",
+      "name": "metadata"
+     },
+     {
+      "in": "query",
+      "name": "filename"
+     },
+     {
+      "in": "query",
+      "name": "folder"
+     }
+    ]
+   }
+  },
+  "/v1/pallav/callback/customer-offer": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/partnership-configuration/feature-configuration": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/pd-model-2w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/pefindo-information/detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/pefindo-summary/{subject_check}/{application_id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application_id"
+     },
+     {
+      "in": "path",
+      "name": "subject_check"
+     }
+    ]
+   }
+  },
+  "/v1/pilot-branch/update-status": {
+   "patch": {
+    "parameters": []
+   }
+  },
+  "/v1/pre-approval-scoring": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/pre-approval-scoring/resend-result/{preApprovalId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "preApprovalId"
+     }
+    ]
+   }
+  },
+  "/v1/pre-approval-scoring/salestrax": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/rapindo/asset-check": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/rapindo/asset-check/result/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "query",
+      "name": "outbound_type"
+     }
+    ]
+   }
+  },
+  "/v1/resource-schedules": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "resource_id"
+     },
+     {
+      "in": "query",
+      "name": "start_date"
+     },
+     {
+      "in": "query",
+      "name": "end_date"
+     },
+     {
+      "in": "query",
+      "name": "resource_type"
+     },
+     {
+      "in": "query",
+      "name": "resource_identifier"
+     }
+    ]
+   }
+  },
+  "/v1/resource-schedules/availability": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "X-Timezone"
+     },
+     {
+      "in": "query",
+      "name": "start_date"
+     },
+     {
+      "in": "query",
+      "name": "end_date"
+     },
+     {
+      "in": "query",
+      "name": "resource_type"
+     },
+     {
+      "in": "query",
+      "name": "resource_identifier"
+     },
+     {
+      "in": "query",
+      "name": "assignment_id"
+     }
+    ]
+   }
+  },
+  "/v1/resource-schedules/check-schedule": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "assignment_id"
+     },
+     {
+      "in": "query",
+      "name": "surveyor_id"
+     }
+    ]
+   }
+  },
+  "/v1/resource-schedules/customer": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "X-Timezone"
+     },
+     {
+      "in": "query",
+      "name": "lead_id"
+     },
+     {
+      "in": "query",
+      "name": "lead_group_id"
+     },
+     {
+      "in": "query",
+      "name": "start_date"
+     },
+     {
+      "in": "query",
+      "name": "end_date"
+     }
+    ]
+   }
+  },
+  "/v1/resource-schedules/static": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "X-Timezone"
+     },
+     {
+      "in": "query",
+      "name": "assignment_id"
+     },
+     {
+      "in": "query",
+      "name": "schedule_date"
+     }
+    ]
+   }
+  },
+  "/v1/resubmit-application/update-status": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/ali-cloud": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/collateral-verification-2w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/collateral-verification-high-risk-multi": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/collateral-verification-multi": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/get-vehicle-categories": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/internal-data-black-list-2w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/list-contract-number-cnv/{id}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/s1/mkyc-2w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/mkyc-4w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/pd-model-2w/{id}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/s1/pd-model-alternative-overlay-4w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/pd-model-overlay-multi-4w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/pd-model-overlay2-4w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/pd-model-ro-2w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/pd-model-ro-check-enhance": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/pd-model2-4w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/simple-survey-4w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/simple-survey-multiasset-4w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/simple-survey-score-2w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/s1/soft-rac-2w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/soft-rac-check-4w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/takeover-status-multiasset-4w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/tax-payment-multi-asset-4w": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/s1/truck-status-multi-4w": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/salestrax": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/salestrax/bfi-connect/high-risk-customer": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/scoring-summary/result": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "product_id"
+     },
+     {
+      "in": "query",
+      "name": "phone_number"
+     },
+     {
+      "in": "query",
+      "name": "license_number"
+     }
+    ]
+   }
+  },
+  "/v1/sharia/surveyor-assignment-agreement-document": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/sharia/surveyor-assignment-agreement-document/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/sharia/surveyor-assignment/akad/complete": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/sharia/surveyor-assignment/akad/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/sharia/surveyor-assignment/akad/{applicationId}/zip": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/sharia/surveyor-assignment/notify-customer": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/sharia/surveyor-assignment/verify-bank-account": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/simple-survey/verification": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/status/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/survey-assistance/assignment/{assignmentId}/generate": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/survey-assistance/assignment/{assignmentId}/generate-template": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/survey-assistance/assignment/{assignmentId}/regenerate": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/survey-assistance/assignment/{assignmentId}/submit": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/survey-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/survey-data/capital-detail": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/collateral-information": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/collateral-information-replacement": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/company-data": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/company-legality-document": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/document-sign": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/guarantor-data": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/guarantor-datas": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/long-survey": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/occupation-data": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/personal-data": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-data/physical-document": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/survey-form-configuration/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "surveyFormConfigurationRequestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-activity-report": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-agreement": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-agreement/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-appointment-schedule": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-appointment-schedule/change-branch-visit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-asset-information/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation": {
+   "get": {
+    "parameters": []
+   },
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation-two-wheeler": {
+   "get": {
+    "parameters": []
+   },
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation-two-wheeler/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation-two-wheeler/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation-two-wheeler/scoring/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation-two-wheeler/{assignmentAssetValidationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentAssetValidationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation/assignment/{assignmentId}/negotiation-status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation/negotiation-done": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-asset-validation/{assignmentAssetValidationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentAssetValidationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-capital-detail/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-capital-detail/{surveyorAssignmentCapitalDetailId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentCapitalDetailId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentCapitalDetailId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information-replacement": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information-replacement/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information-replacement/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information/update-license-number": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-collateral-information/{assignmentCollateralInformationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentCollateralInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-data": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-company-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-data/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-data/{id}/multi-asset": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-legality-document/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-legality-document/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-legality-document/{id}/multi-asset": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-shareholder/assignment/{assignmentId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-company-shareholder/bulk": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-company-shareholder/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-debtor-readiness": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-debtor-readiness/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-delay-reason": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-delay-reason/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-delay-reason/check/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-delay-reason/{assignmentDelayReasonId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentDelayReasonId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-document-sign": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-document-sign/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-document-sign/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-document-sign/finance-purpose/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-document-sign/{assignmentDocumentSignId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentDocumentSignId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-document-submission": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-emergency-contact": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-emergency-contact/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-emergency-contact/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-emergency-contact/{assignmentEmergencyContactId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentEmergencyContactId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-financial-statement": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-financial-statement/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-financial-statement/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-financial-statement/{id}/multi-asset": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-form-tab": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-form-tab/active-page": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-form-tab/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-form-tab/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-form-tab/{surveyorAssignmentFormTabId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentFormTabId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-guarantor-data/assignment/{assignmentId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-guarantor-data/{assignmentId}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-guarantor-data/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-guarantor-data/{id}/tabs": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "type"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-loan-information": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-loan-information/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-loan-information/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-loan-information/{assignmentCollateralInformationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentCollateralInformationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-long-survey": {
+   "patch": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/fetch-score/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/multi-asset": {
+   "patch": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/multi-asset/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/multi-asset/{longSurveyId}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "longSurveyId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/scoring": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-long-survey/{longSurveyId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "longSurveyId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "longSurveyId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-manual-kyc": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-manual-kyc/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-manual-kyc/scoring/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-manual-kyc/status": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-occupation-data": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-occupation-data/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-occupation-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-occupation-data/{assignmentOccupationDataId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentOccupationDataId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-other-business": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-other-business/assignment/{assignmentId}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-other-business/get-group-industry": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "industry_type_code"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-pending": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-pending/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-pending/done": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-personal-data": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/start-survey-form/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/update-customer-name": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-personal-data/{assignmentPersonalDataId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentPersonalDataId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-physical-document": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-physical-document/assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-physical-document/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-physical-document/{assignmentPhysicalDocumentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentPhysicalDocumentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-pic-collect": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-pic-collect/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-pic-collect/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-pic-collect/{id}/multi-asset": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-question": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-question/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-question/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/assignment/{assignmentId}/assignees": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/assignment/{assignmentId}/request-eligibility": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "platform"
+     },
+     {
+      "in": "query",
+      "name": "categoryCode"
+     },
+     {
+      "in": "query",
+      "name": "reasonId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/cancel": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/consideration/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/head-surveyor/cancel": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/head-surveyor/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/head-surveyor/reassign": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/head-surveyor/reprocess": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/head-surveyor/straight-through": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/head-surveyor/take": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/loaded-update": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/reassign": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/reprocess": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/reprocess/reason/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "platform"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/straight-through": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/surveyor/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "filterSurveyorAssignmentRequestTakeParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/surveyor/take": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-request/take": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-request/{assignmentRequestId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentRequestId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-return/{applicationId}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring": {
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-scoring-information": {
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-scoring-information/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring-information/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring-ro/fetch-score/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring-ro/generate/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring-ro/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "query",
+      "name": "is_history"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring/find-by-assignment-id/surveyor/{surveyor-assignment-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyor-assignment-id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring/find-by-assignment-id/{surveyor-assignment-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyor-assignment-id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-scoring/negotiation-done": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-scoring/scoring/find-by-assignment-id/{surveyor-assignment-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyor-assignment-id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey": {
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/assignment/{assignmentId}/negotiation-status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/determine-payment-status-reason-field/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/find-by-assignment-id/surveyor/{surveyor-assignment-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyor-assignment-id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/find-by-assignment-id/{surveyor-assignment-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyor-assignment-id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/negotiation": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/negotiation-done": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/scoring": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-simple-survey/{surveyor-assignment-simple-survey-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyor-assignment-simple-survey-id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-source-checking": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-source-checking/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-source-checking/{id}": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-status-history/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "includes"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-status-history/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "includes"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment-supplier-data": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment-supplier-data/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/appointment": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/calculate": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/calculate-ltv-rate": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/capture-document-submission-readiness": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/category/cancel-application": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "menuType"
+     },
+     {
+      "in": "query",
+      "name": "platform"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/customer-ask-schedule": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/customer-confirm-schedule": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/customer-schedule": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/data-check/{leadId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "leadId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/debt-service-ratio": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/digital-signatures": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/documents/zip": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/external-appointment": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/external-credit-checking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/external-schedule": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/external-survey-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "application_id"
+     },
+     {
+      "in": "query",
+      "name": "lead_group_id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/internal/data-check/assignment/{surveyorAssignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/internal/data-check/{leadId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/loaded-update": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/physical-document-submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/physical-document-submits": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/revive/{surveyorAssignmentId}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/scoring-check/{surveyorAssignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/scoring-result/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/submit-survey-type": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/survey-assignment-id": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/survey-done": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/survey-start": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/surveyor": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/filter": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/filter-by-guarantor": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/filter-by-recommendation": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/filter-take-assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/open": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-assignment/surveyor/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/{assignmentId}/check-phone-number": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/{assignmentId}/pefindo-summary": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/{assignmentId}/rules": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "rule"
+     },
+     {
+      "in": "query",
+      "name": "is_split_treasure"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/{assignmentId}/upload-document": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-assignment/{surveyorAssignmentId}/address-verification-options": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-coverages": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "lead_id"
+     },
+     {
+      "in": "query",
+      "name": "coverage_type"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-coverages/surveyor": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-level/surveyors": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-level/surveyors-without/{surveyorId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-notification": {
+   "get": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-notification/notification-status": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-notification/read-status": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-notification/surveyor/{surveyorId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-notification/surveyor/{surveyorId}/count-unread": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-notification/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-question": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-question/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-service-excellent/attachments-otrs": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "otrs_no"
+     },
+     {
+      "in": "query",
+      "name": "file_name"
+     },
+     {
+      "in": "query",
+      "name": "seq_no"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/category": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "platform"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/comment/webhook": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-service-excellent/form-data": {
+   "post": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "platform"
+     },
+     {
+      "in": "query",
+      "name": "complaint"
+     },
+     {
+      "in": "query",
+      "name": "another_complaint"
+     },
+     {
+      "in": "query",
+      "name": "note_complaint"
+     },
+     {
+      "in": "query",
+      "name": "business_type"
+     },
+     {
+      "in": "query",
+      "name": "assignment_id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/form-data-otrs": {
+   "post": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "platform"
+     },
+     {
+      "in": "query",
+      "name": "complaint"
+     },
+     {
+      "in": "query",
+      "name": "another_complaint"
+     },
+     {
+      "in": "query",
+      "name": "note_complaint"
+     },
+     {
+      "in": "query",
+      "name": "category_header_id"
+     },
+     {
+      "in": "query",
+      "name": "category_detail_id"
+     },
+     {
+      "in": "query",
+      "name": "business_type"
+     },
+     {
+      "in": "query",
+      "name": "assignment_id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/otrs": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/otrs/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/status/webhook": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/attachments": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/attachments-otrs": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/attachments/{attachmentId}/download": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "attachmentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/comment": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/comment-otrs": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/status": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor-service-excellent/{id}/status-otrs": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/collaboration-follow-up-validation": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/collaboration-surveyor-validation": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/contents/released": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "contentRequestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/contents/{contentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "contentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/customer-form": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/customer-service-ordinate": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/delete": {
+   "delete": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "document_id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/document/delete": {
+   "delete": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/download": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "document_id"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/download/{documentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "documentId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/information": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/internal/application/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/internal/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/internal/lead/{leadId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/lead/{leadId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "leadId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/performance-dashboard/{month}/{memberId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "month"
+     },
+     {
+      "in": "path",
+      "name": "memberId"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/save-selfie": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/summary": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/summary/head-surveyor": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/summary/head-surveyor/filter": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/summary/head-surveyor/subordinate": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/surveyor/summary/head-surveyor/subordinate/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     },
+     {
+      "in": "query",
+      "name": "filter_schedule"
+     },
+     {
+      "in": "query",
+      "name": "schedule"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/summary/subordinate": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "baseQueryParam"
+     }
+    ]
+   }
+  },
+  "/v1/surveyor/upload": {
+   "post": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "document_id"
+     },
+     {
+      "in": "query",
+      "name": "reference_id"
+     },
+     {
+      "in": "query",
+      "name": "id_type"
+     },
+     {
+      "in": "query",
+      "name": "document_type"
+     },
+     {
+      "in": "query",
+      "name": "document_sequence"
+     },
+     {
+      "in": "query",
+      "name": "metadata"
+     },
+     {
+      "in": "query",
+      "name": "filename"
+     },
+     {
+      "in": "query",
+      "name": "folder"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/agreement/nst-type": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "agreement_number"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/approval/alternate-bm": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/approval/cancel-decision-options": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/approval/empowerment-detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "empCode"
+     },
+     {
+      "in": "query",
+      "name": "underwriting_id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/approval/reassignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/assignments": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/config": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/create": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/credit-scoring-result": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/data-scoring": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/download/general/{entityId}/{documentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "entityId"
+     },
+     {
+      "in": "path",
+      "name": "documentId"
+     },
+     {
+      "in": "query",
+      "name": "type"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/download/multiple": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "entityId"
+     },
+     {
+      "in": "query",
+      "name": "documentId"
+     },
+     {
+      "in": "query",
+      "name": "type"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/download/{udcId}/{documentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "documentId"
+     },
+     {
+      "in": "path",
+      "name": "udcId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/histories": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/histories/enhance": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/inbox": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/master/nst": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "underwriting_id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/return-notes/applications/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/return-notes/applications/{applicationId}/{category}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "path",
+      "name": "category"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/send-ca-assignment-email": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/send-input-additional-data": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/send-last-approver-email": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/send-request-return-appeal-approved": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/send-request-return-email": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/send-review-application-email": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/send-scoring-one-result": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/smart-search": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/approval/{underwritingId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/approval/{underwritingId}/return-notes": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/approval/{underwritingId}/summary": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/approval/{underwritingId}/tc": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/additional": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/asset": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/business-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/business-legality": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/customer": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/house-ownership-evidence": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/document/income": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/assignment/{underwritingId}/review/detail/regular": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/return-notes/applications/{applicationId}/{category}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "path",
+      "name": "category"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/summary/applications/{applicationId}/application-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/summary/applications/{applicationId}/capital-detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/summary/applications/{applicationId}/collateral-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/summary/applications/{applicationId}/other-contract": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/summary/historical-aggregation": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "params"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/surveyor-assignment/{surveyorAssignmentId}/emergency-contact": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/surveyor-assignment/{surveyorAssignmentId}/guarantor": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/surveyor-assignment/{surveyorAssignmentId}/occupation-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/surveyor-assignment/{surveyorAssignmentId}/other-business": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/surveyor-assignment/{surveyorAssignmentId}/personal-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/smart-search/surveyor-assignment/{surveyorAssignmentId}/source-checking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorAssignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/stat": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "start_date"
+     },
+     {
+      "in": "query",
+      "name": "end_date"
+     },
+     {
+      "in": "query",
+      "name": "user_id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/stat/credit-analyst": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "user_id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/stat/credit-analyst/detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "user_id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/application-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/capital-detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/collateral-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/collateral-informations/{collateralId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "path",
+      "name": "collateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/company-address": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/company-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/financial-statements": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/other-contract": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/shareholders": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/applications/{applicationId}/supplier": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/summary/historical-aggregation": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/team-assignments": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/upload": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/underwritings/{id}/anti-fraud-suspicious-result": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/alternate-approver": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/appeal": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/appeal-approver-decision": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/appeal/process": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/application-histories": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/approver-candidates": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/approver-decision": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/approver-detail/{approverId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "approverId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/approver-level": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/approvers": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/assets/{collateralId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "collateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/assets/{collateralId}/request-return": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "collateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/assets/{collateralId}/return": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "collateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/bm-decision": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/histories": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/histories/{approvalSummaryId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "approvalSummaryId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/next-approval": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/process": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/reassignment/take": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/request-return": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/request-return-notes": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/return": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/return-notes": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/submit": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/summary": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/summary/{approvalSummaryId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "approvalSummaryId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/approval/tc": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/additional": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/asset": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/assets/{collateralId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "collateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/business-information": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/business-legality": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/customer": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/hold": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/house-ownership-evidence": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/income": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/return-reason/assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/return-reason/assets/{documentCollateralDetailId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "documentCollateralDetailId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "documentCollateralDetailId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/return-reason/customers": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/return-reason/customers/{documentCheckAdditionalNotesId}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "documentCheckAdditionalNotesId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/summary": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/summary/draft": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/summary/draft/assets": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/summary/return/draft": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/summary/update": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/document/unhold": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/assets/{reviewCollateralId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "reviewCollateralId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "reviewCollateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail/delimited-data/non-asset": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail/delimited-data/{type}/assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "type"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail/delimited-data/{type}/assets/{uwReviewCollateralId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "type"
+     },
+     {
+      "in": "path",
+      "name": "uwReviewCollateralId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "type"
+     },
+     {
+      "in": "path",
+      "name": "uwReviewCollateralId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail/regular": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail/regular/delimited-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/detail/result": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/hold": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/return-reason/assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/return-reason/assets/{reviewCollateralDetailId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "reviewCollateralDetailId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "reviewCollateralDetailId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/return-reason/customers": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/return-reason/customers/{reviewAdditionalNotesId}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "reviewAdditionalNotesId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/summary/draft": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/summary/regular": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/summary/regular/draft": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/summary/update": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/assignment/review/unhold": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/calculate-custom-ltv/{applicationId}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/calculate-empowerment-ltv/{applicationId}": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/custom-ltv/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/data-scoring": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/data-scoring/negative-list": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/data-scoring/pefindo": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/empowerment-ltv/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/inbox": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/judol": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/judol/histories": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/negotiation": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   },
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/negotiation/appeal-regular": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/negotiation/application-histories": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/negotiation/reject-final": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/return-notes/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/send-approval-appeal-email": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/send-approval-email": {
+   "post": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/emergency-contact": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/guarantor": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/occupation-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/other-business": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/personal-data": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/sate": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/shareholder": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/surveyor-assignment/{assignmentId}/source-checking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/take-assignment": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/team-assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{id}/team-assignment/reassign": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{underwritingId}/hold-history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{underwritingId}/obligor": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{underwritingId}/obligor/recall": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/underwritings/{underwritingId}/smart-search/options": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "underwritingId"
+     }
+    ]
+   }
+  },
+  "/v1/unsecured/form-io": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v1/users/credit-analyst": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "parent"
+     }
+    ]
+   }
+  },
+  "/v1/users/credit-analyst/branches/{branchId}/downlines": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "branchId"
+     },
+     {
+      "in": "query",
+      "name": "product_id"
+     }
+    ]
+   }
+  },
+  "/v1/users/detail/user": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v1/users/head-office": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "user_id"
+     }
+    ]
+   }
+  },
+  "/v1/workflow/create": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v1/workflow/pass-user-task": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2.1/application": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2.1/application/follow-up": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/2w/scoring": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/admin/excel/download": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "user_id"
+     }
+    ]
+   }
+  },
+  "/v2/admin/excel/upload": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/admin/surveyor/users": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "adminSurveyorUserSearchParam"
+     }
+    ]
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/admin/surveyor/users/{nik}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "nik"
+     }
+    ]
+   }
+  },
+  "/v2/application": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/application-loan-restructure/asset": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/application-loan-restructure/loan": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/application/follow-up": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/application/surveyor/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v2/application/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     },
+     {
+      "in": "query",
+      "name": "index"
+     }
+    ]
+   }
+  },
+  "/v2/bank-account": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/bank-account/internal/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v2/bank-account/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v2/cnv-negative-list": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/cnv-pefindo": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/lead-reserve": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "leadDocumentRecieveRequest"
+     }
+    ]
+   },
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/lead-reserve/detail/{lead_id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "lead_id"
+     }
+    ]
+   }
+  },
+  "/v2/lead-reserve/on-hand-branch": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "onHandBranchDocumentRequest"
+     }
+    ]
+   }
+  },
+  "/v2/lead-reserve/on-hand-branch/export": {
+   "get": {
+    "parameters": []
+   }
+  },
+  "/v2/lead-reserve/release-lead-group": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/lead-reserve/revive": {
+   "put": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/lead-reserve/submit_document": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/lead-reserve/submit_document/release": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/multi-asset/scoring": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/multi-asset/scoring/ro": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/multi-asset/scoring/v2": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment-asset-document-data/assignment/{assignmentId}/photo": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/branch/my/history": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/branch/pending": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/branch/pending-take-over": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/category/cancel-application": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "menuType"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/branch/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/branch/check/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/branch/check/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/branch/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/branch/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/head-office/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/data-enrichment/head-office/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/global/review-nst": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/group-monitor-status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "filterParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/head-office/pending-take-over": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/monitor-status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "filterParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/pending/approval": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/request-go-live/global/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/request-go-live/global/follow-up-assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/request-go-live/my/assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/review-nst": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/operation-assignment/revive": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/operation-assignment/tracking": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/pre-approval-scoring/multiple-salestrax": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/pre-approval-scoring/single-salestrax": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/salestrax/status/check": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "salestraxId"
+     },
+     {
+      "in": "query",
+      "name": "productId"
+     }
+    ]
+   }
+  },
+  "/v2/salestrax/status/track": {
+   "get": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     },
+     {
+      "in": "query",
+      "name": "salestraxId"
+     },
+     {
+      "in": "query",
+      "name": "productId"
+     }
+    ]
+   }
+  },
+  "/v2/salestrax/webhook/disburse-incentive": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/salestrax/webhook/status-track": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/scoring-summary/result": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "product_id"
+     },
+     {
+      "in": "query",
+      "name": "branch_lead_id"
+     },
+     {
+      "in": "query",
+      "name": "phone_number"
+     },
+     {
+      "in": "query",
+      "name": "license_number"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-agreement/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-agreement/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-appointment-schedule": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-asset-validation": {
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-asset-validation/fetch-score/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-asset-validation/generate/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-asset-validation/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-asset-validation/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "query",
+      "name": "is_history"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-capital-detail/lead-group/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-collateral-information": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-collateral-information/assignment/{assignmentId}": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-collateral-information/multi-asset": {
+   "patch": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-collateral-information/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-collateral-information/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-collateral-information/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-document-sign": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-document-sign/application/{appId}": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-document-sign/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-document-sign/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-emergency-contact": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-emergency-contact/list": {
+   "delete": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-emergency-contact/list/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-emergency-contact/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-emergency-contact/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-form-tab/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-loan-information": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-loan-information/assignment/{assignmentId}": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-loan-information/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-loan-information/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-loan-information/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-occupation-data": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-occupation-data/application/{appId}": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-occupation-data/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-occupation-data/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-personal-data": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-personal-data/application/{appId}": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "appId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-personal-data/start-survey-form/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-physical-document": {
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-physical-document/assignment/{assignmentId}": {
+   "patch": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   },
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-physical-document/save": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-physical-document/submit": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-physical-document/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-request/cancel": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-request/reassign": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-request/reject": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-request/reprocess": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-request/take": {
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-scoring": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-scoring/df2w/assignment/{assignmentId}": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-scoring/ndf2w/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-scoring/ndf2w/assignment/{assignmentId}/cancel": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-scoring/ndf2w/assignment/{assignmentId}/continue": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-scoring/ndf2w/fetch-scoring": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "application_id"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-scoring/ndf2w/{applicationId}/pefindo-result": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-scoring/surveyor/assignment/{assignmentId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "assignmentId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-simple-survey": {
+   "patch": {
+    "parameters": []
+   },
+   "post": {
+    "parameters": []
+   },
+   "put": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-simple-survey/fetch-score/{application-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application-id"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment-simple-survey/scoring": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment-simple-survey/{application-id}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "application-id"
+     },
+     {
+      "in": "query",
+      "name": "is_history"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment/survey-assignment-id": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor-assignment/survey-assignment-id/{leadGroupId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "leadGroupId"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor-assignment/surveyor/filter-take-assignment": {
+   "get": {
+    "parameters": [
+     {
+      "in": "query",
+      "name": "requestParam"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor/collaboration-follow-up-validation": {
+   "post": {
+    "parameters": [
+     {
+      "in": "header",
+      "name": "api-secret"
+     }
+    ]
+   }
+  },
+  "/v2/surveyor/collaboration-surveyor-validation": {
+   "post": {
+    "parameters": []
+   }
+  },
+  "/v2/surveyor/{surveyorId}/marketing-status": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "surveyorId"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/return-notes/applications/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/return-notes/applications/{applicationId}/{category}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     },
+     {
+      "in": "path",
+      "name": "category"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/approval/request-return-notes": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/approval/return": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/approval/return-notes": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/document/assets": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     },
+     {
+      "in": "query",
+      "name": "request"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/document/summary": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/document/summary/update": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/review": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/review/detail": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/review/detail/regular": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/review/summary/regular": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v2/underwritings/{id}/assignment/review/summary/regular/draft": {
+   "put": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "id"
+     }
+    ]
+   }
+  },
+  "/v3/underwritings/return-notes/applications/{applicationId}": {
+   "get": {
+    "parameters": [
+     {
+      "in": "path",
+      "name": "applicationId"
+     }
+    ]
+   }
+  }
+ },
+ "servers": [
+  {
+   "description": "Generated server url",
+   "url": "https://microservices.prod.bravo.bfi.co.id/bpm"
+  }
+ ]
+}

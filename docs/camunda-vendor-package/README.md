@@ -18,6 +18,12 @@ We are not asking for a proposal yet. We are asking for an assessment. The two p
 
 A companion slide deck, `bravo-camunda-assessment.pdf`, summarises the package for a first meeting.
 
+## Camunda's response
+
+| File | What it is |
+|---|---|
+| [Camunda_estimates.pdf](Camunda_estimates.pdf) | Camunda's ballpark licence quote, by email on 2026-09-30 after the 2026-09-29 call: USD 148,400 a year for 1.6M process instances a year on the Essential Success Plan, flat for three years. Used in [option-1.md §3a](../option-1.md) as sub-option **1a** |
+
 ## How the numbers were obtained
 
 Every figure comes from one of three places. Each file says which.

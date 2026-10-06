@@ -1,0 +1,57 @@
+<h1>Plan: Making unit economics permanent on GCP (2 Oct 2026)</h1>
+<h2>Context</h2>
+<p>Today cost per loan lives in one private Google Sheet. It is rebuilt by a script on one laptop from spreadsheets that Finance shares by hand: SMS, Yellow.ai, EKYC and the IT budget. The FinOps service it reads from was down on 30 Sep, and the input files were once lost when the laptop cleared its temporary folder. That works for a first answer, but it does not last. This plan is how Finance, IT and the CTO can get the same numbers every month, permanently, on GCP.</p>
+<ac:structured-macro ac:name="info"><ac:rich-text-body><p><strong>Short answer:</strong> BFI does not need to buy a new tool. The three pieces already exist: the GCP billing data in BigQuery, the data team's dbt and lakehouse setup, and Google Workspace. They need to be connected. Finance keeps using Google Sheets, but only to enter what a machine cannot know: invoices, contracts and allocation keys.</p></ac:rich-text-body></ac:structured-macro>
+<h2>What BFI already has</h2>
+<table><tbody>
+<tr><th><p>Already in place</p></th><th><p>What it gives us</p></th></tr>
+<tr><td><p>GCP billing export in <strong>BigQuery</strong> (project <code>bfi-dashboard-billing-prod</code>, table <code>billboard_detail</code>; the FinOps dashboard reads it)</p></td><td><p>Every GCP and Marketplace cost, daily, with labels. This already covers Datadog, Coralogix and the Temporal credit.</p></td></tr>
+<tr><td><p>The data team's <strong>lakehouse</strong> (<code>da-bfi-lakehouse-platform</code>: dbt, Airflow, Trino, DataHub, a metrics layer)</p></td><td><p>Already loads BPM and Pefindo data. The team already writes and tests dbt models.</p></td></tr>
+<tr><td><p><strong>Google Workspace</strong>: Sheets, Looker Studio, AppSheet</p></td><td><p>Finance keeps working in Sheets. Dashboards are free and shared with Google accounts.</p></td></tr>
+</tbody></table>
+<h2>How the data flows</h2>
+<p><ac:image ac:width="1000"><ri:attachment ri:filename="ue-data-flow.png" /></ac:image></p>
+<p>Costs and volumes arrive by themselves. People enter only invoices, contracts and allocation keys. Nothing reaches a dashboard until the checks pass.</p>
+<h2>What each part does</h2>
+<ol>
+<li><p><strong>One home for the numbers: BigQuery.</strong> The billing data is already there, so costs need no new pipeline. SRE creates the dataset <code>unit_economics</code> and two service accounts, using the checklist already on the <a href="https://bfifinance.atlassian.net/wiki/spaces/~712020052f7b9360e3485597738b0dccd0b355/pages/2790195250/SRE+to+do">SRE to do</a> page (items A to I).</p></li>
+<li><p><strong>Finance keeps Sheets, as inputs.</strong> One Sheet each for contracts and licences, vendor invoices (SMS, WhatsApp, EKYC, credit bureaus) and allocation keys, kept in a shared drive rather than a personal drive. Each Sheet is linked to BigQuery as an external table, so typing in an invoice updates the dashboard. An AppSheet form can check each entry: month, vendor, amount, and whether VAT is included. Later, invoices can come straight from the accounts-payable system.</p></li>
+<li><p><strong>The rules live in dbt, in Git.</strong> The cost buckets, the shared-cost split, cost per unique loan, re-processing cost and the vendor shares become dbt models. Today's Checks tab becomes dbt tests, so a wrong month fails loudly. The definitions go into the metrics layer and DataHub, so every team uses the same meaning of "cost per loan".</p></li>
+<li><p><strong>Loan counts come from the source.</strong> Bravo counts come from the lakehouse, which already loads BPM. LORA counts come from a small Cloud Run job that reads ArangoDB read-only (the same query as <code>lora_arango_counts.py</code>), started by Cloud Scheduler on the 1st of each month.</p></li>
+<li><p><strong>Each audience gets its own view.</strong> Looker Studio dashboards for the CTO and the teams, with the same charts as today's CTO view tab. Connected Sheets for Finance, so they can work with the BigQuery numbers inside Google Sheets and keep the Budget 2027 scenarios there. Later, BigQuery's built-in forecasting (<code>ARIMA_PLUS</code>) can draw the projection and flag unusual months.</p></li>
+<li><p><strong>Costs are traceable at the source.</strong> This is what made the work hard so far.</p>
+<ul>
+<li><p>Every GCP resource carries <code>squad</code>, <code>app</code>, <code>env</code> and <code>cost-center</code> labels, enforced in Terraform (bravo-terraform) and by an org policy.</p></li>
+<li><p>Each vendor gets one API key or client ID per product, as Vonage already does, with invoices broken down by key.</p></li>
+<li><p>The KYC proxy and the notification service record which product made each call. Today about half of the EKYC calls cannot be attributed.</p></li>
+<li><p>Datadog tags (<code>service</code>, <code>env</code>, <code>team</code>) are kept consistent.</p></li>
+</ul></li>
+<li><p><strong>Process and ownership.</strong> One owner (IT Finance or FinOps) and a monthly close, for example by working day 5. Closed months are frozen. Allocation keys are approved by the CTO and Finance and kept in one register. Each cost line maps to its IT budget code (ITOPxxxx), so the budget and the actuals line up.</p></li>
+</ol>
+<h2>The monthly routine</h2>
+<p>Who does what, and when. The working-day targets are suggestions for the owner to confirm.</p>
+<p><ac:image ac:width="1000"><ri:attachment ri:filename="ue-monthly-routine.png" /></ac:image></p>
+<p>Closed months are frozen. A later correction needs a short note, so last month's numbers do not change silently.</p>
+<h2>Rollout</h2>
+<p><ac:image ac:width="1000"><ri:attachment ri:filename="ue-rollout.png" /></ac:image></p>
+<table><tbody>
+<tr><th><p>Phase</p></th><th><p>What happens</p></th><th><p>Who</p></th><th><p>Rough effort</p></th></tr>
+<tr><td><p>Phase 0 (this week)</p></td><td><p>Move the private sheet and Finance's input Sheets into one shared drive. Agree who owns it.</p></td><td><p>IT and Finance</p></td><td><p>Hours</p></td></tr>
+<tr><td><p>Phase 1</p></td><td><p>SRE items A to C (dataset, access, Looker service account). dbt models on the billing export and the linked Sheets. A Looker Studio CTO view that matches today's sheet.</p></td><td><p>SRE, data team, IT</p></td><td><p>2 to 4 weeks</p></td></tr>
+<tr><td><p>Phase 2</p></td><td><p>Monthly loan-count job and lakehouse Bravo counts. Datadog usage feed. The Checks tab becomes dbt tests.</p></td><td><p>Data team, SRE</p></td><td><p>2 to 3 weeks</p></td></tr>
+<tr><td><p>Phase 3</p></td><td><p>Labels on every resource, one vendor key per product, invoices from the accounts-payable system, more business units.</p></td><td><p>SRE, squads, Finance</p></td><td><p>Ongoing</p></td></tr>
+</tbody></table>
+<p>Running cost is small: a few gigabytes in BigQuery, free Looker Studio, and one short Cloud Run job a month. The paid Looker product (with LookML) only becomes worth it if many teams need governed self-service beyond what dbt and Looker Studio give.</p>
+<h2>Beyond Bravo and LORA</h2>
+<p>The same setup works for any part of the company that has a cost and a unit of work. Each one adds its own volume table and its own labels; the rest stays the same.</p>
+<ul>
+<li><p>CONFINS: cost per active account.</p></li>
+<li><p>Collection: cost per case.</p></li>
+<li><p>Customer Care: cost per contact.</p></li>
+</ul>
+<h2>Decisions needed</h2>
+<ac:structured-macro ac:name="note"><ac:rich-text-body><ul>
+<li><p><strong>Owner:</strong> IT Finance or FinOps, or the data team.</p></li>
+<li><p><strong>SRE agreement</strong> to the dataset and access checklist, which is not agreed yet.</p></li>
+<li><p><strong>Home:</strong> BigQuery is recommended, because the billing data is already there. The lakehouse (Trino on Alibaba OSS) is the alternative if the data team prefers one platform. Either can read the other: Trino has a BigQuery connector.</p></li>
+</ul></ac:rich-text-body></ac:structured-macro>

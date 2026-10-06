@@ -80,6 +80,13 @@ We verified all of this in the checkout. `pom.xml:26` pins `camunda.spring-boot.
 
 **There is a supported destination, and it is cheap.** [option-1.md §4](option-1.md) compares the two Apache-2.0 community forks: **Operaton 2.1.4** and **CIB seven 2.2.0**. Both run on Spring Boot 4. Both keep the `ACT_` schema unchanged. Both accept the legacy `camunda:` namespace and ship automated migration recipes. Swapping the engine *and* upgrading Spring Boot in one change costs **18–33 engineer-days and Rp45–125M, with no licence to buy**. A Temporal port or a LORA migration costs 31–57 engineer-months.
 
+> **Added 2026-10-01. Option 1 now has three sub-options, and the plan has two tracks.** Camunda quoted an Enterprise subscription on 2026-09-30, so "stay on the Camunda lineage" now means one of: **1a** Camunda 7 Enterprise (USD 148,400 a year), **1b** Operaton, or **1c** CIB seven. The two forks are unchanged from [option-1.md §3–4](option-1.md); 1a is new in [option-1.md §3a](option-1.md).
+>
+> The plan, in general, is two things done in order:
+>
+> 1. **Harden what we have, now, under every option.** Rotate the shared secret, register the engine authentication filter, close `permitAll`, purge the 61 definitions, find the caller. This is §7 item 1 and does not wait for anything.
+> 2. **Pick one platform response** — 1a, 1b, 1c, [2 Temporal](option-2.md) or [3 LORA](option-3.md). This document no longer picks it. **§0a lays out the pros and cons; the CTO decides on cost and effort.**
+
 **Two decisions, two clocks** ([option-summary.md §2](option-summary.md)):
 
 | | **Decision A — weeks** | **Decision B — months** |
@@ -89,6 +96,32 @@ We verified all of this in the checkout. `pom.xml:26` pins `camunda.spring-boot.
 | Contingent on the other? | **No** | No |
 
 **Decision A is unconditional.** Every strategic path leaves Bravo running the retail book for at least 12 months. A Temporal port takes 12–18 months. A LORA migration takes 15–24. And the Spring Boot 4 half of the work is owed under those paths anyway. **Nothing in the rest of this document should delay it.**
+
+---
+
+## 0a. The five responses side by side, for the CTO
+
+**Added 2026-10-01.** One table, five columns, the same rows for each. Every figure is sourced in the option document named in the first row. The engineer-month rate is the pack's assumed Rp30–50M fully loaded; replace it with BFI's own. USD is converted at Rp16,800.
+
+| | **1a — Camunda 7 Enterprise** | **1b — Operaton** | **1c — CIB seven** | **2 — Temporal** | **3 — LORA** |
+|---|---|---|---|---|---|
+| Source | [option-1 §3a](option-1.md) | [option-1 §3–5](option-1.md) | [option-1 §3–5](option-1.md) | [option-2 §4](option-2.md) | [option-3 §4](option-3.md) |
+| What changes | EE artifacts and a licence key; same packages, same schema | Fork swap by recipe + Spring Boot 4, one change | Fork swap by recipe + Spring Boot 4, one change | ~60 BPMN → Temporal Java workflows; 225 delegates → Activities | Close LORA's coverage gap, prove parity, move the book, switch Bravo off |
+| **One-off effort** | **15–28 eng-days**, our estimate pending Camunda | **20–33 eng-days** | **18–30 eng-days** | **Pending Temporal’s assessment** (package sent 2026-10-02; our estimate was 31–57 eng-months, 8–14 for a DF4W pilot) | **30–57 eng-months** |
+| **One-off cost** | ≈Rp35–110M | ≈Rp45–125M | ≈Rp45–125M | Rp930M–2.85B | Rp900M–2.85B |
+| **Licence** | **USD 148,400 a year ≈ Rp2.49B; Rp7.48B over 3 years** | None | None; paid support optional, terms unpublished | None new; Temporal Cloud already contracted at Rp140M a month | None |
+| **Run-rate change** | **+≈Rp208M a month** | 0 | 0 | ≈neutral (+Rp4.5–12M Actions, −Camunda history on Cloud SQL) | −≈Rp58M a month prod; −Rp70–100M with non-prod |
+| Time to a supported stack | 1–2 months | 1–2 months | 1–2 months | 12–18 months | 15–24 months |
+| Elapsed, people | 1 engineer | 1 engineer | 1 engineer | 5–8 engineers | a programme across both teams |
+| Who maintains the engine | Camunda, under contract — full support to 13 Apr 2030, extended to Apr 2032 for a fee; 7.24 is the final minor | Community, 6-month lines, no legal entity yet | CIB software GmbH, 2 ex-Camunda core engineers | Temporal, under contract | BFI (LORA SDK and planner) |
+| Mitigates the RCE finding? | Restores a CVE patch channel. **Hardening still required** | Patch channel via the fork. **Hardening still required** | Same as 1b | Removes the Camunda REST and Cockpit surface, **after** 12–18 months. Hardening required meanwhile | Removes Bravo, **after** 15–24 months. Hardening required meanwhile |
+| Spring Boot 4 | **Yes** — `-4` starters since 7.24.3-ee; Boot 4.0 official since 7.24.6-ee (Apr 2026), 4.1 since Oct 2026 *(verified 2026-10-02)* | Yes, 4.0.8 | Yes, 4.0.6 | Yes, owed as a separate 12–20 days | n/a |
+| Rollback | Redeploy previous artifact, same DB | Same | Same | Redeploy previous orchestration path; no data moved | None after cutover |
+| **Pros** | Vendor contract, original maintainers, no rename, no 7.24 hop, published support calendar | Healthiest fork: 9× the commits, 52 authors, pure Apache 2.0 | Cheapest migration, company-backed, support purchasable | Vendor dependency gone for good; same paradigm, same language; testable orchestration | One platform, one team; the GSM "add a step without an orchestration edit" capability |
+| **Cons** | Rp2.49B a year on a Rp0.7B-a-year tier; vendor's roadmap is C8; 7.24 is feature-final; quote basis may undercount called processes by ≈3× | Needs the 7.24 hop and bundle relocation; concentrated maintainers; no support contract on offer | Smaller project; support terms sales-only | Largest bet on Bravo's long life; 384 escalation/link elements to redesign; Cockpit lost | Paradigm change; merges two working squads; LORA's measured reliability gap at 3× its volume; longest on the unpatched engine |
+| **X-factor** | Lock-in to a vendor already steering customers off this product | A chosen dependency on a six-month line, scrutinised as such | A chosen dependency on one Munich company | Both BFI origination platforms on one vendor | Bravo's Rp50.2bn book moves to the Rp2.4bn platform |
+
+**How to read it.** The three Option 1 sub-options are the same engineering job and differ almost entirely in run-rate and in who stands behind the engine. Options 2 and 3 are a different cost class and a different timeline, and they are the only two that eventually remove the Camunda attack surface rather than patch it. None of the five replaces the hardening in §7 item 1.
 
 ---
 
@@ -245,6 +278,8 @@ Two other errors push the other way. Bravo's denominator is probably inflated, a
 
 > ### Decision A — fund now: get Bravo onto a supported engine and Spring Boot. 18–33 engineer-days, no licence.
 > ### Decision B — where the next product family goes: **open**, and gated on three measurements that have never been taken.
+>
+> *Amended 2026-10-01.* Decision A still stands as this pack's view. But which route — 1a Camunda Enterprise, 1b Operaton, 1c CIB seven, 2 Temporal or 3 LORA — is now explicitly the **CTO's call on cost and effort**, with [§0a](#0a-the-five-responses-side-by-side-for-the-cto) as the input. The hardening in §7 item 1 is not part of that choice; it is done under all five.
 
 **Why this document no longer picks a platform for new products.** The previous version recommended prioritising LORA. That recommendation rested on five pillars, and **three of them have failed:**
 
@@ -341,6 +376,8 @@ The three gating measurements are in [§5](#5-strategic-recommendation). This ta
 2. **Fund Option 1 Path B. That is 18–33 engineer-days, Rp45–125M, and no licence.** Swap Camunda 7.23.0 CE for Operaton 2.1.4 or CIB seven 2.2.0, *and* upgrade Spring Boot to 4.0.x, in one change.
 
     Answer the fork question first. Is a contractual support agreement required, and can BFI buy one for a BFI entity? Yes → CIB seven. No → Operaton.
+
+    *Added 2026-10-01.* There is now a third answer to that question: **Camunda itself**, as sub-option 1a, at USD 148,400 a year ([option-1.md §3a](option-1.md)). It is the only route with a vendor contract on published terms, and it is the only Option 1 route that changes Bravo's run-rate. One thing is still to settle with Camunda before treating its price as firm: whether called-process instances count toward the 1.6M basis. The other two questions were answered from Camunda's public documentation on 2026-10-02: the 7.24.x-ee `-4` starters run on Spring Boot 4.0 and 4.1, and 7.24 is in full support to 13 April 2030 ([option-1.md §3a](option-1.md)).
 
     Then run the `ACT_GE_SCHEMA_LOG` diagnostics in every environment, before setting a cutover date. That is hours of work, and it is the one finding that can change the plan.
 3. **Get the agreement, NTF and disbursement split by platform out of a system. Days of work.** This is gating measurement #1. The Rp 50.2bn and Rp 2.4bn figures are a CTO-office estimate. The decision needs them with a stated period and basis, alongside definitions for `Bravo total app` and `Lora total app`.
