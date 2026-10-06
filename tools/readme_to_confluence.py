@@ -21,6 +21,7 @@ NAMED = {
     "logging-cost.md": "2755821705", "sre-datadog-recommendations.md": "2755657932",
     "squads-guide.md": "2755723449", "body-visibility.md": "2755461582", "coverage.md": "2755658136",
     "deployment-proposal.md": "2773450891", "confins-prod-ms-lms-ar-be-findings.md": "2774728705",
+    "nonprod-logging.md": "2823684104",
 }
 SERVICE_PAGES = {
     "bravo-core-proxy-service": "2755756199", "bravo-agreement-service": "2755821675", "bravo-agency-service": "2755821690",
@@ -71,11 +72,12 @@ def rewrite(md):
     return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", sub, md)
 
 def main():
-    src = (ROOT / "docs/logging/README.md").read_text()
+    name = sys.argv[sys.argv.index("--file") + 1] if "--file" in sys.argv else "README.md"
+    src = (ROOT / "docs/logging" / name).read_text()
     lines = src.splitlines(keepends=True)
     if lines and lines[0].startswith("# "): lines = lines[1:]
     body = rewrite("".join(lines))
-    header = ("###### Built from [bravo-analysis/docs/logging/README.md](" + GITHUB + "logging/README.md), "
+    header = ("###### Built from [bravo-analysis/docs/logging/" + name + "](" + GITHUB + "logging/" + name + "), "
               "refreshed by tools/readme_to_confluence.py\n\n")
     sys.stdout.write(header + body.lstrip("\n"))
     if unresolved: print("unresolved (sent to GitHub):", sorted(set(unresolved)), file=sys.stderr)

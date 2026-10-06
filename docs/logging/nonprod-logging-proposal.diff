@@ -1,0 +1,449 @@
+diff -ruN before/agency/values-sit-sharia.yaml after/agency/values-sit-sharia.yaml
+--- before/agency/values-sit-sharia.yaml	2026-10-06 09:47:55
++++ after/agency/values-sit-sharia.yaml	2026-10-06 09:48:24
+@@ -295,9 +295,9 @@
+     - name: LOGGING_LEVEL_RESTTEMPLATE
+       value: INFO
+     - name: LOGGING_LEVEL_BRAVO_ADAPTER
+-      value: DEBUG
++      value: INFO
+     - name: LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER
+-      value: DEBUG
++      value: OFF
+     - name: DEFAULT_LIMIT_EMP_QUERY
+       value: "1"
+     - name: DEFAULT_LIMIT_AGENT_QUERY
+diff -ruN before/agency/values-sit.yaml after/agency/values-sit.yaml
+--- before/agency/values-sit.yaml	2026-10-06 09:47:55
++++ after/agency/values-sit.yaml	2026-10-06 09:48:24
+@@ -128,9 +128,9 @@
+     - name: LOGGING_LEVEL_RESTTEMPLATE
+       value: INFO
+     - name: LOGGING_LEVEL_BRAVO_ADAPTER
+-      value: DEBUG
++      value: INFO
+     - name: LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER
+-      value: DEBUG
++      value: OFF
+     - name: SERVICE_CONTEXT_PATH
+       value: /agency
+     - name: APP_CORS_ENABLED
+diff -ruN before/agency/values-uat-sharia.yaml after/agency/values-uat-sharia.yaml
+--- before/agency/values-uat-sharia.yaml	2026-10-06 09:47:55
++++ after/agency/values-uat-sharia.yaml	2026-10-06 09:48:24
+@@ -253,9 +253,9 @@
+     - name: LOGGING_LEVEL_RESTTEMPLATE
+       value: INFO
+     - name: LOGGING_LEVEL_BRAVO_ADAPTER
+-      value: DEBUG
++      value: INFO
+     - name: LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER
+-      value: DEBUG
++      value: OFF
+     - name: DEFAULT_LIMIT_EMP_QUERY
+       value: "1"
+     - name: DEFAULT_LIMIT_AGENT_QUERY
+diff -ruN before/agency/values-uat.yaml after/agency/values-uat.yaml
+--- before/agency/values-uat.yaml	2026-10-06 09:47:55
++++ after/agency/values-uat.yaml	2026-10-06 09:48:24
+@@ -130,9 +130,9 @@
+     - name: LOGGING_LEVEL_RESTTEMPLATE
+       value: INFO
+     - name: LOGGING_LEVEL_BRAVO_ADAPTER
+-      value: DEBUG
++      value: INFO
+     - name: LOGGING_LEVEL_COMMONSREQUESTLOGGINGFILTER
+-      value: DEBUG
++      value: OFF
+     - name: SERVICE_CONTEXT_PATH
+       value: /agency
+     - name: APP_CORS_ENABLED
+diff -ruN before/agreement/values-sit-sharia.yaml after/agreement/values-sit-sharia.yaml
+--- before/agreement/values-sit-sharia.yaml	2026-10-06 09:47:55
++++ after/agreement/values-sit-sharia.yaml	2026-10-06 09:48:24
+@@ -255,7 +255,7 @@
+     - name: SETTING_RABBITMQ_BINDING_CONFINSAGREEMENTSTATUS_ROUTING_KEY
+       value: confins.agreement-response-update-contract-status-sharia
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: CRON_EXECUTE_UPDATE_LOAN_BY_DPD
+       value: "0 0 1 * * *"
+     - name: CRON_UPDATE_BILLING_INFORMATION
+diff -ruN before/agreement/values-sit.yaml after/agreement/values-sit.yaml
+--- before/agreement/values-sit.yaml	2026-10-06 09:47:55
++++ after/agreement/values-sit.yaml	2026-10-06 09:48:24
+@@ -228,7 +228,7 @@
+     - name: SETTING_QUEUE_CONFINSAGREEMENT_ROUTING_KEY
+       value: submit-one-step-before-golive-confins
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: CRON_EXECUTE_UPDATE_LOAN_BY_DPD
+       value: "0 0 1 * * *"
+     - name: CRON_UPDATE_BILLING_INFORMATION
+diff -ruN before/agreement/values-uat-sharia.yaml after/agreement/values-uat-sharia.yaml
+--- before/agreement/values-uat-sharia.yaml	2026-10-06 09:47:55
++++ after/agreement/values-uat-sharia.yaml	2026-10-06 09:48:24
+@@ -258,7 +258,7 @@
+     - name: SETTING_RABBITMQ_BINDING_CONFINSAGREEMENTSTATUS_ROUTINGKEY
+       value: confins.agreement-response-update-contract-status-sharia
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: CRON_EXECUTE_UPDATE_LOAN_BY_DPD
+       value: "0 0 1 * * *"
+     - name: CRON_UPDATE_BILLING_INFORMATION
+diff -ruN before/agreement/values-uat.yaml after/agreement/values-uat.yaml
+--- before/agreement/values-uat.yaml	2026-10-06 09:47:55
++++ after/agreement/values-uat.yaml	2026-10-06 09:48:24
+@@ -236,7 +236,7 @@
+     - name: SETTING_QUEUE_CONFINSAGREEMENT_ROUTINGKEY
+       value: submit-one-step-before-golive-confins
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: CRON_EXECUTE_UPDATE_LOAN_BY_DPD
+       value: "-"
+     - name: CRON_UPDATE_BILLING_INFORMATION
+diff -ruN before/branch/values-sit.yaml after/branch/values-sit.yaml
+--- before/branch/values-sit.yaml	2026-10-06 09:47:55
++++ after/branch/values-sit.yaml	2026-10-06 09:48:24
+@@ -177,6 +177,8 @@
+       value: "true"
+     - name: RESPONSE_BODY_LOGGING
+       value: "true"
++    - name: SENSITIVE_KEYS
++      value: "password,token,secret,key,authorization,api-secret,api-key,x-api-key,x-auth-app-id,x-auth-app-secret,client_secret,client-secret,phone_number,nik,identity_number,id_number,username,access_token,refresh_token,spouse_identity_number,X-Auth-Internal,ktp_number,email,npwp_number,X-ACCESS-TOKEN,accessKey,surveyor_password,full_name,spouse_name,idNumber,are_password"
+     - name: BRAVO_BRANCH_R3_BRANCH_WHITELIST
+       value: "421,450,500,123,999,1210,1236,1237,1238,1239,1240,1241,1242,1243,1244,1245,1246,1247,1248,1249,1250,1251,1252,1253,1254,1255,1256,1257,1258"
+     - name: BRAVO_BRANCH_R3_PRODUCT_WHITELIST
+diff -ruN before/branch/values-uat.yaml after/branch/values-uat.yaml
+--- before/branch/values-uat.yaml	2026-10-06 09:47:55
++++ after/branch/values-uat.yaml	2026-10-06 09:48:24
+@@ -177,6 +177,8 @@
+       value: "true"
+     - name: RESPONSE_BODY_LOGGING
+       value: "true"
++    - name: SENSITIVE_KEYS
++      value: "password,token,secret,key,authorization,api-secret,api-key,x-api-key,x-auth-app-id,x-auth-app-secret,client_secret,client-secret,phone_number,nik,identity_number,id_number,username,access_token,refresh_token,spouse_identity_number,X-Auth-Internal,ktp_number,email,npwp_number,X-ACCESS-TOKEN,accessKey,surveyor_password,full_name,spouse_name,idNumber,are_password"
+   extraVolumeMounts: |
+     - name: logs-storage
+       mountPath: /tmp/log
+diff -ruN before/cnv/values-sit.yaml after/cnv/values-sit.yaml
+--- before/cnv/values-sit.yaml	2026-10-06 09:47:54
++++ after/cnv/values-sit.yaml	2026-10-06 09:48:24
+@@ -105,7 +105,7 @@
+     - name: DATADOG_PROFILING_COMPLETE
+       value: "true"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+diff -ruN before/cnv/values-uat.yaml after/cnv/values-uat.yaml
+--- before/cnv/values-uat.yaml	2026-10-06 09:47:54
++++ after/cnv/values-uat.yaml	2026-10-06 09:48:24
+@@ -96,7 +96,7 @@
+     - name: DATADOG_PROFILING_COMPLETE
+       value: "true"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+diff -ruN before/customer/values-sit-sharia.yaml after/customer/values-sit-sharia.yaml
+--- before/customer/values-sit-sharia.yaml	2026-10-06 09:47:55
++++ after/customer/values-sit-sharia.yaml	2026-10-06 09:48:24
+@@ -244,9 +244,9 @@
+     - name: USE_DEFAULT_CONFINS_CUSTOMER_ID
+       value: "false"
+     - name: FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+-      value: full
++      value: basic
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: SETTING_RABBITMQ_ENABLEAUTOCREATION_BRAVO
+       value: "true"
+     - name: SERVICE_NAME
+diff -ruN before/customer/values-sit.yaml after/customer/values-sit.yaml
+--- before/customer/values-sit.yaml	2026-10-06 09:47:55
++++ after/customer/values-sit.yaml	2026-10-06 09:48:24
+@@ -198,9 +198,9 @@
+     - name: USE_DEFAULT_CONFINS_CUSTOMER_ID
+       value: "false"
+     - name: FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+-      value: full
++      value: basic
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: SETTING_RABBITMQ_ENABLEAUTOCREATION_BRAVO
+       value: "true"
+     - name: SERVICE_NAME
+diff -ruN before/customer/values-uat-sharia.yaml after/customer/values-uat-sharia.yaml
+--- before/customer/values-uat-sharia.yaml	2026-10-06 09:47:55
++++ after/customer/values-uat-sharia.yaml	2026-10-06 09:48:24
+@@ -250,9 +250,9 @@
+     - name: USE_DEFAULT_CONFINS_CUSTOMER_ID
+       value: "false"
+     - name: FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+-      value: full
++      value: basic
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: SETTING_RABBITMQ_ENABLEAUTOCREATION_BRAVO
+       value: "true"
+     - name: SERVICE_NAME
+diff -ruN before/customer/values-uat.yaml after/customer/values-uat.yaml
+--- before/customer/values-uat.yaml	2026-10-06 09:47:55
++++ after/customer/values-uat.yaml	2026-10-06 09:48:24
+@@ -200,9 +200,9 @@
+     - name: USE_DEFAULT_CONFINS_CUSTOMER_ID
+       value: "false"
+     - name: FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+-      value: full
++      value: basic
+     - name: LOGGING_LEVEL_COM_BFI_BRAVO_CLIENT_CONFINS
+-      value: DEBUG
++      value: INFO
+     - name: SETTING_RABBITMQ_ENABLEAUTOCREATION_BRAVO
+       value: "true"
+     - name: SERVICE_NAME
+diff -ruN before/edoc/values-sit.yaml after/edoc/values-sit.yaml
+--- before/edoc/values-sit.yaml	2026-10-06 09:47:55
++++ after/edoc/values-sit.yaml	2026-10-06 09:48:24
+@@ -548,6 +548,8 @@
+       value: "true"
+     - name: RESPONSE_BODY_LOGGING
+       value: "true"
++    - name: SENSITIVE_KEYS
++      value: "password,token,secret,key,authorization,api-secret,api-key,x-api-key,x-auth-app-id,x-auth-app-secret,client_secret,client-secret,phone_number,nik,identity_number,id_number,username,access_token,refresh_token,spouse_identity_number,X-Auth-Internal,ktp_number,email,npwp_number,X-ACCESS-TOKEN,accessKey,surveyor_password,full_name,spouse_name,idNumber,are_password"
+     - name: FEATURES_FILTER_RECIPIENT_WORK_LOCATION
+       value: "true"
+     - name: SETTING_QUEUE_UPDATED_DOCUMENT_FANOUT_QUEUE
+diff -ruN before/edoc/values-uat.yaml after/edoc/values-uat.yaml
+--- before/edoc/values-uat.yaml	2026-10-06 09:47:55
++++ after/edoc/values-uat.yaml	2026-10-06 09:48:24
+@@ -555,6 +555,8 @@
+       value: "true"
+     - name: RESPONSE_BODY_LOGGING
+       value: "true"
++    - name: SENSITIVE_KEYS
++      value: "password,token,secret,key,authorization,api-secret,api-key,x-api-key,x-auth-app-id,x-auth-app-secret,client_secret,client-secret,phone_number,nik,identity_number,id_number,username,access_token,refresh_token,spouse_identity_number,X-Auth-Internal,ktp_number,email,npwp_number,X-ACCESS-TOKEN,accessKey,surveyor_password,full_name,spouse_name,idNumber,are_password"
+     - name: FEATURES_FILTER_RECIPIENT_WORK_LOCATION
+       value: "true"
+     - name: SETTING_QUEUE_UPDATED_DOCUMENT_FANOUT_QUEUE
+diff -ruN before/inventory-management/values-sit.yaml after/inventory-management/values-sit.yaml
+--- before/inventory-management/values-sit.yaml	2026-10-06 09:47:56
++++ after/inventory-management/values-sit.yaml	2026-10-06 09:48:24
+@@ -207,6 +207,8 @@
+       value: "true"
+     - name: RESPONSE_BODY_LOGGING
+       value: "true"
++    - name: SENSITIVE_KEYS
++      value: "password,token,secret,key,authorization,api-secret,api-key,x-api-key,x-auth-app-id,x-auth-app-secret,client_secret,client-secret,phone_number,nik,identity_number,id_number,username,access_token,refresh_token,spouse_identity_number,X-Auth-Internal,ktp_number,email,npwp_number,X-ACCESS-TOKEN,accessKey,surveyor_password,full_name,spouse_name,idNumber,are_password"
+     - name: FEATURE_SIP_ASSET_STATUS_REPO_SYNC
+       value: "true"
+     - name: FEATURE_FLAG_PUBLISH_ASSET_RELOCATION
+diff -ruN before/inventory-management/values-uat.yaml after/inventory-management/values-uat.yaml
+--- before/inventory-management/values-uat.yaml	2026-10-06 09:47:56
++++ after/inventory-management/values-uat.yaml	2026-10-06 09:48:24
+@@ -214,6 +214,8 @@
+       value: "true"
+     - name: RESPONSE_BODY_LOGGING
+       value: "true"
++    - name: SENSITIVE_KEYS
++      value: "password,token,secret,key,authorization,api-secret,api-key,x-api-key,x-auth-app-id,x-auth-app-secret,client_secret,client-secret,phone_number,nik,identity_number,id_number,username,access_token,refresh_token,spouse_identity_number,X-Auth-Internal,ktp_number,email,npwp_number,X-ACCESS-TOKEN,accessKey,surveyor_password,full_name,spouse_name,idNumber,are_password"
+     - name: FEATURE_FLAG_PUBLISH_ASSET_RELOCATION
+       value: "true"
+     - name: EDOC_ROOT_URL
+diff -ruN before/lora-task/values-sit.yaml after/lora-task/values-sit.yaml
+--- before/lora-task/values-sit.yaml	2026-10-06 09:47:55
++++ after/lora-task/values-sit.yaml	2026-10-06 09:48:24
+@@ -177,7 +177,7 @@
+     - name: PPROF_ENABLE
+       value: "true"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+@@ -224,13 +224,13 @@
+     - name: HTTP_SERVER_REQUEST_BODY_LOG_LIMIT
+       value: "65536"
+     - name: HTTP_SERVER_REQUEST_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_SERVER_RESPONSE_BODY_LOGGING
+       value: "true"
+     - name: HTTP_SERVER_RESPONSE_BODY_LOG_LIMIT
+       value: "65536"
+     - name: HTTP_SERVER_RESPONSE_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY
+       value: "true"
+     - name: HTTP_SERVER_CORS_EXPOSED_HEADERS
+@@ -336,13 +336,13 @@
+     - name: HTTP_CLIENT_REQUEST_BODY_LIMIT
+       value: "65536"
+     - name: HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_CLIENT_RESPONSE_BODY_LOGGING
+       value: "true"
+     - name: HTTP_CLIENT_RESPONSE_BODY_LIMIT
+       value: "65536"
+     - name: HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_CLIENT_BODY_LOGGING_ON_ERROR_ONLY
+       value: "true"
+     - name: HTTP_CLIENT_ERROR_RETRY_ENABLE
+diff -ruN before/lora-task/values-uat.yaml after/lora-task/values-uat.yaml
+--- before/lora-task/values-uat.yaml	2026-10-06 09:47:55
++++ after/lora-task/values-uat.yaml	2026-10-06 09:48:24
+@@ -178,7 +178,7 @@
+     - name: PPROF_ENABLE
+       value: "true"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+@@ -224,13 +224,13 @@
+     - name: HTTP_SERVER_REQUEST_BODY_LOG_LIMIT
+       value: "65536"
+     - name: HTTP_SERVER_REQUEST_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_SERVER_RESPONSE_BODY_LOGGING
+       value: "true"
+     - name: HTTP_SERVER_RESPONSE_BODY_LOG_LIMIT
+       value: "65536"
+     - name: HTTP_SERVER_RESPONSE_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_SERVER_BODY_LOGGING_ON_ERROR_ONLY
+       value: "true"
+     - name: HTTP_SERVER_CORS_EXPOSED_HEADERS
+@@ -336,13 +336,13 @@
+     - name: HTTP_CLIENT_REQUEST_BODY_LIMIT
+       value: "65536"
+     - name: HTTP_CLIENT_REQUEST_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_CLIENT_RESPONSE_BODY_LOGGING
+       value: "true"
+     - name: HTTP_CLIENT_RESPONSE_BODY_LIMIT
+       value: "65536"
+     - name: HTTP_CLIENT_RESPONSE_BODY_JSON_MASKED_FIELDS
+-      value: ""
++      value: "access_token,accessKey,account_number,address,address_detail,birth_date,dob,email,gender,identity_photo_id,idNumber,ktp,ktp_data,ktp_doc_id,ktp_number,mother_maiden_name,mother_name,new_password,new_password_confirmation,nik,npwp,npwp_number,old_password,otp,otp_code,password,phone,phone_number,pin,refresh_token,secret,selfie_photo_id,spouse_identity_number,spouse_name,token"
+     - name: HTTP_CLIENT_BODY_LOGGING_ON_ERROR_ONLY
+       value: "true"
+     - name: HTTP_CLIENT_ERROR_RETRY_ENABLE
+diff -ruN before/onboarding/values-sit-sharia.yaml after/onboarding/values-sit-sharia.yaml
+--- before/onboarding/values-sit-sharia.yaml	2026-10-06 09:47:55
++++ after/onboarding/values-sit-sharia.yaml	2026-10-06 09:48:24
+@@ -558,7 +558,7 @@
+     - name: ASSET_PRICING_FTZ_BRANCH_EXCEPTIONS
+       value: "569"
+     - name: LOGGING_LEVEL_ID_CO_BFI_BRAVO_ASPECT
+-      value: DEBUG
++      value: INFO
+     - name: NOTIFICATION_GOOGLE_CHAT_WEBHOOKURL
+       value: https://chat.googleapis.com/v1/spaces/AAQAqNyNXb0/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_d2kw0Iu0Q2E65Eb9UNKcCbtc9Gc0-yiYzFdO1VHcYg
+     - name: NOTIFICATION_GOOGLE_CHAT_WEBHOOKURL2W
+diff -ruN before/onboarding/values-sit.yaml after/onboarding/values-sit.yaml
+--- before/onboarding/values-sit.yaml	2026-10-06 09:47:55
++++ after/onboarding/values-sit.yaml	2026-10-06 09:48:24
+@@ -135,17 +135,17 @@
+     - name: QUEUE_CREATELEAD_RETRY_CRON
+       value: "0 */5 * ? * *"
+     - name: SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+-      value: full
++      value: basic
+     - name: FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL
+-      value: full
++      value: basic
+     - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_FILTER_COMMONSREQUESTLOGGINGFILTER
+       value: "OFF"
+     - name: LOGGING_LEVEL_ROOT
+       value: INFO
+     - name: LOGGING_LEVEL_ID_CO_BFI_BRAVO_ADAPTER_HTTP_OAUTH
+-      value: DEBUG
++      value: INFO
+     - name: LOGGING_LEVEL_ID_CO_BFI_BRAVO_ASPECT
+-      value: DEBUG
++      value: INFO
+     - name: SPRING_JPA_PROPERTIES_HIBERNATE_SESSION_FACTORY_STATEMENT_INSPECTOR
+       value: "id.co.bfi.bravo.utils.EmptyStatementInspector"
+     - name: GOOGLE_APPLICATION_PROJECT_ID
+diff -ruN before/onboarding/values-uat-sharia.yaml after/onboarding/values-uat-sharia.yaml
+--- before/onboarding/values-uat-sharia.yaml	2026-10-06 09:47:55
++++ after/onboarding/values-uat-sharia.yaml	2026-10-06 09:48:24
+@@ -571,7 +571,7 @@
+     - name: ASSET_PRICING_FTZ_BRANCH_EXCEPTIONS
+       value: "569"
+     - name: LOGGING_LEVEL_ID_CO_BFI_BRAVO_ASPECT
+-      value: DEBUG
++      value: INFO
+     - name: NOTIFICATION_GOOGLE_CHAT_WEBHOOKURL
+       value: https://chat.googleapis.com/v1/spaces/AAQAqNyNXb0/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=_d2kw0Iu0Q2E65Eb9UNKcCbtc9Gc0-yiYzFdO1VHcYg
+     - name: NOTIFICATION_GOOGLE_CHAT_WEBHOOKURL2W
+diff -ruN before/user-iam/values-sit-sharia.yaml after/user-iam/values-sit-sharia.yaml
+--- before/user-iam/values-sit-sharia.yaml	2026-10-06 09:47:56
++++ after/user-iam/values-sit-sharia.yaml	2026-10-06 09:48:24
+@@ -137,7 +137,7 @@
+     - name: DATADOG_PROFILING_COMPLETE
+       value: "false"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+diff -ruN before/user-iam/values-sit.yaml after/user-iam/values-sit.yaml
+--- before/user-iam/values-sit.yaml	2026-10-06 09:47:56
++++ after/user-iam/values-sit.yaml	2026-10-06 09:48:24
+@@ -90,7 +90,7 @@
+     - name: DATADOG_PROFILING_COMPLETE
+       value: "true"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+diff -ruN before/user-iam/values-uat-sharia.yaml after/user-iam/values-uat-sharia.yaml
+--- before/user-iam/values-uat-sharia.yaml	2026-10-06 09:47:56
++++ after/user-iam/values-uat-sharia.yaml	2026-10-06 09:48:24
+@@ -136,7 +136,7 @@
+     - name: DATADOG_PROFILING_COMPLETE
+       value: "false"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
+diff -ruN before/user-iam/values-uat.yaml after/user-iam/values-uat.yaml
+--- before/user-iam/values-uat.yaml	2026-10-06 09:47:56
++++ after/user-iam/values-uat.yaml	2026-10-06 09:48:24
+@@ -90,7 +90,7 @@
+     - name: DATADOG_PROFILING_COMPLETE
+       value: "false"
+     - name: LOGGER_LEVEL
+-      value: "debug"
++      value: "info"
+     - name: LOGGER_OUTPUT
+       value: "stdout"
+     - name: TRACING_ENABLE
