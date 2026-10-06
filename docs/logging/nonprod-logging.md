@@ -2,7 +2,8 @@
 
 Written 6 October 2026. Evidence: every `values-sit*.yaml` and `values-uat*.yaml` in
 `app-deployment` and `bfi-app-deployment` at `origin/master` on 6 October; GCP billing through
-FinOps for September 2026; Datadog log indexes for the last seven days.
+FinOps for September 2026; Cloud Logging bucket, sink and volume settings read the same day;
+Datadog log indexes for the last seven days.
 
 The rest of this folder is about production. SIT and UAT serve no customer, but they log
 into the same bill, they hold copies of customer records more often than anyone admits, and
@@ -28,11 +29,66 @@ runs no application at all — its Cloud Logging line is as large as the whole B
 non-production project's. What in a CI project writes Rp 78M of logs a month is the first
 question for Platform.
 
-Two things could not be verified from this machine: the retention of the `_Default` log bucket
-in those projects and whether any exclusion filter exists. `gcloud` needs a fresh login
-(`gcloud auth login`); the commands are at the end of this page. The recommendation in the
-README (item 3, 7-day retention and an exclusion filter on non-prod) stands until someone reads
-those two settings.
+### Retention and exclusions, read on 6 October 2026
+
+| Project | `_Default` bucket retention | Exclusion filters on the `_Default` sink |
+|---|---:|---|
+| `bravo-project-nonprod` | **14 days** (set on 14 August 2026) | **none** |
+| `bfi-devsecops` | **30 days** | **none** |
+| `bravo-project-331802` (production) | 30 days | three: container lines at `DEBUG`/`NOTICE`; Cloud SQL lines at `INFO`/`DEBUG`/`NOTICE`; the gRPC access lines of three services at `INFO` |
+
+Production has exclusions and the non-production projects have none. The single cheapest
+change in this whole folder is to copy production's two generic exclusions to the two
+non-production sinks. Retention of 14 days in `bravo-project-nonprod` is already below the 30
+the README assumed; 7 is still right for environments nobody investigates a week later.
+
+### What writes the bytes (seven days to 6 October 2026, Cloud Monitoring `byte_count`)
+
+| `bravo-project-nonprod`, 547 GB a day | GB in 7 days |
+|---|---:|
+| Containers, `sit` namespace | 1,419 |
+| Containers, `chaos-mesh` namespace (`chaos-daemon`) | 341 |
+| Containers, `uat` namespace | 237 |
+| Containers, `envoy-gateway` (access logs) | 174 |
+| Cloud SQL `postgres.log` (dev, SIT, UAT databases) | 602 |
+| Kubernetes admin-activity audit (`k8s_cluster`, free, routed to `_Required`) | 834 |
+
+| `bfi-devsecops`, 371 GB a day | GB in 7 days |
+|---|---:|
+| **Argo CD** `application-controller` | 1,716 |
+| **Argo CD** `repo-server` | 785 |
+| Everything else in the project | 96 |
+
+Two writers explain most of the two bills, and neither is an application team's logging habit:
+
+1. **Argo CD logs every reconciliation at `info`, to stderr, so GKE files it as `ERROR`.**
+   355 GB a day, flat for the whole month ("Refreshing app status", "Comparing app state",
+   "No status changes. Skipping patch", "Skipping auto-sync" — the same six messages, 2,485 GB
+   of them at `ERROR` severity in seven days). That is the Rp 78M `bfi-devsecops` line. The fix
+   is one ConfigMap value — `controller.log.level: warn` and `reposerver.log.level: warn` in
+   `argocd-cmd-params-cm` — or an exclusion filter on the `argo-cd` namespace for lines
+   containing `level=info`. Why the controller refreshes constantly ("controller refresh
+   requested" on one line in seven) is a second question for Platform.
+2. **A poison-message loop between `sit-ms-agency` and `sit-ms-onboarding`.** On the days it
+   runs, `sit-ms-onboarding` alone writes 300–350 GB (3 October: 317 GB; 6 October: 351 GB by
+   mid-morning; 12–22 September: 50–90 GB every day), and `sit-ms-agency` 70–180 GB with it.
+   The sample is unambiguous: agency's RabbitMQ listener fails ("Execution of Rabbit message
+   listener failed"), the handler calls onboarding's `GET /onboarding/v3/internal/applications/grp-test-N`
+   through Feign — logged with the full body, at 2 KB a line — onboarding answers 400
+   (`HandlerMethodValidationException`) and logs the request through the lib's
+   `RequestLoggingFilter` with the response body on, plus two `AuditTrailLogInterceptor`
+   errors, and the message is requeued. Forty to seventy iterations a second, four lines each,
+   every one carrying `grp-test-<n>` — a test fixture id that no longer exists. Nothing in SIT
+   is broken from a tester's point of view; it is a queue with no dead-letter path burning
+   logs. The fix is in agency: reject without requeue (or a dead-letter queue with a retry
+   cap) for a message whose application cannot be found, and purge the stuck messages. The
+   manifest baseline (Feign `basic`, response bodies masked) makes each iteration a tenth of
+   the size, but only the queue fix stops it.
+
+With those two addressed, the remaining non-production container volume is about 240 GB a
+day for SIT and UAT application logs, half of it from services at `debug` or writing bodies,
+which is what §2–§5 are about. Cloud SQL `postgres.log` at 86 GB a day is `logging-cost.md` §4
+item 3, unchanged.
 
 ## 2. What the manifests say today
 
@@ -199,22 +255,25 @@ tester sees changes.
 
 ## 6. Order of work
 
-1. Platform reads the two settings this page could not: `_Default` bucket retention and
-   exclusion filters in `bravo-project-nonprod` and `bfi-devsecops`, and finds what in
-   `bfi-devsecops` writes Rp 78M of logs a month.
-2. 7-day retention and an exclusion filter on both projects; Cloud SQL audit and slow-query
-   logs off in non-production. Together these are the Rp 60–80M a month in `logging-cost.md`
-   §4 items 2 and 3, and nothing a squad does changes them.
-3. SRE applies the 29-file diff, then the generator over the remaining SIT and UAT files.
-4. From then on: a `debug` level or a `full` Feign client in a `values-sit` or `values-uat`
+1. **Platform, one hour:** Argo CD `controller.log.level` and `reposerver.log.level` to `warn`
+   in `argocd-cmd-params-cm` on the `bfi-devsecops` cluster. That is most of Rp 78M a month.
+2. **Agency squad, half a day:** stop the SIT poison-message loop — reject without requeue, or
+   a dead-letter queue with a retry cap, for messages whose application id does not exist;
+   purge the `grp-test-*` messages. Until then every "test day" costs 300 GB of logs.
+3. **Platform, one hour:** copy production's two exclusion filters (`k8s_container` at
+   `DEBUG`/`NOTICE`, `cloudsql_database` at `INFO`/`DEBUG`/`NOTICE`) to the `_Default` sinks of
+   `bravo-project-nonprod` and `bfi-devsecops`; add `chaos-mesh` and the `envoy-gateway`
+   access log to the non-production one; retention 7 days on both. Cloud SQL `postgres.log` at
+   86 GB a day is `logging-cost.md` §4 item 3.
+4. SRE applies the 29-file diff, then the generator over the remaining SIT and UAT files.
+5. From then on: a `debug` level or a `full` Feign client in a `values-sit` or `values-uat`
    file is a review comment, the same as in production.
 
-## Appendix — the two checks that need a login
+## Appendix — how this was measured
 
-```bash
-gcloud auth login
-for p in bravo-project-nonprod bfi-devsecops; do
-  gcloud logging buckets list --project "$p" --format='table(name,retentionDays,locked)'
-  gcloud logging sinks describe _Default --project "$p" --format='yaml(exclusions)'
-done
-```
+Retention and sinks: `gcloud logging buckets list` and `gcloud logging sinks describe _Default`
+per project, 6 October 2026. Volumes: the Cloud Monitoring metric
+`logging.googleapis.com/byte_count`, summed over seven days and grouped by resource type,
+namespace, container, log name and severity. The two writers were confirmed from samples of
+their own log lines (`gcloud logging read`, last hour, 200–400 entries each). Daily series for
+`sit-ms-onboarding`, `sit-ms-agency` and the two Argo CD containers cover 7 September to 6 October.
