@@ -101,7 +101,7 @@ Files:
 
 - `internal/config/config.go`
 
-**CI caught a real defect in this change and it has been fixed:** the shared logger import had to be aliased (`bfilogger`), and then `Env.Logger()` in the same file needed the alias too. Full list in [README.md](README.md#what-ci-said-about-pack-two).
+**CI caught a real defect in this change and it has been fixed:** the shared logger import had to be aliased (`bfilogger`), and then `Env.Logger()` in the same file needed the alias too. Full list in [README.md](history.md#what-ci-said-about-pack-two).
 
 **Compiled, formatted and linted locally.** An earlier version of this file said no
 Go toolchain was available on the machine this analysis ran on. That was wrong — Go is

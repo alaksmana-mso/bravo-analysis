@@ -667,7 +667,7 @@ Two things to know before you review one:
   gate — all red before this work. The 27th was real: a Java change that dereferenced a null
   and turned an `AmqpRejectAndDontRequeueException` into a `NullPointerException`, caught by
   the repository's own test. Assuming the cluster was all one cause is exactly the mistake
-  made here first; see [README.md](README.md#every-failing-job-checked-one-at-a-time).
+  made here first; see [README.md](history.md#every-failing-job-checked-one-at-a-time).
 
 Index with every link: [README.md](README.md).
 

@@ -111,7 +111,7 @@ Files:
 - `internal/lib/server/http/server.go`
 - `internal/pkg/errors/errors.go`
 
-**CI caught a real defect in this change and it has been fixed:** removing `fmt.Print(e)` left the `fmt` import unused. My own check for remaining uses matched the word inside the comment I had just written. Full list in [README.md](README.md#what-ci-said-about-pack-two).
+**CI caught a real defect in this change and it has been fixed:** removing `fmt.Print(e)` left the `fmt` import unused. My own check for remaining uses matched the word inside the comment I had just written. Full list in [README.md](history.md#what-ci-said-about-pack-two).
 
 **Compiled, formatted and linted locally.** An earlier version of this file said no
 Go toolchain was available on the machine this analysis ran on. That was wrong — Go is

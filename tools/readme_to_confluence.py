@@ -22,6 +22,7 @@ NAMED = {
     "squads-guide.md": "2755723449", "body-visibility.md": "2755461582", "coverage.md": "2755658136",
     "deployment-proposal.md": "2773450891", "confins-prod-ms-lms-ar-be-findings.md": "2774728705",
     "nonprod-logging.md": "2823684104",
+    "history.md": "2825715781", "README.md": "2774335489",  # history split out 7 October 2026
 }
 SERVICE_PAGES = {
     "bravo-core-proxy-service": "2755756199", "bravo-agreement-service": "2755821675", "bravo-agency-service": "2755821690",

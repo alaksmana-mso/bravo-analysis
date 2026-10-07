@@ -95,7 +95,7 @@ Files:
 - `internal/config/http.go`
 - `internal/event/subscriber/handler/agreementstatusupdate.go`
 
-**CI caught a real defect in this change and it has been fixed:** gofmt rejected the `//nolint:lll` directive placed directly under a doc comment; since Go 1.19 it needs a blank `//` line before it. **Now green.** Full list in [README.md](README.md#what-ci-said-about-pack-two).
+**CI caught a real defect in this change and it has been fixed:** gofmt rejected the `//nolint:lll` directive placed directly under a doc comment; since Go 1.19 it needs a blank `//` line before it. **Now green.** Full list in [README.md](history.md#what-ci-said-about-pack-two).
 
 **Compiled, formatted and linted locally.** An earlier version of this file said no
 Go toolchain was available on the machine this analysis ran on. That was wrong — Go is

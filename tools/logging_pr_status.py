@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Refresh the Status column of the two pull-request tables in docs/logging/README.md.
+"""Refresh the Status column of the two pull-request tables in docs/logging/history.md
+(moved there from README.md on 7 October 2026; README.md is still scanned in case a table returns).
 
 Usage:  tools/logging_pr_status.py STATUS.json [--date "23 Sep"]
 
@@ -50,7 +51,10 @@ def main():
     date = sys.argv[sys.argv.index("--date") + 1] if "--date" in sys.argv else datetime.date.today().strftime("%-d %b")
     data = json.load(open(status_path))
     by_key = {(p["repo"].split("/")[-1], p["number"]): p for p in data["prs"]}
-    readme = pathlib.Path(__file__).resolve().parent.parent / "docs/logging/README.md"
+    for name in ("history.md", "README.md"):
+        refresh(pathlib.Path(__file__).resolve().parent.parent / "docs/logging" / name, by_key, date)
+
+def refresh(readme, by_key, date):
     lines = readme.read_text().splitlines(keepends=True)
     row_rx = re.compile(r"^\| \[(?P<repo>[^\]]+)\]\([^)]+\.md\) \|(?P<mid>.*)\[#(?P<num>\d+)\]\(https://github\.com/bfi-finance/[^/]+/pull/\d+\)(?P<rest>.*)\|\s*$")
     changed = 0; missing = []
@@ -67,7 +71,7 @@ def main():
         new = "| " + " | ".join(c.strip() for c in cells) + " |\n"
         if new != line: lines[i] = new; changed += 1
     readme.write_text("".join(lines))
-    print(f"{changed} rows changed; header date -> ({date}); not in status file: {missing or 'none'}")
+    print(f"{readme.name}: {changed} rows changed; header date -> ({date}); not in status file: {missing or 'none'}")
 
 if __name__ == "__main__":
     main()

@@ -143,7 +143,7 @@ code was non-production only, while writing 69,433 bodies a week in production â
 so a deployment setting would have done nothing; those three pull requests wire
 it (`lora-gateway-service`, `bravo-kyc-sign-service`, `bravo-database-catalog`).
 The sixteen pull requests that only added a code default were closed on SRE's
-guidance; see [README.md](README.md#implementation--pack-two-forty-four-pull-requests).
+guidance; see [README.md](history.md#implementation--pack-two-forty-four-pull-requests).
 
 **Eight Go services run production at `LOGGER_LEVEL=debug`.** `audit-trail`,
 `gen-ai`, `partnership-provisioning`, `robot-controller`, `supplier`,

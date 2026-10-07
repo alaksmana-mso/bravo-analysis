@@ -115,7 +115,7 @@ Files:
 - `config/vendors/vendor.go`
 - `pkg/lib/grpc/grpcmiddleware/jwt.go`
 
-**CI caught a real defect in this change and it has been fixed:** a comment block I added was missing its `//` on the second line and would not have compiled. Caught by re-reading before the push, not by a build. Full list in [README.md](README.md#what-ci-said-about-pack-two).
+**CI caught a real defect in this change and it has been fixed:** a comment block I added was missing its `//` on the second line and would not have compiled. Caught by re-reading before the push, not by a build. Full list in [README.md](history.md#what-ci-said-about-pack-two).
 
 **Compiled, formatted and linted locally.** An earlier version of this file said no
 Go toolchain was available on the machine this analysis ran on. That was wrong — Go is
