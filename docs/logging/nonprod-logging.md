@@ -39,8 +39,17 @@ question for Platform.
 
 Production has exclusions and the non-production projects have none. The single cheapest
 change in this whole folder is to copy production's two generic exclusions to the two
-non-production sinks. Retention of 14 days in `bravo-project-nonprod` is already below the 30
-the README assumed; 7 is still right for environments nobody investigates a week later.
+non-production sinks.
+
+**Retention stays where it is (corrected 7 October 2026).** An earlier version of this page
+recommended cutting both buckets to 7 days. That saves almost nothing: Cloud Logging charges
+for ingestion, and the first 30 days of storage in the `_Default` bucket are included in that
+price. Both projects keep logs for 30 days or less, so a shorter window changes the bill by a
+negligible amount. It would cost debugging history, for example a defect raised at UAT
+sign-off ten days after the run. The money is in what gets ingested: the exclusion filters,
+Argo CD's log level and the SIT message loop below. A shorter window for data-protection
+reasons, because SIT payloads carry real NIKs, is a separate decision for the squads and
+Security, not a cost item.
 
 ### What writes the bytes (seven days to 6 October 2026, Cloud Monitoring `byte_count`)
 
@@ -121,11 +130,11 @@ there. Everything else follows from five rules, each one a manifest value:
 | 4 | Body logging may stay on, but **every `*_JSON_MASKED_FIELDS` carries the standard list**; `""` is not a value. On-error-only where the wrapper supports it. | Test data is not always fake. UAT is loaded from production copies for regression runs; SIT gets real NIKs pasted from tickets. |
 | 5 | Java lib body logging (`REQUEST_BODY_LOGGING`, `RESPONSE_BODY_LOGGING`) only with a written `SENSITIVE_KEYS`. | Same reason. The lib's default list is four words. |
 
-And two rules for the platform, not the manifests: **7-day retention and an exclusion filter**
-on the non-production log buckets (health checks, readiness probes, Hibernate SQL), and **Cloud
-SQL audit and slow-query logs off** in non-production (`logging-cost.md` §4, item 3). None of
-this changes what an engineer can see while debugging; it changes what sits in a bucket for
-thirty days afterwards.
+And two rules for the platform, not the manifests: **exclusion filters** on the
+non-production log sinks (debug-level lines, Cloud SQL info lines, Chaos Mesh, Envoy access
+logs), and **Cloud SQL audit and slow-query logs off** in non-production (`logging-cost.md`
+§4, item 3). None of this changes what an engineer can see while debugging; it changes what
+gets ingested and billed. Retention stays at today's 14 and 30 days (§1 says why).
 
 The standard lists are the ones SRE already uses: the Go `GENERIC_JSON_MASKED_FIELDS` and
 `PHONE_JSON_MASKED_FIELDS` from `backoffice/values-prod.yaml`, and the Java `SENSITIVE_KEYS`
@@ -263,7 +272,7 @@ tester sees changes.
 3. **Platform, one hour:** copy production's two exclusion filters (`k8s_container` at
    `DEBUG`/`NOTICE`, `cloudsql_database` at `INFO`/`DEBUG`/`NOTICE`) to the `_Default` sinks of
    `bravo-project-nonprod` and `bfi-devsecops`; add `chaos-mesh` and the `envoy-gateway`
-   access log to the non-production one; retention 7 days on both. Cloud SQL `postgres.log` at
+   access log to the non-production one. Leave retention as it is. Cloud SQL `postgres.log` at
    86 GB a day is `logging-cost.md` §4 item 3.
 4. SRE applies the 29-file diff, then the generator over the remaining SIT and UAT files.
 5. From then on: a `debug` level or a `full` Feign client in a `values-sit` or `values-uat`

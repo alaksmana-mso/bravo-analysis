@@ -180,7 +180,7 @@ Nothing in this section adds a byte to Datadog.
 
 | Action | Saving / month | Effort |
 |---|---:|---|
-| Exclusion filters + 7-day retention on `bravo-project-nonprod`, `bfi-devsecops`, `bfi-internal-app-nonprod`, `core-system-nonprod` | Rp 60–80M | 1 d |
+| Exclusion filters on `bravo-project-nonprod`, `bfi-devsecops`, `bfi-internal-app-nonprod`, `core-system-nonprod` (*corrected 7 Oct: "7-day retention" removed; storage inside 30 days is included in the ingestion price, so retention saves almost nothing*) | Rp 60–80M | 1 d |
 | Turn off Cloud SQL audit and slow-query logs in non-prod | Rp 15–18M | 2 h |
 | VPC flow log sampling to 10% | Rp 6–7M | 1 h |
 
@@ -984,7 +984,7 @@ half of that coverage continuously, rather than in a weekly cron.
 
 | # | Phase | Action | Effort | Datadog cost | Saving / month |
 |---|---|---|---|---|---:|
-| 1 | 1 | Non-prod Cloud Logging filters and retention (§2.1) | 2 d | none | **Rp 81–105M** |
+| 1 | 1 | Non-prod Cloud Logging exclusion filters (§2.1) | 2 d | none | **Rp 81–105M** |
 | 2 | 1 | Fix dead and misrouted monitors (§2.2) | 2 d | none | — |
 | 3 | 1 | Pin the tracer version (§2.3) | 1 h | none | — |
 | 4 | 1 | Unified tags, service-name mismatches, retire `env:production` (§2.4) | 3 d | none | — |

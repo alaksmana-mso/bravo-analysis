@@ -150,7 +150,13 @@ Ranking is reliable. Absolute figures are floors, not totals.
 `core-system-nonprod` added together. No customer is served by any of it.
 
 This is the largest clean saving in the document. It needs no code change and no product
-decision. It is a retention setting and an exclusion filter.
+decision. It is a set of exclusion filters.
+
+*Corrected 7 October 2026: this paragraph used to say "a retention setting and an exclusion
+filter". Retention saves almost nothing here. Cloud Logging charges for ingestion, and the
+first 30 days of storage in the `_Default` bucket are included in that price; the
+non-production buckets keep 14 and 30 days. The saving comes from not ingesting the lines at
+all.*
 
 ### By resource type
 
@@ -566,7 +572,7 @@ code work combined and depends on nobody's sprint.
 | # | Action | Owner | Effort | Saving / month | Confidence |
 |---|---|---|---|---:|---|
 | 1 | **Ask what Coralogix is for.** Rp 253M a month, flat since February, three platforms doing one job | Architecture | 1 day | up to **Rp 253M** | needs a decision, not analysis |
-| 2 | **Exclusion filter + 7-day retention on non-prod.** `bravo-project-nonprod`, `bfi-devsecops`, `bfi-internal-app-nonprod` | Platform | 1 day | **Rp 60–80M** | high |
+| 2 | **Exclusion filters on non-prod.** `bravo-project-nonprod`, `bfi-devsecops`, `bfi-internal-app-nonprod`. *Corrected 7 Oct: this row also said "7-day retention"; retention inside 30 days is included in the ingestion price, so it is dropped. The saving is the exclusions.* | Platform | 1 day | **Rp 60–80M** | high |
 | 3 | **Turn off Cloud SQL audit/slow-query logs in non-prod** | Platform | 2 h | **Rp 15–18M** | high |
 | 4 | **VPC flow log sampling to 10%** | Platform | 1 h | **Rp 6–7M** | high |
 | 5 | **Fix `HttpHelper.ts` and rotate the leaked secret** | Contract Collateral | 2 h | Rp 2–4M | high, and it is a security fix |
