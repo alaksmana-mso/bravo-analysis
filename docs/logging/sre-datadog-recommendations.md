@@ -567,7 +567,7 @@ eight production services run at `debug`.** SRE gave access to `app-deployment` 
 Every `values-prod.yaml` for the 65 repositories in this programme has been read; what each
 one sets is in that service's file under *In the production deployment*, and the changes are
 written out as diffs in [deployment-proposal.md](deployment-proposal.md) and raised as
-[app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on `fix/logging` — **not merged**.
+[app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) on `fix/logging`; **merged on 7 October 2026**.
 The five findings that matter:
 
 - **`LOGGER_LEVEL=debug` in production** on `audit-trail`, `gen-ai`,
