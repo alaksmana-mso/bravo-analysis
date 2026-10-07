@@ -22,7 +22,12 @@ prs = []
 for q in ["is:pr org:bfi-finance author:alaksmana-mso head:fix/logging",
           "is:pr repo:bfi-finance/bfi-java-pkg 122", "is:pr repo:bfi-finance/bfi-java-pkg 123",
           "is:pr repo:bfi-finance/app-deployment 13820", "is:pr repo:bfi-finance/bfi-go-pkg 175",
-          "is:pr repo:bfi-finance/bravo-inventory-management-service 409"]:
+          "is:pr repo:bfi-finance/bravo-inventory-management-service 409",
+          # opened 7 October 2026 for the "Do these first" steps, not all on fix/logging branches
+          "is:pr repo:bfi-finance/bravo-agency-service 1173", "is:pr repo:bfi-finance/bravo-bpm-service 10571",
+          "is:pr repo:bfi-finance/bfi-java-pkg 129", "is:pr repo:bfi-finance/bfi-go-pkg 185",
+          "is:pr repo:bfi-finance/bravo-terraform 366", "is:pr repo:bfi-finance/bravo-terraform 367",
+          "is:pr repo:bfi-finance/app-deployment 14251", "is:pr repo:bfi-finance/app-deployment 14252"]:
     page = 1
     while True:
         d = get("https://api.github.com/search/issues?per_page=100&page=%d&q=%s" % (page, urllib.parse.quote(q)))

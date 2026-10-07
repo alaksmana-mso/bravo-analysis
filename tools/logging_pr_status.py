@@ -37,14 +37,15 @@ def gate_names(failing):
 def status_text(pr, cutoff_day):
     d = lambda s: datetime.date.fromisoformat(s[:10]).strftime("%-d %b") if s else "?"
     if pr["state"] == "merged":
-        return f"**merged {d(pr['merged_at'])}** by the squad"
+        return f"**merged {d(pr['merged_at'])}**"
     if pr["state"] == "closed":
         return f"closed {d(pr['closed_at'])}"
+    head = "open, **approved**" if pr.get("approvals") else "open"
     if pr["pending"]:
-        return "open — CI running"
+        return head + " — CI running"
     if not pr["failing"]:
-        return "open — CI green"
-    return "open — red only on " + ", ".join(gate_names(pr["failing"]))
+        return head + " — CI green"
+    return head + " — red only on " + ", ".join(gate_names(pr["failing"]))
 
 def main():
     status_path = sys.argv[1]
@@ -56,10 +57,11 @@ def main():
 
 def refresh(readme, by_key, date):
     lines = readme.read_text().splitlines(keepends=True)
-    row_rx = re.compile(r"^\| \[(?P<repo>[^\]]+)\]\([^)]+\.md\) \|(?P<mid>.*)\[#(?P<num>\d+)\]\(https://github\.com/bfi-finance/[^/]+/pull/\d+\)(?P<rest>.*)\|\s*$")
+    row_rx = re.compile(r"^\| \[(?P<repo>[^\]]+)\]\([^)]+\) \|(?P<mid>.*)\[#(?P<num>\d+)\]\(https://github\.com/bfi-finance/[^/]+/pull/\d+\)(?P<rest>.*)\|\s*$")
     changed = 0; missing = []
     for i, line in enumerate(lines):
-        if line.startswith("| Repo | Pull request | Status") or line.startswith("| Repository | Production service | Pull request | What it changes | Status"):
+        if line.startswith(("| Repo | Pull request | Status", "| Repository | Production service | Pull request | What it changes | Status",
+                            "| Service | Squad | Pull request | What it fixes | Status", "| Repository | Pull request | What it does | Status")):
             lines[i] = re.sub(r"Status \([^)]*\)", f"Status ({date})", line); continue
         m = row_rx.match(line)
         if not m: continue
