@@ -628,7 +628,7 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-bpm-service/tree/fi
 
 This repository is on Spring Boot 3.5.16. The shared Java logging library it should move to, `bfi-logging-spring-boot-starter`, **merged on 16 September** ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122)): single-line JSON (which this repo already emits through its own `logback.xml`), an 8 KB message cap, request logging off by default, one masked line per Feign call and never a header. It was not published when this was written; **Platform published it on 23 September 2026** (*Deploy Package* runs for `bfi-logging-core` 0.1.0 and then `bfi-logging-spring-boot-starter` 0.1.0), so the dependency can be added now — no service had done so by 6 October. **This pull request stands as the in-service fix until then**, and nothing in it has to be undone when the starter arrives (delete `logback*.xml` and any hand-written `feign.Logger` bean in the same change).
 
-Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September with one condition: the service's SA confirms the rollout restart before merge.
+Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September and **merged on 7 October 2026**; the pods rolled the same morning.
 
 The squad's review of 16 September (four comments) is answered in the thread and in a fourth commit — see the pull request.
 
