@@ -37,9 +37,17 @@ for q in ["is:pr org:bfi-finance author:alaksmana-mso head:fix/logging",
                 prs.append({"repo": repo, "number": it["number"], "title": it["title"]})
         if len(d["items"]) < 100: break
         page += 1
+# Also every pull request linked from the two Confluence source pages, so nothing on the page is missed
+import re, pathlib
+_docs = pathlib.Path(__file__).resolve().parent.parent / "docs/logging"
+for _f in ("README.md", "history.md"):
+    for _repo, _n in re.findall(r"github\.com/(bfi-finance/[\w.-]+)/pull/(\d+)", (_docs / _f).read_text()):
+        if (_repo, int(_n)) not in [(p["repo"], p["number"]) for p in prs]:
+            prs.append({"repo": _repo, "number": int(_n), "title": ""})
 out = []
 for p in prs:
     pr = get(f"https://api.github.com/repos/{p['repo']}/pulls/{p['number']}")
+    if not p["title"]: p["title"] = pr.get("title", "")
     row = {**p, "state": "merged" if pr["merged"] else pr["state"], "merged_at": pr["merged_at"],
            "merged_by": (pr["merged_by"] or {}).get("login"), "closed_at": pr["closed_at"],
            "head": pr["head"]["sha"], "head_ref": pr["head"]["ref"], "approvals": [], "failing": [], "pending": []}

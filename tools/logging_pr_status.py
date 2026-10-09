@@ -34,12 +34,19 @@ def gate_names(failing):
             names.add(f.split(" (")[0])
     return sorted(names, key=lambda n: (ORDER.index(n) if n in ORDER else 99, n))
 
+# Why a pull request was closed, where the closing comment says so (repo, number) -> text
+CLOSE_NOTES = {
+    ("bravo-partnership-service", 2367): "superseded by the squad's own [#2386](https://github.com/bfi-finance/bravo-partnership-service/pull/2386)",
+    ("lora-task-service", 1363): "dropped: the change relied on debug logging in production",
+}
+
 def status_text(pr, cutoff_day):
     d = lambda s: datetime.date.fromisoformat(s[:10]).strftime("%-d %b") if s else "?"
     if pr["state"] == "merged":
         return f"**merged {d(pr['merged_at'])}**"
     if pr["state"] == "closed":
-        return f"closed {d(pr['closed_at'])}"
+        note = CLOSE_NOTES.get((pr["repo"].split("/")[-1], pr["number"]))
+        return f"closed {d(pr['closed_at'])}" + (f", {note}" if note else "")
     head = "open, **approved**" if pr.get("approvals") else "open"
     if pr["pending"]:
         return head + " — CI running"
