@@ -1,0 +1,277 @@
+<style>
+/* Deck-local pieces: the verdict box, the ask list, compact tables, phase and timeline grids. */
+.verdictbox{border:2px solid var(--ac);border-radius:4px;padding:20px 24px;background:var(--acBg2);display:flex;flex-direction:column;gap:10px}
+.verdictbox .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);font-weight:600}
+.verdictbox .txt{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(18px,2.3vw,29px);line-height:1.22;letter-spacing:-.018em;color:var(--ink)}
+.verdictbox .txt em{color:var(--ac);font-style:normal;font-weight:800}
+
+.ask{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.askrow{background:var(--panel);padding:12px 16px;display:grid;grid-template-columns:26px 1fr 150px;gap:14px;align-items:start}
+.askrow .n{font-family:Archivo,sans-serif;font-weight:800;font-size:15px;color:var(--ac);font-variant-numeric:tabular-nums}
+.askrow .t{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.askrow .t b{color:var(--ink);font-weight:600}
+.askrow .c{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);text-align:right;line-height:1.5}
+
+.tw table{width:100%;border-collapse:collapse;font-size:13px}
+.tw th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;text-align:left}
+.tw td.num,.tw th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.phz{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.phzc{background:var(--panel);padding:14px 15px;display:flex;flex-direction:column;gap:7px}
+.phzc.now{background:var(--acBg)}
+.phzc .n{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink3)}
+.phzc.now .n{color:var(--ac)}
+.phzc .t{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink)}
+.phzc .c{font-size:12px;line-height:1.4;color:var(--ink2)}
+
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px}
+.tlc{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.tlc .w{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;color:var(--ac)}
+.tlc .h{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink)}
+.tlc .d{font-size:12.5px;line-height:1.45;color:var(--ink2)}
+
+@media (max-width:860px){.phz,.tl{grid-template-columns:1fr}}
+@media print{
+  .phz{grid-template-columns:repeat(3,minmax(0,1fr))} .tl{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .askrow{padding:8px 12px} .askrow .t{font-size:11px;line-height:1.4} .askrow .c{font-size:9px}
+  .phzc{padding:9px 11px;gap:5px} .phzc .t{font-size:11.5px} .phzc .c{font-size:10px;line-height:1.32}
+  .tlc{padding:9px 12px;gap:4px} .tlc .h{font-size:11.5px} .tlc .d{font-size:10px;line-height:1.32}
+  .tw table{font-size:10.5px} .tw td,.tw th{padding:6px 10px}
+}
+</style>
+<section class="slide slide--cover" data-nav="Cover">
+  <div class="inner" style="justify-content:center;flex:1;gap:20px">
+    <p class="cover-kicker">PT BFI Finance Indonesia &middot; Engineering &middot; An information package for CIB seven</p>
+    <h1>Our workflow service,<br><span class="thin">as a fork would need to see it.</span></h1>
+    <div class="verdictbox" style="max-width:88ch">
+      <span class="lab">The ask, in one sentence</span>
+      <p class="txt">Assess what it takes to move <em>ms-bpm</em> from Camunda 7 Community Edition to <em>CIB seven</em>, and tell us what support you would stand behind.</p>
+    </div>
+    <div class="verdictbox" style="max-width:88ch;border-color:var(--ruleS);background:transparent">
+      <span class="lab" style="color:var(--ink3)">Why this deck exists</span>
+      <p class="txt" style="font-size:clamp(16px,2vw,23px)">We measured our own system and read your public sources before asking. Every model element is counted, every engine call is listed, and the production numbers are real. The five markdown files hold the detail. This deck is the first meeting.</p>
+    </div>
+    <div class="meta">
+      <span><b>Sources</b> &nbsp;repository tags v2.94.11 and v2.53.108, production PostgreSQL read-only, production Kubernetes, CIB seven public sources.</span>
+      <span><b>As at</b> &nbsp;2026-10-09</span>
+    </div>
+  </div>
+  <p class="cue"><span>&darr;</span> 11 slides &middot; our system is on 2&ndash;6 &middot; what we read and ask is on 7&ndash;11</p>
+</section>
+
+<section class="slide" data-nav="What ms-bpm is">
+  <div class="inner">
+    <p class="eyebrow"><b>01</b><span class="sep">/</span>Orientation</p>
+    <h2 class="st">One Spring Boot service, one embedded engine, one database, every retail loan we write</h2>
+    <p class="lede">A consumer-finance lender in Indonesia. <code>ms-bpm</code> takes a loan application from lead to go-live: survey, credit bureau, scoring, underwriting, approval, signing. It is the system of record for applications in flight.</p>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">135<small>k</small></span><span class="stat__l">loan applications started a month</span></div>
+      <div class="stat"><span class="stat__n plain">541<small>k</small></span><span class="stat__l">applications open right now, tail up to one year</span></div>
+      <div class="stat"><span class="stat__n plain">53</span><span class="stat__l">BPMN models and 3 DMN tables on the main line</span></div>
+      <div class="stat"><span class="stat__n plain">272</span><span class="stat__l">Java delegate classes behind 483 service tasks</span></div>
+    </div>
+    <div class="cols b">
+      <div class="note"><h4>Why a fork is on our list</h4>Our models, our delegates and our data all assume an <strong>embedded Camunda 7 engine sharing one transaction with our application tables</strong>. A fork that keeps the engine, the <code>ACT_*</code> schema and the <code>camunda:</code> namespace could take us to a supported stack without touching any of that. We want to know whether CIB seven is that fork, and on what support terms.</div>
+      <div class="note"><h4>What sits around the engine</h4>About thirty microservices called from delegates. Three in-house operator consoles (764,000 lines of React) that <strong>never see a Camunda task id</strong>, so an engine swap changes none of them. Cockpit, used by operations to retry failed jobs. Keycloak for identity.</div>
+    </div>
+    <div class="foot"><span class="src">01-system-overview.md &middot; production database, 90 days to 2026-09-28</span><span>02</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Two release lines">
+  <div class="inner">
+    <p class="eyebrow"><b>02</b><span class="sep">/</span>Runtime</p>
+    <h2 class="st">Two production deployments, two release lines, both out of support</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Component</th><th>Main line (conventional)</th><th>Sharia line</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><b>Camunda Platform 7 CE</b></td><td><b>7.23.0</b></td><td><b>7.17.0</b></td></tr>
+        <tr><td class="k">Spring Boot</td><td>3.5.16, open-source support ended June 2026</td><td>2.7.18, still on <code>javax.*</code> in 887 files</td></tr>
+        <tr><td class="k">Branch and release</td><td><code>main</code>, v2.93 in production</td><td><code>release-sharia</code>, v2.53.108 (February 2026)</td></tr>
+        <tr><td class="k">Engine schema log</td><td><code>7.23.0</code>, rows 7.19&ndash;7.23 present</td><td><code>7.17.0</code>, single row from September 2023</td></tr>
+        <tr><td class="k">BPMN / service tasks / delegate beans</td><td>53 / 483 / 274</td><td>39 / 385 / 213</td></tr>
+        <tr><td class="k">Identity</td><td>custom read-only identity provider plugin</td><td>community Keycloak plugin 2.2.3</td></tr>
+        <tr><td class="k">Volume, last 90 days</td><td>399,942 applications</td><td>86 applications</td></tr>
+        <tr><td class="k">Shared by both</td><td colspan="2">Java 17, PostgreSQL 16 on Cloud SQL, GKE with Helm and ArgoCD, Keycloak OIDC, engine and application tables in one schema</td></tr>
+      </tbody>
+    </table></div>
+    <div class="cols b">
+      <p class="claim">Camunda 7 Community Edition ended in October 2025. Spring Boot 3.5 and 2.7 are both out of open-source support. The Sharia line is small in volume but regulated separately. Any route has to cover both.</p>
+      <div class="note"><h4>The good news in the schema</h4>The main database's schema log is clean at 7.23.0. From there, your upgrade scripts to 2.2 change <strong>no engine table</strong>. The Sharia database needs the full chain from 7.17, which your repository also carries.</div>
+    </div>
+    <div class="foot"><span class="src">pom.xml at both tags &middot; ACT_GE_SCHEMA_LOG in both production databases &middot; deployment manifests</span><span>03</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="The models">
+  <div class="inner">
+    <p class="eyebrow"><b>03</b><span class="sep">/</span>Process models</p>
+    <h2 class="st">Nothing to convert, everything to reproduce exactly</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">483</span><span class="stat__l">service tasks, every one a <code>delegateExpression</code> to a Spring bean</span></div>
+      <div class="stat"><span class="stat__n plain">659</span><span class="stat__l">JUEL conditions; 78 call a Spring bean with <code>environment.getProperty</code></span></div>
+      <div class="stat"><span class="stat__n plain">186</span><span class="stat__l">retry cycles with custom back-off; 260 <code>asyncAfter</code> boundaries</span></div>
+      <div class="stat"><span class="stat__n plain">56</span><span class="stat__l">call activities, all <code>latest</code> binding, all variables in and out</span></div>
+    </div>
+    <div class="cols b">
+      <div class="note"><h4>The behaviours we most need unchanged</h4><strong>Job retries and incidents</strong> on exhaustion. <strong>Error propagation</strong>: 104 error ends to 106 error boundaries, thrown from 88 <code>BpmnError</code> sites. <strong>Escalation</strong>: 108 ends to 82 boundaries. <strong>JUEL</strong> with Spring bean calls and <code>execution.hasVariable</code>. <strong>Call activities</strong> picking up new versions under running parents. 4 inclusive joins and 194 link events.</div>
+      <div class="note note--ok"><h4>What is not there</h4>No script tasks, message or signal events, multi-instance, compensation, listeners, external tasks, connectors, tenants or form keys. 3 small DMN tables. The models use only standard Camunda 7 semantics. <strong>The question is behavioural equality with 7.23, not conversion.</strong></div>
+    </div>
+    <div class="foot"><span class="src">02-process-model-inventory.md &middot; XML parse of src/main/resources at v2.94.11</span><span>04</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Code coupling">
+  <div class="inner">
+    <p class="eyebrow"><b>04</b><span class="sep">/</span>How the code touches the engine</p>
+    <h2 class="st">Wide but shallow: what your recipe renames, and the few places it cannot reach</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">~690</span><span class="stat__l">files importing <code>org.camunda</code>; a package rename, which the recipe does</span></div>
+      <div class="stat"><span class="stat__n pos">0.4<small>%</small></span><span class="stat__l">of 499,000 Java lines touch an engine API at all</span></div>
+      <div class="stat"><span class="stat__n neg">9</span><span class="stat__l">files use engine internals: retry aspect, identity plugin, a utility</span></div>
+      <div class="stat"><span class="stat__n neg">7</span><span class="stat__l">custom Cockpit plugin bundles, built JavaScript only</span></div>
+    </div>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Surface</th><th>What we need to know</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Engine internals</td><td><code>Context</code>, <code>BpmnExecutionContext</code>, <code>ReadOnlyIdentityProvider</code>, <code>GroupQueryImpl</code>, <code>CommandContext</code>: same signatures?</td></tr>
+          <tr><td class="k">Configuration</td><td>Is <code>camunda.bpm.*</code> kept? Does the webapp stay at <code>/camunda/*</code>?</td></tr>
+          <tr><td class="k">Cockpit plugins</td><td>Do bundles under <code>webjars/camunda</code> load unchanged?</td></tr>
+          <tr><td class="k">Spring Boot 4</td><td>Our own work: 308 <code>@MockBean</code> sites, Hibernate 7, pinned BOMs</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note note--ok"><h4>The one deep dependency, which a fork keeps</h4>A delegate updates our JPA entities and the engine updates <code>ACT_RU_*</code> <strong>in the same PostgreSQL transaction</strong>. If the delegate throws, both roll back together. Our 260 <code>asyncAfter</code> boundaries rely on it. <strong>Keeping this model is the main reason a fork is on our list.</strong> We want you to confirm nothing in CIB seven changes it.</div>
+    </div>
+    <div class="foot"><span class="src">03-engine-integration.md &middot; text search over src/main/java at v2.94.11</span><span>05</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Production footprint">
+  <div class="inner">
+    <p class="eyebrow"><b>05</b><span class="sep">/</span>Production</p>
+    <h2 class="st">Long-running instances at volume: the cutover has to resume them in place</h2>
+    <div class="stats stats--4">
+      <div class="stat"><span class="stat__n plain">400<small>k</small></span><span class="stat__l">top-level instances in 90 days; 1.28M including call-activity children</span></div>
+      <div class="stat"><span class="stat__n plain">7,943</span><span class="stat__l">applications on the busiest day; 1,347 in the busiest hour</span></div>
+      <div class="stat"><span class="stat__n neg">1.10<small>M</small></span><span class="stat__l">engine instances open; 1.04M open user tasks; 46M runtime variables</span></div>
+      <div class="stat"><span class="stat__n neg">490<small> GB</small></span><span class="stat__l">of engine history at full level, 90-day retention, about 1.4M activity rows a day</span></div>
+    </div>
+    <div class="cols b">
+      <div class="tw"><table>
+        <thead><tr><th>Process key, 90 days</th><th class="num">Started</th><th class="num">Open</th><th class="num">Mean</th></tr></thead>
+        <tbody>
+          <tr><td class="k">NDF2W</td><td class="num">253,728</td><td class="num">100,633</td><td class="num">54 h</td></tr>
+          <tr><td class="k">NDF4W</td><td class="num">61,930</td><td class="num">17,298</td><td class="num">99 h</td></tr>
+          <tr><td class="k">OPERATION</td><td class="num">21,999</td><td class="num">2,395</td><td class="num">25 h</td></tr>
+          <tr><td class="k">Unified_Process_Main_Workflow</td><td class="num">20,092</td><td class="num">9,079</td><td class="num">142 h</td></tr>
+          <tr><td class="k">NDF4W_RO</td><td class="num">11,713</td><td class="num">2,592</td><td class="num">43 h</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note note--bad"><h4>There is no drain window</h4>540,824 top-level applications are open, 59,710 of them older than a year. One survey wait state alone holds 695,734 open tasks. 4,433 incidents are open. 3.0M variables are Java-serialised, none of them an <code>org.camunda</code> class. <strong>We need all of it to resume on the new engine from the same tables, through a rolling deployment.</strong></div>
+    </div>
+    <div class="foot"><span class="src">04-production-footprint.md &middot; ACT_HI_PROCINST, ACT_RU_* in production, 2026-09-28</span><span>06</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="What we read">
+  <div class="inner">
+    <p class="eyebrow"><b>06</b><span class="sep">/</span>Your public sources, as we read them</p>
+    <h2 class="st">What we understood about CIB seven, so you can correct it</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Topic</th><th>Our reading, 2026-10-09</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Latest public release</td><td><b>2.2.0</b>, Maven Central, 31 May 2026. Before it: 2.1.0 (Nov 2025), 2.0.0 (May 2025)</td></tr>
+        <tr><td class="k">Spring Boot</td><td>Unsuffixed starters on Boot 3.5.14; <code>-4</code> starters on <b>Boot 4.0.6</b> and Spring 7.0.6. <code>main</code> moved to Boot 4.1.1 on 8 October</td></tr>
+        <tr><td class="k">Editions</td><td>Community (free, six-month cycle); Community+; LTS (18 months); Enterprise; OEM. No published prices</td></tr>
+        <tr><td class="k">Patches</td><td>Every 4&ndash;8 weeks for paid editions. 2.1.2 and 2.1.3 are on your roadmap but <b>not on Maven Central</b></td></tr>
+        <tr><td class="k">Code migration</td><td>OpenRewrite recipe: <code>org.camunda</code> to <code>org.cibseven</code>, about 190 artifacts, defaults to the Boot 4 starters</td></tr>
+        <tr><td class="k">Database, from 7.23</td><td>Three schema-log rows. <b>No <code>ACT_*</code> change.</b> 2.2 adds eight <code>MOD_*</code> tables and <code>CHAT_MESSAGES</code>; no name clash in our databases</td></tr>
+        <tr><td class="k">Camunda 7 CE support</td><td>Offered as-is since October 2025</td></tr>
+      </tbody>
+    </table></div>
+    <div class="cols b">
+      <p class="claim">If this reading is right, the engine part of the move is small and the support model is the real decision.</p>
+      <div class="note"><h4>The point we most want confirmed</h4>Between six-monthly public releases, does a Community user get any security fix? If not, which edition is the minimum for a regulated lender that must patch a published engine vulnerability within weeks?</div>
+    </div>
+    <div class="foot"><span class="src">Maven Central metadata &middot; github.com/cibseven at v2.2.0 &middot; cibseven.org editions, FAQ and roadmap</span><span>07</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Support questions">
+  <div class="inner">
+    <p class="eyebrow"><b>07</b><span class="sep">/</span>Support and commercial</p>
+    <h2 class="st">Seven questions on support, which decide whether this route works for us</h2>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Which edition fits</b> a regulated lender with two production deployments at our volumes, and on what pricing basis.</span><span class="c">the key question</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>What Community gets.</b> Do security fixes ever reach the public repository between releases? How fast for a critical CVE?</span><span class="c">patch exposure</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Patch delivery.</b> Private repository, signed artifacts, CVE-referenced notes, how long each patch line lives.</span><span class="c">operations</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Hours and response.</b> Coverage for UTC+7, severity definitions, language, any partner in South-East Asia.</span><span class="c">SLA</span></div>
+      <div class="askrow"><span class="n">5</span><span class="t"><b>Contracting and continuity.</b> Direct contract with an Indonesian company; source, escrow and access to shipped patches if the relationship ends.</span><span class="c">risk</span></div>
+      <div class="askrow"><span class="n">6</span><span class="t"><b>Interim support</b> for our Camunda 7.23 and 7.17 lines as they are, while we migrate.</span><span class="c">bridge</span></div>
+      <div class="askrow"><span class="n">7</span><span class="t"><b>Scope.</b> Two production deployments, four environments each, and one unrelated Camunda 7.17 service in another team.</span><span class="c">commercial, separate thread</span></div>
+    </div>
+    <div class="foot"><span class="src">05-scope-and-questions.md &sect;4a</span><span>08</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Engine and migration">
+  <div class="inner">
+    <p class="eyebrow"><b>08</b><span class="sep">/</span>Engine behaviour and migration</p>
+    <h2 class="st">The technical questions, condensed from fifteen to eight</h2>
+    <div class="ask">
+      <div class="askrow"><span class="n">1</span><span class="t"><b>Lineage.</b> The fork point is 7.22. Are all 7.23 and 7.24 engine fixes in 2.2? Is there a list of differences from 7.23?</span><span class="c">behaviour</span></div>
+      <div class="askrow"><span class="n">2</span><span class="t"><b>Expressions.</b> Does the new expression whitelist, or anything planned, restrict the 78 bean calls in our BPMN conditions?</span><span class="c">behaviour</span></div>
+      <div class="askrow"><span class="n">3</span><span class="t"><b>Variables and transactions.</b> 3.0M serialised values deserialise unchanged; delegate transactions, flush order and <code>asyncAfter</code> unchanged.</span><span class="c">behaviour</span></div>
+      <div class="askrow"><span class="n">4</span><span class="t"><b>Our extensions.</b> Engine internals in 9 files, 7 Cockpit plugin bundles, our identity provider, <code>camunda.bpm.*</code> properties, the <code>/camunda</code> path.</span><span class="c">compatibility</span></div>
+      <div class="askrow"><span class="n">5</span><span class="t"><b>Optional tables.</b> Can the <code>MOD_*</code> and <code>CHAT_MESSAGES</code> tables be skipped if we do not use the modeler or chat?</span><span class="c">database</span></div>
+      <div class="askrow"><span class="n">6</span><span class="t"><b>Cutover.</b> In-flight instances, tasks, timers and incidents resume in place; old and new pods briefly sharing one job table; rollback after the schema-log rows.</span><span class="c">the risky hour</span></div>
+      <div class="askrow"><span class="n">7</span><span class="t"><b>Spring Boot line.</b> Which Boot version your next public and patch releases target. Our Spring Cloud train holds us at 4.0.x.</span><span class="c">framework</span></div>
+      <div class="askrow"><span class="n">8</span><span class="t"><b>Sharia.</b> 7.17 to 2.2 in one step or through stops, plus <code>javax</code> to <code>jakarta</code>; or retire the branch first. Your view.</span><span class="c">second line</span></div>
+    </div>
+    <div class="foot"><span class="src">05-scope-and-questions.md &sect;4b, &sect;4c</span><span>09</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Constraints">
+  <div class="inner">
+    <p class="eyebrow"><b>09</b><span class="sep">/</span>Constraints</p>
+    <h2 class="st">What does not move, whichever route we take</h2>
+    <div class="phz">
+      <div class="phzc now"><span class="n">Regulated workload</span><span class="t">Auditability and patching are requirements</span><span class="c">Loan origination records for a supervised lender. 90 days of process history is a floor. A published engine vulnerability has to be patched within weeks, not at the next six-monthly release.</span></div>
+      <div class="phzc"><span class="n">No drain window</span><span class="t">In-flight state resumes in place</span><span class="c">Half a million open applications with a one-year tail. Every deployment today is already a hot deployment against live engine state.</span></div>
+      <div class="phzc"><span class="n">Keep what works</span><span class="t">Same models, same transaction, same consoles</span><span class="c">The value of a fork to us is that the models, the shared transaction and the three consoles stay exactly as they are.</span></div>
+    </div>
+    <div class="cols b" style="margin-top:2px">
+      <div class="phz">
+        <div class="phzc"><span class="n">Platform</span><span class="t">Google Cloud, Indonesia</span><span class="c">GKE, Cloud SQL PostgreSQL 16, Java 17, Keycloak.</span></div>
+        <div class="phzc"><span class="n">Two lines</span><span class="t">Main on 7.23, Sharia on 7.17</span><span class="c">Separate branches, databases and pipelines.</span></div>
+        <div class="phzc"><span class="n">Team</span><span class="t">Java and Spring squads</span><span class="c">Deep Camunda 7 habits; thin automated coverage at the process layer.</span></div>
+      </div>
+      <div class="note"><h4>What we can share, and what we cannot</h4><strong>Can:</strong> all BPMN and DMN files under NDA, further anonymised database statistics, and a code walk-through with an engineer. <strong>Cannot:</strong> production data, credentials, hostnames, or customer records. <strong>Not in this package by choice:</strong> internal cost figures and comparisons between vendors.</div>
+    </div>
+    <div class="foot"><span class="src">05-scope-and-questions.md &sect;5, &sect;6</span><span>10</span></div>
+  </div>
+</section>
+
+<section class="slide" data-nav="Next steps">
+  <div class="inner">
+    <p class="eyebrow"><b>10</b><span class="sep">/</span>Next steps</p>
+    <h2 class="st">Four weeks from package to written answer and support offer</h2>
+    <div class="tl">
+      <div class="tlc"><span class="w">Week 1</span><span class="h">Walk-through</span><span class="d">One call through this package. Agree the NDA and the model hand-over. One technical contact on each side.</span></div>
+      <div class="tlc"><span class="w">Weeks 1&ndash;2</span><span class="h">Support answers first</span><span class="d">Slide 8 needs no analysis of our code. An early answer on editions and patch delivery shapes how we read everything else.</span></div>
+      <div class="tlc"><span class="w">Weeks 2&ndash;3</span><span class="h">Optional joint spike</span><span class="d">Run your recipe on our main line in a sandbox and start it against a copy of a non-production database.</span></div>
+      <div class="tlc"><span class="w">Week 4</span><span class="h">Written answer</span><span class="d">Section 4 answered in writing, an effort estimate per release line, and an indicative support offer.</span></div>
+    </div>
+    <div class="cols b" style="margin-top:2px">
+      <div class="ask">
+        <div class="askrow"><span class="n">A</span><span class="t"><b>References</b> in banking, lending or insurance at 100,000-plus long-running instances a month.</span><span class="c">helpful</span></div>
+        <div class="askrow"><span class="n">B</span><span class="t"><b>Services model</b> for migration support, rehearsal and cutover. Remote is fine.</span><span class="c">delivery</span></div>
+        <div class="askrow"><span class="n">C</span><span class="t"><b>Roadmap commitment</b> for the Spring Boot 4 line and the Camunda 7 compatibility promise over five years.</span><span class="c">longevity</span></div>
+      </div>
+      <div class="note note--ok"><h4>How we will both know it worked</h4>We can set CIB seven beside the other routes with effort, risk, support terms and timeline from the same evidence. And if we go ahead, the migration starts from counts and production numbers both sides already agree on.</div>
+    </div>
+    <div class="foot"><span class="src">cibseven-vendor-package/ &middot; README.md, 01&ndash;05 &middot; every figure traceable to a file, a query, a manifest or a public source</span><span>11</span></div>
+  </div>
+</section>
