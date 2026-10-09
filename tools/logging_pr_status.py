@@ -38,12 +38,20 @@ def gate_names(failing):
 CLOSE_NOTES = {
     ("bravo-partnership-service", 2367): "superseded by the squad's own [#2386](https://github.com/bfi-finance/bravo-partnership-service/pull/2386)",
     ("lora-task-service", 1363): "dropped: the change relied on debug logging in production",
+    ("bravo-user-iam-service", 521): "replaced by the one-flag fix #525",
+}
+
+# Merged pull requests that were later reverted, (repo, number) -> text
+REVERT_NOTES = {
+    ("bravo-bpm-service", 10463): "reverted the same day by the squad in #10578",
+    ("bravo-bpm-service", 10571): "reverted the same day by the squad in #10578",
 }
 
 def status_text(pr, cutoff_day):
     d = lambda s: datetime.date.fromisoformat(s[:10]).strftime("%-d %b") if s else "?"
     if pr["state"] == "merged":
-        return f"**merged {d(pr['merged_at'])}**"
+        note = REVERT_NOTES.get((pr["repo"].split("/")[-1], pr["number"]))
+        return f"**merged {d(pr['merged_at'])}**" + (f", {note}" if note else "")
     if pr["state"] == "closed":
         note = CLOSE_NOTES.get((pr["repo"].split("/")[-1], pr["number"]))
         return f"closed {d(pr['closed_at'])}" + (f", {note}" if note else "")
@@ -64,7 +72,7 @@ def main():
 
 def refresh(readme, by_key, date):
     lines = readme.read_text().splitlines(keepends=True)
-    row_rx = re.compile(r"^\| \[(?P<repo>[^\]]+)\]\([^)]+\) \|(?P<mid>.*)\[#(?P<num>\d+)\]\(https://github\.com/bfi-finance/[^/]+/pull/\d+\)(?P<rest>.*)\|\s*$")
+    row_rx = re.compile(r"^\| \[(?P<repo>[^\]]+)\]\([^)]+\) \|(?P<mid>.*?)\[#(?P<num>\d+)\]\(https://github\.com/bfi-finance/[^/]+/pull/\d+\)(?P<rest>.*)\|\s*$")
     changed = 0; missing = []
     for i, line in enumerate(lines):
         if line.startswith(("| Repo | Pull request | Status", "| Repository | Production service | Pull request | What it changes | Status",
