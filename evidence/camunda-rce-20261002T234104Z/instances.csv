@@ -1,0 +1,1 @@
+id_,proc_inst_id_,business_key_,proc_def_key_,proc_def_id_,start_time_,end_time_,removal_time_,duration_,start_user_id_,start_act_id_,end_act_id_,super_process_instance_id_,root_proc_inst_id_,super_case_instance_id_,case_inst_id_,delete_reason_,tenant_id_,state_,restarted_proc_inst_id_

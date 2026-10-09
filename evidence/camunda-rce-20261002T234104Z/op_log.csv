@@ -1,0 +1,1 @@
+id_,deployment_id_,proc_def_id_,proc_def_key_,root_proc_inst_id_,proc_inst_id_,execution_id_,case_def_id_,case_inst_id_,case_execution_id_,task_id_,job_id_,job_def_id_,batch_id_,user_id_,timestamp_,operation_type_,operation_id_,entity_type_,property_,org_value_,new_value_,tenant_id_,removal_time_,category_,external_task_id_,annotation_
