@@ -206,7 +206,7 @@ in this programme.
 | [bravo-agency-service](bravo-agency-service.md) | [#1141](https://github.com/bfi-finance/bravo-agency-service/pull/1141) | **merged 18 Sep** |
 | [bravo-agreement-service](bravo-agreement-service.md) | [#2604](https://github.com/bfi-finance/bravo-agreement-service/pull/2604) | open — CI green |
 | [bravo-approval-engine-service](bravo-approval-engine-service.md) | [#166](https://github.com/bfi-finance/bravo-approval-engine-service/pull/166) | open — red only on SNYK / image CVEs |
-| [bravo-bpm-service](bravo-bpm-service.md) | [#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) | **merged 9 Oct**, reverted the same day by the squad in #10578 |
+| [bravo-bpm-service](bravo-bpm-service.md) | [#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) | **merged 9 Oct**, reverted the same day in #10578: not finished in review and testing |
 | [bravo-branch-service](bravo-branch-service.md) | [#506](https://github.com/bfi-finance/bravo-branch-service/pull/506) | **merged 9 Oct** |
 | [bravo-cnv-service](bravo-cnv-service.md) | [#726](https://github.com/bfi-finance/bravo-cnv-service/pull/726) | **merged 9 Oct** |
 | [bravo-core-proxy-service](bravo-core-proxy-service.md) | [#418](https://github.com/bfi-finance/bravo-core-proxy-service/pull/418) | open — red only on SonarQube |

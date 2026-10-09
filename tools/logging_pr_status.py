@@ -43,8 +43,8 @@ CLOSE_NOTES = {
 
 # Merged pull requests that were later reverted, (repo, number) -> text
 REVERT_NOTES = {
-    ("bravo-bpm-service", 10463): "reverted the same day by the squad in #10578",
-    ("bravo-bpm-service", 10571): "reverted the same day by the squad in #10578",
+    ("bravo-bpm-service", 10463): "reverted the same day in #10578: not finished in review and testing",
+    ("bravo-bpm-service", 10571): "reverted the same day in #10578: not finished in review and testing",
 }
 
 def status_text(pr, cutoff_day):
