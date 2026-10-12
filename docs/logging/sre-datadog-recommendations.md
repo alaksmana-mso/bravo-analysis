@@ -395,16 +395,23 @@ replacement in the same sentence**, or it will be resisted, correctly.
 
 Two things to do in Phase 1, both free:
 
-**a. Turn on header tags.** One environment variable, no code change:
+**a. Tag spans with the request id.** *Revised 12 October 2026.* The request id is the
+gateway's `x-bfi-req-id` (see the main page, *One request id across services*). How it reaches
+the span differs by stack:
 
-```yaml
-DD_TRACE_HEADER_TAGS: "x-request-id,x-correlation-id,x-b3-traceid,content-type,content-length"
-```
+- **Java services** run the Datadog Java agent, which tags spans from request headers. One
+  environment variable in each service's app-deployment values, no code change:
 
-Incoming headers land as `http.request.headers.*`, outgoing as `http.response.headers.*`.
-This is not bodies. It is the correlation identifiers that let a developer tie a trace to a
-record elsewhere, plus payload size. Never add `authorization`, `api-secret`, `cookie` or
-`set-cookie`.
+  ```yaml
+  DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"
+  ```
+
+  The tag name `request_id` matches what the Go wrapper sets, so `@request_id:<id>` in the
+  trace search finds every service of one request. `content-length` can be added for payload
+  size. Never add `authorization`, `api-secret`, `cookie` or `set-cookie`.
+- **Go services** trace with the OpenTelemetry SDK, which ignores `DD_TRACE_HEADER_TAGS`
+  (app-deployment#14252 was closed for that reason). bfi-go-pkg#185 sets the span attribute
+  in code; a service gets it when it bumps the wrapper.
 
 **b. Fix Remote Configuration. It is failing right now.** This was written up as a
 30-minute check. It has since been measured, and the answer is worse than unverified:

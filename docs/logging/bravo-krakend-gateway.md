@@ -51,6 +51,12 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This gateway is where the id is born. Its `server-observer` plugin mints an xid `x-bfi-req-id` for every request (or keeps a well-formed one it was given), `client-executor` sends it to the backend, and the plugin returns it to the client. Nothing changes here; the fixes are in the services and the shared libraries so they stop losing the id. One thing to keep: the gateway must go on returning the header to the client, because that is the value support asks a caller to quote.
+
 ## Implementation status
 
 **Pull request [#387](https://github.com/bfi-finance/bravo-krakend-gateway/pull/387) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175), merged on 8 October 2026.

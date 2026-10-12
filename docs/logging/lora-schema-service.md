@@ -55,6 +55,16 @@ Read from `app-deployment/lora-schema/values-prod.yaml` on 14 September 2026. **
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This service serves HTTP through the wrapper's `loggermw`, which already keeps the gateway's id and returns it, and its tracing middleware runs first, so after the bump the id is on the span as `request_id` with no code change. Outgoing HTTP calls through `httpclient` forward the id automatically. On 12 October its `master` used bfi-go-pkg `6e7a3935c021` (30 September 2026); all of this arrives with the bump to the release that includes [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185).
+
+What is left for the squad after the bump:
+
+- **Error bodies:** 1 call site use `httpresponse.ErrorAsJSON(w, err)`; switch them to `httpresponse.ErrorAsJSONForRequest(w, r, err)` so the body carries the id.
+
 ## Implementation status
 
 **Pull request [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175), merged on 8 October 2026. On 12 October this service's `master` used bfi-go-pkg `6e7a3935c021` (30 September 2026), which already masks non-string values.

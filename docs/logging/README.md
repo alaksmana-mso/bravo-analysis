@@ -35,14 +35,56 @@ The steps were checked on 7 October. Pull request states were refreshed on 12 Oc
 | 5 | Fix CONFINS log re-ingestion | SRE | **Unclear.** The re-reading looks stopped, but volume is 2.7 to 7.3 million entries a day, against about 200,000 in September. | No PR; [SRE-1825](https://bfifinance.atlassian.net/browse/SRE-1825) |
 | 6 | Decide what Coralogix is for | Architecture | **No progress.** No page or ticket answers it. | No PR; [SRE-1826](https://bfifinance.atlassian.net/browse/SRE-1826) |
 | 7 | Fix Datadog Remote Configuration on 13 services | SRE | **Not done.** 108,000 failed polls in seven days. | No PR; [SRE-1827](https://bfifinance.atlassian.net/browse/SRE-1827) |
-| 8 | Tag traces with the request id | Platform | **Not done; approach changed on 12 October.** The manifest setting `DD_TRACE_HEADER_TAGS` cannot work: 20 of the 21 Go services trace with the OpenTelemetry SDK, which ignores it, so #14252 was closed. bfi-go-pkg#185 now sets the request id on the span as `request_id`; each service gets it when it bumps bfi-go-pkg after #185 merges. | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185); [app-deployment#14252](https://github.com/bfi-finance/app-deployment/pull/14252) (closed); [SRE-1828](https://bfifinance.atlassian.net/browse/SRE-1828) |
+| 8 | Tag traces with the request id | Platform | **Not done; approach settled on 12 October.** The manifest setting `DD_TRACE_HEADER_TAGS` cannot work for Go: 20 of the 21 Go services trace with the OpenTelemetry SDK, which ignores it, so #14252 was closed. bfi-go-pkg#185 sets the request id on the span as `request_id` in code. Java services run the Datadog agent, so for them the manifest setting does work, as `x-bfi-req-id:request_id`. See [One request id across services](#one-request-id-across-services-x-bfi-req-id). | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185); [app-deployment#14252](https://github.com/bfi-finance/app-deployment/pull/14252) (closed); [SRE-1828](https://bfifinance.atlassian.net/browse/SRE-1828) |
 | 9 | Stop logging the Google Chat webhook keys in `bau-prod-ms-otrs-report`, then rotate them | Platform / security | **Not done.** 954 lines carried the keys on 6 October. | No PR, no write access; [SRE-1821](https://bfifinance.atlassian.net/browse/SRE-1821) |
 | 10 | Fix the three CI gate faults: Codacy token, Codacy installer, SonarQube baseline | Platform | **Not done.** A shallow clone is ruled out as the SonarQube cause. The baseline is the next suspect. | No PR; [SRE-1829](https://bfifinance.atlassian.net/browse/SRE-1829) |
-| 11 | Return the request id to the caller and log one line per rejected request, in the shared libraries | Platform, then squads | **Not done.** Neither Java filter returns the id yet. | [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129); [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185); [SRE-1830](https://bfifinance.atlassian.net/browse/SRE-1830) |
+| 11 | Return the request id to the caller and log one line per rejected request, in the shared libraries | Platform, then squads | **In review.** Both wrappers now do it, and on 12 October the three pull requests were widened so that one id, the gateway's `x-bfi-req-id`, survives every hop (see [One request id across services](#one-request-id-across-services-x-bfi-req-id)). Nothing is merged yet. | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185); [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129); [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132); [SRE-1830](https://bfifinance.atlassian.net/browse/SRE-1830) |
 | 12 | Apply the SIT and UAT logging baseline to 29 manifest files | SRE | **Partly done.** The 29-file baseline, #14251, merged on 12 October. Its effect on SIT and UAT log volume has not been measured yet. | [app-deployment#14251](https://github.com/bfi-finance/app-deployment/pull/14251) (merged); [SRE-1831](https://bfifinance.atlassian.net/browse/SRE-1831) |
 | 13 | Stop sending NUL padding to Datadog: `tee -a` in 20 service entrypoints, then fix the log-file setup on the nodes | Squads, then SRE | **Partly done.** 11 of 19 pull requests merged on 9 October: rule-engine, audit-trail, cnv, gen-ai, scheduling, partnership, user-iam, integrity, robot-controller, customer-bff and kyc-proxy. None was released by 12 October, so Datadog shows no effect so far. One repository is archived. | 19 pull requests in the [table below](#per-service-pages-and-pull-requests); details in [Datadog log cost by service](#datadog-log-cost-by-service-8-october-2026) |
 
 None of these steps increases Datadog spend. Take the two security items, 9 and 1, first. Step 13 saves the most money. The evidence behind each status is on [the history page](history.md#do-these-first--full-evidence).
+
+## One request id across services (`x-bfi-req-id`)
+
+**Decided 12 October 2026.** Every request carries one id, in the `x-bfi-req-id` header, from the client through every service it touches. The API gateway (`bravo-krakend-gateway`) already mints that id for every request, sends it to the backend and returns it to the client. The job is to stop losing it on the way down, so that the id a client or support quotes finds the logs and the trace of every service involved.
+
+### What was broken
+
+The two wrapper pull requests, bfi-go-pkg#185 and bfi-java-pkg#129, were right inside the libraries, but a check against how the services are wired on 12 October found four places where the id was lost:
+
+| Where | What happened | How many services |
+|---|---|---|
+| Go, REST proxy | grpc-gateway forwards only a few standard headers. No service whitelists `x-bfi-req-id`, so the proxy dropped it and the gRPC side minted a second id. The id the client holds was not the id in the logs. | 28 gRPC-first Go services |
+| Go, outgoing calls | The wrapper's HTTP and gRPC clients did not forward the id. Three services did it by hand. Every Go→Go and Go→Java hop started a new id. | about 50 Go services |
+| Go, incoming id | The wrapper accepted an xid only, so an id minted by a Java service was replaced. | all Go services |
+| Java | The starter read `X-Correlation-Id`; the gateway sends `x-bfi-req-id`. No Java repository knows that name. And the starter minted nothing when the header was missing, so most Java requests had no id at all to log, forward or quote. | all 34 Java services |
+
+### What fixes it, and where
+
+| Pull request | What it now does | Status (12 Oct) |
+|---|---|---|
+| [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | REST proxy forwards the id into gRPC metadata by default. `httpclient.New` and `LoggedTransport` forward it on outgoing HTTP. `loggerinterceptor.UnaryClient()` forwards it on gRPC dials. Incoming ids are kept when well formed (letters, digits, `. _ : -`, up to 128). Both inbound paths tag the span with `request_id`. Error bodies carry the id when a service opts in. | open, CI green, waiting for review |
+| [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | Starter reads `x-bfi-req-id` first, `X-Correlation-Id` as a fallback. Mints an id when none arrives, in the same xid format as the gateway, so older Go services keep it. Returns it on the response. The old `bravo-lib-logging` reads `x-bfi-req-id` first too. | open, waiting for review |
+| [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | Forwards the id on every Feign call. Logs one `request_rejected` line with the failed field names, never the values. Opt-in id on `ProblemDetail` error bodies. | open; CI red until core 0.1.2 is published after #129 merges |
+
+### What each team does once the libraries are released
+
+| Team | What to do |
+|---|---|
+| Go squads, HTTP services (17) | Bump bfi-go-pkg. Nothing else for logs, spans and outgoing HTTP. gRPC dials get one line: `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())`. Error bodies: use `httpresponse.ErrorAsJSONForRequest(w, r, err)`. |
+| Go squads, gRPC services (28) | Bump bfi-go-pkg. The proxy fix needs no service change. Error bodies: opt in with `WithRequestInfoDetail()` on `errorinterceptor` and `panicinterceptor`, after checking that callers do not reject an unknown `@type`. |
+| Java squads on Spring Boot 3 (20) | Adopt the starter (0.1.3 or later). Feign calls forward the id with no code. RestTemplate and WebClient calls need the service's own interceptor. Services that handle `X-Correlation-Id` themselves switch to `x-bfi-req-id`. |
+| Java squads on Spring Boot 2.7 (14) | The starter needs Boot 3. The old library reads the gateway's id after the next `bravo-lib-logging` release. Forwarding on Feign needs the service's own interceptor. |
+| SRE | Java services only: set `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` in each service's app-deployment values. The Datadog Java agent then tags spans with the same name the Go wrapper uses. Go services ignore the setting. |
+| Platform | Merge order: #185; #129, then publish core 0.1.2 at once; then #132. Cut a `bravo-lib-logging` release from the `logger` module. |
+
+### How to use it
+
+- **Find everything about one request in Datadog.** Logs: `@request_id:<id> OR @correlation_id:<id>` (Go logs the field as `request_id`, Java as `correlation_id`). Traces: `@request_id:<id>`, once services are on the new libraries and Java manifests carry the setting above.
+- **Support asks a caller for the id.** It is the `x-bfi-req-id` response header, and in the error body where a service opted in.
+- **Background work** (schedulers, queue consumers) has no incoming id. Go leaves it empty. Java opens one with `CorrelationId.open(CorrelationId.generate())`.
+
+The survey behind the numbers above is on [the history page](history.md#one-request-id-across-services--the-survey-of-12-october).
 
 ## Datadog log cost by service (8 October 2026)
 
@@ -308,10 +350,11 @@ Every service in the programme has its own page with its findings and what its s
 | [app-deployment](https://github.com/bfi-finance/app-deployment) | [#14251](https://github.com/bfi-finance/app-deployment/pull/14251) | SIT and UAT logging baseline, 29 files | **merged 12 Oct** |
 | [app-deployment](https://github.com/bfi-finance/app-deployment) | [#14252](https://github.com/bfi-finance/app-deployment/pull/14252) | tag traces with the request id (draft) | closed 12 Oct, the services trace with OpenTelemetry, which ignores DD_TRACE_HEADER_TAGS; replaced by the span attribute in bfi-go-pkg#185 |
 | [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) | Go wrapper: mask every value type, bounded payload helper | **merged 8 Oct** |
-| [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | Go wrapper: request id in error details, validation fields on the access line | open — CI running |
+| [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | Go wrapper: one request id across services (proxy, outgoing calls, span tag), request id in error details, validation fields on the access line | open — CI green, in review |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) | new Java logging starter | **merged 16 Sep** |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) | old Java library: mask Feign bodies (closed in favour of the starter) | closed 16 Sep |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#128](https://github.com/bfi-finance/bfi-java-pkg/pull/128) | starter 0.1.1: stop dropping request logs after 6 lines | **merged 7 Oct** |
-| [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | return the correlation id on the response | open — CI running |
+| [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | starter and old library read the gateway's `x-bfi-req-id`, mint an id when none arrives, return it on the response | open — in review |
+| [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | starter: forward the id on Feign calls, one line per rejected request, opt-in id on ProblemDetail bodies | open — stacked on #129; CI red until core 0.1.2 is published |
 | [bravo-terraform](https://github.com/bfi-finance/bravo-terraform) | [#366](https://github.com/bfi-finance/bravo-terraform/pull/366) | create the queue monitors in production only | open — red only on SNYK / image CVEs |
 | [bravo-terraform](https://github.com/bfi-finance/bravo-terraform) | [#367](https://github.com/bfi-finance/bravo-terraform/pull/367) | exclusion filters for non-production Cloud Logging | open — red only on SNYK / image CVEs |

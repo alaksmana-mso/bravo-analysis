@@ -303,6 +303,19 @@ This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It does not wire
 **Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 3.5.15, so its target is `bfi-logging-spring-boot-starter` ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), **merged 16 September 2026**): single-line JSON, an 8 KB message cap, request logging off by default, Feign bodies opt-in and never headers. It was not published when this was written; **Platform published it on 23 September 2026** (*Deploy Package* runs for `bfi-logging-core` 0.1.0 and then `bfi-logging-spring-boot-starter` 0.1.0), so the dependency can be added now — no service had done so by 6 October. Migrating off `bravo-lib-logging` means deleting the `logback*.xml` files and the manual filter beans, and telling SRE that the manifest's `LOGGER_LEVEL` / `SENSITIVE_KEYS` become `LOG_LEVEL` / `LOG_SENSITIVE_KEYS`.
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This service is on Spring Boot 3.5.15, so its path is the logging starter, `bfi-logging-spring-boot-starter` 0.1.3 or later. With [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) the starter's filter reads `x-bfi-req-id` (the gateway's header) first and `X-Correlation-Id` as a fallback, mints an id in the gateway's xid format when none arrives, and returns it on the response. With [#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) every Feign call forwards it (this repository has Feign in 36 files), and one `request_rejected` line names the fields that failed validation, never the values. **None of this applies until the service adopts the starter**; no service has it on its main branch yet.
+
+What is left for the squad and SRE:
+
+- **Deployment (SRE):** add `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` to the service's app-deployment values. The Datadog Java agent then tags spans with the same name the Go wrapper uses, so one trace search finds every service of a request.
+- **Header name:** the service handles `X-Correlation-Id` in its own code (1 file). Switch those places to `x-bfi-req-id`; the starter keeps reading the old header as a fallback, so the switch can be gradual.
+- **RestTemplate / WebClient calls** are not forwarded by the starter. Add the service's own interceptor that copies `CorrelationId.current()` into the `x-bfi-req-id` header.
+- **Error bodies:** the service has its own error type; add `CorrelationId.current()` (bfi-logging-core) to it in the exception handler, so a caller can quote the id without reading headers.
+
 ## Implementation status
 
 **Pull request: [bfi-payment-api#1650](https://github.com/bfi-finance/bfi-payment-api/pull/1650)** — open, not merged.

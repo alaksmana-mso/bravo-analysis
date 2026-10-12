@@ -460,9 +460,13 @@ Your side of it is small but required, and it is what opens the gate:
 
 1. **Emit JSON** (Rule 4). Correlation cannot work on unparsed text.
 2. **Keep lines under 16 KB** (Rule 1). A split line loses its trace id.
-3. **Do not invent your own correlation id** when a trace id will do. Several services carry
-   a `correlationId` MDC field. Keep it if operations rely on it, but it is not a substitute
-   — it does not join to traces, metrics or RUM.
+3. **Do not invent your own correlation id.** The request id is `x-bfi-req-id`, minted by the
+   API gateway for every request. The shared libraries read it, log it (`request_id` in Go,
+   `correlation_id` in Java), return it to the caller, forward it to the next service and put it
+   on the span as `request_id`, so one id finds the logs and the trace of every service a request
+   touched. If your service reads or sends `X-Correlation-Id` today, switch to `x-bfi-req-id`;
+   the Java starter still accepts the old header as a fallback. Details on the main page,
+   [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id).
 
 ---
 

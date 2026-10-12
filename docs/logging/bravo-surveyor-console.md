@@ -222,6 +222,12 @@ microservices host so browser spans join the backend trace, the way
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This is a browser application. It calls the backends through the API gateway, which mints `x-bfi-req-id` for every request and returns it in the response, so there is nothing to add here. One useful habit: when an error is shown to a user, show or log the `x-bfi-req-id` response header with it, so support can quote it.
+
 ## Implementation status
 
 **Pull request: [bravo-surveyor-console#3976](https://github.com/bfi-finance/bravo-surveyor-console/pull/3976)** — open, not merged.

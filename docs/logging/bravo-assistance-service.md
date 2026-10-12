@@ -56,6 +56,17 @@ Bodies are logged in production **with a masked-field list set here** — the pa
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This service serves HTTP through the wrapper's `loggermw`, which already keeps the gateway's id and returns it, and its tracing middleware runs first, so after the bump the id is on the span as `request_id` with no code change. Outgoing HTTP calls through `httpclient` forward the id automatically. On 12 October its `master` used bfi-go-pkg `781f3db76b85` (29 April 2026); all of this arrives with the bump to the release that includes [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185).
+
+What is left for the squad after the bump:
+
+- **gRPC dials** (1 file): add `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())` to the dial options; the wrapper cannot do this for a `grpc.NewClient` call.
+- **Error bodies:** opt in with `errorinterceptor.WithRequestInfoDetail()` and `panicinterceptor.WithRequestInfoDetail()` once the squad has checked that no caller rejects an unknown `@type` in the error details. The REST proxy renders the same detail for REST callers.
+
 ## Implementation status
 
 **Pull request [#200](https://github.com/bfi-finance/bravo-assistance-service/pull/200) was closed on 14 September 2026, on SRE's guidance.** Its only change gave the `*_JSON_MASKED_FIELDS` config fields a default list in the struct tag. Masked fields are a per-service, per-environment setting made in `app-deployment`, not a default in every service's code — not every service handles PII, and each needs its own field list. The default was reverted on the branch, which left it identical to the base branch, so the pull request was closed rather than left open with no diff. What production actually sets is in **In the production deployment** below; the wrapper-side change, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175), merged on 8 October 2026. On 12 October this service's `master` used bfi-go-pkg `781f3db76b85` (29 April 2026), which masks string values only. Numbers such as a NIK or an amount stay in clear until the service bumps bfi-go-pkg to `d7d3ca2a00f8` or later.

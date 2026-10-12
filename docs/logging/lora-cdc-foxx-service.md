@@ -62,6 +62,12 @@ Adding authentication is a deployment decision — who is allowed to call it, an
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This service is on neither shared library (it is not Go on bfi-go-pkg or Java on bfi-java-pkg), so the library changes do not reach it. The rule still applies: read `x-bfi-req-id` from the incoming request when there is one (the gateway sends it on every call), put it in every log line, return it on the response, and send it on every call to another service. Without an incoming id, mint one. The main page lists the Datadog searches that then find the request across services.
+
 ## Implementation status
 
 **Pull request: [lora-cdc-foxx-service#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3)** — open, not merged.  

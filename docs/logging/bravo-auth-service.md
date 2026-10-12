@@ -80,6 +80,16 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This service traces with dd-trace-go and does not use the wrapper's HTTP or gRPC middleware, so the wrapper changes do not reach it. The Datadog Go tracer does read `DD_TRACE_HEADER_TAGS`, so SRE can set `x-bfi-req-id:request_id` in its app-deployment values to tag spans. Reading the header into its logs and forwarding it on outgoing calls needs the service's own code.
+
+What is left for the squad after the bump:
+
+- **gRPC dials** (3 files): add `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())` to the dial options; the wrapper cannot do this for a `grpc.NewClient` call.
+
 ## Implementation status
 
 **Pull request: [bravo-auth-service#258](https://github.com/bfi-finance/bravo-auth-service/pull/258)** — open, not merged.  

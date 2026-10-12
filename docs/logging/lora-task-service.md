@@ -315,6 +315,17 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This service serves HTTP through the wrapper's `loggermw`, which already keeps the gateway's id and returns it, and its tracing middleware runs first, so after the bump the id is on the span as `request_id` with no code change. Outgoing HTTP calls through `httpclient` forward the id automatically. On 12 October its `master` used bfi-go-pkg `b807ccaa4670` (10 September 2026); all of this arrives with the bump to the release that includes [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185).
+
+What is left for the squad after the bump:
+
+- **gRPC dials** (1 file): add `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())` to the dial options; the wrapper cannot do this for a `grpc.NewClient` call.
+- **Error bodies:** 5 call sites use `httpresponse.ErrorAsJSON(w, err)`; switch them to `httpresponse.ErrorAsJSONForRequest(w, r, err)` so the body carries the id.
+
 ## Implementation status
 
 **Pull request: [lora-task-service#1363](https://github.com/bfi-finance/lora-task-service/pull/1363)** — open, not merged.

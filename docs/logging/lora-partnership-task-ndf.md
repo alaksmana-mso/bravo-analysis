@@ -58,6 +58,12 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 ---
 
+## One request id across services
+
+**Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
+
+This repository has no HTTP request path through the wrapper (a Temporal worker or a consumer), so no `x-bfi-req-id` arrives and nothing changes here. For workflow work the id to quote is the Temporal workflow id. On 12 October its `master` used bfi-go-pkg `b807ccaa4670` (10 September 2026); all of this arrives with the bump to the release that includes [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185).
+
 ## Implementation status
 
 **Scope of [#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126) was reduced on 14 September 2026, on SRE's guidance.** The commit that gave the `*_JSON_MASKED_FIELDS` config fields a default list was reverted; masked fields are set per environment in `app-deployment`, not defaulted in code. What remains is the code the deployment setting depends on — the scrubber actually wired to the field list the environment provides — and any log-level fixes.
