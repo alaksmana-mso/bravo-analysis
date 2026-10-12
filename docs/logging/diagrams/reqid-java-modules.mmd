@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph core [bfi-logging-core: no Spring]
+        CI[CorrelationId<br/>MDC_KEY, DEFAULT_HEADER, LEGACY_HEADER<br/>isValid, current, open, generate]
+        X[Xid encoder<br/>same format as Go's rs/xid]
+        CI --> X
+    end
+    subgraph starter [bfi-logging-spring-boot-starter: Spring Boot 3]
+        AC[BravoLoggingAutoConfiguration<br/>correlation.header, fallback-header, generate, response-header] --> FL[CorrelationIdFilter<br/>servlet filter, REQUEST + ERROR dispatch]
+        FL --> CI
+    end
+    subgraph logger [bravo-lib-logging: Spring Boot 2.7]
+        OL[CorrelationIdFilter<br/>x-bfi-req-id first, then X-Correlation-Id<br/>mints a UUID]
+    end
+    JOB[schedulers, queue listeners] --> CI

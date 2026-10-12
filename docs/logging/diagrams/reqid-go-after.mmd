@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as KrakenD gateway
+    participant P as REST proxy (grpc-gateway)
+    participant S as gRPC service
+    participant D as Downstream service
+    C->>G: request
+    Note over G: mints x-bfi-req-id = abc (xid)
+    G->>P: x-bfi-req-id: abc
+    Note over P: loggermw keeps abc, span request_id=abc
+    P->>S: metadata x-bfi-req-id: abc (defaultRESTProxyMetadataAnnotator)
+    Note over S: loggerinterceptor keeps abc, logs request_id=abc, span request_id=abc
+    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.RequestIDTransport)
+    Note over D: keeps abc (IsValidRequestID), logs and tags with abc
+    D-->>S: error, details: RequestInfo{request_id: abc}
+    S-->>P: x-bfi-req-id: abc, error detail request_id=abc
+    P-->>C: JSON error body with request_id=abc, header x-bfi-req-id: abc

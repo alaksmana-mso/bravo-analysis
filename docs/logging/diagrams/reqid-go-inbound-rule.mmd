@@ -1,0 +1,9 @@
+flowchart TD
+    A[incoming x-bfi-req-id header or metadata] --> B{tracer.IsValidRequestID?<br/>1-128 chars of letters, digits, . _ : -}
+    B -- yes --> C[keep the caller's id, whoever minted it]
+    B -- missing or malformed --> D[mint a new xid]
+    C --> E[context + log field request_id]
+    D --> E
+    D --> F[returned as x-bfi-req-id response header]
+    E --> G[span attribute request_id]
+    E --> H[outgoing HTTP and gRPC calls forward it]

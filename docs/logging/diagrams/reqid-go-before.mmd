@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant G as KrakenD gateway
+    participant P as REST proxy
+    participant S as gRPC service
+    participant D as Downstream service
+    G->>P: x-bfi-req-id: abc
+    P--xS: header dropped (grpc-gateway forwards only Grpc-Metadata-*)
+    Note over S: loggerinterceptor mints def
+    S--xD: nothing forwarded
+    Note over D: mints ghi
+    Note over G,D: client holds abc, S logs def, D logs ghi

@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant G as KrakenD gateway
+    participant J as Java service (starter)
+    participant FI as CorrelationIdForwardingInterceptor
+    participant K as Next service (Go or Java)
+    G->>J: x-bfi-req-id: abc
+    Note over J: CorrelationIdFilter: MDC correlation_id=abc
+    J->>FI: Feign call
+    Note over FI: x-bfi-req-id not set by the caller,<br/>so add CorrelationId.current() = abc
+    FI->>K: x-bfi-req-id: abc
+    Note over K: keeps abc (Go: tracer.IsValidRequestID, Java: the filter)<br/>logs and tags its span with abc
+    K-->>J: response or error body with request_id=abc
+    J-->>G: x-bfi-req-id: abc

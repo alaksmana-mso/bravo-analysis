@@ -64,7 +64,16 @@ def target(href):
     unresolved.append(href)
     return GITHUB + ("logging/" + path if not path.startswith("../") else path[3:])
 
+# A "<!-- confluence-image: name.png -->" comment followed by a ```mermaid block becomes a Confluence image of the
+# attachment name.png (rendered from the same source with mermaid-cli and attached to the page). GitHub renders the
+# Mermaid block itself and hides the comment, so one source serves both.
+IMAGE_BLOCK = re.compile(r"<!-- confluence-image: ([\w.-]+) -->\n```mermaid\n.*?```\n", re.S)
+
+def images(md):
+    return IMAGE_BLOCK.sub(lambda m: f'<ac:image ac:width="900"><ri:attachment ri:filename="{m.group(1)}" /></ac:image>\n', md)
+
 def rewrite(md):
+    md = images(md)
     def sub(m):
         text, href = m.group(1), m.group(2)
         if href.startswith(("http://", "https://", "mailto:")): return m.group(0)

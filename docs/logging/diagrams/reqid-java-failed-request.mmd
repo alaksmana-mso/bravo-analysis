@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant G as KrakenD gateway
+    participant F as CorrelationIdFilter (starter)
+    participant A as Service code
+    participant T as Error dispatch
+    G->>F: GET /x, x-bfi-req-id: abc
+    Note over F: MDC correlation_id=abc<br/>response header x-bfi-req-id: abc
+    F->>A: doFilter
+    A-->>F: throws
+    Note over F: MDC kept, so Tomcat's "Servlet.service() threw exception" line carries abc
+    F->>T: ERROR dispatch, same id from the request attribute
+    T-->>G: 500, x-bfi-req-id: abc, error page lines carry correlation_id=abc

@@ -1,0 +1,5 @@
+flowchart LR
+    A[#129 merges to master] --> B[Deploy Package: bfi-logging-core 0.1.2]
+    B --> C[#132 CI goes green<br/>paths-filter builds only the starter, which needs core 0.1.2 from the registry]
+    C --> D[#132 merges]
+    D --> E[Deploy Package: bfi-logging-spring-boot-starter 0.1.3]

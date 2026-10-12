@@ -59,6 +59,168 @@ The two wrapper pull requests, bfi-go-pkg#185 and bfi-java-pkg#129, were right i
 | Go, incoming id | The wrapper accepted an xid only, so an id minted by a Java service was replaced. | all Go services |
 | Java | The starter read `X-Correlation-Id`; the gateway sends `x-bfi-req-id`. No Java repository knows that name. And the starter minted nothing when the header was missing, so most Java requests had no id at all to log, forward or quote. | all 34 Java services |
 
+#### In pictures
+
+**Before: where the id was lost between the gateway and a gRPC service, and on every outgoing call.**
+
+<!-- confluence-image: reqid-go-before.png -->
+```mermaid
+sequenceDiagram
+    participant G as KrakenD gateway
+    participant P as REST proxy
+    participant S as gRPC service
+    participant D as Downstream service
+    G->>P: x-bfi-req-id: abc
+    P--xS: header dropped (grpc-gateway forwards only Grpc-Metadata-*)
+    Note over S: loggerinterceptor mints def
+    S--xD: nothing forwarded
+    Note over D: mints ghi
+    Note over G,D: client holds abc, S logs def, D logs ghi
+```
+
+**After: one id from the client to the downstream service and back, in logs, on spans and in the error body.**
+
+<!-- confluence-image: reqid-go-after.png -->
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as KrakenD gateway
+    participant P as REST proxy (grpc-gateway)
+    participant S as gRPC service
+    participant D as Downstream service
+    C->>G: request
+    Note over G: mints x-bfi-req-id = abc (xid)
+    G->>P: x-bfi-req-id: abc
+    Note over P: loggermw keeps abc, span request_id=abc
+    P->>S: metadata x-bfi-req-id: abc (defaultRESTProxyMetadataAnnotator)
+    Note over S: loggerinterceptor keeps abc, logs request_id=abc, span request_id=abc
+    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.RequestIDTransport)
+    Note over D: keeps abc (IsValidRequestID), logs and tags with abc
+    D-->>S: error, details: RequestInfo{request_id: abc}
+    S-->>P: x-bfi-req-id: abc, error detail request_id=abc
+    P-->>C: JSON error body with request_id=abc, header x-bfi-req-id: abc
+```
+
+**The rule every Go service applies to an incoming id after the bump (bfi-go-pkg#185).**
+
+<!-- confluence-image: reqid-go-inbound-rule.png -->
+```mermaid
+flowchart TD
+    A[incoming x-bfi-req-id header or metadata] --> B{tracer.IsValidRequestID?<br/>1-128 chars of letters, digits, . _ : -}
+    B -- yes --> C[keep the caller's id, whoever minted it]
+    B -- missing or malformed --> D[mint a new xid]
+    C --> E[context + log field request_id]
+    D --> E
+    D --> F[returned as x-bfi-req-id response header]
+    E --> G[span attribute request_id]
+    E --> H[outgoing HTTP and gRPC calls forward it]
+```
+
+**The rule the Java starter applies (bfi-java-pkg#129): gateway header first, old header second, then a minted xid.**
+
+<!-- confluence-image: reqid-java-filter.png -->
+```mermaid
+flowchart TD
+    A[request arrives] --> B{ERROR dispatch with the id of the first pass?}
+    B -- yes --> K[use it]
+    B -- no --> C{x-bfi-req-id valid?}
+    C -- yes --> K
+    C -- no --> D{fallback X-Correlation-Id valid?}
+    D -- yes --> K
+    D -- no --> E{correlation.generate?}
+    E -- true --> F[CorrelationId.generate: xid]
+    E -- false --> N[no id: nothing in the MDC, nothing on the response]
+    F --> K
+    K --> M[MDC correlation_id = id<br/>request attribute for the ERROR dispatch]
+    M --> R[response header x-bfi-req-id = id, set before the chain]
+    R --> X[filter chain]
+    X -- completes --> Y[MDC cleared]
+    X -- throws --> Z[MDC kept for Tomcat's error line and the ERROR dispatch<br/>cleared at the start of the next request on this thread]
+```
+
+**Where the Java pieces live: framework-free rules in core, the servlet filter in the starter, the old library for Boot 2.7.**
+
+<!-- confluence-image: reqid-java-modules.png -->
+```mermaid
+flowchart LR
+    subgraph core [bfi-logging-core: no Spring]
+        CI[CorrelationId<br/>MDC_KEY, DEFAULT_HEADER, LEGACY_HEADER<br/>isValid, current, open, generate]
+        X[Xid encoder<br/>same format as Go's rs/xid]
+        CI --> X
+    end
+    subgraph starter [bfi-logging-spring-boot-starter: Spring Boot 3]
+        AC[BravoLoggingAutoConfiguration<br/>correlation.header, fallback-header, generate, response-header] --> FL[CorrelationIdFilter<br/>servlet filter, REQUEST + ERROR dispatch]
+        FL --> CI
+    end
+    subgraph logger [bravo-lib-logging: Spring Boot 2.7]
+        OL[CorrelationIdFilter<br/>x-bfi-req-id first, then X-Correlation-Id<br/>mints a UUID]
+    end
+    JOB[schedulers, queue listeners] --> CI
+```
+
+**A Feign call carries the id into the next service, Go or Java (bfi-java-pkg#132).**
+
+<!-- confluence-image: reqid-java-feign.png -->
+```mermaid
+sequenceDiagram
+    participant G as KrakenD gateway
+    participant J as Java service (starter)
+    participant FI as CorrelationIdForwardingInterceptor
+    participant K as Next service (Go or Java)
+    G->>J: x-bfi-req-id: abc
+    Note over J: CorrelationIdFilter: MDC correlation_id=abc
+    J->>FI: Feign call
+    Note over FI: x-bfi-req-id not set by the caller,<br/>so add CorrelationId.current() = abc
+    FI->>K: x-bfi-req-id: abc
+    Note over K: keeps abc (Go: tracer.IsValidRequestID, Java: the filter)<br/>logs and tags its span with abc
+    K-->>J: response or error body with request_id=abc
+    J-->>G: x-bfi-req-id: abc
+```
+
+**The opt-in error-body detail in Go: how an upstream id is kept and how a client reads it back.**
+
+<!-- confluence-image: reqid-go-error-body.png -->
+```mermaid
+flowchart LR
+    H[handler returns a status error] --> E[errorinterceptor<br/>WithRequestInfoDetail]
+    PN[panic] --> PI[panicinterceptor<br/>WithRequestInfoDetail]
+    E --> W[grpcerror.WithRequestID]
+    PI --> W
+    W -- RequestInfo already there from upstream --> U[request_id replaced with this service's id<br/>old id kept in serving_data as upstream_request_id]
+    W -- none --> N[RequestInfo detail appended last]
+    U --> R[REST proxy and httpresponse render details as JSON]
+    N --> R
+    R --> CL[Go caller: httperror.APIError.RequestID<br/>ToGRPCStatusError skips an empty id]
+```
+
+**One `request_rejected` line per failed validation in Java, with field names and codes but never the values.**
+
+<!-- confluence-image: reqid-java-validation-line.png -->
+```mermaid
+flowchart TD
+    E[exception reaches the HandlerExceptionResolver chain<br/>ValidationFieldsLogger runs first, HIGHEST_PRECEDENCE] --> T{type?}
+    T -- BindException / MethodArgumentNotValidException --> F[FieldErrors: field + code]
+    T -- HandlerMethodValidationException --> P[parameter results: field + code]
+    T -- jakarta ConstraintViolationException --> V[violations: property path + constraint]
+    T -- anything else --> N[nothing logged]
+    F --> L
+    P --> L
+    V --> L
+    L[one request_rejected line<br/>validation_fields: first 50 of field + code, validation_fields_total, http.route<br/>never the rejected values] --> R[returns null, so the service's own @ExceptionHandler or ProblemDetail writes the response]
+```
+
+**Release order for the Java pull requests, and why #132's CI stays red until core 0.1.2 is published.**
+
+<!-- confluence-image: reqid-java-merge-order.png -->
+```mermaid
+flowchart LR
+    A[#129 merges to master] --> B[Deploy Package: bfi-logging-core 0.1.2]
+    B --> C[#132 CI goes green<br/>paths-filter builds only the starter, which needs core 0.1.2 from the registry]
+    C --> D[#132 merges]
+    D --> E[Deploy Package: bfi-logging-spring-boot-starter 0.1.3]
+```
+
 ### What fixes it, and where
 
 | Pull request | What it now does | Status (12 Oct) |
@@ -84,7 +246,7 @@ The two wrapper pull requests, bfi-go-pkg#185 and bfi-java-pkg#129, were right i
 - **Support asks a caller for the id.** It is the `x-bfi-req-id` response header, and in the error body where a service opted in.
 - **Background work** (schedulers, queue consumers) has no incoming id. Go leaves it empty. Java opens one with `CorrelationId.open(CorrelationId.generate())`.
 
-The survey behind the numbers above is on [the history page](history.md#one-request-id-across-services--the-survey-of-12-october).
+The Mermaid sources of the pictures are in [docs/logging/diagrams](diagrams/). The survey behind the numbers above is on [the history page](history.md#one-request-id-across-services--the-survey-of-12-october).
 
 ## Datadog log cost by service (8 October 2026)
 

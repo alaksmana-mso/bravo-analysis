@@ -1,0 +1,10 @@
+flowchart TD
+    E[exception reaches the HandlerExceptionResolver chain<br/>ValidationFieldsLogger runs first, HIGHEST_PRECEDENCE] --> T{type?}
+    T -- BindException / MethodArgumentNotValidException --> F[FieldErrors: field + code]
+    T -- HandlerMethodValidationException --> P[parameter results: field + code]
+    T -- jakarta ConstraintViolationException --> V[violations: property path + constraint]
+    T -- anything else --> N[nothing logged]
+    F --> L
+    P --> L
+    V --> L
+    L[one request_rejected line<br/>validation_fields: first 50 of field + code, validation_fields_total, http.route<br/>never the rejected values] --> R[returns null, so the service's own @ExceptionHandler or ProblemDetail writes the response]

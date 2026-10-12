@@ -1,0 +1,10 @@
+flowchart LR
+    H[handler returns a status error] --> E[errorinterceptor<br/>WithRequestInfoDetail]
+    PN[panic] --> PI[panicinterceptor<br/>WithRequestInfoDetail]
+    E --> W[grpcerror.WithRequestID]
+    PI --> W
+    W -- RequestInfo already there from upstream --> U[request_id replaced with this service's id<br/>old id kept in serving_data as upstream_request_id]
+    W -- none --> N[RequestInfo detail appended last]
+    U --> R[REST proxy and httpresponse render details as JSON]
+    N --> R
+    R --> CL[Go caller: httperror.APIError.RequestID<br/>ToGRPCStatusError skips an empty id]

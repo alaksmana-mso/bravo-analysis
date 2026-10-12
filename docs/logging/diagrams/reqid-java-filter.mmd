@@ -1,0 +1,16 @@
+flowchart TD
+    A[request arrives] --> B{ERROR dispatch with the id of the first pass?}
+    B -- yes --> K[use it]
+    B -- no --> C{x-bfi-req-id valid?}
+    C -- yes --> K
+    C -- no --> D{fallback X-Correlation-Id valid?}
+    D -- yes --> K
+    D -- no --> E{correlation.generate?}
+    E -- true --> F[CorrelationId.generate: xid]
+    E -- false --> N[no id: nothing in the MDC, nothing on the response]
+    F --> K
+    K --> M[MDC correlation_id = id<br/>request attribute for the ERROR dispatch]
+    M --> R[response header x-bfi-req-id = id, set before the chain]
+    R --> X[filter chain]
+    X -- completes --> Y[MDC cleared]
+    X -- throws --> Z[MDC kept for Tomcat's error line and the ERROR dispatch<br/>cleared at the start of the next request on this thread]
