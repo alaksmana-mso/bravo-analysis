@@ -324,10 +324,12 @@ Three things to check in a Go service:
 - `*_BODY_LOGGING_ON_ERROR_ONLY` is `true`. Where it is `false`, every call logs its body,
   not just the failures.
 
-**And one thing the wrapper is fixing for everyone:** until
-[bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) ships, `JSONScrubber`
-masks a matched field only when its value is a string. A NIK or phone number sent as a JSON
-number, or a list of phone numbers, goes through untouched however good your list is.
+**And one thing the wrapper has fixed for everyone (updated 12 October 2026):** older
+versions of `JSONScrubber` mask a matched field only when its value is a string. A NIK or phone
+number sent as a JSON number, or a list of phone numbers, goes through untouched however good
+your list is. bfi-go-pkg#182 (30 September) and [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (merged 8 October) fix
+that. Your service gets the fix only when its `go.mod` uses bfi-go-pkg `d7d3ca2a00f8` or later.
+Your service's page says which version it uses today.
 
 **Java has one target library now, and a waiting room.** [bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) merged on
 16 September 2026: `bfi-logging-spring-boot-starter` is the logging library every Java

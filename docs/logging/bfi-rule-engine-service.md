@@ -73,7 +73,7 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 Side finding from reading the manifest: this service reads its HTTP client timeouts from `HTTPCLIENT_*` while production sets `HTTP_CLIENT_*`, so those timeouts have never been applied. Not changed here — it is a behaviour change the squad should make knowingly.
 
-Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175 (masks non-string values).
+Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175, merged on 8 October 2026. The non-string masking itself came with bfi-go-pkg#182 on 30 September.
 
 **Pull request: [bfi-rule-engine-service#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67)** — **merged 17 September 2026** by the squad. In production since 1 October (`v1.1.0`).
 Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-rule-engine-service/tree/fix/logging), head `ae5ae3c`, branched from `master` at `00ef5f8`.
@@ -82,7 +82,7 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bfi-rule-engine-service/t
 
 **Update, 17 September 2026 — where this pull request fits now.**
 
-Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175), merged on 8 October 2026. Together with bfi-go-pkg#182 (30 September), `JSONScrubber` now masks every value under a masked key, including numbers. On 12 October this service's `master` used bfi-go-pkg `003983f388a6` (28 September 2026), which masks string values only. Numbers such as a NIK or an amount stay in clear until the service bumps bfi-go-pkg to `d7d3ca2a00f8` or later. The masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
 
 CI on the current head is **fully green**.
 

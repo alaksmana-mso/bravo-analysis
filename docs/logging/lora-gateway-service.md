@@ -98,7 +98,7 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/lora-gateway-service/tree
 
 **Update, 17 September 2026 — where this pull request fits now.**
 
-Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175), merged on 8 October 2026. Together with bfi-go-pkg#182 (30 September), `JSONScrubber` now masks every value under a masked key, including numbers. On 12 October this service's `master` used bfi-go-pkg `6e7a3935c021` (30 September 2026), which already masks non-string values. The masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
 
 Its production manifest is one of the 19 changed by [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820), which SRE approved on 15 September and **merged on 7 October 2026**; the pods rolled the same morning.
 

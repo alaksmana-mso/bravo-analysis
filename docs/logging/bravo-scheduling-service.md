@@ -70,7 +70,7 @@ Body logging is **off** in production (either set to `false` or absent, and `bfi
 
 Side finding from reading the manifest: this service reads its HTTP client timeouts from `HTTPCLIENT_*` while production sets `HTTP_CLIENT_*`, so those timeouts have never been applied. Not changed here — it is a behaviour change the squad should make knowingly.
 
-Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175 (masks non-string values).
+Wrapper-side counterpart: https://github.com/bfi-finance/bfi-go-pkg/pull/175, merged on 8 October 2026. The non-string masking itself came with bfi-go-pkg#182 on 30 September.
 
 **Pull request: [bravo-scheduling-service#300](https://github.com/bfi-finance/bravo-scheduling-service/pull/300)** — open, not merged.  
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-scheduling-service/tree/fix/logging), head `f8dfc27`, branched from `master` at `2f839d8`.
@@ -79,7 +79,7 @@ Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-scheduling-service/
 
 **Update, 17 September 2026 — where this pull request fits now.**
 
-Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) (`JSONScrubber` masks non-string values), is still open; the masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
+Nothing on the Java side changes this pull request. The Go wrapper fix, [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175), merged on 8 October 2026. Together with bfi-go-pkg#182 (30 September), `JSONScrubber` now masks every value under a masked key, including numbers. On 12 October this service's `master` used bfi-go-pkg `f57ea60477a1` (6 October 2026), which already masks non-string values. The masked-field lists stay a per-service, per-environment setting in `app-deployment`, as SRE asked on 14 September.
 
 CI on the current head is **fully green**.
 
