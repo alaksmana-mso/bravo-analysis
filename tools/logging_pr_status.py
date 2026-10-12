@@ -39,6 +39,7 @@ CLOSE_NOTES = {
     ("bravo-partnership-service", 2367): "superseded by the squad's own [#2386](https://github.com/bfi-finance/bravo-partnership-service/pull/2386)",
     ("lora-task-service", 1363): "dropped: the change relied on debug logging in production",
     ("bravo-user-iam-service", 521): "replaced by the one-flag fix #525",
+    ("app-deployment", 14252): "the services trace with OpenTelemetry, which ignores DD_TRACE_HEADER_TAGS; replaced by the span attribute in bfi-go-pkg#185",
 }
 
 # Merged pull requests that were later reverted, (repo, number) -> text
