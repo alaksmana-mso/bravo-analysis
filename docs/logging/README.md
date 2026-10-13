@@ -139,9 +139,9 @@ flowchart TD
     X -- throws --> Z[MDC kept for Tomcat's error line and the ERROR dispatch<br/>cleared at the start of the next request on this thread]
 ```
 
-**Where the Java pieces live: framework-free rules in core, the servlet filter in the starter, the old library for Boot 2.7.**
+**Where the Java pieces live: framework-free rules in core, the servlet filter in the starter. The old library is deprecated and gets nothing.**
 
-<!-- confluence-image: reqid-java-modules.png -->
+<!-- confluence-image: reqid-java-modules-v2.png -->
 ```mermaid
 flowchart LR
     subgraph core [bfi-logging-core: no Spring]
@@ -153,8 +153,8 @@ flowchart LR
         AC[BravoLoggingAutoConfiguration<br/>correlation.header, fallback-header, generate, response-header] --> FL[CorrelationIdFilter<br/>servlet filter, REQUEST + ERROR dispatch]
         FL --> CI
     end
-    subgraph logger [bravo-lib-logging: Spring Boot 2.7]
-        OL[CorrelationIdFilter<br/>x-bfi-req-id first, then X-Correlation-Id<br/>mints a UUID]
+    subgraph logger [bravo-lib-logging: Spring Boot 2.7, deprecated]
+        OL[CorrelationIdFilter<br/>unchanged: X-Correlation-Id only, mints a UUID<br/>services move to the starter]
     end
     JOB[schedulers, queue listeners] --> CI
 ```
@@ -226,7 +226,7 @@ flowchart LR
 | Pull request | What it now does | Status (12 Oct) |
 |---|---|---|
 | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | REST proxy forwards the id into gRPC metadata by default. `httpclient.New` and `LoggedTransport` forward it on outgoing HTTP. `loggerinterceptor.UnaryClient()` forwards it on gRPC dials. Incoming ids are kept when well formed (letters, digits, `. _ : -`, up to 128). Both inbound paths tag the span with `request_id`. Error bodies carry the id when a service opts in. | open, CI green, waiting for review |
-| [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | Starter reads `x-bfi-req-id` first, `X-Correlation-Id` as a fallback. Mints an id when none arrives, in the same xid format as the gateway, so older Go services keep it. Returns it on the response. The old `bravo-lib-logging` reads `x-bfi-req-id` first too. | open, waiting for review |
+| [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | Starter reads `x-bfi-req-id` first, `X-Correlation-Id` as a fallback. Mints an id when none arrives, in the same xid format as the gateway, so older Go services keep it. Returns it on the response. The old `bravo-lib-logging` is not changed: it is deprecated, and only core and the starter are developed further. | open, waiting for review |
 | [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | Forwards the id on every Feign call. Logs one `request_rejected` line with the failed field names, never the values. Opt-in id on `ProblemDetail` error bodies. | open; CI red until core 0.1.3 is published after #129 merges |
 
 The three pull requests are GitHub stacks together with the masking ones (bfi-go-pkg#186 on #185; bfi-java-pkg#134 on #132), so each shows only its own change. The stack note in the pull request table at the end of this page gives the merge order.
@@ -238,9 +238,9 @@ The three pull requests are GitHub stacks together with the masking ones (bfi-go
 | Go squads, HTTP services (17) | Bump bfi-go-pkg. Nothing else for logs, spans and outgoing HTTP. gRPC dials get one line: `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())`. Error bodies: use `httpresponse.ErrorAsJSONForRequest(w, r, err)`. |
 | Go squads, gRPC services (28) | Bump bfi-go-pkg. The proxy fix needs no service change. Error bodies: opt in with `WithRequestInfoDetail()` on `errorinterceptor` and `panicinterceptor`, after checking that callers do not reject an unknown `@type`. |
 | Java squads on Spring Boot 3 (20) | Adopt the starter (0.1.3 or later). Feign calls forward the id with no code. RestTemplate and WebClient calls need the service's own interceptor. Services that handle `X-Correlation-Id` themselves switch to `x-bfi-req-id`. |
-| Java squads on Spring Boot 2.7 (14) | The starter needs Boot 3. The old library reads the gateway's id after the next `bravo-lib-logging` release. Forwarding on Feign needs the service's own interceptor. |
+| Java squads on Spring Boot 2.7 (14) | The starter needs Boot 3, and the old library (`bravo-lib-logging`) is deprecated and gets none of this. These services get the request id when they move to Boot 3 and the starter. Until then they keep `X-Correlation-Id` and a UUID of their own, and a Go service on an older wrapper replaces that id. |
 | SRE | Java services only: set `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` in each service's app-deployment values. The Datadog Java agent then tags spans with the same name the Go wrapper uses. Go services ignore the setting. |
-| Platform | Merge order: #185; #129, then publish core 0.1.2 at once; then #132. Cut a `bravo-lib-logging` release from the `logger` module. |
+| Platform | Merge order: #185 then #186; #129, then publish core 0.1.3 and starter 0.1.3 at once; then #132 (starter 0.1.4); then #134 (core 0.1.4, starter 0.1.5). No `bravo-lib-logging` release: the old library is deprecated. |
 
 ### How to use it
 
@@ -519,7 +519,7 @@ Every service in the programme has its own page with its findings and what its s
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) | new Java logging starter | **merged 16 Sep** |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) | old Java library: mask Feign bodies (closed in favour of the starter) | closed 16 Sep |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#128](https://github.com/bfi-finance/bfi-java-pkg/pull/128) | starter 0.1.1: stop dropping request logs after 6 lines | **merged 7 Oct** |
-| [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | starter and old library read the gateway's `x-bfi-req-id`, mint an id when none arrives, return it on the response; core 0.1.3, starter 0.1.3 | open — in review; bottom of stack #133 |
+| [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | starter reads the gateway's `x-bfi-req-id`, mints an id when none arrives, returns it on the response; the old library is left untouched (deprecated); core 0.1.3, starter 0.1.3 | open — in review; bottom of stack #133 |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | starter: forward the id on Feign calls, one line per rejected request, opt-in id on ProblemDetail bodies | open — stacked on #129 (stack #133); CI red until core 0.1.3 is published |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#134](https://github.com/bfi-finance/bfi-java-pkg/pull/134) | starter and core: body masking on by default (baseline list plus `LOG_SENSITIVE_KEYS`), oversized bodies skipped not cut, Feign URL query masked; core 0.1.4, starter 0.1.5 | open — CI green; stacked on #132 (stack #133) |
 | [bravo-terraform](https://github.com/bfi-finance/bravo-terraform) | [#366](https://github.com/bfi-finance/bravo-terraform/pull/366) | create the queue monitors in production only | open — red only on SNYK / image CVEs |

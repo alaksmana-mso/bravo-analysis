@@ -81,7 +81,7 @@ The question was whether bfi-go-pkg#185, bfi-java-pkg#129 and #132 would work ac
 | services using ProblemDetail | 1 | the ProblemDetail advice is low value; opt-in was right |
 | services running dd-java-agent | all | `DD_TRACE_HEADER_TAGS=x-bfi-req-id:request_id` works once the header name is unified |
 
-**What changed as a result, all on 12 October:** bfi-go-pkg#185 commit 3270f9c (proxy annotator, outbound forwarding, wider validity rule); bfi-java-pkg#129 commit 6eabe1d (default header `x-bfi-req-id`, fallback, minting in xid format, old library reads the gateway's header first); bfi-java-pkg#132 commit 13c5d23 (Feign forwards under `x-bfi-req-id`, type-based bean conditions, README). A Java UUID fails Go's old xid check, which is why the Java side mints xid-format ids: a Go service on any wrapper version keeps them.
+**What changed as a result, all on 12 October:** bfi-go-pkg#185 commit 3270f9c (proxy annotator, outbound forwarding, wider validity rule); bfi-java-pkg#129 commit 6eabe1d (default header `x-bfi-req-id`, fallback, minting in xid format, old library left untouched: it is deprecated, decided 13 October); bfi-java-pkg#132 commit 13c5d23 (Feign forwards under `x-bfi-req-id`, type-based bean conditions, README). A Java UUID fails Go's old xid check, which is why the Java side mints xid-format ids: a Go service on any wrapper version keeps them.
 
 **A CI trap for stacked pull requests.** `bfi-java-pkg`'s pipeline builds only the modules whose files changed against the pull request's base. #132 changes the starter only, and core 0.1.2 exists only on the #129 branch, so #132 fails to compile in CI until #129 is merged and core 0.1.2 is published. Last time (#122) publishing happened a week after the merge.
 

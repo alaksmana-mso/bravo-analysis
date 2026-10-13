@@ -8,7 +8,7 @@ flowchart LR
         AC[BravoLoggingAutoConfiguration<br/>correlation.header, fallback-header, generate, response-header] --> FL[CorrelationIdFilter<br/>servlet filter, REQUEST + ERROR dispatch]
         FL --> CI
     end
-    subgraph logger [bravo-lib-logging: Spring Boot 2.7]
-        OL[CorrelationIdFilter<br/>x-bfi-req-id first, then X-Correlation-Id<br/>mints a UUID]
+    subgraph logger [bravo-lib-logging: Spring Boot 2.7, deprecated]
+        OL[CorrelationIdFilter<br/>unchanged: X-Correlation-Id only, mints a UUID<br/>services move to the starter]
     end
     JOB[schedulers, queue listeners] --> CI

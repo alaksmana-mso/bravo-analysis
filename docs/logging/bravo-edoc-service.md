@@ -332,12 +332,12 @@ This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the lib
 
 **Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
 
-This service is on Spring Boot 2.7.18, so it cannot take the starter (Boot 3.3 or later). What it gets: `bravo-lib-logging`'s filter reads `x-bfi-req-id` first, then `X-Correlation-Id`, from the next release of the `logger` module after [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) merges; it still mints a UUID when no id arrives, which a Go service on an older wrapper replaces. The Feign forwarding and the rejected-request line in #132 are starter-only.
+This service is on Spring Boot 2.7.18, so it cannot take the starter (Boot 3.3 or later). What it gets: nothing from the libraries for now. `bravo-lib-logging` is deprecated (decided 13 October); only core and the starter are developed further, so [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) and #132 leave it untouched. Until this service moves to Boot 3 and the starter it keeps `X-Correlation-Id` and a UUID of its own, and a Go service on an older wrapper replaces that id.
 
 What is left for the squad and SRE:
 
 - **Deployment (SRE):** add `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` to the service's app-deployment values; the Datadog Java agent tags spans from the header with no code change, and this works on Boot 2.7 as it does on Boot 3.
-- **Forwarding:** Feign calls (37 files) need the service's own `RequestInterceptor` that copies the library's correlation id from the MDC into the `x-bfi-req-id` header. Until then a hop into another service starts a new id.
+- **Forwarding:** until the move to the starter, Feign calls (37 files) need the service's own `RequestInterceptor` that copies the correlation id from the MDC into the `x-bfi-req-id` header, or a hop into another service starts a new id.
 - **Header name:** the service handles `X-Correlation-Id` in its own code (1 file); switch to `x-bfi-req-id`.
 - **Error bodies:** add the correlation id from the MDC to the service's error type, so a caller can quote it.
 
