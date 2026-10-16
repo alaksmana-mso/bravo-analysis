@@ -58,7 +58,7 @@ sequenceDiagram
     Note over P: loggermw keeps abc, span request_id=abc
     P->>S: metadata x-bfi-req-id: abc (defaultRESTProxyMetadataAnnotator)
     Note over S: loggerinterceptor keeps abc, logs request_id=abc, span request_id=abc
-    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.RequestIDTransport)
+    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.LoggedTransport)
     Note over D: keeps abc (IsValidRequestID), logs and tags with abc
     D-->>S: error, details: RequestInfo{request_id: abc}
     S-->>P: x-bfi-req-id: abc, error detail request_id=abc
@@ -73,7 +73,7 @@ Pull request: [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/18
 |---|---|
 | `loggermw` (HTTP server) and `loggerinterceptor` (gRPC server) | Keep a well-formed incoming `x-bfi-req-id` (`tracer.IsValidRequestID`), else make a new xid. Put it on every log line as `request_id`, on the server span as the `request_id` tag, and on the response header. |
 | REST proxy (`grpcserver.NewRESTProxy`) | Passes the caller's `x-bfi-req-id` into the gRPC metadata by default, so the gRPC side keeps the gateway's id. |
-| HTTP client (`httpclient.New`, `LoggedTransport`) | Sends the current request id on every outgoing call as `x-bfi-req-id`. A header the caller set is kept. `WithoutRequestIDForwarding()` turns it off for a third party. |
+| HTTP client (`LoggedTransport`, which `httpclient.New` uses) | Sends the current request id on every outgoing call as `x-bfi-req-id`. A header the caller set is kept. A malformed id is not sent. |
 | gRPC client (`loggerinterceptor.UnaryClient()`, `StreamClient()`) | Sends the current request id as metadata on outgoing gRPC calls. |
 | Error body, opt-in (`errorinterceptor` and `panicinterceptor` with `WithRequestInfoDetail()`; `httpresponse.ErrorAsJSONForRequest` for plain HTTP) | Adds the id to the error as a standard `google.rpc.RequestInfo` detail, so a caller that does not read headers can still quote it. Off by default, because a client with a strict type registry rejects an unknown detail. |
 | Errors from another service | The upstream id is kept in the detail as `upstream_request_id=<id>`; `grpcerror.UpstreamRequestIDsFromError` reads it. `httperror.APIError.RequestID()` reads the id from another BFI service's REST error. |

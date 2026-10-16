@@ -97,7 +97,7 @@ sequenceDiagram
     Note over P: loggermw keeps abc, span request_id=abc
     P->>S: metadata x-bfi-req-id: abc (defaultRESTProxyMetadataAnnotator)
     Note over S: loggerinterceptor keeps abc, logs request_id=abc, span request_id=abc
-    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.RequestIDTransport)
+    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.LoggedTransport)
     Note over D: keeps abc (IsValidRequestID), logs and tags with abc
     D-->>S: error, details: RequestInfo{request_id: abc}
     S-->>P: x-bfi-req-id: abc, error detail request_id=abc
@@ -227,7 +227,7 @@ flowchart LR
 
 | Pull request | What it now does | Status (16 Oct) |
 |---|---|---|
-| [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | REST proxy forwards the id into gRPC metadata by default. `httpclient.New` and `LoggedTransport` forward it on outgoing HTTP. `loggerinterceptor.UnaryClient()` forwards it on gRPC dials. Incoming ids are kept when well formed (letters, digits, `. _ : -`, up to 128). Both inbound paths tag the span with `request_id`. Error bodies carry the id when a service opts in. | open, CI green, in review |
+| [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | REST proxy forwards the id into gRPC metadata by default. `LoggedTransport` forwards it on outgoing HTTP (all 49 services that call `httpclient.New` also use it). `loggerinterceptor.UnaryClient()` forwards it on gRPC dials. Incoming ids are kept when well formed (letters, digits, `. _ : -`, up to 128). Both inbound paths tag the span with `request_id`. Error bodies carry the id when a service opts in. | open, CI green, in review |
 | [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | Starter reads `x-bfi-req-id` first, `X-Correlation-Id` as a fallback. Mints an id when none arrives, in the same xid format as the gateway, so older Go services keep it. Returns it on the response. The old `bravo-lib-logging` is not changed: it is deprecated, and only core and the starter are developed further. | **merged 13 Oct**; published as 0.1.3 |
 | [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | Forwards the id on every Feign call. Logs one `request_rejected` line with the failed field names, never the values. Opt-in id on `ProblemDetail` error bodies. | **merged 15 Oct**; in `master` (starter 0.1.5), not published yet |
 

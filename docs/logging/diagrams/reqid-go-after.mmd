@@ -11,7 +11,7 @@ sequenceDiagram
     Note over P: loggermw keeps abc, span request_id=abc
     P->>S: metadata x-bfi-req-id: abc (defaultRESTProxyMetadataAnnotator)
     Note over S: loggerinterceptor keeps abc, logs request_id=abc, span request_id=abc
-    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.RequestIDTransport)
+    S->>D: x-bfi-req-id: abc (loggerinterceptor.UnaryClient / httpclient.LoggedTransport)
     Note over D: keeps abc (IsValidRequestID), logs and tags with abc
     D-->>S: error, details: RequestInfo{request_id: abc}
     S-->>P: x-bfi-req-id: abc, error detail request_id=abc
