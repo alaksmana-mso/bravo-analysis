@@ -235,14 +235,14 @@ The wrapper pull requests are built too: `bfi-go-pkg#175` (`go test`, lint clean
 each pull request is still the authority, but "not compiled" is no longer true of anything
 in this programme.
 
-| Repo | Pull request | Status (15 Oct) |
+| Repo | Pull request | Status (16 Oct) |
 |---|---|---|
 | [bfi-digital-web-api](bfi-digital-web-api.md) | [#711](https://github.com/bfi-finance/bfi-digital-web-api/pull/711) | open — red only on SNYK / image CVEs |
 | [bfi-insurance-api](bfi-insurance-api.md) | [#3298](https://github.com/bfi-finance/bfi-insurance-api/pull/3298) | open — red only on SNYK / image CVEs, SonarQube |
 | [bfi-payment-api](bfi-payment-api.md) | [#1650](https://github.com/bfi-finance/bfi-payment-api/pull/1650) | **merged 7 Oct** |
 | [bravo-agency-service](bravo-agency-service.md) | [#1141](https://github.com/bfi-finance/bravo-agency-service/pull/1141) | **merged 18 Sep** |
-| [bravo-agreement-service](bravo-agreement-service.md) | [#2604](https://github.com/bfi-finance/bravo-agreement-service/pull/2604) | open — CI green |
-| [bravo-approval-engine-service](bravo-approval-engine-service.md) | [#166](https://github.com/bfi-finance/bravo-approval-engine-service/pull/166) | open — red only on SNYK / image CVEs |
+| [bravo-agreement-service](bravo-agreement-service.md) | [#2604](https://github.com/bfi-finance/bravo-agreement-service/pull/2604) | open, **approved** — CI green |
+| [bravo-approval-engine-service](bravo-approval-engine-service.md) | [#166](https://github.com/bfi-finance/bravo-approval-engine-service/pull/166) | **merged 15 Oct** |
 | [bravo-bpm-service](bravo-bpm-service.md) | [#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) | **merged 9 Oct**, reverted the same day in #10578: not finished in review and testing |
 | [bravo-branch-service](bravo-branch-service.md) | [#506](https://github.com/bfi-finance/bravo-branch-service/pull/506) | **merged 9 Oct** |
 | [bravo-cnv-service](bravo-cnv-service.md) | [#726](https://github.com/bfi-finance/bravo-cnv-service/pull/726) | **merged 9 Oct** |
@@ -357,9 +357,9 @@ The Java pull requests were compiled on 14 September 2026 once a JDK turned out 
 `mise x` away (22 of 22 compile; 12 of the 12 test suites run pass — see
 each file's verification note). Treat CI as the authority for them still.
 
-| Repository | Production service | Pull request | What it changes | Status (15 Oct) |
+| Repository | Production service | Pull request | What it changes | Status (16 Oct) |
 |---|---|---|---|---|
-| [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss | open — red only on Prettier |
+| [bfi-connect](bfi-connect.md) | `prod-ms-bfi-connect` | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss | **merged 16 Oct** |
 | [bfi-incentive-api](bfi-incentive-api.md) | `prod-ms-bfi-incentive-api` | [#1698](https://github.com/bfi-finance/bfi-incentive-api/pull/1698) | give the consumer failure a stable message | open — red only on SNYK / image CVEs |
 | [bfi-rule-engine-service](bfi-rule-engine-service.md) | `prod-ms-rule-engine` | [#67](https://github.com/bfi-finance/bfi-rule-engine-service/pull/67) | mask outbound HTTP bodies before they reach the log stream | **merged 17 Sep** |
 | [bravo-agent-marketing-service](bravo-agent-marketing-service.md) | `prod-agent-marketing` | [#829](https://github.com/bfi-finance/bravo-agent-marketing-service/pull/829) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
@@ -381,12 +381,12 @@ each file's verification note). Treat CI as the authority for them still.
 | [bravo-krakend-internal](bravo-krakend-internal.md) | `prod-ms-krakend-internal` | [#58](https://github.com/bfi-finance/bravo-krakend-internal/pull/58) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [bravo-kyc-proxy](bravo-kyc-proxy.md) | `prod-ms-kyc-proxy` | [#726](https://github.com/bfi-finance/bravo-kyc-proxy/pull/726) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [bravo-kyc-sign-service](bravo-kyc-sign-service.md) | `prod-ms-kyc-sign` | [#118](https://github.com/bfi-finance/bravo-kyc-sign-service/pull/118) | mask request and response bodies by default | **merged 9 Oct** |
-| [bravo-lms-ops-service](bravo-lms-ops-service.md) | `prod-ms-lms-ops` | [#1856](https://github.com/bfi-finance/bravo-lms-ops-service/pull/1856) | close the request payload trap | open, **approved** — red only on SNYK / image CVEs, SonarQube |
+| [bravo-lms-ops-service](bravo-lms-ops-service.md) | `prod-ms-lms-ops` | [#1856](https://github.com/bfi-finance/bravo-lms-ops-service/pull/1856) | close the request payload trap | **merged 16 Oct** |
 | [bravo-notification-service](bravo-notification-service.md) | `prod-ms-notification` | [#446](https://github.com/bfi-finance/bravo-notification-service/pull/446) | stop logging signing keys, private keys and bearer tokens | open, **approved** — CI green |
 | [bravo-partnership-provisioning-service](bravo-partnership-provisioning-service.md) | `prod-ms-partnership-provisioning` | [#94](https://github.com/bfi-finance/bravo-partnership-provisioning-service/pull/94) | mask request and response bodies by default | open — red only on Codacy coverage, SNYK / image CVEs |
 | [bravo-partnership-service](bravo-partnership-service.md) | `prod-ms-partnership` | [#2367](https://github.com/bfi-finance/bravo-partnership-service/pull/2367) | stop copying MQ and HTTP payloads into the log stream | closed 7 Oct, superseded by the squad's own [#2386](https://github.com/bfi-finance/bravo-partnership-service/pull/2386) |
 | [bravo-pbf-service](bravo-pbf-service.md) | `prod-ms-pbf` | [#125](https://github.com/bfi-finance/bravo-pbf-service/pull/125) | stop reporting "agreement not held here" as an error | open — red only on SonarQube |
-| [bravo-product-service](bravo-product-service.md) | `prod-ms-product` | [#665](https://github.com/bfi-finance/bravo-product-service/pull/665) | log rejected requests at warn, not error | open — red only on Codacy coverage |
+| [bravo-product-service](bravo-product-service.md) | `prod-ms-product` | [#665](https://github.com/bfi-finance/bravo-product-service/pull/665) | log rejected requests at warn, not error | **merged 15 Oct** |
 | [bravo-repeat-order-service](bravo-repeat-order-service.md) | `prod-ms-repeat-order` | [#3503](https://github.com/bfi-finance/bravo-repeat-order-service/pull/3503) | log rejected requests at warn, not error | open — red only on SNYK / image CVEs |
 | [bravo-robot-controller](bravo-robot-controller.md) | `prod-ms-robot-controller` | [#84](https://github.com/bfi-finance/bravo-robot-controller/pull/84) | ~~give the masked-field lists a default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [bravo-robot-scrape](bravo-robot-scrape.md) | `prod-robot-scrape` | [#114](https://github.com/bfi-finance/bravo-robot-scrape/pull/114) | report DMS upload failures as errors, not as stdout text | **merged 9 Oct** |
@@ -397,7 +397,7 @@ each file's verification note). Treat CI as the authority for them still.
 | [document-hub-service](document-hub-service.md) | `prod-ms-document-hub` | [#92](https://github.com/bfi-finance/document-hub-service/pull/92) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |
 | [gold-service](gold-service.md) | `prod-ms-gold-service` | [#190](https://github.com/bfi-finance/gold-service/pull/190) | mask request and response bodies by default | open — CI green |
 | [lora-cdc-foxx-service](lora-cdc-foxx-service.md) | `prod-lora-cdc-foxx-service` | [#3](https://github.com/bfi-finance/lora-cdc-foxx-service/pull/3) | move the Datadog credentials and tags out of source | open — CI green |
-| [lora-gateway-service](lora-gateway-service.md) | `prod-lora-gateway` | [#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263) | actually mask outbound bodies, and log them on failure only | open, **approved** — red only on Codacy coverage |
+| [lora-gateway-service](lora-gateway-service.md) | `prod-lora-gateway` | [#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263) | actually mask outbound bodies, and log them on failure only | open, **approved** — CI green |
 | [lora-partnership-ndf](lora-partnership-ndf.md) | `prod-lora-partnership-ndf` | [#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) | mask request and response bodies by default | open, **approved** — CI green |
 | [lora-partnership-task-ndf](lora-partnership-task-ndf.md) | `prod-lora-partnership-task-ndf` | [#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126) | mask request and response bodies by default | open, **approved** — CI green |
 | [lora-schema-service](lora-schema-service.md) | `prod-lora-schema` | [#1496](https://github.com/bfi-finance/lora-schema-service/pull/1496) | ~~mask request and response bodies by default~~ **closed 14 Sep — deployment setting, not a code default** | closed 14 Sep |

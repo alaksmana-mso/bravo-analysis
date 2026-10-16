@@ -23,6 +23,7 @@ NAMED = {
     "deployment-proposal.md": "2773450891", "confins-prod-ms-lms-ar-be-findings.md": "2774728705",
     "nonprod-logging.md": "2823684104",
     "history.md": "2825715781", "README.md": "2774335489",  # history split out 7 October 2026
+    "request-id.md": "2849931327",  # 16 October 2026
 }
 SERVICE_PAGES = {
     "bravo-core-proxy-service": "2755756199", "bravo-agreement-service": "2755821675", "bravo-agency-service": "2755821690",
@@ -69,7 +70,13 @@ def target(href):
 # Mermaid block itself and hides the comment, so one source serves both.
 IMAGE_BLOCK = re.compile(r"<!-- confluence-image: ([\w.-]+) -->\n```mermaid\n.*?```\n", re.S)
 
+# --image-page-id <id> embeds the images by their download URL on another page, for a page that cannot take
+# attachments of its own (uploads to a new live page return 400 through mcp-atlassian).
+IMAGE_PAGE_ID = sys.argv[sys.argv.index("--image-page-id") + 1] if "--image-page-id" in sys.argv else None
+
 def images(md):
+    if IMAGE_PAGE_ID:
+        return IMAGE_BLOCK.sub(lambda m: f'![{m.group(1)}]({WIKI.replace("/spaces/EA/pages/", "/download/attachments/")}{IMAGE_PAGE_ID}/{m.group(1)})\n', md)
     return IMAGE_BLOCK.sub(lambda m: f'<ac:image ac:width="900"><ri:attachment ri:filename="{m.group(1)}" /></ac:image>\n', md)
 
 def rewrite(md):
