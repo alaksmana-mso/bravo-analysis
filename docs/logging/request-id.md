@@ -186,7 +186,7 @@ sequenceDiagram
 | Item | Status |
 |---|---|
 | Java: [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129), [#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | **merged** (and the masking change [#134](https://github.com/bfi-finance/bfi-java-pkg/pull/134) on top) |
-| Java packages | 0.1.3 published (filter, response header, minting). `master` is now core 0.1.4 / starter 0.1.5 with Feign forwarding, the rejected-request line and default masking; **not published yet**. Platform runs *Deploy Package* for `logging-core`, then `logging-starter`. |
+| Java packages | core 0.1.4 and starter 0.1.5 **published on 20 October**: the filter, response header and minting from 0.1.3, plus Feign forwarding, the rejected-request line and default masking |
 | Java services | none uses the starter on its main branch yet |
 | Go: [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | **merged 19 October** (and the masking change [#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) on top, merged the same day) |
 | Go services | get it by bumping bfi-go-pkg to `3026177` or later; bfi-go-pkg has no release tags |
