@@ -1,6 +1,6 @@
 # Log correlation-id and request-id
 
-*Written 16 October 2026. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
+*Written 16 October 2026, updated 20 October 2026 after the Go pull requests merged. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
 
 ## In one paragraph
 
@@ -43,7 +43,7 @@ sequenceDiagram
 
 **After: one id from the client to the last service and back, in logs, on spans and in the error body.**
 
-<!-- confluence-image: reqid-go-after.png -->
+<!-- confluence-image: reqid-go-after-v2.png -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -67,7 +67,7 @@ sequenceDiagram
 
 ## What we changed in bfi-go-pkg
 
-Pull request: [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) (in review). A Go service gets all of this by bumping bfi-go-pkg; the few service-side steps are listed after the table.
+Pull request: [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185), merged on 19 October 2026. A Go service gets all of this by bumping bfi-go-pkg to commit `3026177` or later: `go get github.com/bfi-finance/bfi-go-pkg@3026177`. The few service-side steps are listed after the table.
 
 | Part | What it does now |
 |---|---|
@@ -181,14 +181,15 @@ sequenceDiagram
 - **Find its spans:** in Datadog APM, `@request_id:<id>` (once the service runs the new library, and, for Java, has the `DD_TRACE_HEADER_TAGS` setting).
 - **Ask the caller for the id:** it is the `x-bfi-req-id` response header, and in the error body where the service opted in.
 
-## Status on 16 October
+## Status on 20 October
 
 | Item | Status |
 |---|---|
 | Java: [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129), [#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | **merged** (and the masking change [#134](https://github.com/bfi-finance/bfi-java-pkg/pull/134) on top) |
 | Java packages | 0.1.3 published (filter, response header, minting). `master` is now core 0.1.4 / starter 0.1.5 with Feign forwarding, the rejected-request line and default masking; **not published yet**. Platform runs *Deploy Package* for `logging-core`, then `logging-starter`. |
 | Java services | none uses the starter on its main branch yet |
-| Go: [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | open, in review; [#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) (default masking) is stacked on it |
+| Go: [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | **merged 19 October** (and the masking change [#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) on top, merged the same day) |
+| Go services | get it by bumping bfi-go-pkg to `3026177` or later; bfi-go-pkg has no release tags |
 | SRE | `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` for Java services: not set yet |
 
 The full survey of how each service is wired, and the per-service steps, are on [Logging Improvement](README.md) and the history page.

@@ -410,8 +410,8 @@ the span differs by stack:
   trace search finds every service of one request. `content-length` can be added for payload
   size. Never add `authorization`, `api-secret`, `cookie` or `set-cookie`.
 - **Go services** trace with the OpenTelemetry SDK, which ignores `DD_TRACE_HEADER_TAGS`
-  (app-deployment#14252 was closed for that reason). bfi-go-pkg#185 sets the span attribute
-  in code; a service gets it when it bumps the wrapper.
+  (app-deployment#14252 was closed for that reason). bfi-go-pkg#185 (merged 19 October 2026) sets the span attribute
+  in code; a service gets it when it bumps the wrapper to `3026177` or later.
 
 **b. Fix Remote Configuration. It is failing right now.** This was written up as a
 30-minute check. It has since been measured, and the answer is worse than unverified:

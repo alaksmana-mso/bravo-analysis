@@ -11,13 +11,14 @@ BFI pays too much for its logs, and the logs still do not do their job.
 
 **What this programme does about it.** Send less, mask what we keep, and give squads a supported way to see the data they need. Only then turn on more Datadog features, because Datadog bills on what we send. The ordered work is in [Do these first](#do-these-first).
 
-## Where things stand on 16 October 2026
+## Where things stand on 20 October 2026
 
-The steps were checked on 7 October. Pull request states were refreshed on 12 October.
+The steps were checked on 7 October. Pull request states were refreshed on 20 October.
 
-- **One of fourteen steps is done.** Five are partly done or unclear, and eight show no progress. The table below has the status of each.
+- **One of fourteen steps is done.** Seven are partly done, under way or unclear, and six show no progress. The table below has the status of each.
 - **The production manifest change is live.** [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) merged on 7 October and rolled out within minutes. It takes nine services off `debug` and gives five of them a mask list. Its effect on volume can be measured from 8 October.
 - **Two security items are still open.** The Google Chat webhook keys are still being logged, between 250 and 950 lines on most days. The leaked API secret no longer reaches the logs, but nobody has confirmed it was rotated.
+- **The Go library changes are merged.** [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) (one request id across services) and [bfi-go-pkg#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) (masking on by default) merged on 19 October. A Go service gets both when it bumps bfi-go-pkg. Default masking also needs the `DEFAULT_LOG_SENSITIVE_KEYS` variable in each manifest, and the four pull requests that add it are still open. See [Masking on by default in the libraries](#masking-on-by-default-in-the-libraries).
 - **Every open step has an SRE ticket and, where a change can fix it, a pull request.** Tickets [SRE-1821](https://bfifinance.atlassian.net/browse/SRE-1821) to [SRE-1832](https://bfifinance.atlassian.net/browse/SRE-1832) carry the label `logging-programme`.
 - **Service pull requests: 46 merged, 22 open, 19 closed.** Twelve more merged on 15 and 16 October: the last seven `tee -a` pull requests (assistance, collection-consumer, lms-ops, agency, agent-marketing, backoffice, supplier), plus `bravo-inventory-management-service#409`, `bravo-approval-engine-service#166`, `bravo-product-service#665`, `bravo-lms-ops-service#1856` and `bfi-connect#788`. Three merged on 12 and 13 October: `gold-service#191` (`tee -a`), `bravo-surveyor-console#3976` and `bravo-inventory-management-system#232`. Twenty-four merged on 8 and 9 October, each after a squad approval: eleven from the earlier packs (`bravo-agency-service#1173`, `bravo-auth-service#258`, `bravo-bpm-service#10463` and `#10571`, `bravo-branch-service#506`, `bravo-cnv-service#726`, `bravo-employee-service#172`, `bravo-kyc-sign-service#118`, `bravo-robot-scrape#114`, `bravo-scheduling-service#300`, `doc-renderer-service#31`), `bravo-audit-trail-service#36`, eleven `tee -a` fixes, and the bpm revert `bravo-bpm-service#10578`. That revert undid `#10463` and `#10571` the same morning, so two of the 29 are no longer in effect. Three were closed: the Digital Partnership squad replaced `bravo-partnership-service#2367` with its own #2386, `lora-task-service#1363` was dropped because it relied on debug logging in production, and `bravo-user-iam-service#521` was replaced by the one-flag fix #525. Approved and waiting to merge: `bravo-onboarding-service#6328`, and the three LORA pull requests rebased on 9 October (`lora-gateway-service#1263`, `lora-partnership-ndf#1493`, `lora-partnership-task-ndf#2126`), each with one approval so far. None of the open ones fails CI because of this work. The red checks are gates that were already red before this work. Every pull request and its status is in the [table below](#per-service-pages-and-pull-requests).
 - **The bpm logging changes were reverted.** [bravo-bpm-service#10571](https://github.com/bfi-finance/bravo-bpm-service/pull/10571) (the Java logging starter) and [bravo-bpm-service#10463](https://github.com/bfi-finance/bravo-bpm-service/pull/10463) (masked and capped Feign bodies) merged on 9 October. The Scoring and Underwriting squad reverted both the same morning in [bravo-bpm-service#10578](https://github.com/bfi-finance/bravo-bpm-service/pull/10578). They were not ready: one team member approved both, but the squad leads, Anton and Yosef, had not finished reviewing and testing them. Both go back through review before they merge again. The revert brings back complete, unmasked Feign bodies at `info` with no size cap. No service uses the starter on its main branch now. The Go wrapper fix [bfi-go-pkg#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) merged on 8 October and stays.
@@ -25,7 +26,7 @@ The steps were checked on 7 October. Pull request states were refreshed on 12 Oc
 
 ## Do these first
 
-| # | Action | Owner | Status (7 Oct; pull requests 12 Oct) | PR and ticket |
+| # | Action | Owner | Status (7 Oct; pull requests 20 Oct) | PR and ticket |
 |---|---|---|---|---|
 | 1 | Fix the leaked API secret in `lms-calculation-service`, and rotate it | Contract Collateral | **Partly done.** The code fix is live since 1 October, and no log line has carried the secret since. Rotation is not confirmed. | [lms-calculation-service#647](https://github.com/bfi-finance/lms-calculation-service/pull/647) (merged); [SRE-1822](https://bfifinance.atlassian.net/browse/SRE-1822) |
 | 2 | Merge the production manifest change: log levels and mask lists for 20 services | SRE + squads | **Done.** Merged and rolled out on 7 October. | [app-deployment#13820](https://github.com/bfi-finance/app-deployment/pull/13820) |
@@ -35,10 +36,10 @@ The steps were checked on 7 October. Pull request states were refreshed on 12 Oc
 | 5 | Fix CONFINS log re-ingestion | SRE | **Unclear.** The re-reading looks stopped, but volume is 2.7 to 7.3 million entries a day, against about 200,000 in September. | No PR; [SRE-1825](https://bfifinance.atlassian.net/browse/SRE-1825) |
 | 6 | Decide what Coralogix is for | Architecture | **No progress.** No page or ticket answers it. | No PR; [SRE-1826](https://bfifinance.atlassian.net/browse/SRE-1826) |
 | 7 | Fix Datadog Remote Configuration on 13 services | SRE | **Not done.** 108,000 failed polls in seven days. | No PR; [SRE-1827](https://bfifinance.atlassian.net/browse/SRE-1827) |
-| 8 | Tag traces with the request id | Platform | **Not done; approach settled on 12 October.** The manifest setting `DD_TRACE_HEADER_TAGS` cannot work for Go: 20 of the 21 Go services trace with the OpenTelemetry SDK, which ignores it, so #14252 was closed. bfi-go-pkg#185 sets the request id on the span as `request_id` in code. Java services run the Datadog agent, so for them the manifest setting does work, as `x-bfi-req-id:request_id`. See [One request id across services](#one-request-id-across-services-x-bfi-req-id). | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185); [app-deployment#14252](https://github.com/bfi-finance/app-deployment/pull/14252) (closed); [SRE-1828](https://bfifinance.atlassian.net/browse/SRE-1828) |
+| 8 | Tag traces with the request id | Platform | **Partly done.** Go: bfi-go-pkg#185 merged on 19 October. It sets the request id on the span as `request_id` in code, so each Go service gets the tag when it bumps bfi-go-pkg. Java: the manifest setting `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` is not set yet. The Datadog Java agent reads it. Go cannot use it: 20 of the 21 Go services trace with the OpenTelemetry SDK, which ignores it, so #14252 was closed. See [One request id across services](#one-request-id-across-services-x-bfi-req-id). | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) (merged); [app-deployment#14252](https://github.com/bfi-finance/app-deployment/pull/14252) (closed); [SRE-1828](https://bfifinance.atlassian.net/browse/SRE-1828) |
 | 9 | Stop logging the Google Chat webhook keys in `bau-prod-ms-otrs-report`, then rotate them | Platform / security | **Not done.** 954 lines carried the keys on 6 October. | No PR, no write access; [SRE-1821](https://bfifinance.atlassian.net/browse/SRE-1821) |
 | 10 | Fix the three CI gate faults: Codacy token, Codacy installer, SonarQube baseline | Platform | **Not done.** A shallow clone is ruled out as the SonarQube cause. The baseline is the next suspect. | No PR; [SRE-1829](https://bfifinance.atlassian.net/browse/SRE-1829) |
-| 11 | Return the request id to the caller and log one line per rejected request, in the shared libraries | Platform, then squads | **Partly done.** Java is merged: bfi-java-pkg#129 and #132 (15 October). Release 0.1.3 is published; `master` is core 0.1.4 / starter 0.1.5 and needs a *Deploy Package* run before services can use Feign forwarding and the rejected-request line. Go (bfi-go-pkg#185) is still in review. How it works: [Log correlation-id and request-id](request-id.md). | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185); [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129); [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132); [SRE-1830](https://bfifinance.atlassian.net/browse/SRE-1830) |
+| 11 | Return the request id to the caller and log one line per rejected request, in the shared libraries | Platform, then squads | **Partly done.** Both libraries are merged. Go: bfi-go-pkg#185 merged on 19 October, and services get it when they bump bfi-go-pkg. Java: bfi-java-pkg#129 and #132 merged by 15 October. Release 0.1.3 is published. `master` is core 0.1.4 / starter 0.1.5 and needs a *Deploy Package* run before services can use Feign forwarding and the rejected-request line. No service has adopted either yet on its main branch. How it works: [Log correlation-id and request-id](request-id.md). | [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) (merged); [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129); [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132); [SRE-1830](https://bfifinance.atlassian.net/browse/SRE-1830) |
 | 12 | Apply the SIT and UAT logging baseline to 29 manifest files | SRE | **Partly done.** The 29-file baseline, #14251, merged on 12 October. Its effect on SIT and UAT log volume has not been measured yet. | [app-deployment#14251](https://github.com/bfi-finance/app-deployment/pull/14251) (merged); [SRE-1831](https://bfifinance.atlassian.net/browse/SRE-1831) |
 | 13 | Stop sending NUL padding to Datadog: `tee -a` in 20 service entrypoints, then fix the log-file setup on the nodes | Squads, then SRE | **Merged, releases under way.** All 19 pull requests are merged (the last four on 16 October). Live in production with the fix on 16 October: customer-bff, cnv, kyc-proxy and partnership. customer-bff's log bytes fell by more than 99% the day after its release (183 GB → 0.095 GB a day); cnv and kyc-proxy stopped padding at the release minute. The other fifteen save nothing until their next release; the two that matter most are lms-ops (510 GB of padding on 14 October) and audit-trail (about 350 GB a day). One repository is archived. | 19 pull requests in the [table below](#per-service-pages-and-pull-requests); details in [Datadog log cost by service](#datadog-log-cost-by-service-8-october-2026) |
 
@@ -82,7 +83,7 @@ sequenceDiagram
 
 **After: one id from the client to the downstream service and back, in logs, on spans and in the error body.**
 
-<!-- confluence-image: reqid-go-after.png -->
+<!-- confluence-image: reqid-go-after-v2.png -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -225,24 +226,24 @@ flowchart LR
 
 ### What fixes it, and where
 
-| Pull request | What it now does | Status (16 Oct) |
+| Pull request | What it now does | Status (20 Oct) |
 |---|---|---|
-| [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | REST proxy forwards the id into gRPC metadata by default. `LoggedTransport` forwards it on outgoing HTTP (all 49 services that call `httpclient.New` also use it). `loggerinterceptor.UnaryClient()` forwards it on gRPC dials. Incoming ids are kept when well formed (letters, digits, `. _ : -`, up to 128). Both inbound paths tag the span with `request_id`. Error bodies carry the id when a service opts in. | open, CI green, in review |
+| [bfi-go-pkg#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | REST proxy forwards the id into gRPC metadata by default. `LoggedTransport` forwards it on outgoing HTTP (all 49 services that call `httpclient.New` also use it). `loggerinterceptor.UnaryClient()` forwards it on gRPC dials. Incoming ids are kept when well formed (letters, digits, `. _ : -`, up to 128). Both inbound paths tag the span with `request_id`. Error bodies carry the id when a service opts in. | **merged 19 Oct**; services bump bfi-go-pkg to `3026177` or later |
 | [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) | Starter reads `x-bfi-req-id` first, `X-Correlation-Id` as a fallback. Mints an id when none arrives, in the same xid format as the gateway, so older Go services keep it. Returns it on the response. The old `bravo-lib-logging` is not changed: it is deprecated, and only core and the starter are developed further. | **merged 13 Oct**; published as 0.1.3 |
 | [bfi-java-pkg#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | Forwards the id on every Feign call. Logs one `request_rejected` line with the failed field names, never the values. Opt-in id on `ProblemDetail` error bodies. | **merged 15 Oct**; in `master` (starter 0.1.5), not published yet |
 
-The three pull requests are GitHub stacks together with the masking ones (bfi-go-pkg#186 on #185; bfi-java-pkg#134 on #132), so each shows only its own change. The stack note in the pull request table at the end of this page gives the merge order.
+The three pull requests were GitHub stacks together with the masking ones (bfi-go-pkg#186 on #185; bfi-java-pkg#134 on #132), so each showed only its own change. All five are merged: Java on 13 and 15 October, Go on 19 October.
 
 ### What each team does once the libraries are released
 
 | Team | What to do |
 |---|---|
-| Go squads, HTTP services (17) | Bump bfi-go-pkg. Nothing else for logs, spans and outgoing HTTP. gRPC dials get one line: `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())`. Error bodies: use `httpresponse.ErrorAsJSONForRequest(w, r, err)`. |
-| Go squads, gRPC services (28) | Bump bfi-go-pkg. The proxy fix needs no service change. Error bodies: opt in with `WithRequestInfoDetail()` on `errorinterceptor` and `panicinterceptor`, after checking that callers do not reject an unknown `@type`. |
+| Go squads, HTTP services (17) | Bump bfi-go-pkg to `3026177` or later. Nothing else for logs, spans and outgoing HTTP. gRPC dials get one line: `grpc.WithChainUnaryInterceptor(loggerinterceptor.UnaryClient())`. Error bodies: use `httpresponse.ErrorAsJSONForRequest(w, r, err)`. |
+| Go squads, gRPC services (28) | Bump bfi-go-pkg to `3026177` or later. The proxy fix needs no service change. Error bodies: opt in with `WithRequestInfoDetail()` on `errorinterceptor` and `panicinterceptor`, after checking that callers do not reject an unknown `@type`. |
 | Java squads on Spring Boot 3 (20) | Adopt the starter (0.1.3 or later). Feign calls forward the id with no code. RestTemplate and WebClient calls need the service's own interceptor. Services that handle `X-Correlation-Id` themselves switch to `x-bfi-req-id`. |
 | Java squads on Spring Boot 2.7 (14) | The starter needs Boot 3, and the old library (`bravo-lib-logging`) is deprecated and gets none of this. These services get the request id when they move to Boot 3 and the starter. Until then they keep `X-Correlation-Id` and a UUID of their own, and a Go service on an older wrapper replaces that id. |
 | SRE | Java services only: set `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` in each service's app-deployment values. The Datadog Java agent then tags spans with the same name the Go wrapper uses. Go services ignore the setting. |
-| Platform | Java: #129, #132 and #134 are merged; 0.1.3 is published; run *Deploy Package* for `logging-core` 0.1.4, then `logging-starter` 0.1.5. Go: merge #185, then #186. No `bravo-lib-logging` release: the old library is deprecated. |
+| Platform | Java: #129, #132 and #134 are merged; 0.1.3 is published; run *Deploy Package* for `logging-core` 0.1.4, then `logging-starter` 0.1.5. Go: done. #185 and #186 merged on 19 October. bfi-go-pkg has no release tags, so services bump to the commit: `go get github.com/bfi-finance/bfi-go-pkg@3026177` (pseudo-version `v0.0.0-20261019133647-3026177fc30b`). No `bravo-lib-logging` release: the old library is deprecated. |
 
 ### How to use it
 
@@ -251,6 +252,33 @@ The three pull requests are GitHub stacks together with the masking ones (bfi-go
 - **Background work** (schedulers, queue consumers) has no incoming id. Go leaves it empty. Java opens one with `CorrelationId.open(CorrelationId.generate())`.
 
 The Mermaid sources of the pictures are in [docs/logging/diagrams](diagrams/). The survey behind the numbers above is on [the history page](history.md#one-request-id-across-services--the-survey-of-12-october).
+
+## Masking on by default in the libraries
+
+*Added 20 October 2026.*
+
+Until now, masking was a tool each service had to wire up, and about 22 Go services never did. Both shared libraries now mask request and response bodies by default. A service that forgets its own settings still masks.
+
+| | Go: bfi-go-pkg | Java: `bfi-logging-core` and starter |
+|---|---|---|
+| Pull request | [bfi-go-pkg#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186), merged 19 October | [bfi-java-pkg#134](https://github.com/bfi-finance/bfi-java-pkg/pull/134), merged 15 October |
+| How a service gets it | Bump bfi-go-pkg to `3026177` or later | Starter 0.1.5. Only 0.1.3 is published, so Platform must run *Deploy Package* for core 0.1.4, then starter 0.1.5 |
+| Baseline list | `DEFAULT_LOG_SENSITIVE_KEYS` | `DEFAULT_LOG_SENSITIVE_KEYS` |
+| The service's own additions | `LOG_SENSITIVE_KEYS`, plus the existing `HTTP_CLIENT_*`, `HTTP_SERVER_*` and `GRPC_SERVER_*` `_REQUEST_BODY_JSON_MASKED_FIELDS` / `_RESPONSE_BODY_JSON_MASKED_FIELDS` | `LOG_SENSITIVE_KEYS`. The old `SENSITIVE_KEYS` is not read, so rename it when a service moves to the starter. Four production manifests use it: agency, lms-ops, onboarding, bfi-incentive-api |
+| Also masked | Query parameters in `req_query` and `req_uri` | The query part of Feign URLs |
+
+How the lists work:
+
+- **All lists add up.** Names match without regard to case, inside nested objects and arrays.
+- **A service's own masking function runs after the default.** It can mask more. It cannot switch the default off. Services that already pass `JSONScrubberFunc` need no change.
+- **There is no built-in list.** A pod without `DEFAULT_LOG_SENSITIVE_KEYS` masks only what its own lists name. The value is the organisation's GitHub variable of the same name, which SRE copies into each manifest.
+- **Whether bodies are logged at all does not change.** Go still logs no bodies unless the service switches body logging on.
+
+What is left:
+
+1. **SRE merges the four manifest pull requests** that add `DEFAULT_LOG_SENSITIVE_KEYS`: non-production first ([app-deployment#14328](https://github.com/bfi-finance/app-deployment/pull/14328), [bfi-app-deployment#4114](https://github.com/bfi-finance/bfi-app-deployment/pull/4114)), then production after UAT ([app-deployment#14329](https://github.com/bfi-finance/app-deployment/pull/14329), [bfi-app-deployment#4115](https://github.com/bfi-finance/bfi-app-deployment/pull/4115)). All four are open.
+2. **Go squads bump bfi-go-pkg.** Three LORA pull requests pin `ba88f1d`, a commit from 13 October that is older than the reviewed version: [lora-gateway-service#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263), [lora-partnership-ndf#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) and [lora-partnership-task-ndf#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126). Bump them to `3026177`, then remove their race-skip test helpers. #186 fixed the data race those helpers worked around.
+3. **Platform publishes the Java release:** core 0.1.4, then starter 0.1.5.
 
 ## Datadog log cost by service (8 October 2026)
 
@@ -425,7 +453,7 @@ Our Datadog contract commits 256 GB of log ingestion a month. We send about 40 T
 
 Every service in the programme has its own page with its findings and what its squad should do. The table lists each service's pull request and its status on 12 October. Squads come from the squad-to-repository sheet; a star marks a repository that is not in the sheet, where the squad is inferred from the squad's system list. Pull request counts for services on 12 October: 31 merged, 37 open, 19 closed. Two of the 31 were reverted by the bpm squad. The 37 open include 8 of the 19 `tee -a` pull requests raised on 8 October.
 
-| Service | Squad | Pull request | What it fixes | Status (16 Oct) |
+| Service | Squad | Pull request | What it fixes | Status (20 Oct) |
 |---|---|---|---|---|
 | [backend-dashboard-otrs](backend-dashboard-otrs.md) | — | none | No write access | no pull request |
 | [bfi-connect](bfi-connect.md) | — | [#788](https://github.com/bfi-finance/bfi-connect/pull/788) | stop logging customer phone numbers on every duplicate-check miss | **merged 16 Oct** |
@@ -527,14 +555,18 @@ Every service in the programme has its own page with its findings and what its s
 
 **Shared libraries and platform**
 
-| Repository | Pull request | What it does | Status (16 Oct) |
+| Repository | Pull request | What it does | Status (20 Oct) |
 |---|---|---|---|
 | [app-deployment](https://github.com/bfi-finance/app-deployment) | [#13820](https://github.com/bfi-finance/app-deployment/pull/13820) | production log levels and mask lists for 20 services | **merged 7 Oct** |
 | [app-deployment](https://github.com/bfi-finance/app-deployment) | [#14251](https://github.com/bfi-finance/app-deployment/pull/14251) | SIT and UAT logging baseline, 29 files | **merged 12 Oct** |
 | [app-deployment](https://github.com/bfi-finance/app-deployment) | [#14252](https://github.com/bfi-finance/app-deployment/pull/14252) | tag traces with the request id (draft) | closed 12 Oct, the services trace with OpenTelemetry, which ignores DD_TRACE_HEADER_TAGS; replaced by the span attribute in bfi-go-pkg#185 |
+| [app-deployment](https://github.com/bfi-finance/app-deployment) | [#14328](https://github.com/bfi-finance/app-deployment/pull/14328) | `DEFAULT_LOG_SENSITIVE_KEYS` (the baseline mask list) in every SIT and UAT application manifest, 234 files | open — CI green |
+| [app-deployment](https://github.com/bfi-finance/app-deployment) | [#14329](https://github.com/bfi-finance/app-deployment/pull/14329) | the same for production, 91 files; merge after UAT | open — CI green |
+| [bfi-app-deployment](https://github.com/bfi-finance/bfi-app-deployment) | [#4114](https://github.com/bfi-finance/bfi-app-deployment/pull/4114) | `DEFAULT_LOG_SENSITIVE_KEYS` in every `bfi-*` SIT and UAT manifest, 168 files | open — CI green |
+| [bfi-app-deployment](https://github.com/bfi-finance/bfi-app-deployment) | [#4115](https://github.com/bfi-finance/bfi-app-deployment/pull/4115) | the same for production, 60 files; merge after UAT | open — CI green |
 | [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#175](https://github.com/bfi-finance/bfi-go-pkg/pull/175) | Go wrapper: mask every value type, bounded payload helper | **merged 8 Oct** |
-| [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | Go wrapper: one request id across services (proxy, outgoing calls, span tag), request id in error details, validation fields on the access line | open — CI green |
-| [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) | Go wrapper: body and query masking on by default (baseline list plus the manifest list), httptrace data race fixed | open — CI green |
+| [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | Go wrapper: one request id across services (proxy, outgoing calls, span tag), request id in error details, validation fields on the access line | **merged 19 Oct** |
+| [bfi-go-pkg](https://github.com/bfi-finance/bfi-go-pkg) | [#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) | Go wrapper: body and query masking on by default (baseline list plus the manifest list), httptrace data race fixed | **merged 19 Oct** |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122) | new Java logging starter | **merged 16 Sep** |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) | old Java library: mask Feign bodies (closed in favour of the starter) | closed 16 Sep |
 | [bfi-java-pkg](https://github.com/bfi-finance/bfi-java-pkg) | [#128](https://github.com/bfi-finance/bfi-java-pkg/pull/128) | starter 0.1.1: stop dropping request logs after 6 lines | **merged 7 Oct** |
