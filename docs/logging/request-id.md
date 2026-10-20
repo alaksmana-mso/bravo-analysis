@@ -1,6 +1,6 @@
 # Log correlation-id, request-id and masking
 
-*Written 16 October 2026. Updated 20 October 2026: the Go pull requests merged, and the masking part was added. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
+*Written 16 October 2026. Updated 20 October 2026: the Go pull requests merged, and the masking part and the trace id comparison were added. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
 
 ## In short
 
@@ -16,6 +16,26 @@
 | **Trace id** | Datadog's own id for a trace. It is not shown to callers. Each service's span carries the request id as the `request_id` tag, so you can go from the id a caller quotes to the trace. |
 
 The id is an [xid](https://github.com/rs/xid): 20 lowercase letters and digits, for example `d3h2k9l5mvbs73b0a1cg`. A service accepts any well-formed id it receives: 1 to 128 letters, digits and `. _ : -`. A malformed one is replaced, so nobody can push a long string or injected text into a field that searches trust.
+
+## Why we need a request id when we already have a trace id
+
+A trace id is for engineers inside Datadog. A request id is a reference that goes wherever the request goes: back to the caller, through the gateway, onto every log line in every log store, into error bodies and into support tickets. The two are joined, because every span carries the request id as the `request_id` tag. We need both.
+
+| | Trace id | Request id (`x-bfi-req-id`) |
+|---|---|---|
+| Made by | the tracer inside each service: the Datadog agent in Java, OpenTelemetry in Go | the API gateway, once, at the edge |
+| Seen by | engineers with Datadog access | the client, a partner, a console user and support: it is in the response header and, where the service opts in, in the error body |
+| Exists in | Datadog APM, production only | every log line, in Datadog and in Cloud Logging, in SIT, UAT and production |
+| Kept for | a sample of requests: Datadog does not keep every trace | every request: the id is on every log line |
+| Survives a change of tracer | only if both sides send the same trace headers | yes: it is one plain header that every hop forwards |
+| Best for | timing and errors inside one request: which call was slow, which service failed | finding everything about the request a customer or partner is asking about |
+
+Why this matters at BFI today:
+
+- **SIT and UAT have no traces.** Only the production clusters send data to Datadog. In SIT and UAT the logs are in Cloud Logging and there is no trace at all. A request id works there; a trace id does not.
+- **Go and Java use different tracers.** Go services trace with the OpenTelemetry SDK, Java services with the Datadog agent. The trace context has to cross that boundary on every Go to Java call. The request id is one header that both libraries read.
+- **Logs were not linked to traces.** On 12 September 2026, a Datadog search for `@dd.trace_id` found no log line in any production service, so nobody could jump from a log line to its trace. Eleven busy services sent no logs to Datadog at all. A request id on the log line works without that link.
+- **The caller never sees a trace id.** When a customer, a partner or a console user reports a problem, the only id they can give is the one in the response header or the error body.
 
 ## Where the id was lost, and how it travels now
 
@@ -209,6 +229,27 @@ The rules are the same in both libraries:
 - **Names match in any case,** inside nested objects and arrays.
 - **There is no built-in list.** A pod without `DEFAULT_LOG_SENSITIVE_KEYS` masks only what its own lists name. This is why the manifest change matters.
 - **A service's own masking function runs after the default.** It can mask more fields. It cannot switch the default off.
+
+
+### What the baseline covers
+
+`DEFAULT_LOG_SENSITIVE_KEYS` holds 83 field names. This is the value in all four manifest pull requests ([app-deployment#14328](https://github.com/bfi-finance/app-deployment/pull/14328), [#14329](https://github.com/bfi-finance/app-deployment/pull/14329), [bfi-app-deployment#4114](https://github.com/bfi-finance/bfi-app-deployment/pull/4114), [#4115](https://github.com/bfi-finance/bfi-app-deployment/pull/4115)), checked on 20 October 2026. The source is the organisation's GitHub variable of the same name; when it changes, SRE copies the new value into the manifests.
+
+| Kind | Names | Field names |
+|---|---|---|
+| Identity and tax numbers | 13 | `nik`, `ktp`, `ktp_number`, `ktp_data`, `identity_number`, `id_number`, `idnumber`, `legal_id_number`, `spouse_identity_number`, `npwp`, `npwp_number`, `tax_number`, `passport_number` |
+| Passwords, keys, tokens and one-time codes | 30 | `password`, `old_password`, `new_password`, `new_password_confirmation`, `secret`, `client_secret`, `client-secret`, `key`, `api_key`, `api-key`, `x-api-key`, `api_secret`, `api-secret`, `access_key`, `accesskey`, `x-auth-app-id`, `x-auth-app-secret`, `token`, `access_token`, `refresh_token`, `id_token`, `x-access-token`, `authorization`, `otp`, `otp_code`, `otp_token`, `pin`, `passphrase`, `signature`, `private_key` |
+| Cards and bank accounts | 9 | `cvv`, `cvc`, `cvn`, `card_number`, `account_number`, `account_name`, `bank_account_number`, `bank_account_no`, `bank_account_name` |
+| Phone numbers and email | 9 | `phone`, `phone_number`, `mobile_phone`, `mobile_phone_no`, `alternate_phone`, `customer_phone`, `additional_phone_number`, `spouse_phone_number`, `email` |
+| Names and personal details | 13 | `full_name`, `spouse_name`, `mother_name`, `mother_maiden_name`, `mothers_maiden_name`, `birth_date`, `dob`, `birth_place`, `pob`, `placeofbirth`, `religion`, `gender`, `salary` |
+| Addresses | 4 | `address`, `address_detail`, `legal_address`, `domicile_address` |
+| Photos and identity documents | 5 | `selfie`, `selfie_photo_id`, `selfie_doc_id`, `identity_photo_id`, `ktp_doc_id` |
+
+How to read the list:
+
+- **Whole names only, in any case.** `NIK`, `Nik` and `nik` are all masked. `customer_nik` or `nikPemohon` is not, because it is a different name. Add names like these to the service's own `LOG_SENSITIVE_KEYS`.
+- **Short names catch more than secrets.** `key`, `token`, `signature` and `pin` are on the list, so any field with exactly that name is masked, even one that holds no secret. If that hides a value you need, log it under a clearer name, for example `idempotency_key`, rather than shorten the list.
+- **The list is the same for every service.** To change it for everyone, ask SRE to change the organisation variable. To add names for one service, use `LOG_SENSITIVE_KEYS`.
 
 ### What we changed in bfi-go-pkg
 
