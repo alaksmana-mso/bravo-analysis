@@ -1,10 +1,12 @@
-# Log correlation-id and request-id
+# Log correlation-id, request-id and masking
 
-*Written 16 October 2026, updated 20 October 2026 after the Go pull requests merged. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
+*Written 16 October 2026. Updated 20 October 2026: the Go pull requests merged, and the masking part was added. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
 
-## In one paragraph
+## In short
 
-Every request that enters BFI through the API gateway now has **one id**, in the `x-bfi-req-id` header. The gateway makes it. The shared libraries keep it on the way down: each Go and Java service reads it, writes it on every log line, puts it on its Datadog span, returns it to its caller, and sends it on to the next service. When a customer, a partner or a console shows that id, support can find every log line and every span of that request, in every service it touched, with one search. Nobody has to log a request body to do that.
+**Request id.** Every request that enters BFI through the API gateway now has **one id**, in the `x-bfi-req-id` header. The gateway makes it. The shared libraries keep it on the way down: each Go and Java service reads it, writes it on every log line, puts it on its Datadog span, returns it to its caller, and sends it on to the next service. When a customer, a partner or a console shows that id, support can find every log line and every span of that request, in every service it touched, with one search. Nobody has to log a request body to do that.
+
+**Masking.** The same libraries now mask request and response bodies by default. Before, masking was a function each service had to wire up, and many never did. Now the library masks every body and query string it logs, using one baseline list of sensitive field names that SRE sets in each service's deployment, plus the service's own additions. Whether bodies are logged at all does not change: that stays off unless a service switches it on.
 
 ## Request id, correlation id, trace id
 
@@ -174,6 +176,10 @@ sequenceDiagram
 | Returned to the caller | response header; error detail opt-in | response header; `ProblemDetail` opt-in |
 | Sent to the next service | HTTP client by default, gRPC client with one line | Feign by default |
 | Rejected request | `validation_fields` on the access line | one `request_rejected` line |
+| Masking baseline | `DEFAULT_LOG_SENSITIVE_KEYS` | `DEFAULT_LOG_SENSITIVE_KEYS` |
+| Service's own mask list | `LOG_SENSITIVE_KEYS`, plus the per-direction `*_BODY_JSON_MASKED_FIELDS` | `LOG_SENSITIVE_KEYS` |
+| Masked value shows as | `*****` | `****` |
+| Bodies logged by default | no; with body logging on, only on errors | no; `request-logging.include-payload` and `feign.include-body` are `false` |
 
 ## How to use it
 
@@ -181,15 +187,74 @@ sequenceDiagram
 - **Find its spans:** in Datadog APM, `@request_id:<id>` (once the service runs the new library, and, for Java, has the `DD_TRACE_HEADER_TAGS` setting).
 - **Ask the caller for the id:** it is the `x-bfi-req-id` response header, and in the error body where the service opted in.
 
+## Masking request and response bodies
+
+Pull requests: [bfi-go-pkg#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186), merged on 19 October 2026, and [bfi-java-pkg#134](https://github.com/bfi-finance/bfi-java-pkg/pull/134), merged on 15 October and published as core 0.1.4 and starter 0.1.5 on 20 October.
+
+### Why it moved into the libraries
+
+Masking used to be a tool the library offered. Each service had to pass it in, with its own list of fields. About 22 Go services never did, or left the call commented out, so their logged bodies reached Datadog in clear. The old Java library logged bodies by default and matched field names case by case. Now the library masks by itself. A service that forgets its settings still masks.
+
+### How the lists work
+
+| Variable | Who sets it | What it holds |
+|---|---|---|
+| `DEFAULT_LOG_SENSITIVE_KEYS` | SRE, in every service's manifest | The organisation's baseline: identity numbers, credentials, card and bank numbers, contact details and other personal data. Its value is the organisation's GitHub variable of the same name. |
+| `LOG_SENSITIVE_KEYS` | The squad, in its own manifest | Extra field names for this service. Go and Java read the same name. |
+| `HTTP_CLIENT_*`, `HTTP_SERVER_*`, `GRPC_SERVER_*` `_REQUEST_BODY_JSON_MASKED_FIELDS` and `_RESPONSE_BODY_JSON_MASKED_FIELDS` | The squad (Go only) | The existing per-direction lists. Values already in app-deployment keep working. |
+
+The rules are the same in both libraries:
+
+- **All lists add up.** A field is masked if any list names it.
+- **Names match in any case,** inside nested objects and arrays.
+- **There is no built-in list.** A pod without `DEFAULT_LOG_SENSITIVE_KEYS` masks only what its own lists name. This is why the manifest change matters.
+- **A service's own masking function runs after the default.** It can mask more fields. It cannot switch the default off.
+
+### What we changed in bfi-go-pkg
+
+| Part | What it does now |
+|---|---|
+| HTTP server (`requestloggermw`) | Masks the request and response bodies it logs, and the `req_query` and `req_uri` query parameters. |
+| HTTP client (`LoggedTransport`) | Masks the outgoing request and response bodies it logs, and the request's query parameters. |
+| gRPC server (`requestloggerinterceptor`) | Masks the request and response messages it logs. |
+| Your own functions | A function passed to `WithRequestBodyLoggingFunc`, `WithResponseBodyLoggingFunc` or `WithRequestQueryParamLoggingFunc` runs after the default masking. Services that already pass `JSONScrubberFunc` need no change. |
+| A data race in `LoggedTransport` | Fixed. Tests that send a request body no longer fail under `go test -race`. |
+
+A masked value shows as `*****`, whatever its type. Bodies are logged only when the service turns body logging on (`WithBodyLogging`), and then only for failed requests unless it also turns off `WithBodyLoggingOnErrorOnly`.
+
+### What we changed in bfi-java-pkg
+
+| Part | What it does now |
+|---|---|
+| Request bodies (`RequestLoggingFilter`) | Masks the body before logging it. A body over the size limit is skipped with `(over N bytes, not logged)`, not cut short. A cut body is no longer valid JSON, so its fields would escape the mask. |
+| Feign calls (`BravoFeignLogger`) | Masks request and response bodies, and the query part of the URL. A body larger than the buffer limit is skipped, not logged. |
+| Every log message | A pattern check still masks identity numbers, phone numbers and email addresses written into plain text messages. This was already in 0.1.0. |
+
+A masked value shows as `****`. The old variable `SENSITIVE_KEYS` from `bravo-lib-logging` is not read. Rename it to `LOG_SENSITIVE_KEYS` when the service moves to the starter. In production four manifests use it: agency, lms-ops, onboarding and bfi-incentive-api.
+
+### What a service does
+
+- **SRE** merges the manifest pull requests that add `DEFAULT_LOG_SENSITIVE_KEYS`: SIT and UAT first ([app-deployment#14328](https://github.com/bfi-finance/app-deployment/pull/14328), [bfi-app-deployment#4114](https://github.com/bfi-finance/bfi-app-deployment/pull/4114)), then production after UAT ([app-deployment#14329](https://github.com/bfi-finance/app-deployment/pull/14329), [bfi-app-deployment#4115](https://github.com/bfi-finance/bfi-app-deployment/pull/4115)).
+- **Go squads** bump bfi-go-pkg to `3026177` or later. That is the same bump that brings the request id.
+- **Java squads** on Spring Boot 3 or 4 adopt starter 0.1.5, and rename `SENSITIVE_KEYS` to `LOG_SENSITIVE_KEYS`.
+- **Squads that need more fields masked** add them to `LOG_SENSITIVE_KEYS` in their own manifest. They do not change code.
+
+### How to check it works
+
+- **Check the setting.** The pod's environment must have `DEFAULT_LOG_SENSITIVE_KEYS`. Without it, only the service's own lists apply.
+- **Check a logged body.** In SIT, whose logs are in Cloud Logging and not in Datadog, find a logged body that holds a known field such as `nik` or `phone`. Its value shows as `*****` (Go) or `****` (Java).
+- **Search for leaks.** In Datadog Logs, search one service for a field that must be masked, for example `service:<name> nik`, and open a few results. The value next to the field name shows as the mask, never the real value.
+
 ## Status on 20 October
 
 | Item | Status |
 |---|---|
 | Java: [#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129), [#132](https://github.com/bfi-finance/bfi-java-pkg/pull/132) | **merged** (and the masking change [#134](https://github.com/bfi-finance/bfi-java-pkg/pull/134) on top) |
 | Java packages | core 0.1.4 and starter 0.1.5 **published on 20 October**: the filter, response header and minting from 0.1.3, plus Feign forwarding, the rejected-request line and default masking |
-| Java services | none uses the starter on its main branch yet |
+| Java services | `bravo-branch-service` uses the starter on its main branch since 19 October (0.1.2). [bravo-branch-service#525](https://github.com/bfi-finance/bravo-branch-service/pull/525) moves it to 0.1.5 (open). |
 | Go: [#185](https://github.com/bfi-finance/bfi-go-pkg/pull/185) | **merged 19 October** (and the masking change [#186](https://github.com/bfi-finance/bfi-go-pkg/pull/186) on top, merged the same day) |
-| Go services | get it by bumping bfi-go-pkg to `3026177` or later; bfi-go-pkg has no release tags |
+| Go services | get it by bumping bfi-go-pkg to `3026177` or later; bfi-go-pkg has no release tags. The first three, [lora-gateway-service#1263](https://github.com/bfi-finance/lora-gateway-service/pull/1263), [lora-partnership-ndf#1493](https://github.com/bfi-finance/lora-partnership-ndf/pull/1493) and [lora-partnership-task-ndf#2126](https://github.com/bfi-finance/lora-partnership-task-ndf/pull/2126), are bumped and open. |
+| Masking baseline in the manifests | the four pull requests that add `DEFAULT_LOG_SENSITIVE_KEYS` are open: [app-deployment#14328](https://github.com/bfi-finance/app-deployment/pull/14328), [#14329](https://github.com/bfi-finance/app-deployment/pull/14329), [bfi-app-deployment#4114](https://github.com/bfi-finance/bfi-app-deployment/pull/4114), [#4115](https://github.com/bfi-finance/bfi-app-deployment/pull/4115) |
 | SRE | `DD_TRACE_HEADER_TAGS: "x-bfi-req-id:request_id"` for Java services: not set yet |
 
 The full survey of how each service is wired, and the per-service steps, are on [Logging Improvement](README.md) and the history page.
