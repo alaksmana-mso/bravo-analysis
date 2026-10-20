@@ -439,6 +439,7 @@ Our Datadog contract commits 256 GB of log ingestion a month. We send about 40 T
 | Document | What it is for |
 |---|---|
 | [logging-cost.md](logging-cost.md) | What logging costs, where the money goes, and the ordered work list |
+| [log-collection.md](log-collection.md) | How logs reach Datadog, Cloud Logging and Coralogix, what each one is for, and how to collect them better |
 | [bravo-logging-deck.html](../decks/bravo-logging-deck.html) ([PDF](../decks/pdf/bravo-logging-deck.pdf)) | The CTO deck, 13 slides |
 | [squads-guide.md](squads-guide.md) | For every squad: what to log, what not to log, and which Datadog feature answers which question |
 | [sre-datadog-recommendations.md](sre-datadog-recommendations.md) | For SRE: an audit of our Datadog setup and what to change |
