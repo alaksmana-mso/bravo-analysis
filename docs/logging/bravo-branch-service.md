@@ -285,6 +285,8 @@ Read from `app-deployment/branch/values-prod.yaml` on 14 September 2026. **This 
 This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the library's `RequestLoggingFilter` and `FeignClientFilter`, and `REQUEST_BODY_LOGGING` / `RESPONSE_BODY_LOGGING` default to **`true`** in the library — so where they are not set here, every request and response body is logged at INFO. `SENSITIVE_KEYS` defaults to six keys (`password`, `token`, `secret`, `key`, `authorization`, `api-secret`); until [bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123) ships, the match is case-sensitive and `FeignClientFilter` masks nothing.
 
 
+**Update, 20 October 2026.** The paragraph below is out of date. The service moved to Spring Boot 4.1.1 and the starter on 19 October. See [One request id across services](#one-request-id-across-services) below.
+
 **Which Java wrapper applies here (17 September 2026).** This repository is on Spring Boot 2.7.18, so the starter ([bfi-java-pkg#122](https://github.com/bfi-finance/bfi-java-pkg/pull/122), merged 16 September 2026, Boot 3.3+ only) is out of reach until it upgrades. It stays on `bravo-lib-logging`, whose fix ([bfi-java-pkg#123](https://github.com/bfi-finance/bfi-java-pkg/pull/123)) **was closed on 16 September** when the starter merged, so the library keeps unmasked Feign bodies, case-sensitive `SENSITIVE_KEYS` and no body cap: set `REQUEST_BODY_LOGGING=false`, `RESPONSE_BODY_LOGGING=false` and a written `SENSITIVE_KEYS` in `values-prod.yaml`, merge the per-service pull request, and put the Boot 3.3 upgrade on the roadmap — it is the only route to the starter.
 ---
 
@@ -292,7 +294,14 @@ This is a Java service on `bravo-lib-logging` (`bfi-java-pkg`). It wires the lib
 
 **Decided 12 October 2026.** Every request keeps one id, the gateway's `x-bfi-req-id`, from the client through every service it touches, in logs, on the span (`request_id`) and in the error body. The strategy, the three pull requests and the team-by-team list are on the main page: [One request id across services](README.md#one-request-id-across-services-x-bfi-req-id). This is what it means for this repository.
 
-This service is on Spring Boot 2.7.18, so it cannot take the starter (Boot 3.3 or later). What it gets: nothing from the libraries for now. `bravo-lib-logging` is deprecated (decided 13 October); only core and the starter are developed further, so [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) and #132 leave it untouched. Until this service moves to Boot 3 and the starter it keeps `X-Correlation-Id` and a UUID of its own, and a Go service on an older wrapper replaces that id.
+**Update, 20 October 2026.** The service now uses the starter.
+
+- [bravo-branch-service#515](https://github.com/bfi-finance/bravo-branch-service/pull/515), merged on 19 October, moved it to Spring Boot 4.1.1 and starter 0.1.2. Release v2.0.1 runs in SIT. UAT runs v2.0.0-rc13, an earlier build of the same branch with starter 0.1.0. Production still runs v1.100.11 on Boot 2.7.
+- [bravo-branch-service#525](https://github.com/bfi-finance/bravo-branch-service/pull/525), opened on 20 October, moves it to starter 0.1.5. With it, the service reads the gateway's `x-bfi-req-id` (with `X-Correlation-Id` as a fallback), makes an id when none arrives, returns the id on the response, sends it on every Feign call, and logs one `request_rejected` line per refused request. Bodies are masked by default once the manifest carries `DEFAULT_LOG_SENSITIVE_KEYS`.
+
+After #525, the forwarding item below is done by the starter. The other two items still apply.
+
+*Text from 12 October:* This service is on Spring Boot 2.7.18, so it cannot take the starter (Boot 3.3 or later). What it gets: nothing from the libraries for now. `bravo-lib-logging` is deprecated (decided 13 October); only core and the starter are developed further, so [bfi-java-pkg#129](https://github.com/bfi-finance/bfi-java-pkg/pull/129) and #132 leave it untouched. Until this service moves to Boot 3 and the starter it keeps `X-Correlation-Id` and a UUID of its own, and a Go service on an older wrapper replaces that id.
 
 What is left for the squad and SRE:
 
@@ -302,7 +311,7 @@ What is left for the squad and SRE:
 
 ## Implementation status
 
-**Pull request: [bravo-branch-service#506](https://github.com/bfi-finance/bravo-branch-service/pull/506)** — open, not merged.
+**Pull request: [bravo-branch-service#506](https://github.com/bfi-finance/bravo-branch-service/pull/506)** — merged on 9 October. Later pull requests: [#515](https://github.com/bfi-finance/bravo-branch-service/pull/515) (Spring Boot 4.1.1 and the starter, merged on 19 October) and [#525](https://github.com/bfi-finance/bravo-branch-service/pull/525) (starter 0.1.5, open).
 Branch: [`fix/logging`](https://github.com/bfi-finance/bravo-branch-service/tree/fix/logging), head `34ba1ca`, branched from `master`.
 
 [Files changed](https://github.com/bfi-finance/bravo-branch-service/pull/506/files) · [Commits](https://github.com/bfi-finance/bravo-branch-service/pull/506/commits) · [Compare against master](https://github.com/bfi-finance/bravo-branch-service/compare/master...fix/logging)
