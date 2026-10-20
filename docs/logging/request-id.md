@@ -1,6 +1,6 @@
 # Log correlation-id, request-id and masking
 
-*Written 16 October 2026. Updated 20 October 2026: the Go pull requests merged, and the masking part and the trace id comparison were added. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
+*Written 16 October 2026. Updated 20 October 2026: the Go pull requests merged, and the masking part, the trace id comparison and examples for putting the request id in error bodies were added. Covers bfi-go-pkg and bfi-java-pkg (`bfi-logging-core`, `bfi-logging-spring-boot-starter`). Status of every pull request is on [Logging Improvement](README.md).*
 
 ## In short
 
@@ -193,13 +193,141 @@ sequenceDiagram
 | New id when none arrives | xid | xid |
 | Accepted incoming id | 1–128 of letters, digits, `. _ : -` | the same rule |
 | Span tag | `request_id`, set in code | `request_id`, through `DD_TRACE_HEADER_TAGS` |
-| Returned to the caller | response header; error detail opt-in | response header; `ProblemDetail` opt-in |
+| Returned to the caller | response header; error body opt-in (see below) | response header; error body opt-in (see below) |
 | Sent to the next service | HTTP client by default, gRPC client with one line | Feign by default |
 | Rejected request | `validation_fields` on the access line | one `request_rejected` line |
 | Masking baseline | `DEFAULT_LOG_SENSITIVE_KEYS` | `DEFAULT_LOG_SENSITIVE_KEYS` |
 | Service's own mask list | `LOG_SENSITIVE_KEYS`, plus the per-direction `*_BODY_JSON_MASKED_FIELDS` | `LOG_SENSITIVE_KEYS` |
 | Masked value shows as | `*****` | `****` |
 | Bodies logged by default | no; with body logging on, only on errors | no; `request-logging.include-payload` and `feign.include-body` are `false` |
+
+## Putting the request id in the error body (opt-in)
+
+Every response already carries the id in the `x-bfi-req-id` header. Many callers never read headers: browser consoles, partner systems and support staff copying an error message. For them, a service can also put the id **in the error body**. Then the caller can quote it from what they see.
+
+This is **off by default** in both libraries. A caller that checks error bodies strictly can reject a field it does not know. So check a service's callers first, then turn it on for that service.
+
+### Go: gRPC services (and their REST proxy)
+
+Add `WithRequestInfoDetail()` to `errorinterceptor` and `panicinterceptor`. Keep both **after** `loggerinterceptor`, because that interceptor sets the id they read.
+
+```go
+import (
+    "github.com/bfi-finance/bfi-go-pkg/grpc/grpcinterceptor/errorinterceptor"
+    "github.com/bfi-finance/bfi-go-pkg/grpc/grpcinterceptor/loggerinterceptor"
+    "github.com/bfi-finance/bfi-go-pkg/grpc/grpcinterceptor/panicinterceptor"
+    "github.com/bfi-finance/bfi-go-pkg/grpc/grpcinterceptor/requestloggerinterceptor"
+)
+
+grpc.ChainUnaryInterceptor(
+    loggerinterceptor.UnaryServer(zlogger),            // sets the request id
+    requestloggerinterceptor.UnaryServer(),            // one access line per call
+    panicinterceptor.UnaryServer(panicinterceptor.WithRequestInfoDetail()),
+    errorinterceptor.UnaryServer(errorinterceptor.WithRequestInfoDetail()),
+)
+```
+
+Do the same in `grpc.ChainStreamInterceptor` with the `StreamServer` versions. The REST proxy renders the same error, so REST callers get the id too.
+
+### Go: plain HTTP handlers
+
+Write errors with `httpresponse.ErrorAsJSONForRequest(w, r, err)` instead of `httpresponse.ErrorAsJSON(w, err)`. The handler must run behind `loggermw.Set(zlogger)`, which sets the id.
+
+```go
+func (h *Handler) GetBranch(w http.ResponseWriter, r *http.Request) {
+    branch, err := h.svc.GetBranch(r.Context(), r.PathValue("code"))
+    if err != nil {
+        httpresponse.ErrorAsJSONForRequest(w, r, err) // was: httpresponse.ErrorAsJSON(w, err)
+        return
+    }
+    httpresponse.JSON(w, http.StatusOK, branch)
+}
+```
+
+### What a Go caller gets
+
+The body is the standard gRPC error. The id is one more entry in `details`, a `google.rpc.RequestInfo`:
+
+```json
+{
+  "code": 3,
+  "message": "Input validation failed",
+  "details": [
+    {"@type": "type.googleapis.com/bfi.common.pberror.Validation", "fields": [{"code": "REQUIRED", "field": "nik", "info": ""}]},
+    {"@type": "type.googleapis.com/google.rpc.RequestInfo", "request_id": "d3h2k9l5mvbs73b0a1cg", "serving_data": ""}
+  ]
+}
+```
+
+When the error came from another service, `request_id` is this service's id. The other service's id is kept in `serving_data` as `upstream_request_id=<id>`. Go code reads them with `grpcerror.RequestIDFromError(err)` and `grpcerror.UpstreamRequestIDsFromError(err)`.
+
+### Java: services that return `ProblemDetail`
+
+Turn on one setting. Nothing changes in code. Use either form:
+
+```yaml
+# application.yaml
+bravo:
+  logging:
+    correlation:
+      problem-detail: true
+```
+
+```yaml
+# app-deployment values (extraEnv)
+- name: BRAVO_LOGGING_CORRELATION_PROBLEMDETAIL
+  value: "true"
+```
+
+Every `ProblemDetail` error body then gets a top-level `correlation_id`:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Invalid request content.",
+  "instance": "/branch/v1/branches",
+  "correlation_id": "d3h2k9l5mvbs73b0a1cg"
+}
+```
+
+### Java: services with their own error type
+
+Most Bravo services return their own error class, not `ProblemDetail`. For example, `bravo-branch-service` returns `GeneralExceptionFormat` from `ApiExceptionHandler`. The setting above does not touch those bodies. Add the id in the handler with `CorrelationId.current()`:
+
+```java
+import com.bfi.bravo.logging.correlation.CorrelationId;
+
+@ExceptionHandler(JsonValidationException.class)
+public ResponseEntity<GeneralExceptionFormat> handleInvalidArgument(JsonValidationException e) {
+  return ResponseEntity
+    .badRequest()
+    .body(new GeneralExceptionFormat(
+      ErrorConstants.INVALID_ARGUMENT_CODE,
+      e.getMessage(),
+      CorrelationId.current().orElse(null) // new field, serialised as "correlation_id"
+    ));
+}
+```
+
+Add the field to the error class once, named `correlation_id` in JSON (for example `@JsonProperty("correlation_id")`). Then every handler that builds it can pass the id.
+
+### What does not get the id in the body
+
+- **Go:** errors written with plain `httpresponse.ErrorAsJSON`, `http.Error`, or a hand-built body.
+- **Java:** errors that never reach a Spring MVC handler. Examples are a rejection inside a servlet filter, a Spring Security denial, and Spring Boot's own `/error` page.
+- In all these cases the id is still in the `x-bfi-req-id` response header.
+
+### How to check it
+
+Send a request that fails, and compare the header with the body:
+
+```bash
+curl -si https://<host>/<path-that-fails> | grep -iE "x-bfi-req-id|request_id|correlation_id"
+```
+
+The header and the body show the same id. Search that id in Datadog Logs to find the request's log lines.
 
 ## How to use it
 
