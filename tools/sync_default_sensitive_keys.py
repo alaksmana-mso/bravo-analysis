@@ -10,10 +10,13 @@ Layouts handled (text-level edits, the file's own formatting is kept):
   - `extraEnv: |` string block, at any indent (microservices-http.extraEnv, bfi `image:`-keyed charts)
   - `globalEnv: |` string block (LORA Temporal worker charts)
 Files with neither block are skipped and listed (infra charts: clamav, kafka, secrets, sqlproxy, UIs, ...).
+Apps in SKIP_APPS are third-party or vendor software that never reads the variable. They are left exactly
+as they are: an env change only restarts them, and Keycloak runs as one replica (20 Oct 2026, UAT).
 
 Usage:
   sync_default_sensitive_keys.py --value-file keys.txt --repo sre/app-deployment --repo sre/bfi-app-deployment --dry-run
   sync_default_sensitive_keys.py --from-gh --repo sre/app-deployment --env prod
+  sync_default_sensitive_keys.py --value-file keys.txt --repo sre/app-deployment --values-file values-prod.yaml --only branch,master
   --env nonprod | prod | all (default all): which values-*.yaml to touch, for staged PRs.
   --from-gh needs a gh token with admin:org (gh variable get DEFAULT_LOG_SENSITIVE_KEYS --org bfi-finance).
 """
@@ -28,6 +31,16 @@ from pathlib import Path
 import yaml
 
 VAR = "DEFAULT_LOG_SENSITIVE_KEYS"
+# Third-party or vendor apps: they do not use bfi-go-pkg or bfi-java-pkg, so the variable is useless to them
+# and adding it only forces a restart. Never touched, in either direction.
+SKIP_APPS = {
+    "keycloak",                                     # Keycloak, single replica: a restart stops all logins
+    "krakend-gateway", "krakend-gateway-internal",  # KrakenD API gateways
+    "airflow",                                      # Apache Airflow
+    "filebrowser",                                  # File Browser (StrategyOne)
+    "strategyone-batch-ws", "strategyone-lab", "strategyone-modelmgr",
+    "strategyone-tus", "strategyone-wsd", "strategyone-wsp",  # vendor StrategyOne
+}
 
 
 class HelmLoader(yaml.SafeLoader):
@@ -172,15 +185,24 @@ def main() -> int:
     ap.add_argument("--value-file")
     ap.add_argument("--from-gh", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--only", help="comma-separated app folders to touch; others are left alone (for staged batches)")
+    ap.add_argument("--values-file", help="touch only values files with exactly this name, e.g. values-prod-sharia.yaml")
     args = ap.parse_args()
     value = read_value(args)
+    only = {a.strip() for a in args.only.split(",") if a.strip()} if args.only else None
 
     counts: dict[str, int] = {}
     for repo in args.repo:
         root = Path(repo)
         for chart in sorted(root.glob("*/Chart.yaml")):
+            if only is not None and chart.parent.name not in only:
+                continue
+            if chart.parent.name in SKIP_APPS:
+                counts["skipped-app"] = counts.get("skipped-app", 0) + 1
+                print(f"  {'skipped: third-party app (SKIP_APPS)':<38} {chart.parent.relative_to(root.parent)}")
+                continue
             for path in sorted(chart.parent.glob("values-*.yaml")):
-                if not env_matches(path, args.env):
+                if not env_matches(path, args.env) or (args.values_file and path.name != args.values_file):
                     continue
                 lines = path.read_text().splitlines(keepends=True)
                 new_lines, action = upsert(lines, value)
