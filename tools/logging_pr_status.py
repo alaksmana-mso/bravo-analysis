@@ -40,7 +40,15 @@ CLOSE_NOTES = {
     ("lora-task-service", 1363): "dropped: the change relied on debug logging in production",
     ("bravo-user-iam-service", 521): "replaced by the one-flag fix #525",
     ("app-deployment", 14252): "the services trace with OpenTelemetry, which ignores DD_TRACE_HEADER_TAGS; replaced by the span attribute in bfi-go-pkg#185",
+    ("app-deployment", 14329): "replaced by a stack of 8 batch PRs, [#14466](https://github.com/bfi-finance/app-deployment/pull/14466) to [#14473](https://github.com/bfi-finance/app-deployment/pull/14473) (merge bottom first, about 15 minutes apart)",
+    ("bfi-app-deployment", 4115): "replaced by a stack of 4, [bfi-app-deployment#4151](https://github.com/bfi-finance/bfi-app-deployment/pull/4151) to [#4154](https://github.com/bfi-finance/bfi-app-deployment/pull/4154)",
 }
+
+# A cell the tool itself could have written. Anything else is hand-written detail, and is kept
+# as long as the pull request is still in the same state (merged / closed / open). 21 October 2026.
+TOOL_CELL = re.compile(r"^(\*\*merged \d+ \w+\*\*(, .*)?|closed \d+ \w+(, .*)?|open(, \*\*approved\*\*)? — .*)$")
+def state_class(cell):
+    return "merged" if cell.startswith("**merged") else "closed" if cell.startswith("closed") else "open"
 
 # Merged pull requests that were later reverted, (repo, number) -> text
 REVERT_NOTES = {
@@ -74,7 +82,7 @@ def main():
 def refresh(readme, by_key, date):
     lines = readme.read_text().splitlines(keepends=True)
     row_rx = re.compile(r"^\| \[(?P<repo>[^\]]+)\]\([^)]+\) \|(?P<mid>.*?)\[#(?P<num>\d+)\]\(https://github\.com/bfi-finance/[^/]+/pull/\d+\)(?P<rest>.*)\|\s*$")
-    changed = 0; missing = []
+    changed = 0; missing = []; kept = []
     for i, line in enumerate(lines):
         if line.startswith(("| Repo | Pull request | Status", "| Repository | Production service | Pull request | What it changes | Status",
                             "| Service | Squad | Pull request | What it fixes | Status", "| Repository | Pull request | What it does | Status")):
@@ -85,11 +93,14 @@ def refresh(readme, by_key, date):
         if not pr:
             missing.append(f"{m.group('repo')}#{m.group('num')}"); continue
         cells = [c for c in line.rstrip("\n").strip().strip("|").split(" | ")]
-        cells[-1] = status_text(pr, date)
+        new_cell = status_text(pr, date); old_cell = cells[-1].strip()
+        if not TOOL_CELL.match(old_cell) and state_class(old_cell) == state_class(new_cell):
+            kept.append(f"{m.group('repo')}#{m.group('num')}"); continue  # hand-written cell, same state: keep it
+        cells[-1] = new_cell
         new = "| " + " | ".join(c.strip() for c in cells) + " |\n"
         if new != line: lines[i] = new; changed += 1
     readme.write_text("".join(lines))
-    print(f"{readme.name}: {changed} rows changed; header date -> ({date}); not in status file: {missing or 'none'}")
+    print(f"{readme.name}: {changed} rows changed; header date -> ({date}); not in status file: {missing or 'none'}; hand-written cells kept: {kept or 'none'}")
 
 if __name__ == "__main__":
     main()
