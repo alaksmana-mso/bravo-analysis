@@ -1,0 +1,780 @@
+{
+ "title": "Logging \u2014 log ingestion by service (tee -a watch)",
+ "description": "Bytes, lines, bytes per line and NUL padding chunks per production service. Built for step 13 of the Logging Improvement programme (Confluence 2774335489): shows whether a tee -a release stopped a service's padding. Source file: bravo-analysis/tools/datadog/log-ingestion-dashboard.json. All metric queries use .as_count() so period sums match daily rollups.",
+ "layout_type": "ordered",
+ "reflow_type": "fixed",
+ "template_variables": [
+  {
+   "name": "service",
+   "prefix": "service",
+   "available_values": [
+    "prod-ms-audit-trail",
+    "prod-ms-lms-ops",
+    "prod-ms-cnv",
+    "prod-ms-assistance",
+    "prod-ms-user-iam",
+    "prod-sharia-user-iam-sharia",
+    "prod-ms-supplier",
+    "prod-ms-repeat-order",
+    "prod-agent-marketing",
+    "prod-customer-bff",
+    "prod-ms-collection-consumer",
+    "prod-ms-rule-engine",
+    "prod-ms-scheduling",
+    "prod-ms-agency",
+    "prod-ms-gen-ai",
+    "prod-ms-kyc-proxy",
+    "prod-ms-integrity",
+    "prod-ms-robot-controller",
+    "prod-ms-partnership",
+    "prod-ms-backoffice",
+    "prod-ms-gold-service",
+    "prod-ms-unsecured-v2"
+   ],
+   "default": "*"
+  }
+ ],
+ "widgets": [
+  {
+   "definition": {
+    "type": "note",
+    "background_color": "white",
+    "font_size": "14",
+    "text_align": "left",
+    "show_tick": false,
+    "has_padding": true,
+    "content": "**Log ingestion by service** (Logging Improvement, step 13)\n\nDatadog bills on **bytes ingested**. A real log line weighs 1 to 3 KB. A service whose **bytes per line** is above 10 KB is sending **NUL padding**: its entrypoint pipes through plain `tee`, and the 19:00 UTC truncation leaves a gap of NUL bytes that the Agent re-reads as `...TRUNCATED...` chunks.\n\n- `tee -a` fixed: bytes per line falls to about 2 KB, padding chunks go to 0, **the line count does not change**.\n- Judge a release on the first full UTC day after the next 19:00 UTC run, then over 7 days.\n- Use the `service` variable to pick one service. Source: `datadog.estimated_usage.logs.*`, which is Datadog's own usage estimate. The invoice is the final word.\n\nConfluence: Logging Improvement (page 2774335489).\n\nEvery metric query uses `.as_count()`. Without it, a scalar sum of this usage metric over a day came out up to 2\u00d7 too high for some services (checked 22 October); with it, the sums match the daily `rollup(sum, 86400)` series exactly."
+   },
+   "layout": {
+    "width": 12,
+    "height": 2,
+    "x": 0,
+    "y": 0
+   }
+  },
+  {
+   "definition": {
+    "type": "query_value",
+    "title": "GB ingested, selected period",
+    "autoscale": false,
+    "precision": 0,
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service}.as_count()",
+        "aggregator": "sum"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / 1000000000"
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 3,
+    "height": 2,
+    "x": 0,
+    "y": 2
+   }
+  },
+  {
+   "definition": {
+    "type": "query_value",
+    "title": "Log lines ingested, selected period",
+    "autoscale": true,
+    "precision": 1,
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "lines",
+        "query": "sum:datadog.estimated_usage.logs.ingested_events{$service}.as_count()",
+        "aggregator": "sum"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "lines"
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 3,
+    "height": 2,
+    "x": 3,
+    "y": 2
+   }
+  },
+  {
+   "definition": {
+    "type": "query_value",
+    "title": "Bytes per line (padding if above 10,000)",
+    "autoscale": false,
+    "precision": 0,
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service}.as_count()",
+        "aggregator": "sum"
+       },
+       {
+        "data_source": "metrics",
+        "name": "lines",
+        "query": "sum:datadog.estimated_usage.logs.ingested_events{$service}.as_count()",
+        "aggregator": "sum"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / lines",
+        "conditional_formats": [
+         {
+          "comparator": ">",
+          "value": 10000,
+          "palette": "white_on_red"
+         },
+         {
+          "comparator": "<=",
+          "value": 10000,
+          "palette": "white_on_green"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 3,
+    "height": 2,
+    "x": 6,
+    "y": 2
+   }
+  },
+  {
+   "definition": {
+    "type": "query_value",
+    "title": "NUL padding chunks (...TRUNCATED... lines), selected period",
+    "autoscale": true,
+    "precision": 0,
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "logs",
+        "name": "padding",
+        "search": {
+         "query": "\"...TRUNCATED...\" $service"
+        },
+        "indexes": [
+         "*"
+        ],
+        "compute": {
+         "aggregation": "count"
+        }
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "padding",
+        "conditional_formats": [
+         {
+          "comparator": ">",
+          "value": 1000,
+          "palette": "white_on_red"
+         },
+         {
+          "comparator": "<=",
+          "value": 1000,
+          "palette": "white_on_green"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 3,
+    "height": 2,
+    "x": 9,
+    "y": 2
+   }
+  },
+  {
+   "definition": {
+    "type": "timeseries",
+    "title": "GB ingested per day, by service (top 25)",
+    "show_legend": true,
+    "legend_layout": "auto",
+    "legend_columns": [
+     "avg",
+     "max",
+     "value"
+    ],
+    "requests": [
+     {
+      "response_format": "timeseries",
+      "display_type": "bars",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service} by {service}.as_count().rollup(sum, 86400)"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / 1000000000",
+        "alias": "GB",
+        "limit": {
+         "count": 25,
+         "order": "desc"
+        }
+       }
+      ],
+      "style": {
+       "palette": "dog_classic",
+       "line_type": "solid",
+       "line_width": "normal"
+      }
+     }
+    ],
+    "yaxis": {
+     "include_zero": true,
+     "scale": "linear",
+     "label": "GB a day"
+    }
+   },
+   "layout": {
+    "width": 6,
+    "height": 4,
+    "x": 0,
+    "y": 4
+   }
+  },
+  {
+   "definition": {
+    "type": "timeseries",
+    "title": "NUL padding chunks per day, by service (top 25)",
+    "show_legend": true,
+    "legend_layout": "auto",
+    "requests": [
+     {
+      "response_format": "timeseries",
+      "display_type": "bars",
+      "queries": [
+       {
+        "data_source": "logs",
+        "name": "padding",
+        "search": {
+         "query": "\"...TRUNCATED...\" $service"
+        },
+        "indexes": [
+         "*"
+        ],
+        "compute": {
+         "aggregation": "count",
+         "interval": 86400000
+        },
+        "group_by": [
+         {
+          "facet": "service",
+          "limit": 25,
+          "sort": {
+           "aggregation": "count",
+           "order": "desc"
+          }
+         }
+        ]
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "padding"
+       }
+      ],
+      "style": {
+       "palette": "warm"
+      }
+     }
+    ],
+    "yaxis": {
+     "include_zero": true,
+     "scale": "linear",
+     "label": "chunks a day"
+    }
+   },
+   "layout": {
+    "width": 6,
+    "height": 4,
+    "x": 6,
+    "y": 4
+   }
+  },
+  {
+   "definition": {
+    "type": "timeseries",
+    "title": "Bytes per line per day, by service (above 10 KB = padding)",
+    "show_legend": true,
+    "legend_layout": "auto",
+    "requests": [
+     {
+      "response_format": "timeseries",
+      "display_type": "line",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service} by {service}.as_count().rollup(sum, 86400)"
+       },
+       {
+        "data_source": "metrics",
+        "name": "lines",
+        "query": "sum:datadog.estimated_usage.logs.ingested_events{$service} by {service}.as_count().rollup(sum, 86400)"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / lines",
+        "alias": "bytes per line",
+        "limit": {
+         "count": 25,
+         "order": "desc"
+        }
+       }
+      ],
+      "style": {
+       "palette": "dog_classic",
+       "line_type": "solid",
+       "line_width": "normal"
+      }
+     }
+    ],
+    "yaxis": {
+     "include_zero": true,
+     "scale": "log",
+     "label": "bytes per line"
+    },
+    "markers": [
+     {
+      "value": "y = 10000",
+      "display_type": "error dashed",
+      "label": "padding signature"
+     },
+     {
+      "value": "y = 3000",
+      "display_type": "ok dashed",
+      "label": "real log line"
+     }
+    ]
+   },
+   "layout": {
+    "width": 6,
+    "height": 4,
+    "x": 0,
+    "y": 8
+   }
+  },
+  {
+   "definition": {
+    "type": "timeseries",
+    "title": "Estate total: GB ingested per day, all services",
+    "show_legend": false,
+    "requests": [
+     {
+      "response_format": "timeseries",
+      "display_type": "bars",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{*}.as_count().rollup(sum, 86400)"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / 1000000000",
+        "alias": "GB a day"
+       }
+      ],
+      "style": {
+       "palette": "grey"
+      }
+     }
+    ],
+    "yaxis": {
+     "include_zero": true,
+     "scale": "linear",
+     "label": "GB a day"
+    },
+    "markers": [
+     {
+      "value": "y = 8.5",
+      "display_type": "ok dashed",
+      "label": "contract: 256 GB a month"
+     },
+     {
+      "value": "y = 200",
+      "display_type": "warning dashed",
+      "label": "6 TB a month, the renewal target"
+     }
+    ]
+   },
+   "layout": {
+    "width": 6,
+    "height": 4,
+    "x": 6,
+    "y": 8
+   }
+  },
+  {
+   "definition": {
+    "type": "toplist",
+    "title": "GB ingested by service, selected period (top 25)",
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service} by {service}.as_count()",
+        "aggregator": "sum"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / 1000000000",
+        "limit": {
+         "count": 25,
+         "order": "desc"
+        }
+       }
+      ],
+      "conditional_formats": [
+       {
+        "comparator": ">",
+        "value": 100,
+        "palette": "white_on_red"
+       },
+       {
+        "comparator": ">",
+        "value": 10,
+        "palette": "white_on_yellow"
+       },
+       {
+        "comparator": "<=",
+        "value": 10,
+        "palette": "white_on_green"
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 4,
+    "height": 5,
+    "x": 0,
+    "y": 12
+   }
+  },
+  {
+   "definition": {
+    "type": "toplist",
+    "title": "NUL padding chunks by service, selected period (top 25)",
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "logs",
+        "name": "padding",
+        "search": {
+         "query": "\"...TRUNCATED...\" $service"
+        },
+        "indexes": [
+         "*"
+        ],
+        "compute": {
+         "aggregation": "count"
+        },
+        "group_by": [
+         {
+          "facet": "service",
+          "limit": 25,
+          "sort": {
+           "aggregation": "count",
+           "order": "desc"
+          }
+         }
+        ]
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "padding",
+        "limit": {
+         "count": 25,
+         "order": "desc"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 4,
+    "height": 5,
+    "x": 4,
+    "y": 12
+   }
+  },
+  {
+   "definition": {
+    "type": "toplist",
+    "title": "Bytes per line by service, selected period (top 25)",
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service} by {service}.as_count()",
+        "aggregator": "sum"
+       },
+       {
+        "data_source": "metrics",
+        "name": "lines",
+        "query": "sum:datadog.estimated_usage.logs.ingested_events{$service} by {service}.as_count()",
+        "aggregator": "sum"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / lines",
+        "limit": {
+         "count": 25,
+         "order": "desc"
+        }
+       }
+      ],
+      "conditional_formats": [
+       {
+        "comparator": ">",
+        "value": 10000,
+        "palette": "white_on_red"
+       },
+       {
+        "comparator": "<=",
+        "value": 10000,
+        "palette": "white_on_green"
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 4,
+    "height": 5,
+    "x": 8,
+    "y": 12
+   }
+  },
+  {
+   "definition": {
+    "type": "query_table",
+    "title": "Per service: GB, lines, bytes per line, padding chunks (selected period)",
+    "has_search_bar": "auto",
+    "requests": [
+     {
+      "response_format": "scalar",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{$service} by {service}.as_count()",
+        "aggregator": "sum"
+       },
+       {
+        "data_source": "metrics",
+        "name": "lines",
+        "query": "sum:datadog.estimated_usage.logs.ingested_events{$service} by {service}.as_count()",
+        "aggregator": "sum"
+       },
+       {
+        "data_source": "logs",
+        "name": "padding",
+        "search": {
+         "query": "\"...TRUNCATED...\" $service"
+        },
+        "indexes": [
+         "*"
+        ],
+        "compute": {
+         "aggregation": "count"
+        },
+        "group_by": [
+         {
+          "facet": "service",
+          "limit": 25,
+          "sort": {
+           "aggregation": "count",
+           "order": "desc"
+          }
+         }
+        ]
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / 1000000000",
+        "alias": "GB ingested",
+        "limit": {
+         "count": 60,
+         "order": "desc"
+        }
+       },
+       {
+        "formula": "lines",
+        "alias": "lines"
+       },
+       {
+        "formula": "bytes / lines",
+        "alias": "bytes per line",
+        "conditional_formats": [
+         {
+          "comparator": ">",
+          "value": 10000,
+          "palette": "white_on_red"
+         },
+         {
+          "comparator": "<=",
+          "value": 10000,
+          "palette": "white_on_green"
+         }
+        ]
+       },
+       {
+        "formula": "padding",
+        "alias": "padding chunks"
+       }
+      ]
+     }
+    ]
+   },
+   "layout": {
+    "width": 12,
+    "height": 6,
+    "x": 0,
+    "y": 17
+   }
+  },
+  {
+   "definition": {
+    "type": "timeseries",
+    "title": "The 22 tee services: GB ingested per day (the step-13 saving, all 22 together)",
+    "show_legend": false,
+    "requests": [
+     {
+      "response_format": "timeseries",
+      "display_type": "bars",
+      "queries": [
+       {
+        "data_source": "metrics",
+        "name": "bytes",
+        "query": "sum:datadog.estimated_usage.logs.ingested_bytes{(service:prod-ms-audit-trail OR service:prod-ms-lms-ops OR service:prod-ms-cnv OR service:prod-ms-assistance OR service:prod-ms-user-iam OR service:prod-sharia-user-iam-sharia OR service:prod-ms-supplier OR service:prod-ms-repeat-order OR service:prod-agent-marketing OR service:prod-customer-bff OR service:prod-ms-collection-consumer OR service:prod-ms-rule-engine OR service:prod-ms-scheduling OR service:prod-ms-agency OR service:prod-ms-gen-ai OR service:prod-ms-kyc-proxy OR service:prod-ms-integrity OR service:prod-ms-robot-controller OR service:prod-ms-partnership OR service:prod-ms-backoffice OR service:prod-ms-gold-service OR service:prod-ms-unsecured-v2)}.as_count().rollup(sum, 86400)"
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "bytes / 1000000000",
+        "alias": "GB a day, 22 tee services"
+       }
+      ],
+      "style": {
+       "palette": "orange"
+      }
+     }
+    ],
+    "yaxis": {
+     "include_zero": true,
+     "scale": "linear",
+     "label": "GB a day"
+    }
+   },
+   "layout": {
+    "width": 6,
+    "height": 4,
+    "x": 0,
+    "y": 23
+   }
+  },
+  {
+   "definition": {
+    "type": "timeseries",
+    "title": "The 22 tee services: NUL padding chunks per day, all 22 together",
+    "show_legend": false,
+    "requests": [
+     {
+      "response_format": "timeseries",
+      "display_type": "bars",
+      "queries": [
+       {
+        "data_source": "logs",
+        "name": "padding",
+        "search": {
+         "query": "\"...TRUNCATED...\" (service:prod-ms-audit-trail OR service:prod-ms-lms-ops OR service:prod-ms-cnv OR service:prod-ms-assistance OR service:prod-ms-user-iam OR service:prod-sharia-user-iam-sharia OR service:prod-ms-supplier OR service:prod-ms-repeat-order OR service:prod-agent-marketing OR service:prod-customer-bff OR service:prod-ms-collection-consumer OR service:prod-ms-rule-engine OR service:prod-ms-scheduling OR service:prod-ms-agency OR service:prod-ms-gen-ai OR service:prod-ms-kyc-proxy OR service:prod-ms-integrity OR service:prod-ms-robot-controller OR service:prod-ms-partnership OR service:prod-ms-backoffice OR service:prod-ms-gold-service OR service:prod-ms-unsecured-v2)"
+        },
+        "indexes": [
+         "*"
+        ],
+        "compute": {
+         "aggregation": "count",
+         "interval": 86400000
+        }
+       }
+      ],
+      "formulas": [
+       {
+        "formula": "padding",
+        "alias": "padding chunks a day"
+       }
+      ],
+      "style": {
+       "palette": "warm"
+      }
+     }
+    ],
+    "yaxis": {
+     "include_zero": true,
+     "scale": "linear",
+     "label": "chunks a day"
+    }
+   },
+   "layout": {
+    "width": 6,
+    "height": 4,
+    "x": 6,
+    "y": 23
+   }
+  }
+ ]
+}
