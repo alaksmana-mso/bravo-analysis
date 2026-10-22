@@ -10,6 +10,8 @@ Layouts handled (text-level edits, the file's own formatting is kept):
   - `extraEnv: |` string block, at any indent (microservices-http.extraEnv, bfi `image:`-keyed charts)
   - `globalEnv: |` string block (LORA Temporal worker charts)
 Files with neither block are skipped and listed (infra charts: clamav, kafka, secrets, sqlproxy, UIs, ...).
+Apps in NO_LOGGING_LIBRARY_APPS are BFI apps that use neither library: skipped when adding, and
+`--remove --only <apps>` takes the entry out of their files.
 Apps in SKIP_APPS are third-party or vendor software that never reads the variable. They are left exactly
 as they are: an env change only restarts them, and Keycloak runs as one replica (20 Oct 2026, UAT).
 
@@ -40,6 +42,26 @@ SKIP_APPS = {
     "filebrowser",                                  # File Browser (StrategyOne)
     "strategyone-batch-ws", "strategyone-lab", "strategyone-modelmgr",
     "strategyone-tus", "strategyone-wsd", "strategyone-wsp",  # vendor StrategyOne
+}
+# BFI apps whose code uses neither bfi-go-pkg nor a BFI Java logging library (bfi-logging-* or
+# bravo-lib-logging), so they never read the variable. Verified 22 Oct 2026 from go.mod / pom.xml on each
+# repo's default branch, or, where the repo is not visible, from Datadog span language and manifest env
+# names. Re-check an app when it adopts one of the libraries, then remove it here. Skipped when adding;
+# `--remove --only <apps>` takes the entry out of their files.
+NO_LOGGING_LIBRARY_APPS = {
+    # app-deployment, Java on plain logback
+    "agreement", "approval-engine", "bpm", "collateral", "core-proxy", "customer", "dominic", "employee",
+    "insurance", "journal", "lms-gateway", "master", "product", "repeat-order", "bfi-connect",
+    # app-deployment, other languages
+    "calculation", "ai-platform", "robot-scrape",
+    # bfi-app-deployment: .NET
+    "bfi-incentive-net-api", "bfi-payment-net-api", "bfi-syariah-net-api", "bfi-otrs-api", "bfi-otrs-ui",
+    # bfi-app-deployment: web front ends
+    "bfi-formio-ui", "bfi-omni-middleware-ui", "bfi-panel-dashboard-ui", "bfi-operation-ui", "ms-new-otrs-ui",
+    "bfi-website-cms", "bfi-corporate-website",
+    # bfi-app-deployment: PHP, Python, Java without a logging library
+    "ares", "iad-ams", "pcms", "ms-score-branch-ui", "army", "pmotools", "pmotools2",
+    "bfi-jira-data-migration-api", "bfi-insurance-api",
 }
 
 
@@ -136,6 +158,20 @@ def upsert(lines: list[str], value: str) -> tuple[list[str], str]:
     return lines[:end] + entry + lines[end:], f"added ({key})"
 
 
+def remove(lines: list[str]) -> tuple[list[str], str]:
+    """Delete the VAR item (its name line and value line) from the first env block. Returns (new_lines, action)."""
+    found = find_block(lines)
+    if found is None:
+        return lines, "skipped: no extraEnv/globalEnv block"
+    start, end, _, key = found
+    for j in range(start + 1, end):
+        im = ITEM_RE.match(lines[j])
+        if im and im.group("name") == VAR:
+            stop = j + 2 if j + 1 < end and lines[j + 1].lstrip().startswith("value:") else j + 1
+            return lines[:j] + lines[stop:], f"removed ({key})"
+    return lines, f"absent ({key})"
+
+
 def block_items(lines: list[str]) -> list:
     """Parse the first env block's own text (dedented) as a YAML list, independent of the rest of the file."""
     found = find_block(lines)
@@ -149,7 +185,7 @@ def block_items(lines: list[str]) -> list:
     return load("".join(l[indent:] if l.strip() else l for l in body)) or []
 
 
-def check(path: Path, lines: list[str]) -> str:
+def check(path: Path, lines: list[str], expected: int = 1) -> str:
     """Return a note saying how much of the file could be checked.
 
     Best case the whole file parses. Failing that, the env block alone is parsed. Failing that too (tabs
@@ -166,8 +202,8 @@ def check(path: Path, lines: list[str]) -> str:
         names = [ITEM_RE.match(l.rstrip("\t \n") + "\n").group("name")
                  for l in lines[start + 1 : end] if ITEM_RE.match(l.rstrip("\t \n") + "\n")]
         note = "(env block is not strict YAML, tabs; item counted textually)"
-    if names.count(VAR) != 1:
-        raise ValueError(f"{path}: expected exactly one {VAR} in the env block, found {names.count(VAR)}")
+    if names.count(VAR) != expected:
+        raise ValueError(f"{path}: expected {expected} {VAR} in the env block, found {names.count(VAR)}")
     if note:
         return note
     try:
@@ -187,8 +223,11 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only", help="comma-separated app folders to touch; others are left alone (for staged batches)")
     ap.add_argument("--values-file", help="touch only values files with exactly this name, e.g. values-prod-sharia.yaml")
+    ap.add_argument("--remove", action="store_true", help="take the entry out instead of adding it (needs --only)")
     args = ap.parse_args()
-    value = read_value(args)
+    if args.remove and not args.only:
+        sys.exit("--remove needs --only <apps>, so it never strips the whole estate by accident")
+    value = None if args.remove else read_value(args)
     only = {a.strip() for a in args.only.split(",") if a.strip()} if args.only else None
 
     counts: dict[str, int] = {}
@@ -201,18 +240,22 @@ def main() -> int:
                 counts["skipped-app"] = counts.get("skipped-app", 0) + 1
                 print(f"  {'skipped: third-party app (SKIP_APPS)':<38} {chart.parent.relative_to(root.parent)}")
                 continue
+            if chart.parent.name in NO_LOGGING_LIBRARY_APPS and not args.remove:
+                counts["skipped-no-library"] = counts.get("skipped-no-library", 0) + 1
+                print(f"  {'skipped: no logging library':<38} {chart.parent.relative_to(root.parent)}")
+                continue
             for path in sorted(chart.parent.glob("values-*.yaml")):
                 if not env_matches(path, args.env) or (args.values_file and path.name != args.values_file):
                     continue
                 lines = path.read_text().splitlines(keepends=True)
-                new_lines, action = upsert(lines, value)
+                new_lines, action = remove(lines) if args.remove else upsert(lines, value)
                 counts[action.split(" ")[0]] = counts.get(action.split(" ")[0], 0) + 1
                 rel = path.relative_to(root.parent)
                 if action.startswith("skipped"):
                     print(f"  {action:<38} {rel}")
                     continue
                 if new_lines != lines:
-                    note = check(path, new_lines)
+                    note = check(path, new_lines, expected=0 if args.remove else 1)
                     if not args.dry_run:
                         path.write_text("".join(new_lines))
                     print(f"  {action:<38} {rel} {note}")
