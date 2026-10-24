@@ -25,6 +25,7 @@ NAMED = {
     "history.md": "2825715781", "README.md": "2774335489",  # history split out 7 October 2026
     "request-id.md": "2849931327",  # 16 October 2026
     "log-collection.md": "2859172062",  # 20 October 2026
+    "tee-pr-list.md": "2845180083",  # 24 October 2026
 }
 SERVICE_PAGES = {
     "bravo-core-proxy-service": "2755756199", "bravo-agreement-service": "2755821675", "bravo-agency-service": "2755821690",
