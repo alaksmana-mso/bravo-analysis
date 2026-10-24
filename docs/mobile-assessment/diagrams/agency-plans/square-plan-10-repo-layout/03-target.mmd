@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+  end
+  subgraph bf["SQUARE target"]
+    direction TB
+    b0
+    b1
+    b2
+  end
+  j0["Melos workspace, 4 apps, 49<br/>module_* packages, 110<br/>library/* wrappers"]:::now
+  b0["Keep the workspace. Add feat<br/>ures/&lt;app&gt;/&lt;feature<br/>&gt; packages as they are<br/>extracted, each with di/, …"]:::good
+  j0 -->|adapt| b0
+  j1["module_common too big, new<br/>logic there is forbidden"]:::now
+  b1["core stays small and gets a<br/>pure barrel. Shared business<br/>logic goes to a named<br/>package (for example …"]:::good
+  j1 -->|adapt| b1
+  j2["Generated code"]:::now
+  b2["Decide once: generate in CI<br/>(build_runner in checks.yml<br/>with a cache, generated<br/>files gitignored) or keep …"]:::good
+  j2 -->|adapt| b2
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

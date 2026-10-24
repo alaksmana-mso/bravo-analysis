@@ -1,0 +1,21 @@
+flowchart TD
+  t0["149 test files: 665 testWidgets<br/>and 823 test calls. 47 screen<br/>tests, 33 controller tests<br/>(controllers are tested directly).<br/>…"]:::hot
+  t1["Shared packages: agent_marketing<br/>28 test files, agency 19,<br/>onboarding 7, core 4 (none covers<br/>HttpClient request or error …"]:::hot
+  t2["No integration_test folder in any<br/>app. No end-to-end suite for the<br/>agency apps (wdio-test-automation<br/>exists in the org, it is …"]:::hot
+  t3["CI: melos test:&lt;app&gt; runs<br/>include_unreached_coverage.dart<br/>(adds a dummy test that imports<br/>every lib file so untested files …"]:::hot
+  t4["Coverage is for the whole package<br/>and its category packages, not for<br/>changed files. No test<br/>randomisation. Tests run with …"]:::hot
+  t5["Nothing bans controller tests<br/>(unlike bravo-customer-app), which<br/>is good."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

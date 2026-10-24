@@ -1,0 +1,21 @@
+flowchart TD
+  d0["One interceptor chain in core,<br/>zero auth decorators in<br/>shared_data."]:::good
+  d1["A refresh never runs twice at<br/>once, a 401 after a refresh<br/>retries once then clears the<br/>session. Tests prove both."]:::good
+  d2["Every environment is pinned, the<br/>fingerprint is required at<br/>startup."]:::good
+  d3["Every request carries x-request-id<br/>and every error carries<br/>correlationId into the logs."]:::good
+  d4["GENFI has one HttpClient provider<br/>override."]:::good
+  d5["Alice is not in release builds."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4 & d5
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4
+  classDef good fill:#e3f5e1,stroke:#2a7

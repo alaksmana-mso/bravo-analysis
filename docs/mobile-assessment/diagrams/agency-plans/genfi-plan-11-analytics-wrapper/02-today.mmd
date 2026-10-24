@@ -1,0 +1,21 @@
+flowchart TD
+  t0["lib/app/common/convent_analytics/c<br/>onvent_analytics_service.dart:<br/>enum AnalyticsEvent (login,<br/>register, kalkulator, …"]:::hot
+  t1["4 call sites: prospect_confirmatio<br/>n_controller.dart:300, prospect_co<br/>nvent_list_controller.dart:96, …"]:::hot
+  t2["User id is bravoAgentId, user<br/>properties marketing_id and<br/>marketing_spv_id. No name, phone,<br/>NIK, address or income in event …"]:::hot
+  t3["The wrapper and Crashlytics are<br/>skipped for the Sharia flavour, so<br/>MyShaf sends no analytics."]:::hot
+  t4["Datadog RUM views come from<br/>DatadogNavigationObserver in<br/>router.dart:240, a separate path.<br/>No custom RUM actions."]:::hot
+  t5["Consent: DatadogSdk.runApp(...,<br/>TrackingConsent.granted, ...)<br/>hard-coded in main.dart."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

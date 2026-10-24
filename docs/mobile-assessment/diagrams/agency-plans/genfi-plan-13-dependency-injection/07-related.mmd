@@ -1,0 +1,13 @@
+flowchart LR
+  me["GENFI plan 13: Dependency<br/>injection"]:::good
+  r0["GENFI plan 07: Layering<br/>(ports are declared in<br/>domain)."]
+  me --> r0
+  r1["GENFI plan 08: State<br/>management (notifiers get<br/>use cases through<br/>providers)."]
+  me --> r1
+  r2["GENFI plan 05: Networking<br/>(HttpClient and strategy<br/>providers)."]
+  me --> r2
+  r3["GENFI plan 11: Analytics<br/>wrapper (adapter list in the<br/>root)."]
+  me --> r3
+  r4["GENFI plan 09: Repo layout<br/>(di/ per feature package)."]
+  me --> r4
+  classDef good fill:#e3f5e1,stroke:#2a7

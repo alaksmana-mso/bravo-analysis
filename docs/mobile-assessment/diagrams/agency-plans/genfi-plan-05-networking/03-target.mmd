@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+  end
+  j0["dio adapter behind a client<br/>interface, 17 typed<br/>exceptions mapped to<br/>messages"]:::now
+  b0["Keep HttpClient as the<br/>interface. Add an<br/>interceptor chain in<br/>shared_lib/core. Keep the<br/>three typed …"]:::good
+  j0 -->|adapt| b0
+  j1["Not interceptor-based yet<br/>(their own TODO)"]:::now
+  b1["We go straight to<br/>interceptors. This is the<br/>one place we are ahead of<br/>Jago."]:::good
+  j1 -->|adapt| b1
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

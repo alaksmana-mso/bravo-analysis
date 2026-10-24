@@ -1,0 +1,21 @@
+flowchart TD
+  t0["lib/app/analytics/analytics.dart<br/>(37 lines) wraps FirebaseAnalytics<br/>only. 27 logEvent calls in 25<br/>files, 24 of them in screen …"]:::hot
+  t1["All event names are string<br/>literals, some are built at<br/>runtime, for example view_leads_tr<br/>acker_$(widget.leadsType.name) and<br/>…"]:::hot
+  t2["analytics.dart:16 sets the user id<br/>to<br/>profile.agentConfins.nikMarketing<br/>(the employee NIK). User<br/>properties branch_code and …"]:::hot
+  t3["Datadog RUM views come from<br/>DatadogNavigationObserver in<br/>router.dart:130. Both SQUARE RUM<br/>applications have event processing<br/>set …"]:::hot
+  t4["Crashlytics breadcrumbs come from<br/>CrashReporter.navigatorObserver, a<br/>third path for screen names."]:::hot
+  t5["Consent: DatadogSdk.runApp(...,<br/>TrackingConsent.granted, ...)<br/>hard-coded in main.dart."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

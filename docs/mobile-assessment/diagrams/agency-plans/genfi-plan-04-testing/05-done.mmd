@@ -1,0 +1,20 @@
+flowchart TD
+  d0["PRs fail when coverage on changed<br/>files drops below the threshold,<br/>the threshold only goes up."]:::good
+  d1["Tests run in random order and the<br/>whole failure list is visible."]:::good
+  d2["No shared package has 0 tests,<br/>HttpClient and the auth clients<br/>are tested."]:::good
+  d3["The parity net (goldens, fixtures,<br/>fakes, ledger) exists for the<br/>first refactored feature."]:::good
+  d4["The e2e journeys (register,<br/>prospect input, calculator,<br/>reserve lead) run nightly on SIT<br/>and gate release candidates."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4
+  classDef good fill:#e3f5e1,stroke:#2a7

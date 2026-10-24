@@ -1,0 +1,20 @@
+flowchart TD
+  d0["A handled error in prod reaches<br/>Datadog Logs and Crashlytics with<br/>the right version and a readable<br/>stack."]:::good
+  d1["No log, crash key or user id<br/>contains a NIK, phone, email or<br/>address, the sanitizer test proves<br/>it."]:::good
+  d2["Consent is a real value, not a<br/>constant."]:::good
+  d3["MyShaf and MY BISPRO use the same<br/>logger as GENFI and SQUARE."]:::good
+  d4["SQUARE RUM events are processed,<br/>or the RUM SDK is removed on<br/>purpose."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4
+  classDef good fill:#e3f5e1,stroke:#2a7

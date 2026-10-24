@@ -1,0 +1,8 @@
+flowchart TD
+  s0["Step 1<br/>freeze the names (1 PR)"]:::now
+  s1["Step 2<br/>shared package and adapters<br/>(1-2 PRs)"]:::now
+  s2["Step 3<br/>catalogue and migration (1-3<br/>PRs)"]:::now
+  s3["Step 4<br/>consent, PII and identity (1<br/>PR)"]:::now
+  s4["Step 5<br/>MyShaf and RUM (1 PR)"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4
+  classDef now fill:#fff4cc,stroke:#b80

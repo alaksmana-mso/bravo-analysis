@@ -1,0 +1,12 @@
+flowchart LR
+  k0["A stricter lint set floods<br/>PRs with unrelated warnings"]:::hot
+  m0["Enable rule by rule with<br/>baselines, fix in dedicated<br/>PRs"]:::good
+  k0 -->|mitigate| m0
+  k1["Teams lower a baseline file<br/>by hand"]:::hot
+  m1["CODEOWNERS on<br/>tool/arch_baseline.json, the<br/>checker recomputes and<br/>refuses a baseline above the<br/>real count"]:::good
+  k1 -->|mitigate| m1
+  k2["Rules written for BFI do not<br/>fit the agency apps"]:::hot
+  m2["Write them in our words,<br/>with examples from this repo"]:::good
+  k2 -->|mitigate| m2
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

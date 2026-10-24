@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+  end
+  j0["module_design_library:<br/>tokens generated from a<br/>Figma export, brand and<br/>theme switching, Widgetbook<br/>…"]:::now
+  b0["ds_3 in frontend-mobile-ui<br/>is the one package. Tokens<br/>generated from the Figma<br/>variables export into ds_3 …"]:::good
+  j0 -->|adapt| b0
+  j1["Brand switching"]:::now
+  b1["Flavour theming for GENFI vs<br/>MyShaf inside ds_3 (today<br/>GENFI and MyShaf share one<br/>brand file)."]:::good
+  j1 -->|adapt| b1
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

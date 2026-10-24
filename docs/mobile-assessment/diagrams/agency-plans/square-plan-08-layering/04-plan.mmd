@@ -1,0 +1,9 @@
+flowchart TD
+  s0["Step 1<br/>rules, checker and a pure core<br/>barrel (1-2 PRs)"]:::now
+  s1["Step 2<br/>parity ledger and switch flag<br/>for lead and<br/>company_submission (1-2 PRs)"]:::now
+  s2["Step 3<br/>first vertical slice (lead<br/>detail and leads tracker list,<br/>1-2 PRs)"]:::now
+  s3["Step 4<br/>move the rules<br/>(company_submission and<br/>no_deal_recalculation, 3-5<br/>PRs)"]:::now
+  s4["Step 5<br/>cohort check, flip, delete<br/>(2-4 weeks rollout + 1-2 PRs)"]:::now
+  s5["Step 6<br/>repeat per feature, then<br/>collab_form"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4 --> s5
+  classDef now fill:#fff4cc,stroke:#b80

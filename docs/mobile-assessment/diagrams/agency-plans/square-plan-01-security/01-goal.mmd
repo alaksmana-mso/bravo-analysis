@@ -1,0 +1,7 @@
+flowchart LR
+  g0["No workflow can print or<br/>export a secret."]:::good
+  g1["Every prod build goes<br/>through a protected<br/>environment."]:::good
+  g2["Every build, in every<br/>environment, is pinned,<br/>shrunk and obfuscated."]:::good
+  g3["The backend trusts device<br/>integrity and user auth,<br/>never a value baked into the<br/>app."]:::good
+  g0 --> g1 --> g2 --> g3
+  classDef good fill:#e3f5e1,stroke:#2a7

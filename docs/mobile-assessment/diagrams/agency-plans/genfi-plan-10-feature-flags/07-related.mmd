@@ -1,0 +1,13 @@
+flowchart LR
+  me["GENFI plan 10: Feature<br/>flags"]:::good
+  r0["GENFI plan 07: Layering<br/>(switch flags per feature)."]
+  me --> r0
+  r1["GENFI plan 01: Security<br/>(compile-time switches<br/>become safe defaults)."]
+  me --> r1
+  r2["GENFI plan 08: State<br/>management (flags as a<br/>provider, not a static<br/>instance)."]
+  me --> r2
+  r3["GENFI plan 06: Lint and<br/>guardrails (no raw remote-<br/>config reads)."]
+  me --> r3
+  r4["GENFI plan 11: Analytics<br/>wrapper (exposure events<br/>later)."]
+  me --> r4
+  classDef good fill:#e3f5e1,stroke:#2a7

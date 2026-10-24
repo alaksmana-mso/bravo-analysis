@@ -1,0 +1,12 @@
+flowchart LR
+  k0["ds_3 lacks widgets the app<br/>needs, so teams fork locally<br/>again"]:::hot
+  m0["Add to ds_3 first, with a<br/>fast review lane, the local<br/>ds3 shim is the warning sign"]:::good
+  k0 -->|mitigate| m0
+  k1["Migrating screens changes<br/>visuals during the parity<br/>window"]:::hot
+  m1["Golden tests per screen,<br/>migrate a screen in the same<br/>PR as its Layering slice or<br/>in a quiet window, not both"]:::good
+  k1 -->|mitigate| m1
+  k2["Runtime font download<br/>(ui_theme) fails offline"]:::hot
+  m2["Bundle fonts in ds_3, set Go<br/>ogleFonts.config.allowRuntim<br/>eFetching = false"]:::good
+  k2 -->|mitigate| m2
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

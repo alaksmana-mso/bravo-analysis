@@ -1,0 +1,21 @@
+flowchart TD
+  t0["Root analysis_options.yaml<br/>includes strict_lint.yaml (1,176<br/>lines, a copy of the pub.dev lint<br/>strict set with 154 rules on and …"]:::hot
+  t1["All shared_data packages, core,<br/>crash_reporting and places use<br/>very_good_analysis (root dev<br/>dependency ^10.0.0). agent_tools …"]:::hot
+  t2["CI: melos format --set-exit-if-<br/>changed, flutter analyze --fatal-<br/>infos --fatal-warnings, pubghost<br/>with allow_dead_code: true and …"]:::hot
+  t3["No custom_lint, DCM, import_lint<br/>or any dependency-rule tool."]:::hot
+  t4["What the tooling allows today: 129<br/>(GENFI) and 89 (SQUARE) cross-<br/>feature imports, 3 repositories<br/>and a model in …"]:::hot
+  t5["Review: Copilot code review on<br/>PRs, an Atlas webhook on a label,<br/>a PR template that asks for<br/>Conventional Commits. …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

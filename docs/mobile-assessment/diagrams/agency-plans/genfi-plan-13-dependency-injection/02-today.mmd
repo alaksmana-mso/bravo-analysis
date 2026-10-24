@@ -1,0 +1,20 @@
+flowchart TD
+  t0["104 static final provider in<br/>agent_tools, 96<br/>StateNotifierProvider. Shared<br/>packages expose<br/>HttpClient.provider, authProvider<br/>…"]:::hot
+  t1["main.dart overrides five<br/>HttpClient variants (default,<br/>auth, Krakend, chat gateway, non-<br/>auth Krakend), NetworkConfig, the<br/>…"]:::hot
+  t2["Repositories in shared_data are<br/>concrete classes with a static<br/>provider, nothing below the<br/>HttpClient can be faked. Widget<br/>tests …"]:::hot
+  t3["Static singletons exist beside<br/>Riverpod: CrashReporter.instance,<br/>the remote-config service instance<br/>(GENFI), AliceInspector."]:::hot
+  t4["core re-exports flutter_riverpod,<br/>shared_data packages take Riverpod<br/>as a dependency just for the<br/>provider declarations."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

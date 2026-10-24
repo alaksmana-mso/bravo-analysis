@@ -1,0 +1,11 @@
+flowchart LR
+  me["GENFI plan 03: Logging and<br/>crashes"]:::good
+  r0["GENFI plan 11: Analytics<br/>wrapper (shares the PII<br/>denylist and consent)."]
+  me --> r0
+  r1["GENFI plan 01: Security<br/>(consent and personal data<br/>in telemetry)."]
+  me --> r1
+  r2["GENFI plan 02: CI/CD (symbol<br/>uploads with --version)."]
+  me --> r2
+  r3["GENFI plan 05: Networking<br/>(trace id in logs)."]
+  me --> r3
+  classDef good fill:#e3f5e1,stroke:#2a7

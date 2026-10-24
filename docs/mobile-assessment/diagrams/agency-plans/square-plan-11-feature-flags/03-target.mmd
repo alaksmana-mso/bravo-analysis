@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+  end
+  subgraph bf["SQUARE target"]
+    direction TB
+    b0
+    b1
+  end
+  j0["Typed flag catalogue<br/>(BoolFeatureFlag,<br/>IntFeatureFlag, ...) behind<br/>FeatureFlagPlatform,<br/>providers …"]:::now
+  b0["shared_lib/feature_flags:<br/>FeatureFlag&lt;T&gt; with<br/>key, default, owner,<br/>description, removal date, …"]:::good
+  j0 -->|adapt| b0
+  j1["Flags read through the<br/>catalogue only"]:::now
+  b1["A lint rule: no getBool /<br/>getString on<br/>FirebaseRemoteConfig outside<br/>the provider."]:::good
+  j1 -->|adapt| b1
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

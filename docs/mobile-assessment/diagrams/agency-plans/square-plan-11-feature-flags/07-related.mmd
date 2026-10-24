@@ -1,0 +1,13 @@
+flowchart LR
+  me["SQUARE plan 11: Feature<br/>flags"]:::good
+  r0["SQUARE plan 08: Layering<br/>(switch flags per feature)."]
+  me --> r0
+  r1["SQUARE plan 01: Security<br/>(compile-time switches<br/>become safe defaults)."]
+  me --> r1
+  r2["SQUARE plan 09: State<br/>management (flags as a<br/>provider, not a static<br/>instance)."]
+  me --> r2
+  r3["SQUARE plan 07: Lint and<br/>guardrails (no raw remote-<br/>config reads)."]
+  me --> r3
+  r4["SQUARE plan 04: Analytics<br/>wrapper (exposure events<br/>later)."]
+  me --> r4
+  classDef good fill:#e3f5e1,stroke:#2a7

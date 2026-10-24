@@ -1,0 +1,12 @@
+flowchart LR
+  k0["Turning Datadog logs on<br/>raises the Datadog bill"]:::hot
+  m0["Log at warning and above<br/>only, sample info logs,<br/>check the quota with the<br/>Datadog owner first"]:::good
+  k0 -->|mitigate| m0
+  k1["The sanitizer masks<br/>something a support engineer<br/>needs (an order id that<br/>looks like a phone number)"]:::hot
+  m1["Allow-list known id formats,<br/>log a sanitizer hit counter"]:::good
+  k1 -->|mitigate| m1
+  k2["Enabling Crashlytics for<br/>MyShaf needs a Firebase app<br/>that may not exist"]:::hot
+  m2["Check the Firebase project<br/>first, the Sharia flavour is<br/>gated for a reason nobody<br/>wrote down"]:::good
+  k2 -->|mitigate| m2
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

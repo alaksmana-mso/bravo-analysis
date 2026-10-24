@@ -1,0 +1,26 @@
+flowchart TD
+  t0["82 StateNotifier classes, 88<br/>StateNotifierProvider, 103 static<br/>final provider, 30 FutureProvider.<br/>0 Notifier or AsyncNotifier."]:::hot
+  t1["23 plain StatefulWidget and 66<br/>setState calls in 34 files hold<br/>screen logic outside controllers.<br/>107 ConsumerStatefulWidget vs …"]:::hot
+  t2["flutter_riverpod is declared only<br/>under dependency_overrides<br/>(^2.5.1, lock 2.6.1) and reached<br/>through core's re-export."]:::hot
+  t3["One ProviderContainer in<br/>main.dart:195 reads remote config<br/>before runApp, then is disposed. A<br/>global ValueNotifier deepLinkUri …"]:::hot
+  t4["The local database provider is<br/>read directly by SplashController<br/>only to initialise it, _instance<br/>in are_database.dart:14 is …"]:::hot
+  t5["core re-exports flutter_riverpod,<br/>so shared_data packages depend on<br/>Riverpod even where they only need<br/>plain Dart."]:::hot
+  t6["No global appRef anywhere, in apps<br/>or shared packages."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

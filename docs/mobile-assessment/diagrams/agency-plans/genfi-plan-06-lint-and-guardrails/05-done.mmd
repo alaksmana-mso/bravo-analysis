@@ -1,0 +1,15 @@
+flowchart TD
+  d0["One analysis_options chain, every<br/>package including the pinning fork<br/>is analysed."]:::good
+  d1["arch_check runs on every PR,<br/>strict rules have 0 hits, ratchet<br/>baselines only go down."]:::good
+  d2[".claude/rules and AGENTS.md exist<br/>and match the checker."]:::good
+  d3["pubghost dead code fails PRs."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  rowd0 ~~~ rowd2
+  classDef good fill:#e3f5e1,stroke:#2a7

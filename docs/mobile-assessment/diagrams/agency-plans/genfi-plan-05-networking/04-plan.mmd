@@ -1,0 +1,9 @@
+flowchart TD
+  s0["Step 1<br/>characterise today's behaviour<br/>(1 PR)"]:::now
+  s1["Step 2<br/>interceptors in core (1-2 PRs)"]:::now
+  s2["Step 3<br/>strategies and the first app<br/>behind a flag (2 PRs)"]:::now
+  s3["Step 4<br/>Krakend and chat clients (1<br/>PR)"]:::now
+  s4["Step 5<br/>cohort check, flip, delete<br/>(2-4 weeks)"]:::now
+  s5["Step 6<br/>tidy (1 PR)"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4 --> s5
+  classDef now fill:#fff4cc,stroke:#b80

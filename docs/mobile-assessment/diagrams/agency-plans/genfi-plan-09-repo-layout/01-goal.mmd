@@ -1,0 +1,6 @@
+flowchart LR
+  g0["Each feature is a package<br/>with a small public API,<br/>features import only *_api<br/>packages, shared_data stays<br/>per service …"]:::good
+  g1["One design-system package."]:::good
+  g2["No dead packages."]:::good
+  g0 --> g1 --> g2
+  classDef good fill:#e3f5e1,stroke:#2a7

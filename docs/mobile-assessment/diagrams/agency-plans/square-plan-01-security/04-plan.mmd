@@ -1,0 +1,11 @@
+flowchart TD
+  s0["Step 0&lt;br/&gt;(this<br/>week)<br/>delete the leaks and lock prod"]:::now
+  s1["Step 1<br/>workflow lint that runs on<br/>every PR (1 PR)"]:::now
+  s2["Step 2<br/>pin in every environment (1<br/>PR)"]:::now
+  s3["Step 3<br/>make the release build<br/>explicit and safe (1 PR)"]:::now
+  s4["Step 4<br/>secrets out of the app<br/>(backend + app, 1-2 sprints)"]:::now
+  s5["Step 5<br/>screen-capture guard (1-2 PRs)"]:::now
+  s6["Step 6<br/>consent and personal data in<br/>telemetry (1 PR)"]:::now
+  s7["Step 7<br/>RASP vendor (decision, then<br/>1-2 sprints)"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4 --> s5 --> s6 --> s7
+  classDef now fill:#fff4cc,stroke:#b80

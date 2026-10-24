@@ -1,0 +1,7 @@
+flowchart TD
+  s0["Step 1<br/>shared package (1 PR)"]:::now
+  s1["Step 2<br/>SQUARE catalogue (1-2 PRs)"]:::now
+  s2["Step 3<br/>no compile-time feature flags<br/>(1 PR)"]:::now
+  s3["Step 4<br/>switch flags for the refactors<br/>(with the Layering plan)"]:::now
+  s0 --> s1 --> s2 --> s3
+  classDef now fill:#fff4cc,stroke:#b80

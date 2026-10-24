@@ -1,0 +1,20 @@
+flowchart TD
+  t0["lib/app/data/remote_config/remote_<br/>config.dart: freezed RemoteConfig<br/>with 23 fields: 12 featureFlag*<br/>booleans, …"]:::hot
+  t1["remote_config_repository.dart (140<br/>lines) maps every SCREAMING_CASE<br/>key by hand with getBool /<br/>getString plus jsonDecode. No …"]:::hot
+  t2["FEATURE_FLAG_NON_REGISTERED_MAINTA<br/>IN is a compile-time dart-define<br/>read in main.dart:54.<br/>FEATURE_FLAG_NEW_COLLAB_FORM and …"]:::hot
+  t3["A ProviderContainer in<br/>main.dart:195 fetches remote<br/>config before runApp."]:::hot
+  t4["No owner, description or removal<br/>date is recorded for any flag. No<br/>experiments platform."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

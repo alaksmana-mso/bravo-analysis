@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+    b2
+  end
+  j0["Monitoring fans out to<br/>Crashlytics and Datadog<br/>behind one interface"]:::now
+  b0["shared_lib/observability: a<br/>Logger port with error(),<br/>warn(), breadcrumb(),<br/>adapters for Datadog logs<br/>and …"]:::good
+  j0 -->|adapt| b0
+  j1["jago_observability_sanitizer<br/>.dart cleans PII before<br/>anything leaves the device"]:::now
+  b1["A sanitizer in the same<br/>package: whole-word key<br/>denylist (nik, phone,<br/>address, email, name,<br/>income, plat) …"]:::good
+  j1 -->|adapt| b1
+  j2["Consent from the user's<br/>choice"]:::now
+  b2["ConsentState provider,<br/>Datadog gets the real value,<br/>default granted until a<br/>consent screen exists."]:::good
+  j2 -->|adapt| b2
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

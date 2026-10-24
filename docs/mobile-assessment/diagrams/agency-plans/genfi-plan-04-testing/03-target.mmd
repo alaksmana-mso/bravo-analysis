@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+    j3
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+    b2
+    b3
+  end
+  j0["Coverage gate on changed<br/>files per module (coverage-<br/>result.sh)"]:::now
+  b0["A coverage-diff step in<br/>checks.yml: lcov for the app<br/>and its category packages,<br/>filtered to files changed in<br/>…"]:::good
+  j0 -->|adapt| b0
+  j1["Tests run in random order"]:::now
+  b1["--test-randomize-ordering-<br/>seed=random in melos test:*.<br/>Fix order-dependent tests as<br/>they appear."]:::good
+  j1 -->|adapt| b1
+  j2["About 5,288 test files,<br/>domain tested without<br/>Flutter"]:::now
+  b2["Pure-Dart tests for domain<br/>and notifiers as the<br/>Layering plan adds them.<br/>Screen tests stay."]:::good
+  j2 -->|adapt| b2
+  j3["Appium + Cucumber on<br/>BrowserStack"]:::now
+  b3["Reuse the org's wdio-test-<br/>automation (WebdriverIO +<br/>Appium). Journeys for GENFI:<br/>register, prospect input, …"]:::good
+  j3 -->|adapt| b3
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

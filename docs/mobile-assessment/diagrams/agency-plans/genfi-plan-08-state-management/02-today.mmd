@@ -1,0 +1,21 @@
+flowchart TD
+  t0["96 StateNotifier classes and 96<br/>StateNotifierProvider, 104 static<br/>final provider, 94<br/>Provider.autoDispose. 2 Notifier<br/>classes …"]:::hot
+  t1["ConventFirebaseRemoteConfigService<br/>.provider is a static final<br/>Notifier instance, injected with<br/>overrideWith in main.dart, not a …"]:::hot
+  t2["ref.watch inside callbacks in 3<br/>places<br/>(registration_screen.dart:32,<br/>year_picker_bottom_sheet.dart:104,<br/>…"]:::hot
+  t3["171 ConsumerStatefulWidget vs 9<br/>ConsumerWidget: most screens hold<br/>local state as well as controller<br/>state."]:::hot
+  t4["core re-exports flutter_riverpod,<br/>so shared_data packages depend on<br/>Riverpod even where they only need<br/>plain Dart."]:::hot
+  t5["No global appRef anywhere, in apps<br/>or shared packages."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

@@ -1,0 +1,18 @@
+flowchart LR
+  k0["Mappers add boilerplate for<br/>no gain"]:::hot
+  m0["Ponytail rule: a thin entity<br/>is fine, map only what<br/>screens use"]:::good
+  k0 -->|mitigate| m0
+  k1["Moving a rule changes<br/>behaviour"]:::hot
+  m1["Write the domain test<br/>against today's output<br/>first, then move the code"]:::good
+  k1 -->|mitigate| m1
+  k2["collab_form is shared by two<br/>apps with different rules"]:::hot
+  m2["Inject policies per app<br/>instead of CollabFormAppId<br/>branches, migrate it last"]:::good
+  k2 -->|mitigate| m2
+  k3["Teams keep using DTOs in new<br/>screens"]:::hot
+  m3["dto-in-presentation ratchet<br/>fails the PR"]:::good
+  k3 -->|mitigate| m3
+  k4["Two cohort checks overlap on<br/>one journey"]:::hot
+  m4["One feature rollout at a<br/>time past 50%"]:::good
+  k4 -->|mitigate| m4
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

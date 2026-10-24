@@ -1,0 +1,7 @@
+flowchart TD
+  s0["Step 1<br/>composition root file (1 PR)"]:::now
+  s1["Step 2<br/>kill the static singletons<br/>(1-2 PRs)"]:::now
+  s2["Step 3<br/>ports per feature (rides on<br/>the Layering plan)"]:::now
+  s3["Step 4<br/>shared_data without Riverpod<br/>(1 PR per package, later)"]:::now
+  s0 --> s1 --> s2 --> s3
+  classDef now fill:#fff4cc,stroke:#b80

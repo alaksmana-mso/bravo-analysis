@@ -1,0 +1,7 @@
+flowchart LR
+  g0["Riverpod 3 with Notifier /<br/>AsyncNotifier."]:::good
+  g1["Controllers hold UI state<br/>only and call domain use<br/>cases."]:::good
+  g2["No ref.watch inside<br/>callbacks."]:::good
+  g3["select() for granular<br/>rebuilds."]:::good
+  g0 --> g1 --> g2 --> g3
+  classDef good fill:#e3f5e1,stroke:#2a7

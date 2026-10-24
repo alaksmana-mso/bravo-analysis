@@ -1,0 +1,15 @@
+flowchart LR
+  k0["mise changes the Flutter<br/>patch version by accident"]:::hot
+  m0["Pin exact versions, the<br/>upgrade to 3.47 is its own<br/>PR"]:::good
+  k0 -->|mitigate| m0
+  k1["Removing path filters makes<br/>CI slower"]:::hot
+  m1["The map-context job still<br/>limits app matrices, only<br/>the small lint jobs always<br/>run"]:::good
+  k1 -->|mitigate| m1
+  k2["A monotonic build number<br/>collides with numbers<br/>already in the stores"]:::hot
+  m2["Set the offset above the<br/>highest number shipped<br/>(v1.17 GENFI, v1.38 SQUARE)"]:::good
+  k2 -->|mitigate| m2
+  k3["Reusable workflows hide per-<br/>app differences (MyShaf ad-<br/>hoc builds, SQUARE Firebase<br/>mode)"]:::hot
+  m3["Keep flavour-specific inputs<br/>explicit, migrate one app at<br/>a time"]:::good
+  k3 -->|mitigate| m3
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

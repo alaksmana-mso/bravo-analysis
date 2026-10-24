@@ -1,0 +1,7 @@
+flowchart TD
+  s0["Step 1<br/>one lint set (1 PR)"]:::now
+  s1["Step 2<br/>arch checker with a ratchet (1<br/>PR)"]:::now
+  s2["Step 3<br/>AI rules and review (1 PR)"]:::now
+  s3["Step 4<br/>promote to custom_lint (later,<br/>1-2 PRs)"]:::now
+  s0 --> s1 --> s2 --> s3
+  classDef now fill:#fff4cc,stroke:#b80

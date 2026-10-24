@@ -1,0 +1,15 @@
+flowchart TD
+  t0["bfi_design_system_1 (frontend-<br/>mobile-ui ds_1, v2.4.1-ds1) in 195<br/>files. ui_theme (monorepo) in 0<br/>files."]:::hot
+  t1["Usage: BfiColors 746, BfiText 536,<br/>BfiIcon 301, BfiTextField 80,<br/>BfiPrimaryButton 72, BfiAppBar 58,<br/>showBfiAlert 50. Raw: 0 …"]:::hot
+  t2["Across the repo four design<br/>systems are in use: ds_1 (SQUARE),<br/>ds_2 + ds_3 (GENFI), ds_3<br/>(collab_form), ui_theme (MY<br/>BISPRO, 119 …"]:::hot
+  t3["frontend-mobile-ui (the org<br/>design-system repo) is pulled by<br/>git tag, no token pipeline from<br/>Figma was found in this repo."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  rowt0 ~~~ rowt2
+  classDef hot fill:#ffe1e1,stroke:#c00

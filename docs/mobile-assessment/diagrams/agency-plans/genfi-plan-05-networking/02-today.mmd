@@ -1,0 +1,26 @@
+flowchart TD
+  t0["A Dio wrapper with 30-second<br/>timeouts and typed exceptions:<br/>HttpStatusCodeException&lt;T&gt;<br/>(statusCode, data, correlationId),<br/>…"]:::hot
+  t1["No auth, refresh or retry inside<br/>it. The only interceptor is<br/>CertificatePinningInterceptor,<br/>added only when<br/>SHA_256_FINGERPRINT …"]:::hot
+  t2["Bug: HttpResponseType.stream and<br/>.plain both map to<br/>ResponseType.json (lines 320-332)."]:::hot
+  t3["Providers HttpClient.authProvider<br/>and NetworkConfig.provider throw<br/>until the app overrides them in<br/>main.dart."]:::hot
+  t4["Each implements HttpClient and<br/>copies<br/>_clearSessionOnUnauthorized.<br/>OtpHttpClient.download() does not<br/>add the auth header."]:::hot
+  t5["GENFI wires five client variants<br/>in main.dart (default, auth,<br/>Krakend, chat gateway, non-auth<br/>Krakend). The chat client uses …"]:::hot
+  t6["Two KeycloakRepository classes<br/>exist (keycloak package: direct<br/>with the secret, agent_marketing:<br/>through the backend). Five …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

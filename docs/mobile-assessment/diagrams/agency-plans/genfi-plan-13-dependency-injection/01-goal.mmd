@@ -1,0 +1,6 @@
+flowchart LR
+  g0["Every feature depends on<br/>interfaces (ports) declared<br/>in its domain."]:::good
+  g1["Providers for interfaces<br/>live in di/ and are<br/>overridden in one<br/>composition root per app."]:::good
+  g2["Tests override ports with<br/>fakes, no test needs an<br/>HttpClient mock to test a<br/>notifier."]:::good
+  g0 --> g1 --> g2
+  classDef good fill:#e3f5e1,stroke:#2a7

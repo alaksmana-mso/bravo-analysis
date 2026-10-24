@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+  end
+  j0["bloc with rules: no<br/>BuildContext or navigation<br/>inside blocs"]:::now
+  b0["Riverpod Notifier /<br/>AsyncNotifier with the same<br/>rules: a notifier never<br/>takes a BuildContext, never<br/>…"]:::good
+  j0 -->|adapt| b0
+  j1["State holders call use cases"]:::now
+  b1["Notifiers call domain use<br/>cases (Layering plan) and<br/>expose freezed UI state."]:::good
+  j1 -->|adapt| b1
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

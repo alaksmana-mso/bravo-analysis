@@ -1,0 +1,7 @@
+flowchart LR
+  g0["A coverage gate on changed<br/>files blocks PRs."]:::good
+  g1["Domain and notifier logic is<br/>unit-tested without a widget<br/>binding."]:::good
+  g2["The main journeys run end to<br/>end on real devices before<br/>each release."]:::good
+  g3["The parity net is in place<br/>before the architecture<br/>refactors start."]:::good
+  g0 --> g1 --> g2 --> g3
+  classDef good fill:#e3f5e1,stroke:#2a7

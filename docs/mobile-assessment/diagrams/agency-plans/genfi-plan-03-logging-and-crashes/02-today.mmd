@@ -1,0 +1,26 @@
+flowchart TD
+  t0["DatadogLog.e (agent_tools/lib/app/<br/>utils/datadog_log.dart:11-16)<br/>calls DatadogSdk.instance.logs?.cr<br/>eateLogger(...) and never …"]:::hot
+  t1["guardLog and the<br/>ErrorLoggingProviderObserver route<br/>every AsyncValue error through<br/>that function, so this is the main<br/>error path …"]:::hot
+  t2["DatadogSdk.runApp uses<br/>TrackingConsent.granted, hard-<br/>coded (main.dart). Datadog is<br/>skipped entirely when<br/>DATADOG_CLIENT_TOKEN is …"]:::hot
+  t3["Crashlytics is gated off for web<br/>and for the Sharia flavour<br/>(main.dart:31-34), so MyShaf has<br/>no crash reporting. Error handlers<br/>…"]:::hot
+  t4["Crash user id is bravoAgentId with<br/>custom keys marketing_id,<br/>marketing_spv_id, product_ids,<br/>nik_marketing, …"]:::hot
+  t5["shared_lib/crash_reporting wraps<br/>Crashlytics only (344 lines, 1<br/>test marked 'not verified against<br/>QA test cases'). No PII …"]:::hot
+  t6["Datadog RUM:<br/>DatadogNavigationObserver sends<br/>view names. enableHttpTracking is<br/>skipped when the proxy is on.<br/>firstPartyHosts is …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

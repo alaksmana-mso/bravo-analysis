@@ -1,0 +1,6 @@
+flowchart LR
+  g0["One lint set for every<br/>package."]:::good
+  g1["A dependency-rule checker in<br/>CI with a ratchet: domain<br/>has no Flutter, shared_data<br/>has no UI, features import<br/>only …"]:::good
+  g2["AI review rules in<br/>.claude/rules that the<br/>review bot checks against."]:::good
+  g0 --> g1 --> g2
+  classDef good fill:#e3f5e1,stroke:#2a7

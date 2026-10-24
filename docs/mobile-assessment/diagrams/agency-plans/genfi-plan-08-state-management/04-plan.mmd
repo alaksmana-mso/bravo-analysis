@@ -1,0 +1,7 @@
+flowchart TD
+  s0["Step 1<br/>Riverpod 3 upgrade (1-2 PRs)"]:::now
+  s1["Step 2<br/>Event wrapper, guardLog and<br/>the state template (1 PR)"]:::now
+  s2["Step 3<br/>migrate with the Layering<br/>slices (ongoing, 1 notifier<br/>per PR)"]:::now
+  s3["Step 4<br/>remove the legacy import (1<br/>PR)"]:::now
+  s0 --> s1 --> s2 --> s3
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,6 @@
+flowchart LR
+  g0["One typed flag catalogue per<br/>app behind one<br/>FeatureFlagPlatform<br/>interface, with generated<br/>key mapping, declared …"]:::good
+  g1["No compile-time feature<br/>flags."]:::good
+  g2["Switch flags for the<br/>refactors live in the same<br/>catalogue."]:::good
+  g0 --> g1 --> g2
+  classDef good fill:#e3f5e1,stroke:#2a7

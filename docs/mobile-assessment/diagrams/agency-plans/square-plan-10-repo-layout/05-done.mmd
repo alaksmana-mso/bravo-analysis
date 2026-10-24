@@ -1,0 +1,15 @@
+flowchart TD
+  d0["No dead packages, every import is<br/>declared."]:::good
+  d1["Every feature is a package with a<br/>public API, cross-feature imports<br/>go through *_api packages, the<br/>checker is strict."]:::good
+  d2["Generated code is generated in CI<br/>(or split), and PR diffs are<br/>reviewable."]:::good
+  d3["One design-system package,<br/>collab_form has no per-app<br/>branches."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  rowd0 ~~~ rowd2
+  classDef good fill:#e3f5e1,stroke:#2a7

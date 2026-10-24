@@ -1,0 +1,15 @@
+flowchart TD
+  d0["One composition root per app, one<br/>test override helper."]:::good
+  d1["No static singletons, every<br/>dependency is a provider."]:::good
+  d2["Every migrated feature depends on<br/>ports, notifier tests use fakes."]:::good
+  d3["core does not re-export Riverpod,<br/>shared_data packages are plain<br/>Dart."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  rowd0 ~~~ rowd2
+  classDef good fill:#e3f5e1,stroke:#2a7

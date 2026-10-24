@@ -1,0 +1,15 @@
+flowchart LR
+  me["GENFI plan 01: Security"]:::good
+  r0["GENFI plan 02: CI/CD<br/>(environment protection,<br/>workflow lint, protection<br/>step)."]
+  me --> r0
+  r1["GENFI plan 06: Lint and<br/>guardrails (workflow check<br/>as a CI rule)."]
+  me --> r1
+  r2["GENFI plan 03: Logging and<br/>crashes (PII denylist and<br/>consent)."]
+  me --> r2
+  r3["GENFI plan 11: Analytics<br/>wrapper (same denylist)."]
+  me --> r3
+  r4["GENFI plan 05: Networking<br/>(pinning interceptor, PKCE<br/>flow)."]
+  me --> r4
+  r5["GENFI plan 04: Testing<br/>(smoke list for the R8<br/>build)."]
+  me --> r5
+  classDef good fill:#e3f5e1,stroke:#2a7

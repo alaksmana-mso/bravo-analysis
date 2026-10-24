@@ -1,0 +1,11 @@
+flowchart LR
+  me["GENFI plan 02: CI/CD"]:::good
+  r0["GENFI plan 01: Security<br/>(environment protection,<br/>workflow lint)."]
+  me --> r0
+  r1["GENFI plan 04: Testing<br/>(coverage gate and random<br/>order run in the checks<br/>job)."]
+  me --> r1
+  r2["GENFI plan 06: Lint and<br/>guardrails (dependency-rule<br/>check runs in the checks<br/>job)."]
+  me --> r2
+  r3["GENFI plan 03: Logging and<br/>crashes (symbol uploads with<br/>--version)."]
+  me --> r3
+  classDef good fill:#e3f5e1,stroke:#2a7

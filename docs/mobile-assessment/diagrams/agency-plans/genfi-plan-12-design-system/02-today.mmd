@@ -1,0 +1,21 @@
+flowchart TD
+  t0["bfi_design_system_2 (frontend-<br/>mobile-ui ds_2, v2.1.2-ds2) in 154<br/>files and bfi_design_system_3<br/>(ds_3, v2.1.6-ds3) in 199 files, …"]:::hot
+  t1["lib/app/ui/ds3/components/bfi_bott<br/>om_sheet_3.dart carries 'TODO:<br/>Remove after merging to DS3'."]:::hot
+  t2["Usage: BfiSvgIcon 275,<br/>BfiPrimaryButton 167, BfiTextField<br/>152, BfiAppBar 64, BfiColors<br/>1,237. Raw: 1 ElevatedButton, 3 …"]:::hot
+  t3["An open PR (#5699) stops bundling<br/>Apple's HelveticaNeue font from<br/>design system 2."]:::hot
+  t4["Across the repo four design<br/>systems are in use: ds_1 (SQUARE),<br/>ds_2 + ds_3 (GENFI), ds_3<br/>(collab_form), ui_theme (MY<br/>BISPRO, 119 …"]:::hot
+  t5["frontend-mobile-ui (the org<br/>design-system repo) is pulled by<br/>git tag, no token pipeline from<br/>Figma was found in this repo."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4
+  classDef hot fill:#ffe1e1,stroke:#c00

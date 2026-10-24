@@ -1,0 +1,15 @@
+flowchart TD
+  d0["Riverpod 3, 0 StateNotifier<br/>classes, 0 ref.watch inside<br/>callbacks (riverpod_lint<br/>enforced)."]:::good
+  d1["Every notifier exposes freezed UI<br/>state with AsyncValue and Event,<br/>none takes a BuildContext."]:::good
+  d2["Screens use select() for data and<br/>ref.listen for events."]:::good
+  d3["shared_data packages do not depend<br/>on Riverpod unless they expose<br/>providers."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  rowd0 ~~~ rowd2
+  classDef good fill:#e3f5e1,stroke:#2a7

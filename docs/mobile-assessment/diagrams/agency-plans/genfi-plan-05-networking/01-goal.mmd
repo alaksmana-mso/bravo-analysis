@@ -1,0 +1,6 @@
+flowchart LR
+  g0["One thin HttpClient in<br/>shared_lib/core with a dio<br/>interceptor chain: auth<br/>strategy, single-flight<br/>refresh, retry, …"]:::good
+  g1["The six decorators are gone."]:::good
+  g2["Keycloak uses PKCE and no<br/>client secret."]:::good
+  g0 --> g1 --> g2
+  classDef good fill:#e3f5e1,stroke:#2a7

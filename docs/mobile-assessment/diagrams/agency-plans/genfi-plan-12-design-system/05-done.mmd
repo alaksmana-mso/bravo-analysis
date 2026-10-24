@@ -1,0 +1,14 @@
+flowchart TD
+  d0["All four apps and collab_form<br/>depend on ds_3 only, ui_theme,<br/>ui_catalog and ds_1 / ds_2 are<br/>gone."]:::good
+  d1["No raw colours or text styles in<br/>feature code, the lint rule is<br/>strict."]:::good
+  d2["Widgetbook is published, tokens<br/>come from one source."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2
+  end
+  rowd0 ~~~ rowd2
+  classDef good fill:#e3f5e1,stroke:#2a7

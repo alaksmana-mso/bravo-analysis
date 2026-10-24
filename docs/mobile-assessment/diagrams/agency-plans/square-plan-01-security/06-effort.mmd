@@ -1,0 +1,7 @@
+flowchart LR
+  e0["Step 0: S, days. Owner: SRE<br/>(secrets, environments) with<br/>the Agency squad lead (PRs)."]:::now
+  e1["Steps 1-3, 5, 6: S, about 2<br/>sprints in total. Owner:<br/>Agency squad (shared with<br/>Sharia for MyShaf and MY<br/>BISPRO)."]:::now
+  e2["Step 4: S on the app, M on the<br/>backend. Owner: SQUARE squad<br/>with the Keycloak / IAM<br/>owners."]:::now
+  e3["Step 7: M after the vendor is<br/>chosen. Owner: Security with<br/>the three mobile squads.<br/>Budget owner: IT management."]:::now
+  e0 ~~~ e1 ~~~ e2 ~~~ e3
+  classDef now fill:#fff4cc,stroke:#b80

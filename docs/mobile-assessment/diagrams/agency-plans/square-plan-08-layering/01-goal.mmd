@@ -1,0 +1,7 @@
+flowchart LR
+  g0["Every feature has three<br/>layers: data, domain and<br/>presentation."]:::good
+  g1["Business rules live in a<br/>pure-Dart domain layer that<br/>is unit-tested on its own."]:::good
+  g2["Screens and notifiers never<br/>see API models, so an API<br/>change stops at the data<br/>layer."]:::good
+  g3["shared_data repositories sit<br/>behind ports owned by the<br/>domain."]:::good
+  g0 --> g1 --> g2 --> g3
+  classDef good fill:#e3f5e1,stroke:#2a7

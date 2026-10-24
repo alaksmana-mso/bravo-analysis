@@ -1,0 +1,21 @@
+flowchart LR
+  k0["Rotating SSH_PRIVATE_KEY<br/>breaks git dependency<br/>fetches (bfi-flutter-<br/>packages, frontend-mobile-<br/>ui) …"]:::hot
+  m0["Update every workflow secret<br/>and deploy key in the same<br/>change window, test one SIT<br/>build per app"]:::good
+  k0 -->|mitigate| m0
+  k1["Required reviewers slow down<br/>hotfixes"]:::hot
+  m1["Name at least 3 reviewers<br/>across SRE and the squads"]:::good
+  k1 -->|mitigate| m1
+  k2["A new proguard-rules.pro<br/>strips a class an SDK<br/>reaches by reflection"]:::hot
+  m2["Smoke list on a prod-like<br/>build, Play internal track<br/>first"]:::good
+  k2 -->|mitigate| m2
+  k3["Pinning in SIT breaks<br/>testers who use a proxy to<br/>debug"]:::hot
+  m3["Keep FEATURE_ENABLE_PROXY<br/>for SIT only, document the<br/>proxy certificate workflow"]:::good
+  k3 -->|mitigate| m3
+  k4["PKCE change locks SQUARE<br/>users out"]:::hot
+  m4["Keep the password grant<br/>behind a flag for one<br/>release, staged rollout"]:::good
+  k4 -->|mitigate| m4
+  k5["RASP flags real agents on<br/>rooted or custom-ROM phones"]:::hot
+  m5["Report-only mode first,<br/>watch false positives for 2<br/>sprints"]:::good
+  k5 -->|mitigate| m5
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

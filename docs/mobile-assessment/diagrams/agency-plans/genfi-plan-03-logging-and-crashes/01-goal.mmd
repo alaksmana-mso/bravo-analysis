@@ -1,0 +1,6 @@
+flowchart LR
+  g0["Every handled error and<br/>crash reaches Datadog and<br/>Crashlytics, with the same<br/>app version, without<br/>personal data."]:::good
+  g1["One shared logger in<br/>shared_lib with a PII<br/>sanitizer."]:::good
+  g2["Consent is real."]:::good
+  g0 --> g1 --> g2
+  classDef good fill:#e3f5e1,stroke:#2a7

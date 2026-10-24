@@ -1,0 +1,8 @@
+flowchart TD
+  s0["Step 1<br/>delete the dead weight (1 PR)"]:::now
+  s1["Step 2<br/>feature-boundary checker and<br/>baselines (1 PR, Lint plan)"]:::now
+  s2["Step 3<br/>first feature package<br/>(prospect, 2-3 PRs, after its<br/>Layering slice is on the new<br/>path)"]:::now
+  s3["Step 4<br/>generated code decision (1 PR)"]:::now
+  s4["Step 5<br/>repeat per feature, then<br/>collab_form and the design<br/>system"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4
+  classDef now fill:#fff4cc,stroke:#b80

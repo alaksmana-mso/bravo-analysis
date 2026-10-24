@@ -1,0 +1,26 @@
+flowchart TD
+  t0["Root pubspec.yaml is a Dart<br/>workspace of 15 shared packages<br/>plus ui_catalog and ui_theme. The<br/>three apps are not workspace …"]:::hot
+  t1["GENFI: one package, 34 feature<br/>folders under lib/feature, 129<br/>imports across features (76 not<br/>into feature/common), calculator …"]:::hot
+  t2["shared_data: 9 packages, 33,497<br/>hand-written lines, 291,420<br/>generated lines in 658 files<br/>(8.7x), all committed. Largest …"]:::hot
+  t3["Dead: shared_data/document (no app<br/>depends on it, duplicates<br/>agency/src/document) and shared_fe<br/>atures/onboarding_collab_form (no<br/>…"]:::hot
+  t4["collab_form: 124 files, 18,595<br/>lines, depends on agency,<br/>agent_marketing, onboarding and<br/>(undeclared) core, branches on …"]:::hot
+  t5["Design: ui_theme in the monorepo<br/>(MY BISPRO only) plus ds_1, ds_2,<br/>ds_3 from the frontend-mobile-ui<br/>git repo. Four design systems."]:::hot
+  t6["Duplicate class names across<br/>packages (AgentRepository,<br/>MasterRepository,<br/>DocumentRepository,<br/>AddressRepository, …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

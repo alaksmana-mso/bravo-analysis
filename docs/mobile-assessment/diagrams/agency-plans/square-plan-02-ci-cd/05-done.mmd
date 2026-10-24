@@ -1,0 +1,21 @@
+flowchart TD
+  d0["mise.toml is the only place a<br/>Flutter, Java or melos version is<br/>written."]:::good
+  d1["Every PR runs checks, including<br/>workflow-only and pubspec-only<br/>PRs."]:::good
+  d2["Prod environments have required<br/>reviewers, the approval step is<br/>gone, no prod-signed artifact is<br/>built outside the rule."]:::good
+  d3["Build numbers are monotonic and<br/>versions come from tags."]:::good
+  d4["Both distribution modes work for<br/>Android, symbols match builds in<br/>Crashlytics and Datadog."]:::good
+  d5["Per-app workflows call shared<br/>reusable workflows, actions are<br/>SHA-pinned with least-privilege<br/>permissions."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4 & d5
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4
+  classDef good fill:#e3f5e1,stroke:#2a7

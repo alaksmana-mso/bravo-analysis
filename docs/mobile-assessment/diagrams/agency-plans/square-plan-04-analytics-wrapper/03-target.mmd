@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+  end
+  subgraph bf["SQUARE target"]
+    direction TB
+    b0
+    b1
+    b2
+  end
+  j0["AnalyticsPlatform interface,<br/>fan-out to Firebase,<br/>Datadog, CleverTap, typed<br/>AnalyticsEventV2 …"]:::now
+  b0["shared_lib/analytics (pure<br/>Dart): Analytics,<br/>AnalyticsAdapter,<br/>AnalyticsEvent with name,<br/>params and sinks, a …"]:::good
+  j0 -->|adapt| b0
+  j1["Widgets fire an event, a<br/>bloc dispatches it"]:::now
+  b1["ref.read(analyticsProvider).<br/>track(event). No event bus."]:::good
+  j1 -->|adapt| b1
+  j2["AnalyticsProperties drops<br/>non-primitive values"]:::now
+  b2["Same, plus a whole-word key<br/>denylist shared with the<br/>Logging plan."]:::good
+  j2 -->|adapt| b2
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

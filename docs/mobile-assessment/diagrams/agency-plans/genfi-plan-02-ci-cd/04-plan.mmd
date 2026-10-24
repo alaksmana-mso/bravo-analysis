@@ -1,0 +1,10 @@
+flowchart TD
+  s0["Step 1<br/>one toolchain (1-2 PRs)"]:::now
+  s1["Step 2<br/>checks on every PR (1 PR)"]:::now
+  s2["Step 3<br/>environment protection and one<br/>prod workflow per app (1-2<br/>PRs)"]:::now
+  s3["Step 4<br/>build number and version from<br/>CI (1 PR)"]:::now
+  s4["Step 5<br/>fix the dead paths and symbol<br/>uploads (1 PR)"]:::now
+  s5["Step 6<br/>reusable workflows (2-3 PRs)"]:::now
+  s6["Step 7<br/>tidy the repo side (1 PR)"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4 --> s5 --> s6
+  classDef now fill:#fff4cc,stroke:#b80

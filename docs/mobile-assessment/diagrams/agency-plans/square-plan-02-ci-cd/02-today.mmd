@@ -1,0 +1,26 @@
+flowchart TD
+  t0["31 workflow files on master, 5<br/>disabled. Read in full on 24 Oct<br/>2026."]:::hot
+  t1["subosito/flutter-action@v2 with<br/>flutter-version 3.35.0 in 37<br/>places. No .fvmrc, mise.toml or<br/>.tool-versions. README names no …"]:::hot
+  t2["Java 17 adopt in most workflows,<br/>17 temurin in convent-deploy-tag,<br/>11 in agent-tools-uat-promote,<br/>are-tracker-trunk and …"]:::hot
+  t3["Android SDK: android-<br/>actions/setup-android@v3 with<br/>platform 36 in prod workflows,<br/>amyu/setup-android@v2 with SDK 35<br/>or 33 …"]:::hot
+  t4["Xcode: latest-stable, 16.4, or<br/>unset. Runners: macos-26,<br/>macos-15, macos-latest."]:::hot
+  t5["bluefireteam/melos-action@v2 in<br/>deploy workflows vs @v3 in the<br/>setup-codebase action."]:::hot
+  t6["Manual dispatch with tag, version<br/>and a distribution flag. The<br/>branches: (release*) filter on a<br/>dispatch trigger has no effect."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

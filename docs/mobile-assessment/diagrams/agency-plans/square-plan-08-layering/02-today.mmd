@@ -1,0 +1,26 @@
+flowchart TD
+  t0["One feature already has the target<br/>shape: lib/features/lead/cancellat<br/>ion_review/ with data/ (DTOs,<br/>repositories), domain/ …"]:::hot
+  t1["19 *_use_case.dart files are<br/>mostly Riverpod providers wrapping<br/>a repository call, for example<br/>profile_use_case.dart:6 …"]:::hot
+  t2["41 screen files and 57 controller<br/>files import the agency package,<br/>66 lines in screens and<br/>controllers use *Response DTOs,<br/>for …"]:::hot
+  t3["Screens read repositories<br/>directly: loan_screen.dart:737<br/>(AreApplicationRepository), collat<br/>eral_asset_info_screen.dart:52-53<br/>and …"]:::hot
+  t4["89 cross-feature imports in 79<br/>files, profile is imported by 35<br/>files, maintain by 12. Local DB<br/>(froom + sqflite) stores only …"]:::hot
+  t5["shared_data already maps most<br/>network DTOs to 'domain' models<br/>(agent_marketing 77 mapper files,<br/>onboarding 46, agency 23). The …"]:::hot
+  t6["shared_data/agency imports<br/>flutter/material in 3 repositories<br/>(for DateTimeRange) and one model,<br/>about 30 models import …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

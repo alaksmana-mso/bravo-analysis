@@ -1,0 +1,34 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+    j3
+    j4
+  end
+  subgraph bf["SQUARE target"]
+    direction TB
+    b0
+    b1
+    b2
+    b3
+    b4
+  end
+  j0["Flutter version pinned in<br/>one place (mise, CI image)"]:::now
+  b0["mise.toml at the repo root<br/>with flutter, java and melos<br/>versions. Every workflow<br/>reads it through …"]:::good
+  j0 -->|adapt| b0
+  j1["Build number from a CI<br/>counter"]:::now
+  b1["github.run_number plus an<br/>offset per app, so the<br/>number is monotonic across<br/>workflows. Version from the<br/>tag."]:::good
+  j1 -->|adapt| b1
+  j2["Prod pipeline in a separate<br/>repo"]:::now
+  b2["Not copied. Environment<br/>protection with required<br/>reviewers and a deployment-<br/>branch rule."]:::good
+  j2 -->|adapt| b2
+  j3["Coverage on changed files,<br/>tests in random order,<br/>Danger"]:::now
+  b3["See the Testing and Lint<br/>plans. CI/CD provides the<br/>slots: a reusable test job<br/>with …"]:::good
+  j3 -->|adapt| b3
+  j4["Post-build protection and<br/>registration"]:::now
+  b4["One reusable prod workflow<br/>per app with a protect-and-<br/>register job that is a no-op<br/>until the RASP vendor is …"]:::good
+  j4 -->|adapt| b4
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

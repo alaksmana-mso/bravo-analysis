@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+    j3
+  end
+  subgraph bf["SQUARE target"]
+    direction TB
+    b0
+    b1
+    b2
+    b3
+  end
+  j0["presentation → domain ←<br/>data, domain is pure Dart<br/>with entities/,<br/>repositories/ (abstract) and<br/>…"]:::now
+  b0["Same three folders inside<br/>each feature, in place first<br/>(features/&lt;name&gt;/domai<br/>n, data, presentation), …"]:::good
+  j0 -->|adapt| b0
+  j1["Features talk through thin<br/>*_api packages"]:::now
+  b1["profile_api, prospect_api<br/>and the like: entities and<br/>read-only providers only.<br/>The checker stops direct …"]:::good
+  j1 -->|adapt| b1
+  j2["The 'ponytail rule': no use-<br/>case class for a plain pass-<br/>through"]:::now
+  b2["Same. Flag logic in the<br/>wrong layer, not missing<br/>ceremony."]:::good
+  j2 -->|adapt| b2
+  j3["Old misplaced logic is a<br/>ratchet"]:::now
+  b3["dto-in-presentation and<br/>feature-boundary baselines<br/>only go down (Lint plan)."]:::good
+  j3 -->|adapt| b3
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

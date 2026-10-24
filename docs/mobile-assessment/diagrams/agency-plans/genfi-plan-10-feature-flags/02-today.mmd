@@ -1,0 +1,26 @@
+flowchart TD
+  t0["lib/app/common/convent_feature_fla<br/>g/convent_feature_flag.dart:<br/>freezed ConventFeatureFlag with 20<br/>@JsonKey remote-config keys …"]:::hot
+  t1["ConventFirebaseRemoteConfigService<br/>(46 lines) listens to<br/>onConfigUpdated on non-web, it is<br/>a static Notifier instance<br/>injected …"]:::hot
+  t2["Sharia has a separate model with<br/>one flag (FEATURE_INTEGRITY_CHECK)<br/>and its own repository."]:::hot
+  t3["main.dart:261 reads getBool('AGENT<br/>_TOOLS_APP_IS_KRAKEND_ENABLE')<br/>outside any model."]:::hot
+  t4["Compile-time flags:<br/>FEATURE_ENABLE_PROXY,<br/>FEATURE_JAILBREAK_DETECTION, and<br/>FEATURE_FLAG_NEW_* in CI.<br/>DEMO_ACCOUNT_PHONE_NUMBERS …"]:::hot
+  t5["Remote-config values are printed<br/>to the console on web."]:::hot
+  t6["No owner, description or removal<br/>date is recorded for any flag. No<br/>experiments platform."]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

@@ -1,0 +1,12 @@
+flowchart LR
+  k0["Riverpod 3 changes<br/>autoDispose timing and<br/>breaks a screen"]:::hot
+  m0["Upgrade first with no API<br/>change, run the parity net<br/>and e2e before any notifier<br/>moves"]:::good
+  k0 -->|mitigate| m0
+  k1["Two patterns live side by<br/>side for a long time"]:::hot
+  m1["Ratchet with a visible<br/>count, new code must use<br/>Notifier (lint)"]:::good
+  k1 -->|mitigate| m1
+  k2["Event&lt;T&gt; handled twice<br/>after a rebuild"]:::hot
+  m2["Event is consumed once, a<br/>test in core proves it"]:::good
+  k2 -->|mitigate| m2
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

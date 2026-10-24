@@ -1,0 +1,12 @@
+flowchart LR
+  k0["Generating in CI slows every<br/>PR"]:::hot
+  m0["Cache by lockfile and model<br/>hash, measure before<br/>deciding"]:::good
+  k0 -->|mitigate| m0
+  k1["A package move breaks deep<br/>links and route names"]:::hot
+  m1["Route names are constants in<br/>the *_routes.dart file, the<br/>e2e suite checks the deep<br/>links"]:::good
+  k1 -->|mitigate| m1
+  k2["*_api packages grow into a<br/>second shared blob"]:::hot
+  m2["Entities and read-only<br/>providers only, a tech-lead<br/>review for anything else"]:::good
+  k2 -->|mitigate| m2
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,26 @@
+flowchart TD
+  d0["test.yaml and debugger.yaml are<br/>gone. No workflow step echoes a<br/>secret or uploads a keystore. The<br/>workflow lint runs on every PR."]:::good
+  d1["Five prod environments have<br/>required reviewers and a branch<br/>rule. No prod-signed artifact is<br/>built without approval."]:::good
+  d2["Every build in every environment<br/>is pinned, the CI assertion proves<br/>it."]:::good
+  d3["proguard-rules.pro exists and is<br/>reviewed, the prod build fails<br/>without mapping.txt."]:::good
+  d4["GENFI runs the device integrity<br/>check in prod, the proxy switch is<br/>gone from prod builds."]:::good
+  d5["Protected routes cannot be<br/>captured."]:::good
+  d6["Consent is real and personal data<br/>is kept out of crash reports."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4 & d5
+  end
+  subgraph rowd6[" "]
+    direction LR
+    d6
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4 ~~~ rowd6
+  classDef good fill:#e3f5e1,stroke:#2a7

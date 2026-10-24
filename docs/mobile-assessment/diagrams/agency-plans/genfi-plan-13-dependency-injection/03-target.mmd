@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+  end
+  j0["injectable + get_it, each<br/>module exposes a micro-<br/>package, wiring only in the<br/>app layer"]:::now
+  b0["Riverpod stays. Each feature<br/>exposes its providers from<br/>di/, the app's main.dart is<br/>the only composition …"]:::good
+  j0 -->|adapt| b0
+  j1["Two DI systems at once (Kiwi<br/>+ injectable)"]:::now
+  b1["Do not copy. One container:<br/>Riverpod. Delete the static<br/>singletons."]:::good
+  j1 -->|adapt| b1
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,26 @@
+flowchart TD
+  t0["The *_ro_tools environments belong<br/>to RO Tools (myBRO), which moved<br/>to bravo-ro-tools-apps (branch<br/>archived/ro_tools). Their …"]:::hot
+  t1["Prod approval is a workflow step<br/>(trstringer/manual-approval, 2 of<br/>8 or 9 named people, authenticated<br/>with GH_PAT), not an …"]:::hot
+  t2["agent_tools_prod_release_build.yam<br/>l and are-tracker-prod-deployment-<br/>build.yml build prod-signed APK<br/>and IPA with no approval at …"]:::hot
+  t3["PR checks run only when *.dart<br/>files change, so a PR that only<br/>adds a workflow gets no checks."]:::hot
+  t4["Secrets are interpolated straight<br/>into run: commands (for example<br/>GOOGLE_SERVICES_JSON) and dispatch<br/>inputs are used unquoted in …"]:::hot
+  t5["Every third-party action is pinned<br/>by tag, fjogeleit/yaml-update-<br/>action by the main branch (22<br/>uses), update-graphify runs …"]:::hot
+  t6["Pinning is only on when<br/>SHA_256_FINGERPRINT is passed. The<br/>SIT/UAT pipeline for SQUARE does<br/>not pass it, only the two prod …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

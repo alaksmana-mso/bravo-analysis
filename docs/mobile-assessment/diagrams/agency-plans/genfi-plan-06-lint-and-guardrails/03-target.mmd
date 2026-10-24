@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j0
+    j1
+    j2
+  end
+  subgraph bf["GENFI target"]
+    direction TB
+    b0
+    b1
+    b2
+  end
+  j0["custom_lint rules"]:::now
+  b0["A small tool/arch_check.dart<br/>first (grep-based, fast, no<br/>build_runner), promoted to<br/>custom_lint rules once …"]:::good
+  j0 -->|adapt| b0
+  j1["Danger bot, generated-files<br/>check, package-use checks"]:::now
+  b1["Checks in checks.yml:<br/>generated files up to date,<br/>pubspec declares what is<br/>imported, no new violations<br/>of …"]:::good
+  j1 -->|adapt| b1
+  j2[".claude/rules (14 files) and<br/>an mr-review skill"]:::now
+  b2[".claude/rules/layer-<br/>model.md, feature-<br/>boundaries.md, shared-<br/>data.md, analytics.md,<br/>workflows.md. Reuse the …"]:::good
+  j2 -->|adapt| b2
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

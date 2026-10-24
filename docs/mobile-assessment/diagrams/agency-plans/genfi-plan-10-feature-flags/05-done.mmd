@@ -1,0 +1,15 @@
+flowchart TD
+  d0["One catalogue per app, all reads<br/>go through FeatureFlagPlatform,<br/>the key map is generated."]:::good
+  d1["No compile-time feature flags, the<br/>proxy and jailbreak switches have<br/>safe code defaults."]:::good
+  d2["Every flag has an owner and a<br/>removal date, expired flags are<br/>reported."]:::good
+  d3["MyShaf shares the catalogue<br/>mechanism."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  rowd0 ~~~ rowd2
+  classDef good fill:#e3f5e1,stroke:#2a7

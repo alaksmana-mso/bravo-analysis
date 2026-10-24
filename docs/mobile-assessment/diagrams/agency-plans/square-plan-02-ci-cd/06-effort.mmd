@@ -1,0 +1,6 @@
+flowchart LR
+  e0["Steps 1-2, 4-5: S, one sprint<br/>together. Owner: Agency squad<br/>with the release engineer."]:::now
+  e1["Step 3: S, needs an org admin<br/>for the environment settings.<br/>Owner: SRE."]:::now
+  e2["Step 6: M, 2-3 sprints, can<br/>run in parallel with feature<br/>work. Owner: release engineer."]:::now
+  e0 ~~~ e1 ~~~ e2
+  classDef now fill:#fff4cc,stroke:#b80

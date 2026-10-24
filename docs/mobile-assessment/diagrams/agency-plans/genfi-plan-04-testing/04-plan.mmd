@@ -1,0 +1,9 @@
+flowchart TD
+  s0["Step 1<br/>coverage gate on changed files<br/>(1 PR)"]:::now
+  s1["Step 2<br/>fix the harness (1 PR)"]:::now
+  s2["Step 3<br/>test the shared packages that<br/>have none (2-3 PRs)"]:::now
+  s3["Step 4<br/>parity net before the<br/>refactors (2 PRs)"]:::now
+  s4["Step 5<br/>end-to-end journeys (3-4<br/>sprints, with QA)"]:::now
+  s5["Step 6<br/>grow domain and notifier tests<br/>with the refactors (ongoing)"]:::now
+  s0 --> s1 --> s2 --> s3 --> s4 --> s5
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,20 @@
+flowchart TD
+  d0["domain-purity is 0 and strict in<br/>CI. dto-in-presentation is 0 for<br/>the first two features and never<br/>rises elsewhere."]:::good
+  d1["Every domain/ file runs its tests<br/>without a Flutter binding."]:::good
+  d2["The six largest files (company_sub<br/>mission_prospect_step.dart,<br/>no_deal_recalculation_screen.dart,<br/>...) are gone or under 500 …"]:::good
+  d3["shared_data has no Flutter UI<br/>imports, core has a pure barrel."]:::good
+  d4["Every migrated feature passed its<br/>cohort check and its old path is<br/>deleted."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,15 @@
+flowchart LR
+  me["SQUARE plan 08: Layering"]:::good
+  r0["SQUARE plan 10: Repo layout<br/>(package shape, order of<br/>features)."]
+  me --> r0
+  r1["SQUARE plan 09: State<br/>management (notifiers call<br/>use cases)."]
+  me --> r1
+  r2["SQUARE plan 13: Dependency<br/>injection (ports and<br/>providers live in di/)."]
+  me --> r2
+  r3["SQUARE plan 06: Networking<br/>(repositories keep the same<br/>HttpClient)."]
+  me --> r3
+  r4["SQUARE plan 05: Testing<br/>(parity net and domain<br/>tests)."]
+  me --> r4
+  r5["SQUARE plan 07: Lint and<br/>guardrails (runs the rules)."]
+  me --> r5
+  classDef good fill:#e3f5e1,stroke:#2a7

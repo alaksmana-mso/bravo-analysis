@@ -1,0 +1,15 @@
+flowchart LR
+  k0["A behaviour the old<br/>decorators had (AuthBearer<br/>scheme, x-marketing-id) is<br/>lost"]:::hot
+  m0["Step 1 characterisation<br/>tests run against both paths"]:::good
+  k0 -->|mitigate| m0
+  k1["Single-flight refresh<br/>deadlocks when the refresh<br/>itself returns 401"]:::hot
+  m1["The refresh request bypasses<br/>the refresh interceptor, a<br/>failed refresh clears the<br/>session once"]:::good
+  k1 -->|mitigate| m1
+  k2["Backend rate-limits the<br/>retry interceptor"]:::hot
+  m2["Retry only idempotent GETs,<br/>max 2, with backoff, no<br/>retry on POST"]:::good
+  k2 -->|mitigate| m2
+  k3["IAM team cannot enable PKCE<br/>soon"]:::hot
+  m3["Ship the interceptor chain<br/>with the password-grant<br/>strategy first, PKCE is a<br/>strategy swap"]:::good
+  k3 -->|mitigate| m3
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

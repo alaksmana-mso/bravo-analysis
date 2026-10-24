@@ -1,0 +1,20 @@
+flowchart TD
+  d0["0 imports of firebase_analytics or<br/>datadog outside the adapter<br/>folders and main.dart."]:::good
+  d1["0 string literals passed as event<br/>names outside the events folder."]:::good
+  d2["The golden names file is unchanged<br/>except for approved deltas."]:::good
+  d3["Consent is real, a denied key<br/>never reaches an adapter."]:::good
+  d4["MyShaf sends analytics through the<br/>same wrapper."]:::good
+  subgraph rowd0[" "]
+    direction LR
+    d0 & d1
+  end
+  subgraph rowd2[" "]
+    direction LR
+    d2 & d3
+  end
+  subgraph rowd4[" "]
+    direction LR
+    d4
+  end
+  rowd0 ~~~ rowd2 ~~~ rowd4
+  classDef good fill:#e3f5e1,stroke:#2a7

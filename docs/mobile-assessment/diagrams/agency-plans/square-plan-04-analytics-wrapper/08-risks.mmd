@@ -1,0 +1,15 @@
+flowchart LR
+  k0["A renamed event breaks a<br/>dashboard"]:::hot
+  m0["Golden file in CI, DebugView<br/>check per PR"]:::good
+  k0 -->|mitigate| m0
+  k1["Changing the user id breaks<br/>user-level reports"]:::hot
+  m1["Approved delta with the<br/>dashboard owner, keep the<br/>old id as a user property<br/>for one quarter"]:::good
+  k1 -->|mitigate| m1
+  k2["RUM processing raises the<br/>Datadog bill"]:::hot
+  m2["Sample sessions at 20%<br/>first, agree the rate with<br/>the Datadog owner"]:::good
+  k2 -->|mitigate| m2
+  k3["Four apps, one package: a<br/>change for one app breaks<br/>another"]:::hot
+  m3["Per-app events folders, the<br/>shared package holds only<br/>the port and base classes"]:::good
+  k3 -->|mitigate| m3
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

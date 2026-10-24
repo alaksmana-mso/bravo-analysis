@@ -1,0 +1,26 @@
+flowchart TD
+  t0["Log.e (are_tracker/lib/app/log.dar<br/>t:11-18) builds a new logger on<br/>every call with<br/>remoteLogThreshold:<br/>LogLevel.warning, then …"]:::hot
+  t1["guardLog and the<br/>ErrorLoggingProviderObserver route<br/>every AsyncValue error through<br/>that function, so this is the main<br/>error path …"]:::hot
+  t2["DatadogSdk.runApp uses<br/>TrackingConsent.granted, hard-<br/>coded (main.dart). Datadog is<br/>skipped entirely when<br/>DATADOG_CLIENT_TOKEN is …"]:::hot
+  t3["Crashlytics works:<br/>FlutterError.onError and PlatformD<br/>ispatcher.instance.onError are set<br/>in main.dart:146-157, collection<br/>is off …"]:::hot
+  t4["Crash user id is nikMarketing (the<br/>employee NIK), with custom keys<br/>branch_code and product_id.<br/>Firebase Analytics uses the same …"]:::hot
+  t5["shared_lib/crash_reporting wraps<br/>Crashlytics only (344 lines, 1<br/>test marked 'not verified against<br/>QA test cases'). No PII …"]:::hot
+  t6["Datadog RUM: both SQUARE RUM<br/>applications have event processing<br/>set to NONE (inventory page), so<br/>sessions and errors are not …"]:::hot
+  subgraph rowt0[" "]
+    direction LR
+    t0 & t1
+  end
+  subgraph rowt2[" "]
+    direction LR
+    t2 & t3
+  end
+  subgraph rowt4[" "]
+    direction LR
+    t4 & t5
+  end
+  subgraph rowt6[" "]
+    direction LR
+    t6
+  end
+  rowt0 ~~~ rowt2 ~~~ rowt4 ~~~ rowt6
+  classDef hot fill:#ffe1e1,stroke:#c00

@@ -1,0 +1,7 @@
+flowchart LR
+  g0["One toolchain pinned in one<br/>file."]:::good
+  g1["Prod builds need an<br/>environment approval."]:::good
+  g2["Build numbers come from a CI<br/>counter."]:::good
+  g3["Every PR gets checks,<br/>whatever it touches."]:::good
+  g0 --> g1 --> g2 --> g3
+  classDef good fill:#e3f5e1,stroke:#2a7

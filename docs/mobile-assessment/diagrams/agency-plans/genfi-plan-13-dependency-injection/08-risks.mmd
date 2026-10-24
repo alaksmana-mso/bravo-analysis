@@ -1,0 +1,9 @@
+flowchart LR
+  k0["A port that throws until<br/>overridden crashes a screen<br/>that forgot the override"]:::hot
+  m0["A startup test builds the<br/>full ProviderScope and reads<br/>every port"]:::good
+  k0 -->|mitigate| m0
+  k1["Too many overrides in one<br/>file"]:::hot
+  m1["One function per concern,<br/>feature packages export<br/>their own override lists"]:::good
+  k1 -->|mitigate| m1
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
