@@ -85,7 +85,8 @@ def refresh(readme, by_key, date):
     changed = 0; missing = []; kept = []
     for i, line in enumerate(lines):
         if line.startswith(("| Repo | Pull request | Status", "| Repository | Production service | Pull request | What it changes | Status",
-                            "| Service | Squad | Pull request | What it fixes | Status", "| Repository | Pull request | What it does | Status")):
+                            "| Service | Squad | Pull request | What it fixes | Status", "| Repository | Pull request | What it does | Status",
+                            "| Repository | Base branch | Pull request | Why | Reviewers | Status")):
             lines[i] = re.sub(r"Status \([^)]*\)", f"Status ({date})", line); continue
         m = row_rx.match(line)
         if not m: continue
