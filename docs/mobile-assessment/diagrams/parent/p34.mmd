@@ -1,0 +1,9 @@
+flowchart TD
+  a1["Anyone who can<br/>dispatch workflows"]
+  a2["test.yaml 'Reveal Secret'<br/>(master + release-2.24.x .. 2.27.x)"]
+  a3["customer_app_prod env<br/>(no protection)"]
+  a4["echo secret | sed 's/./#amp; /g'"]
+  a5["Job log: spaced-out value,<br/>masking misses it<br/>-> key readable"]
+  a1 --> a2 --> a3 --> a4 --> a5
+  class a2,a3,a4,a5 hot
+  classDef hot fill:#ffe1e1,stroke:#c00

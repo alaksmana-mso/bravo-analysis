@@ -1,0 +1,12 @@
+flowchart TD
+  d1["Unit test: NIK, phone, email,<br/>JSON name and address redacted"] --> d2["0 firebase_crashlytics imports<br/>outside the adapter"]
+  d2 --> d3["0 error/warn calls with<br/>raw error text in message"]
+  d3 --> d4["Every HTTP error log has<br/>trace_id and endpoint"]
+  d4 --> d5["No global Crashlytics keys<br/>for trace_id, session_id, endpoint"]
+  d5 --> d6["Step 7 written up:<br/>linked, or fixes with owners"]
+  d6 --> d7["Weekly PII query on<br/>mobile logs: 0 hits"]
+  d7 --> p1["RUM and Crashlytics tagged<br/>with switch-flag state"]
+  p1 --> p2["Sanitiser and user ID<br/>are approved deltas"]
+  p2 --> ok["Done"]
+  class ok good
+  classDef good fill:#e3f5e1,stroke:#2a7

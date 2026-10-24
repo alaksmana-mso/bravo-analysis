@@ -1,0 +1,9 @@
+flowchart LR
+  p05["Mobile plan 05:<br/>Logging and crashes"]
+  p02["Mobile plan 02:<br/>Analytics wrapper"] -->|"PII denylist,<br/>CI ratchet script"| p05
+  p07["Mobile plan 07:<br/>Networking"] -->|"trace-header interceptor,<br/>typed errors with traceId"| p05
+  p01["Mobile plan 01:<br/>Security"] -->|"PII rules,<br/>data protection sign-off"| p05
+  p05 -->|"DatadogLogObserver<br/>keeps working"| p09["Mobile plan 09:<br/>State management"]
+  p03["Mobile plan 03:<br/>Testing"] -->|"sanitiser and<br/>crash-hook tests"| p05
+  class p05 now
+  classDef now fill:#fff4cc,stroke:#b80

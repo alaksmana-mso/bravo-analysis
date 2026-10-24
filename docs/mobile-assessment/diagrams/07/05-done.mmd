@@ -1,0 +1,12 @@
+flowchart TD
+  d1["http_client.dart under 150 lines<br/>no auth, refresh, error logic"] --> d2["Each interceptor has a test file<br/>7 race tests pass in CI"]
+  d2 --> d3["authDio has no auth<br/>or refresh interceptor"]
+  d3 --> d4["No POST, PATCH, PUT,<br/>DELETE is ever retried"]
+  d4 --> d5["apiCallErrorEvent and<br/>setter cycle gone"]
+  d5 --> d6["Every request has x-request-id<br/>errors carry traceId"]
+  d6 --> d7["114 repository call sites<br/>unchanged apart from imports"]
+  d7 --> p1["Contract replay identical<br/>old client vs new chain"]
+  p1 --> p2["Shipped behind switch flag<br/>old path and flag deleted"]
+  p2 --> ok["Done"]
+  class ok good
+  classDef good fill:#e3f5e1,stroke:#2a7

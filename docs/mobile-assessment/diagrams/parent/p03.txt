@@ -1,0 +1,12 @@
+Jago (reference)                     BFI target (on Riverpod)
+ --------------------------------     --------------------------------
+ Layer model ------------- COPY --->  data / domain / presentation
+ Ports + composition root  COPY --->  one composition root
+ Analytics fan-out ------- COPY --->  AnalyticsPlatform + typed events
+ Coverage gate ----------- COPY --->  PR gate on changed files
+ RASP + build registration COPY --->  step in the prod pipeline
+
+ bloc library ------------ SKIP       keep Riverpod
+ Kiwi + injectable ------- SKIP       one DI: Riverpod providers
+ oversized module_common - SKIP       small core package only
+ rules checked by review - SKIP       rules checked in CI

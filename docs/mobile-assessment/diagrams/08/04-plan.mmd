@@ -1,0 +1,22 @@
+flowchart TD
+  s1["Step 1: rules and checker<br/>domain-purity strict,<br/>dto-in-presentation ratchet 214"]
+  s2["Step 2: pure.dart barrel<br/>in core"]
+  s3["Step 3: loan parity ledger<br/>+ switch flag useNewLoanFlow"]:::now
+  subgraph L["Loan: new path beside the old one"]
+    s4["Step 4: loan detail slice"]
+    s5["Step 5: agreement slice<br/>53 files"]
+    s6["Step 6: submission, survey,<br/>simulation, submission list"]
+    s7["Step 7: split Type B flows<br/>esign, then kyc, kyc_spouse"]
+  end
+  s8["Step 8: cohort check<br/>1% to 10% to 50% to 100%"]
+  s9["Step 9: flip and delete<br/>old loan path + flag"]:::good
+  s10["Step 10: future of data/customer<br/>rides on each extraction"]
+  s11["Step 11: same loop for<br/>auth, rl, ro"]
+  s1 --> s2 --> s3 --> s4 --> s5 --> s6 --> s7 --> s8 --> s9 --> s11
+  s4 -.-> s10
+  s5 -.-> s10
+  s6 -.-> s10
+  s10 --> s11
+  s8 -. "threshold breached:<br/>flip back, fix" .-> s7
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

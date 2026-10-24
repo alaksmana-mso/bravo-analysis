@@ -1,0 +1,6 @@
+E2E journeys      register, KYC, loan,
+                   payment on real devices
+ Screen tests      keep                ####
+ Controller tests  allowed             ####
+ Domain tests      fast, pure Dart     ######
+ Coverage gate     changed files, start 70%

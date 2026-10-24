@@ -1,0 +1,16 @@
+flowchart TD
+  subgraph A["About 3 sprints: steps 1-5"]
+    direction LR
+    s1["1. Agree the scope<br/>no code, 1 week<br/>which of 32 classes"]
+    s2["2. Cut the app dependencies<br/>1-2 PRs"]
+    s3["3. Create package, move code<br/>2-3 PRs, one folder at a time"]
+    s4["4. Add Widgetbook<br/>1-2 PRs"]
+    s5["5. Guard the rules<br/>1 PR, golden tests"]
+    s1 --> s2 --> s3 --> s4 --> s5
+  end
+  subgraph B["Optional"]
+    direction LR
+    s6["6. Figma token pipeline<br/>1-2 sprints, if design ready"]
+    s7["7. Material 3<br/>golden tests first"]
+  end
+  A --> B

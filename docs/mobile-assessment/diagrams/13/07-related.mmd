@@ -1,0 +1,13 @@
+flowchart LR
+  me["Mobile plan 13:<br/>Design system"]:::hot
+  p11["Mobile plan 11: Repo layout"]
+  p02["Mobile plan 02: Analytics wrapper"]
+  p03["Mobile plan 03: Testing"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p04["Mobile plan 04: CI/CD"]
+  p11 -->|where the package sits| me
+  p02 -->|same analytics interface<br/>for ComponentTracker| me
+  me -->|golden and component tests| p03
+  me -->|raw colour and import rules| p06
+  me -->|Widgetbook build and publish job| p04
+  classDef hot fill:#ffe1e1,stroke:#c00

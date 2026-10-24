@@ -1,0 +1,12 @@
+flowchart TD
+  w["Widgets"]
+  n["Notifier / AsyncNotifier<br/>(Riverpod 3)"]
+  w -->|"ref.watch(... .select)"| n
+  fp["Feature providers<br/>(exported per package)"]
+  po["Ports<br/>(abstract repositories)"]
+  n --> fp --> po
+  cr["app composition root"] -->|"overrides"| po
+  na["No global appRef"]
+  po ~~~ na
+  class n,fp,po,cr,na good
+  classDef good fill:#e3f5e1,stroke:#2a7

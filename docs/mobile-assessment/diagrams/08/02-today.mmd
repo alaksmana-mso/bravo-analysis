@@ -1,0 +1,14 @@
+flowchart TD
+  sc["Screens<br/>48 of 95 import API models"] --> ct["Controllers<br/>65 of 72 import API models"]
+  ct --> uc["38 use-case files<br/>no domain layer"]
+  uc --> rp["Repositories in data/customer<br/>return API models"]
+  rp --> hc["HttpClient"]
+  uc --> u1["32 import package:customer"]
+  uc --> u2["16 import a screen file"]
+  uc --> u3["13 import Flutter,<br/>13 import the router"]
+  uc --> u4["14 use global appRef"]
+  big["Largest: kyc_use_case.dart<br/>970 lines"] -.-> uc
+  br["Rules in UI folders:<br/>agreement_mapper,<br/>agreement_status_extension"] -.-> ct
+  cb["core.dart re-exports<br/>flutter_riverpod, go_router"] -.->|"pure import hard"| uc
+  class u1,u2,u3,u4,big hot
+  classDef hot fill:#ffe1e1,stroke:#c00

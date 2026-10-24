@@ -1,0 +1,8 @@
+flowchart LR
+  r1["Import check blocks work<br/>in a busy sprint"]:::hot --> m1["Ratchet only;<br/>old violations never fail"]:::good
+  r2["Baseline file becomes<br/>a dumping ground"]:::hot --> m2["Only a lead adds lines;<br/>report count monthly"]:::good
+  r3["Review bot is noisy<br/>and ignored"]:::hot --> m3["Warnings first; fail only<br/>after a quiet month"]:::good
+  r4["AI rules drift from<br/>CI checks"]:::hot --> m4["Each rule names its CI check<br/>or says review only"]:::good
+  r5["Stricter analyzer flags<br/>flood the build"]:::hot --> m5["One flag at a time;<br/>fix per package"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

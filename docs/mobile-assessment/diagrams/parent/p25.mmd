@@ -1,0 +1,11 @@
+flowchart TD
+  pr["PR"]
+  l1["lint/strict + custom_lint"]
+  l2["format + generated-code check"]
+  l3["dependency rules<br/>(no feature -> feature imports,<br/>domain has no Flutter import)"]
+  l4["ratchet<br/>(no new violations)"]
+  l5["mr-review skill<br/>(.claude/rules)"]
+  l6["human review"]
+  pr --> l1 --> l2 --> l3 --> l4 --> l5 --> l6
+  class l1,l2,l3,l4,l5 good
+  classDef good fill:#e3f5e1,stroke:#2a7

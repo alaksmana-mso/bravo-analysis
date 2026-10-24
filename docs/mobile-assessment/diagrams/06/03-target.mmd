@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph J["Jago patterns"]
+    j1["Shared lint package<br/>3 custom rules, none for architecture"]
+    j2["Danger bot<br/>1 Hive-label rule"]
+    j3["verify-generated-files job"]
+    j4[".claude/rules: 14 files<br/>incl. ratchet.md"]
+    j5["mr-review skill"]
+  end
+  subgraph B["BFI shape"]
+    b1["Keep lint/strict<br/>custom_lint only if needed"]
+    b2["Grep-based import check<br/>ratchet from 264"]
+    b3["GitHub Action review bot<br/>Danger JS or github-script"]
+    b4["Stale generated files<br/>fail the PR"]
+    b5["BFI's own rule files<br/>and review skill"]
+  end
+  j1 --> b1
+  j1 -.->|"BFI does better:<br/>tool checks architecture"| b2
+  j2 --> b3
+  j3 --> b4
+  j4 --> b5
+  j5 --> b5
+  class b2 good
+  classDef good fill:#e3f5e1,stroke:#2a7

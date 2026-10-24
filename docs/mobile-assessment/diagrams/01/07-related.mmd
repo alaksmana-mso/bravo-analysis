@@ -1,0 +1,13 @@
+flowchart LR
+  p01["Mobile plan 01: Security"]:::now
+  p04["Mobile plan 04: CI/CD"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p03["Mobile plan 03: Testing"]
+  p02["Mobile plan 02: Analytics wrapper"]
+  p05["Mobile plan 05: Logging and crashes"]
+  p01 -->|"protection step slot,<br/>environment protection"| p04
+  p01 -->|workflow secret check rule| p06
+  p03 -->|smoke list for R8 build| p01
+  p02 -->|session replay masking| p01
+  p01 -->|readable Android traces| p05
+  classDef now fill:#fff4cc,stroke:#b80

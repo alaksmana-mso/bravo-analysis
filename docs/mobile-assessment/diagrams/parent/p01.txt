@@ -1,0 +1,16 @@
+Screens --logEvent x187 (strings)--> Firebase
+    |    --EventTracker-------------> Mixpanel
+    v
+ StateNotifier controllers
+ + global appRef
+    |
+    v
+ Repositories (API models reach the UI)
+    |
+    v
+ HttpClient (auth + refresh inside)
+
+ Prod build : obfuscate + pinning
+              no R8, no RASP
+ Tests      : screens only
+              controller tests rejected

@@ -1,0 +1,10 @@
+flowchart LR
+  p08["Mobile plan 08:<br/>Layering"]
+  p11["Mobile plan 11:<br/>Repo layout"] -->|"package shape, checker,<br/>feature order"| p08
+  p08 <-->|"notifiers call use cases;<br/>flows lose globals"| p09["Mobile plan 09:<br/>State management"]
+  p10["Mobile plan 10:<br/>Dependency injection"] -->|"providers for<br/>interfaces in di/"| p08
+  p07["Mobile plan 07:<br/>Networking"] -->|"shared_lib/network<br/>takes the transport"| p08
+  p03["Mobile plan 03:<br/>Testing"] -->|"domain and<br/>notifier tests"| p08
+  p06["Mobile plan 06:<br/>Lint and guardrails"] -->|"runs the rules in CI"| p08
+  class p08 now
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,8 @@
+81 screen files
+  |-- logEvent x187, 148 strings -> Firebase
+  |-- EventTracker (typed) -------> Mixpanel
+  |-- AppsFlyerService -----------> AppsFlyer
+  +-- Insider service ------------> Insider
+ Digital* components (auto) ------> Mixpanel
+
+ adding a platform = touching 80+ files

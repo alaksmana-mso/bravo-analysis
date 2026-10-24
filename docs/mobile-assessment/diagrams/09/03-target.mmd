@@ -1,0 +1,13 @@
+sequenceDiagram
+  participant S as Screen
+  participant N as SubmissionNotifier
+  participant U as Use case
+  S->>N: submit()
+  N->>N: state = isSubmitting true
+  N->>U: ref.read(submitLoanProvider).call(form)
+  U-->>N: result
+  N->>N: if not ref.mounted, return
+  N->>N: state = doneEvent Event(result.id)
+  N-->>S: ref.listen sees doneEvent
+  S->>S: screen navigates
+  Note over N: No BuildContext, no navigation,<br/>no appRef in the notifier

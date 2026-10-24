@@ -1,0 +1,34 @@
+flowchart LR
+  subgraph A["Steps 1-4"]
+    direction TB
+    s1["1 Protect prod first<br/>with Security step 0"]:::hot
+    s2["2 One Flutter version<br/>mise.toml, 1 PR"]
+    s3["3 Build numbers only go up<br/>1 PR"]
+    s4["4 Reusable workflows<br/>2-3 PRs, under 1,500 lines"]
+    s1 --> s2 --> s3 --> s4
+  end
+  subgraph B["Steps 5-6"]
+    direction TB
+    s5["5 R8 check + protection slot<br/>1 PR"]
+    s6["6 Staged rollout on Play<br/>1 PR"]
+    s5 --> s6
+  end
+  subgraph P["Parity release: steps 7-9"]
+    direction TB
+    s7["7 E2E twice per RC<br/>flags off, flags on"]:::good
+    s8["8 Cohort dashboard<br/>RUM + funnel thresholds"]:::good
+    s9["9 Kill-switch runbook<br/>who flips, 15 min target"]:::good
+    s7 --> s8 --> s9
+  end
+  subgraph C["Steps 10-12"]
+    direction TB
+    s10["10 Optional: fastlane + match<br/>for iOS"]
+    s11["11 Checks on workflow changes<br/>1 PR"]
+    s12["12 Measure delivery, DORA<br/>1 PR + dashboard"]
+    s10 ~~~ s11 ~~~ s12
+  end
+  A --> B --> P --> C
+  s4 -.-> s7
+  sec["Security plan step 1<br/>makes R8 explicit"] -.-> s5
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,12 @@
+flowchart TD
+  pr["PR"]
+  c1["conventional title<br/>+ branch rules"]
+  c2["analyze + format<br/>+ generated files"]
+  c3["workflow lint<br/>(no echo of secrets.*)"]
+  c4["tests, random order<br/>(controller tests allowed)"]
+  c5["coverage gate<br/>on changed files"]
+  c6["mr-review bot"]
+  pr --> c1 --> c2 --> c3 --> c4 --> c5 --> c6
+  nt[".github/** changes<br/>run CI too"]
+  class c2,c3,c4,c5,c6,nt good
+  classDef good fill:#e3f5e1,stroke:#2a7

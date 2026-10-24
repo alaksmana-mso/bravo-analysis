@@ -1,0 +1,18 @@
+[
+ {
+  "file": "01-three-parts.mmd",
+  "heading": "What a design system is"
+ },
+ {
+  "file": "02-token-flow.mmd",
+  "heading": "Tokens, explained"
+ },
+ {
+  "file": "03-atomic-levels.mmd",
+  "heading": "Components, explained"
+ },
+ {
+  "file": "04-dk-loop.mmd",
+  "heading": "How DK does it with the Jago design system"
+ }
+]

@@ -1,0 +1,19 @@
+tag or manual dispatch
+   |
+ customer_app_prod env: required reviewers
+   |
+ Flutter pinned in one file (mise / fvm)
+   |
+ --dart-define from secrets
+   |
+ build --obfuscate + R8
+   |
+ RASP / code protection
+   |
+ sign
+   |
+ Play internal + TestFlight
+   |
+ symbols + build registration
+
+ every prod workflow goes through the env

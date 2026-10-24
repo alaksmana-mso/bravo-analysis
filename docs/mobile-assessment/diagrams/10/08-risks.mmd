@@ -1,0 +1,8 @@
+flowchart LR
+  r1["Port not wired,<br/>app crashes at start"]:::hot --> m1["Wiring test in CI<br/>throwing providers forced into allPorts"]:::good
+  r2["Too many tiny ports"]:::hot --> m2["Port only when a 2nd package needs it<br/>one per capability"]:::good
+  r3["Overrides watching others<br/>rebuild too often"]:::hot --> m3["ref.watch only stable providers<br/>wiring test plus SIT smoke"]:::good
+  r4["Nested ProviderScope<br/>overrides sneak in"]:::hot --> m4["Review rule plus checker rule<br/>outside main.dart and tests"]:::good
+  r5["Null exit callback<br/>hides a button by mistake"]:::hot --> m5["Widget test per exit<br/>wired shows, null hides"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

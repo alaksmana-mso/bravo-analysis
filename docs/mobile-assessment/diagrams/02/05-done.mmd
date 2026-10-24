@@ -1,0 +1,29 @@
+flowchart TD
+  subgraph CODE["Code checks"]
+    direction TB
+    d1["0 vendor SDK imports<br/>outside adapters and main.dart"]
+    d2["0 logEvent or<br/>MixpanelService track calls"]
+    d3["0 string event names<br/>outside the events folder"]
+  end
+  subgraph CI["CI and tests"]
+    direction TB
+    d4["Golden names file unchanged<br/>except step 6"]
+    d5["CI fails on a direct SDK call<br/>or a higher baseline"]
+    d6["Unit test: denied key<br/>never reaches an adapter"]
+  end
+  subgraph PROD["In production"]
+    direction TB
+    d7["Datadog gets real consent<br/>not a constant"]
+    d8["Top 20 event counts normal<br/>for 2 weeks per feature"]
+  end
+  subgraph PAR["Parity"]
+    direction TB
+    p1["Same events on both paths<br/>flag off and on"]
+    p2["Golden file changes are<br/>signed-off approved deltas"]
+  end
+  done["Plan 02 done"]:::good
+  CODE --> done
+  CI --> done
+  PROD --> done
+  PAR --> done
+  classDef good fill:#e3f5e1,stroke:#2a7

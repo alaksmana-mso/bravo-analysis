@@ -1,0 +1,15 @@
+anyone who can dispatch workflows
+   |
+   v
+ test.yaml "Reveal Secret"
+ (master + release-2.24.x .. 2.27.x)
+   |
+   v
+ customer_app_prod env (no protection)
+   |
+   v
+ echo secret | sed 's/./& /g'
+   |
+   v
+ job log: spaced-out value,
+ masking misses it -> key readable

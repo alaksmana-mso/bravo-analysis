@@ -1,0 +1,14 @@
+flowchart LR
+  cs["38 call sites +<br/>131 guardLog sites"] --> dl["DatadogLog<br/>same signatures, adds info"]
+  dl --> le["LogEvent<br/>level, message, error,<br/>traceId, endpoint"]
+  le --> m["Monitoring port<br/>shared_lib/core"]
+  m --> ps["PiiSanitizer<br/>NIK, phone, email, NPWP,<br/>account no., address"]
+  ps --> da["DatadogMonitoringAdapter"]
+  ps --> ca["CrashlyticsMonitoringAdapter"]
+  da --> dd["Datadog logs<br/>info, warn, error"]
+  ca --> cb["warn: breadcrumb"]
+  ca --> cn["error: non-fatal"]
+  dbg["debug: device console only"]
+  le -.-> dbg
+  class ps good
+  classDef good fill:#e3f5e1,stroke:#2a7

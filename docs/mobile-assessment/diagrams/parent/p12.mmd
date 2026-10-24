@@ -1,0 +1,12 @@
+flowchart TD
+  ac["App code<br/>(59 call sites)"]
+  fe["Flutter / platform errors"]
+  dl["DatadogLog"]
+  ac --> dl
+  fe --> dl
+  dl -->|"raw text"| dd["Datadog"]
+  dl -->|"raw text"| cr["Crashlytics"]
+  cs["Tracking consent:<br/>hard-coded 'granted'"]
+  dd ~~~ cs
+  class cs hot
+  classDef hot fill:#ffe1e1,stroke:#c00

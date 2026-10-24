@@ -1,0 +1,13 @@
+presentation   Screen -> Notifier
+                             |
+ -------------------------- v ----------
+ domain         Use case -> Entity
+ (pure Dart)       |
+                   v
+                Repository PORT
+ ---------------------- ^ --------------
+ data           Repository IMPL
+                (DTO -> entity mapper)
+                   |
+                   v
+                HttpClient

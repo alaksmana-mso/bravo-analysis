@@ -1,0 +1,12 @@
+flowchart TD
+  s1["Step 1: clean up lint<br/>drop flutter_lints"] --> s2["Step 2: fail PRs on<br/>stale generated files"]
+  s2 --> s3["Step 3: architecture check<br/>scripts/check-architecture"]
+  s3 --> s4["Step 4: review bot<br/>GitHub Action"]
+  s4 --> s5["Step 5: .claude/rules<br/>and mr-review skill"]
+  s5 --> s6["Step 6: CODEOWNERS<br/>protects the guardrails"]
+  s3 --> r1["Ratchet: no feature<br/>imports another, baseline 264"]
+  s3 --> r2["Strict: domain has no<br/>Flutter, dio, customer"]
+  s3 --> r3["Strict: vendor SDKs<br/>only in adapter folders"]
+  s3 --> r4["Strict: design system does<br/>not import the app"]
+  s3 --> r5["Strict: data/customer<br/>no Flutter UI imports"]
+  s2 -.->|"keep bot commit<br/>one month"| x1["Remove bot commit<br/>in on-merge-master"]

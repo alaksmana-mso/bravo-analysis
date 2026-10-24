@@ -1,0 +1,7 @@
+flowchart LR
+  s1["Flag 1%"] --> s2["Flag 10%"] --> s3["Flag 50%"] --> s4["Flag 100%"] --> keep["2 releases<br/>at 100%"] --> del["Delete old path<br/>and flag"]:::good
+  s1 & s2 & s3 & s4 -.->|"threshold breached<br/>or P1 incident"| off["Flag back to old path<br/>target 15 min"]:::hot
+  off --> note["Note in parity ledger,<br/>fix, restart that stage"]
+  note -.-> s1
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

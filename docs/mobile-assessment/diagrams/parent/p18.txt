@@ -1,0 +1,9 @@
+[ok] Certificate pinning
+ [~ ] Root / jailbreak check
+      (code default off)
+ [ok] Play Integrity / App Attest
+ [ok] Dart --obfuscate
+ [  ] R8 (minifyEnabled not set)
+ [  ] RASP / anti-tamper
+ [  ] Build registration
+ [! ] API_SECRET built into the app

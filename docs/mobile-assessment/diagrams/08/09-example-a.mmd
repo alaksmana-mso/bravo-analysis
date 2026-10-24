@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph T["Today"]
+    direction TB
+    t1["home, bpkb_release, app shell"]:::hot -->|"import loan/agreement internals<br/>6 edges"| t2["agreement_use_case.dart<br/>FutureProvider + addFundsUseCase<br/>(router, appRef, navigatorContext)"]:::hot
+    t2 --> t3["agreement_mapper.dart<br/>+ due rule with DateUtils (Flutter)"]:::hot
+    t3 --> t4["LoanAgreementRepository<br/>DTOs straight to UI"]:::hot
+    t5["14 ad-hoc invalidate calls<br/>in 10+ files"]:::hot -.-> t2
+  end
+  subgraph G["Target"]
+    direction TB
+    g1["home, bpkb_release, app shell"]:::good -->|"import agreement_api<br/>entities + read providers"| g2["presentation:<br/>same providers, same graph"]:::good
+    g2 --> g3["domain (pure Dart):<br/>MapAgreementList, DueBills(clock)"]:::good
+    g3 --> g4["data: repository impl<br/>DTO to Agreement entity"]:::good
+    g5["AgreementRefresh:<br/>afterSubmission, afterPayment,<br/>afterRegisteredLink, retry<br/>+ resume + date change"]:::good -.-> g2
+  end
+  T ~~~ G
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

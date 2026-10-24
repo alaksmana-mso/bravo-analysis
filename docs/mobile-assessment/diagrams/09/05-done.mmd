@@ -1,0 +1,19 @@
+stateDiagram-v2
+  direction LR
+  [*] --> NoStateNotifier
+  NoStateNotifier: 0 StateNotifier classes, no legacy.dart export
+  NoStateNotifier --> NoAppRef
+  NoAppRef: 0 appRef uses, declaration deleted
+  NoAppRef --> NoNavContext
+  NoNavContext: 0 navigatorContext outside app/navigation
+  NoNavContext --> CleanNotifiers
+  CleanNotifiers: 0 notifier files import material.dart or router.dart
+  CleanNotifiers --> Tested
+  Tested: every notifier in loan, auth, rl, ro has a unit test
+  Tested --> Documented
+  Documented: AGENTS.md shows Notifier as the standard
+  Documented --> ScreenParity
+  ScreenParity: screen tests passed on both versions before each swap
+  ScreenParity --> Deleted
+  Deleted: switched flows have old path and flag deleted
+  Deleted --> [*]

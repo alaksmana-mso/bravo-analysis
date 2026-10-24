@@ -1,0 +1,10 @@
+flowchart LR
+  s1["1. Freeze<br/>parity ledger +<br/>parity net on old path"] --> s2["2. Build beside<br/>new path, old untouched"]
+  s2 --> s3["3. Switch flag<br/>default = old path"]
+  s3 --> s4{"4. Parity net green<br/>on BOTH paths?"}
+  s4 -->|no| s2
+  s4 -->|yes| s5["5. Cohort check<br/>1% > 10% > 50% > 100%"]
+  s5 --> s6{"Crash, errors,<br/>funnel within<br/>thresholds?"}
+  s6 -->|"no: flip flag back"| s2
+  s6 -->|"yes, 2 releases"| s7["6. Flip and delete<br/>old path + flag removed"]:::good
+  classDef good fill:#e3f5e1,stroke:#2a7

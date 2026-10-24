@@ -1,0 +1,14 @@
+flowchart TD
+  rp["Repositories<br/>114 calls, 27 files"] --> hc["HttpClient<br/>496 lines, one class"]
+  hc --> h1["Headers<br/>accept, api-secret,<br/>platform, version"]
+  hc --> h2["Auth + refresh<br/>before every request"]
+  hc --> h3["_transformError<br/>typed exceptions"]
+  h2 --> as["AuthService<br/>Completer lock"]
+  h2 --> race["401 INVALID_KEY:<br/>forced refresh, no<br/>stale-token check"]
+  hc <-->|"setter cycle"| di["DeviceIntegrityService"]
+  h3 --> ev["Global apiCallErrorEvent<br/>one consumer: update dialog"]
+  hc --> ic["Interceptors: pinning,<br/>ApiCallHistory non-prod"]
+  hc --> nr["30 s timeouts<br/>no retry"]
+  tst["Tests: 41 client, 33 auth<br/>none concurrent"]
+  class race,di,ev hot
+  classDef hot fill:#ffe1e1,stroke:#c00

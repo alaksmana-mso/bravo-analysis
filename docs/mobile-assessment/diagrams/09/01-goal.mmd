@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph T["Today"]
+    t1["72 StateNotifier controllers<br/>Riverpod 2.6.1"]
+    t2["Global appRef<br/>142 uses"]
+    t3["Global navigatorContext<br/>151 uses"]
+  end
+  subgraph G["Target"]
+    g1["Riverpod 3 Notifier<br/>and AsyncNotifier"]
+    g2["No globals for<br/>providers or navigation"]
+    g3["Notifiers hold state,<br/>call use cases"]
+    g4["No navigation, no BuildContext;<br/>unit-testable alone"]
+  end
+  t1 --> g1
+  t2 --> g2
+  t3 --> g2
+  g1 --> g3 --> g4
+  class t1,t2,t3 now
+  class g1,g2,g3,g4 good
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

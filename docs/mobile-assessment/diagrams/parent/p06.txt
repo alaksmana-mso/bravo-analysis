@@ -1,0 +1,13 @@
+Screen  <------ API model (DTO) ----+
+   |                                 |
+   v                                 |
+ Controller  (business rules here)   |
+   |                                 |
+   v                                 |
+ [Use case]  (sometimes)             |
+   |                                 |
+   v                                 |
+ Repository ---- API model ----------+
+   |
+   v
+ HttpClient

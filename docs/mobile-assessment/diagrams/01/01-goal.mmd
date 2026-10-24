@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph T["Today"]
+    t1["Reveal Secret workflow<br/>can print prod secrets"]:::hot
+    t2["R8 on by default<br/>not explicit, keep rules unreviewed"]:::now
+    t3["No screen-capture guard"]:::now
+    t4["API_SECRET baked into app"]:::now
+  end
+  subgraph G["Target"]
+    g1["No workflow exposes<br/>prod secrets"]:::good
+    g2["Prod build shrunk, obfuscated,<br/>tamper-protected"]:::good
+    g3["Sensitive screens<br/>cannot be captured"]:::good
+    g4["Backend trusts device integrity<br/>and user auth"]:::good
+  end
+  t1 --> g1
+  t2 --> g2
+  t3 --> g3
+  t4 --> g4
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

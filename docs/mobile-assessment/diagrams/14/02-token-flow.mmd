@@ -1,0 +1,17 @@
+flowchart LR
+  subgraph T["Today"]
+    direction LR
+    t1["Figma file<br/>colours as hex"]:::hot -->|"engineer reads<br/>and retypes"| t2["digital_colors.dart<br/>44 hex codes by hand"]:::hot
+    t2 --> t3["Components"]:::hot
+    t4["49 one-off hex colours<br/>in screens"]:::hot -.-> t3
+  end
+  subgraph G["After plan 13"]
+    direction LR
+    g1["Figma variables<br/>collections + modes"]:::good -->|export| g2["tokens.json<br/>one source of truth"]:::good
+    g2 -->|script| g3["generated Dart tokens<br/>never edited by hand"]:::good
+    g3 --> g4["Components<br/>read tokens by name"]:::good
+    g4 --> g5["Widgetbook + golden tests<br/>show what changed"]:::good
+  end
+  T ~~~ G
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

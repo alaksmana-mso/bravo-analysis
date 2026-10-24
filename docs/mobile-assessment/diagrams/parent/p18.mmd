@@ -1,0 +1,25 @@
+flowchart TD
+  hd["Prod app security today"]
+  ok["OK: Certificate pinning"]
+  rj["Partial: Root / jailbreak check<br/>(code default off)"]
+  pi["OK: Play Integrity / App Attest"]
+  ob["OK: Dart --obfuscate"]
+  r8["Partial: R8 on by Flutter default<br/>(not set explicitly)"]
+  ra["Missing: RASP / anti-tamper"]
+  br["Missing: Build registration"]
+  as["Risk: API_SECRET built into the app"]
+  hd --> ok
+  ok ~~~ rj
+  rj ~~~ pi
+  pi ~~~ ob
+  hd --> r8
+  r8 ~~~ ra
+  ra ~~~ br
+  br ~~~ as
+  class ok,pi,ob good
+  class rj now
+  class ra,br,as hot
+  class r8 now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef hot fill:#ffe1e1,stroke:#c00

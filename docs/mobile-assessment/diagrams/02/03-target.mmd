@@ -1,0 +1,48 @@
+classDiagram
+  direction LR
+  class Analytics {
+    <<interface>>
+    +track(AnalyticsEvent)
+    +screen(routeName)
+    +identify(AnalyticsUser)
+    +setUserProperties(props)
+    +reset()
+    +context AnalyticsContext
+  }
+  class AnalyticsEvent {
+    <<abstract>>
+    +name String
+    +params Map
+    +sinks Set~Sink~
+  }
+  class AnalyticsAdapter {
+    <<interface>>
+    +sink Sink
+    +track(event, ctx)
+    +screen(routeName)
+    +identify(user)
+    +reset()
+  }
+  class AnalyticsContext {
+    +currentProduct
+    +journey stack
+    +formName
+  }
+  class ApplyLoanEvent {
+    +name = apply_loan
+    +sinks = firebase
+  }
+  class FirebaseAdapter
+  class MixpanelAdapter
+  class InsiderAdapter
+  class AppsFlyerAdapter
+  class DatadogRumAdapter
+  AnalyticsEvent <|-- ApplyLoanEvent
+  Analytics ..> AnalyticsEvent : tracks
+  Analytics --> AnalyticsContext
+  Analytics "1" --> "5" AnalyticsAdapter : fan-out by sinks
+  AnalyticsAdapter <|.. FirebaseAdapter
+  AnalyticsAdapter <|.. MixpanelAdapter
+  AnalyticsAdapter <|.. InsiderAdapter
+  AnalyticsAdapter <|.. AppsFlyerAdapter
+  AnalyticsAdapter <|.. DatadogRumAdapter

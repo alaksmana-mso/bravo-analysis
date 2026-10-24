@@ -1,0 +1,18 @@
+Stage A  stop the leaks        01 Security       02 Analytics wrapper
+                                     |
+                                     v
+ Stage B  safety net            03 Testing        04 CI/CD
+                                05 Logging        06 Lint + guardrails
+                                07 Networking
+                                     |
+                                     v   refactors are now protected
+ Stage C  architecture          08 Layering (loan first)
+                                     |
+                                     +--> 09 State management
+                                     +--> 10 Dependency injection
+                                     |
+                                     v   layering proven on loan
+                                11 Repo layout
+                                     |
+                                     v
+ Stage D  platform              12 Feature flags  13 Design system

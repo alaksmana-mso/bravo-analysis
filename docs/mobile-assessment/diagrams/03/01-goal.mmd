@@ -1,0 +1,22 @@
+flowchart TD
+  subgraph T["Today"]
+    direction TB
+    t1["Controller tests banned<br/>in pr-pipeline.yml"]:::hot
+    t2["Logic tested only by<br/>pumping whole screens"]:::now
+    t3["No agreed coverage<br/>threshold in repo"]:::now
+    t4["No e2e run linked<br/>to app releases"]:::now
+  end
+  subgraph G["Target"]
+    direction TB
+    g1["Business logic tested<br/>on its own, fast"]:::good
+    g2["Screens tested for<br/>what the user sees"]:::good
+    g3["Changed files keep coverage<br/>above agreed number"]:::good
+    g4["Register, KYC, loan, payment<br/>e2e on real devices"]:::good
+  end
+  t1 --> g1
+  t2 --> g2
+  t3 --> g3
+  t4 --> g4
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

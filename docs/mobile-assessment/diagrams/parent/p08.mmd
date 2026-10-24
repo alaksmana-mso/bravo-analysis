@@ -1,0 +1,10 @@
+flowchart TD
+  w["Widgets"]
+  c["72 StateNotifier controllers"]
+  w -->|"ref.watch"| c
+  c --> p["128 static final provider"]
+  c --> a["global appRef<br/>(142 uses, also outside widgets)"]
+  m["main.dart: ProviderScope.overrides<br/>(environment only)"]
+  p ~~~ m
+  class c,p,a hot
+  classDef hot fill:#ffe1e1,stroke:#c00

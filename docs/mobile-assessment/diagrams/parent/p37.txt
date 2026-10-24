@@ -1,0 +1,7 @@
+events --> PII allow-list --+--> Firebase
+                             +--> Mixpanel
+ logs   --> sanitizer + real consent
+                             ---> Datadog
+
+ every prod build --> protected env
+ root check  -- on by default in code

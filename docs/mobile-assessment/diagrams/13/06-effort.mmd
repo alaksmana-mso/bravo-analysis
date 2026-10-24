@@ -1,0 +1,11 @@
+flowchart LR
+  o["Customer Mobile Apps squad"]
+  ds["One named designer<br/>co-owner"]
+  sz["Size M"]:::now
+  w1["Steps 1-5<br/>about 3 sprints<br/>next to feature work"]
+  w2["Step 6 tokens<br/>another 1-2 sprints<br/>only if design is ready"]
+  o --> sz
+  ds --> sz
+  sz --> w1
+  sz -.-> w2
+  classDef now fill:#fff4cc,stroke:#b80

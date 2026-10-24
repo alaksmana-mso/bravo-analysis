@@ -1,0 +1,16 @@
+flowchart TD
+  subgraph S1["Sprint 1"]
+    s1["1. Race tests first<br/>no production code"] --> s2["2. Extract TokenRefresher"]
+    s2 --> s3["3. Two dio instances<br/>authDio, apiDio"]
+  end
+  subgraph S2["Sprint 2"]
+    s4["4. Headers and integrity<br/>interceptors, x-request-id"]
+    s5["5. Auth and refresh<br/>interceptors"]
+    s6["6. Error mapping interceptor<br/>drop global stream"]
+    s7["7. Retry interceptor<br/>GET only"]
+    s8["8. Trace headers<br/>after plan 05 spike"]
+    s9["9. Shrink facade<br/>under 150 lines"]
+  end
+  s3 --> s4 --> s5 --> s6 --> s7 --> s8 --> s9
+  rt["Race test list<br/>all 7 cases must exist"] -->|"before step 5 merges"| s5
+  s1 --> rt

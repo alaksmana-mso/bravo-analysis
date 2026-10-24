@@ -1,0 +1,10 @@
+[
+  {"file":"01-goal.mmd","heading":"Goal"},
+  {"file":"02-today.mmd","heading":"Where we are today"},
+  {"file":"03-target.mmd","heading":"Target (what Jago does, adapted for BFI)"},
+  {"file":"04-plan.mmd","heading":"Plan"},
+  {"file":"05-done.mmd","heading":"Done when"},
+  {"file":"06-effort.mmd","heading":"Effort and owner"},
+  {"file":"07-related.mmd","heading":"Depends on / related plans"},
+  {"file":"08-risks.mmd","heading":"Risks"}
+]

@@ -1,0 +1,11 @@
+flowchart TD
+  sf["81 screen files"]
+  sf -->|"logEvent x187<br/>148 strings"| fb["Firebase"]
+  sf -->|"EventTracker<br/>(typed)"| mx["Mixpanel"]
+  sf -->|"AppsFlyerService"| af["AppsFlyer"]
+  sf -->|"Insider service"| ins["Insider"]
+  dc["Digital* components"] -->|"auto"| mx
+  nt["Adding a platform =<br/>touching 80+ files"]
+  fb ~~~ nt
+  class sf,nt hot
+  classDef hot fill:#ffe1e1,stroke:#c00

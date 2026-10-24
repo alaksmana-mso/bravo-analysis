@@ -1,0 +1,13 @@
+flowchart TD
+  sc["Screens / components"]
+  ec["Event catalogue<br/>(typed classes)"]
+  ap["AnalyticsPlatform<br/>(one interface)"]
+  pf["PII filter + consent"]
+  sc -->|"fire a typed event"| ec --> ap --> pf
+  pf --> a1["Firebase<br/>adapter"]
+  pf --> a2["Mixpanel<br/>adapter"]
+  pf --> a3["AppsFlyer<br/>adapter"]
+  pf --> a4["Insider<br/>adapter"]
+  pf --> a5["Datadog<br/>adapter"]
+  class ec,ap,pf good
+  classDef good fill:#e3f5e1,stroke:#2a7

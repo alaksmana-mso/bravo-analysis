@@ -1,0 +1,15 @@
+flowchart TD
+  fg["Figma"]
+  dg["digital/ package"]
+  th["app/theme"]
+  ui["app/ui, app/widget<br/>32 Digital* classes"]
+  ft["features/*"]
+  fg -->|"copied by hand"| th
+  dg --> th
+  dg --> ui
+  dg --> ft
+  ft -->|"use Digital*<br/>(adoption high)"| ui
+  nt["No separate package,<br/>no Widgetbook"]
+  ft ~~~ nt
+  class th,nt hot
+  classDef hot fill:#ffe1e1,stroke:#c00

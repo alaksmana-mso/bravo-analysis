@@ -1,0 +1,17 @@
+flowchart TD
+  p0["0. Close the leak<br/>A"]:::hot --> p1["1. Safety net first<br/>A"]:::a
+  p1 -->|"gate: parity net green 2 trains,<br/>staged rollout used once"| p2["2. Seams, same behaviour<br/>B"]:::b
+  p2 -->|"gate: 1 release at 100%,<br/>golden files unchanged"| p3["3. Approved deltas<br/>D, E"]:::d
+  p2 --> p5["5. Move call sites<br/>B (runs beside 3 and 4)"]:::b
+  p3 --> p4["4. Network chain<br/>C, E"]:::c
+  p4 --> p6["6. Riverpod 3 alone<br/>B"]:::b
+  p5 --> p6
+  p6 -->|"gate: no new provider errors"| p7["7. Loan pilot<br/>C"]:::c
+  p7 -->|"gate: old loan path deleted"| p8["8. Packages, move only<br/>B"]:::b
+  p8 --> p9["9. auth, rl, ro, rest<br/>C then B"]:::c
+  p8 --> p10["10. Platform: RASP, M3<br/>C, D"]:::d
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef a fill:#eeeeee,stroke:#666
+  classDef b fill:#e3f5e1,stroke:#2a7
+  classDef c fill:#e1ecff,stroke:#36c
+  classDef d fill:#fff4cc,stroke:#b80

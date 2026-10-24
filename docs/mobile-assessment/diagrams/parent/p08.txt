@@ -1,0 +1,12 @@
+Widgets
+   |  ref.watch
+   v
+ 72 StateNotifier controllers
+   |
+   +--> 128 static final provider
+   |
+   +--> global appRef (142 uses,
+        also outside widgets)
+
+ main.dart: ProviderScope.overrides
+            (environment only)

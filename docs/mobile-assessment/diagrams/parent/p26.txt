@@ -1,0 +1,18 @@
+manual dispatch
+   |
+ approval = job step (env has no rule)
+   |
+ Flutter 3.41.9 (README says 3.38.5)
+   |
+ ~30 --dart-define from secrets
+   |
+ build --obfuscate        (no R8)
+   |
+ sign (base64 keystore secret)
+   |
+ Play internal + TestFlight
+   |
+ symbols -> Crashlytics, Datadog
+
+ side door: build-prod-artifact.yml
+   prod-signed APK + IPA, no approval

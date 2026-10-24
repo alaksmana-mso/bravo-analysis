@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph SP1["Sprint 1: steps 1-5"]
+    direction TB
+    s1["1 Freeze names<br/>golden file: 148 + 34"]
+    s2["2 Port package<br/>shared_lib/analytics"]
+    s3["3 Adapters and fan-out<br/>shims keep old calls"]
+    s4["4 CI ratchet<br/>baseline.txt"]
+    s5["5 Consent and PII guard<br/>key denylist"]
+    s1 --> s2 --> s3 --> s4 --> s5
+  end
+  subgraph SP23["Sprints 2-3: steps 6-10"]
+    direction TB
+    s6["6 Fix known PII<br/>needs sign-off"]:::now
+    s7["7 Move Digital* components"]
+    s8["8 Migrate Firebase calls<br/>one feature per PR"]
+    s9["9 Delete shims<br/>when baseline is 0"]
+    s10["10 Publish catalogue<br/>event-catalogue.md"]
+    s6 ~~~ s7 --> s8 --> s9 --> s10
+  end
+  s11["11 Optional, later<br/>AppsFlyer and RUM milestones"]
+  SP1 --> SP23
+  s10 -.-> s11
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,28 @@
+flowchart TD
+  app["digital<br/>app shell: main, router composition,<br/>overrides"]
+  subgraph FE["features"]
+    loan["feature_loan"]
+    auth["feature_auth"]
+    rlro["rl, ro, select_vehicle,<br/>support ..."]
+    api["feature_auth_api<br/>entities and interfaces only"]
+  end
+  subgraph SL["shared_lib: one job each"]
+    core["core"]
+    ds["design_system<br/>plan 13"]
+    an["analytics<br/>plan 02"]
+    net["network<br/>plan 07"]
+    md["master_data"]
+    l10n["l10n"]
+  end
+  legacy["data/customer<br/>legacy, frozen, shrinks"]:::now
+  chk["tool/arch_check.dart<br/>ratchet + baseline"]:::good
+  app --> loan & auth & rlro
+  loan -->|ports only| api
+  rlro -->|ports only| api
+  auth -.->|implements| api
+  loan --> SL
+  auth --> SL
+  rlro --> SL
+  loan -.-x|never| auth
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

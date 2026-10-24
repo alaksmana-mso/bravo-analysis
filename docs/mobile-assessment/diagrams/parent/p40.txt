@@ -1,0 +1,12 @@
+Where do prod signing and distribution live?
+   |
+   +-- A. Separate prod pipeline repo (like Jago)
+   |      + smallest blast radius
+   |      - a second repo to maintain
+   |
+   +-- B. Same repo + protected customer_app_prod environment
+          + most of the benefit at low cost
+          - depends on the environment rules staying on
+
+ RASP vendor?        Everspin (same as Jago) | other  -->  needs a quote
+ Coverage threshold? start at 70% on changed files    -->  raise over time

@@ -1,0 +1,8 @@
+flowchart LR
+  r1["Mappers add boilerplate<br/>for no gain"]:::hot --> m1["Ponytail rule: thin entity ok;<br/>map only what screens use"]:::good
+  r2["Moving a rule<br/>changes behaviour"]:::hot --> m2["Domain test against<br/>today's output first"]:::good
+  r3["Protobuf names leak<br/>into entities"]:::hot --> m3["Entities use plain<br/>business names"]:::good
+  r4["Teams keep using DTOs<br/>in new screens"]:::hot --> m4["dto-in-presentation<br/>ratchet fails the PR"]:::good
+  r5["master_data grows into<br/>a god package"]:::hot --> m5["Reference data only;<br/>else tech-lead review"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

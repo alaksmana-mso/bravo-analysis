@@ -1,0 +1,15 @@
+flowchart LR
+  p03["Mobile plan 03: Testing"]:::now
+  p08["Mobile plan 08: Layering"]
+  p09["Mobile plan 09: State management"]
+  p13["Mobile plan 13: Design system"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p04["Mobile plan 04: CI/CD"]
+  p01["Mobile plan 01: Security"]
+  p08 -->|domain use cases to test| p03
+  p09 -->|Notifier tests with ProviderContainer| p03
+  p13 -->|components for golden tests| p03
+  p03 -->|test rules in AGENTS.md| p06
+  p03 -->|gate placement, e2e after SIT build| p04
+  p03 -->|smoke tests for R8 build| p01
+  classDef now fill:#fff4cc,stroke:#b80

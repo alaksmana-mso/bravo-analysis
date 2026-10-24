@@ -1,0 +1,9 @@
+flowchart TD
+  sc["Screens / controllers"]
+  cat["Typed flag catalogue<br/>(BoolFeatureFlag,<br/>IntFeatureFlag, ...)"]
+  ffp["FeatureFlagPlatform<br/>(one interface)"]
+  sc --> cat --> ffp
+  ffp --> rcp["Remote Config provider"]
+  ffp --> mxp["Mixpanel provider"]
+  class cat,ffp good
+  classDef good fill:#e3f5e1,stroke:#2a7

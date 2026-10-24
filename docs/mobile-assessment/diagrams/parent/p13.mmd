@@ -1,0 +1,14 @@
+flowchart TD
+  ac["App code"]
+  fe["Flutter / platform errors"]
+  dl["DatadogLog"]
+  ps["PII sanitizer"]
+  ac --> dl
+  fe --> dl
+  dl --> ps
+  ps --> dd["Datadog"]
+  ps --> cr["Crashlytics"]
+  cs["Tracking consent:<br/>from the user's choice"]
+  dd ~~~ cs
+  class ps,cs good
+  classDef good fill:#e3f5e1,stroke:#2a7

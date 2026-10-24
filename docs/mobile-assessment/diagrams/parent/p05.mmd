@@ -1,0 +1,16 @@
+flowchart TD
+  mw["melos workspace"]
+  ft["features/"]
+  mw --> ap["app/<br/>router + composition root"]
+  mw --> ft
+  mw --> ds["design_system/<br/>Digital* + theme"]
+  mw --> dc["data/customer/"]
+  mw --> co["shared_lib/core/"]
+  ft --> f1["loan/<br/>small public API"]
+  ft --> f1a["loan_api/<br/>contract others import"]
+  ft --> f2["auth/ ..."]
+  f2 -.->|"imports"| f1a
+  rule["Rule: feature -> *_api<br/>never feature -> feature"]
+  f2 ~~~ rule
+  class ap,ds,f1,f1a,rule good
+  classDef good fill:#e3f5e1,stroke:#2a7

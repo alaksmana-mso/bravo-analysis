@@ -1,0 +1,16 @@
+flowchart TD
+  c1["38 direct calls in 19 files<br/>32 error, 6 warn, 0 debug"]
+  c2["guardLog<br/>131 call sites"]
+  c3["DatadogLogObserver<br/>provider errors via toString"]
+  dl["DatadogLog<br/>static class, 195 lines<br/>no info level"]
+  c1 --> dl
+  c2 --> dl
+  c3 --> dl
+  dl -->|"message only,<br/>no trace ID"| dd["Datadog logs"]
+  dl -->|"error = non-fatal<br/>warn = breadcrumb"| cr["Crashlytics<br/>set up in main.dart"]
+  hc["http_client.dart:421<br/>reads x-trace-id"] -->|"traceId, endpoint"| dl
+  cr --> gk["trace_id, session_id, endpoint<br/>as GLOBAL keys"]
+  p1["35 of 38 calls put<br/>raw error text in message"] -.-> dl
+  p2["Nothing cleans PII<br/>before data leaves device"] -.-> dd
+  class p1,p2,gk hot
+  classDef hot fill:#ffe1e1,stroke:#c00

@@ -1,0 +1,10 @@
+Screens / controllers
+   |
+   v
+ Typed flag catalogue
+ (BoolFeatureFlag, IntFeatureFlag, ...)
+   |
+   v
+ FeatureFlagPlatform (one interface)
+   |-> Remote Config provider
+   +-> Mixpanel provider

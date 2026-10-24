@@ -1,0 +1,9 @@
+flowchart TB
+  a["Atoms<br/>DigitalButton, icon, text style"]:::ds --> m["Molecules<br/>text field + label + error"]:::ds
+  m --> o["Organisms<br/>agreement card, bottom nav"]:::ds
+  o --> t["Templates<br/>list with empty state"]:::ft
+  t --> p["Pages<br/>loan detail screen"]:::ft
+  ds["Owned by the design system"]:::ds ~~~ a
+  ft["Owned by the feature"]:::ft ~~~ t
+  classDef ds fill:#e3f5e1,stroke:#2a7
+  classDef ft fill:#e1ecff,stroke:#2458b3

@@ -1,0 +1,22 @@
+flowchart LR
+  subgraph T["Today"]
+    t1["38 direct DatadogLog calls<br/>raw error text"]
+    t2["Crashlytics wired in main.dart"]
+    t3["No PII cleaner"]
+    t4["Trace ID only in Crashlytics<br/>as global keys"]
+  end
+  subgraph G["Target"]
+    g1["One BFI Monitoring interface"]
+    g2["PII cleaner runs first"]
+    g3["Trace ID on every error"]
+    g4["Support jumps from crash<br/>to backend trace"]
+  end
+  t1 --> g1
+  t2 --> g1
+  t3 --> g2
+  t4 --> g3
+  g1 --> g2 --> g3 --> g4
+  class t1,t2,t3,t4 now
+  class g1,g2,g3,g4 good
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

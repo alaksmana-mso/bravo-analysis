@@ -1,0 +1,28 @@
+flowchart TD
+  subgraph BUILD["Prod workflows, of 13 totalling 2,943 lines"]
+    direction TB
+    w1["build-prod.yml, 449 lines<br/>approval is a step"]:::now
+    w4["build-prod-artifact.yml<br/>312 lines, no approval"]:::hot
+    w5["test.yaml, 18 lines<br/>Reveal Secret"]:::hot
+    env["customer_app_prod<br/>no protection rules"]:::hot
+    w1 --> env
+    w4 --> env
+    w5 --> env
+  end
+  subgraph TOOL["Toolchain and versions"]
+    direction TB
+    f1["Flutter 3.38.5 in README<br/>3.41.9 in 2 other places"]
+    f2["pubspec fixed at 2.0.0+1<br/>SIT and UAT always +1"]
+    f3["Prod version typed<br/>by hand"]
+    f1 ~~~ f2 ~~~ f3
+  end
+  subgraph HYG["Workflow hygiene"]
+    direction TB
+    f4["279 dart-define lines<br/>in 5 workflows"]
+    f5["yaml-update-action@main<br/>used 8 times"]
+    f6["PR checks ignore .github"]
+    f7["Median 11 release<br/>candidates, max 23"]
+    f4 ~~~ f5 ~~~ f6 ~~~ f7
+  end
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

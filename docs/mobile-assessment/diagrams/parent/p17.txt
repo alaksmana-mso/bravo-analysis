@@ -1,0 +1,13 @@
+Repositories
+   |
+   v
+ HttpClient (thin)
+   |
+   v
+ dio interceptor chain
+   1. AuthInterceptor
+   2. RefreshInterceptor (single-flight,
+      fixes the refresh race)
+   3. RetryInterceptor
+   4. Integrity header (x-integrity-id)
+   5. Error mapper -> typed exception

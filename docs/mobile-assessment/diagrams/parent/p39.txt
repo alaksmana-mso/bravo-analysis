@@ -1,0 +1,9 @@
+PHASE 0: NOW        PHASE 1: QUICK WINS    PHASE 2: ARCHITECTURE    PHASE 3: PLATFORM
+ ----------------    -------------------    ---------------------    ------------------
+ Delete "Reveal  --> Analytics          --> Domain layer (loan)  --> RASP + build
+ Secret", rotate     interface              Controller tests         registration
+ the keys            R8 on                  Notifier, no appRef      Design-system
+ Protect the         Coverage gate          loan package             package
+ prod env            One Flutter version    Flag catalogue           E2E suite
+                     PII cleaner            dio interceptors         Architecture
+                                            then: auth, rl, ro       checks in CI

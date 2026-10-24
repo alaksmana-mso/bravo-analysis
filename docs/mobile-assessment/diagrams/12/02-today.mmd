@@ -1,0 +1,15 @@
+flowchart LR
+  fb["Firebase Remote Config<br/>5 s first fetch, real-time,<br/>1 hour min interval"]
+  repo["remote_config_repository.dart<br/>239 lines, 44 BFI_MOBILE keys<br/>mapped by hand"]
+  rc["RemoteConfig freezed class<br/>44 fields: 32 on/off flags<br/>2,443 + 371 generated lines"]
+  uc["getRemoteConfigUseCase<br/>65 references in 44 files<br/>mixed read styles"]
+  dead["2 flags never read in lib:<br/>Surveyor, Lov"]:::hot
+  mx["Mixpanel flag API<br/>network-only, no prefetch"]
+  ex["experiment_repository.dart<br/>2 experiments, 10 s timeout"]
+  hr["Home revamp read in 7 places<br/>2 via global appRef"]:::hot
+  bt["5 IS_ dart-defines<br/>build-time, stay as they are"]:::good
+  fb --> repo --> rc --> uc
+  rc -.-> dead
+  mx --> ex --> hr
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

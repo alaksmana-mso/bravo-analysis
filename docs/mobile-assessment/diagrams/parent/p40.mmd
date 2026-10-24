@@ -1,0 +1,18 @@
+flowchart LR
+  q1["Where do prod signing<br/>and distribution live?"]
+  oa["A. Separate prod pipeline repo<br/>(like Jago)"]
+  ob["B. Same repo + protected<br/>customer_app_prod environment"]
+  q1 --> oa
+  q1 --> ob
+  oa --> ap["+ smallest blast radius"]
+  oa --> am["- a second repo to maintain"]
+  ob --> bp["+ most of the benefit<br/>at low cost"]
+  ob --> bm["- depends on the environment<br/>rules staying on"]
+  q2["RASP vendor?"] --> v1["Everspin (same as Jago)<br/>or other"] --> v2["needs a quote"]
+  q3["Coverage threshold?"] --> t1["start at 70%<br/>on changed files"] --> t2["raise over time"]
+  class ap,bp good
+  class am,bm hot
+  class q1,q2,q3 now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

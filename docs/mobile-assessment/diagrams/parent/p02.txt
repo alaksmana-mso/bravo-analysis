@@ -1,0 +1,17 @@
+Screens --typed events--> AnalyticsPlatform
+    |                        |-> Firebase
+    v                        |-> Mixpanel
+ Notifier / AsyncNotifier    +-> AppsFlyer ...
+    |
+    v
+ Domain use cases (pure Dart)
+    |
+    v
+ Repositories (API model -> entity)
+    |
+    v
+ dio + interceptors
+
+ Prod build : obfuscate + R8 + RASP
+ Tests      : domain + controller + screen
+              coverage gate + E2E

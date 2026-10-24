@@ -1,0 +1,7 @@
+file                          lines
+ loan_detail_screen.dart       1,315 ######
+ submission_controller.dart    1,140 #####
+ review_submission_screen.dart 1,139 #####
+ product_screen.dart           1,004 #####
+ kyc_use_case.dart               970 ####
+ router.dart (every route)       870 ####

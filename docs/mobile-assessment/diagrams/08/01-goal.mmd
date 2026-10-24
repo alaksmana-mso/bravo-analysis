@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph T["Today"]
+    t1["No domain folder"]
+    t2["API models reach<br/>214 of 355 feature files"]
+    t3["Rules mixed into<br/>use cases and UI folders"]
+  end
+  subgraph G["Target"]
+    g1["data / domain / presentation<br/>in every feature"]
+    g2["Pure-Dart domain<br/>unit-tested on its own"]
+    g3["Screens and notifiers<br/>never see DTOs"]
+    g4["API change stops<br/>at the data layer"]
+  end
+  T ==> G
+  g3 --> g4
+  class t1,t2,t3 now
+  class g1,g2,g3,g4 good
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

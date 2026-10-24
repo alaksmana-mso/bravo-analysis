@@ -1,0 +1,15 @@
+Widgets
+   |  ref.watch(... .select)
+   v
+ Notifier / AsyncNotifier (Riverpod 3)
+   |
+   v
+ Feature providers (exported per package)
+   |
+   v
+ Ports (abstract repositories)
+   ^
+   |  overrides
+ app composition root
+
+ no global appRef

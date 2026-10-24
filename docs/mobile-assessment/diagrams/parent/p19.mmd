@@ -1,0 +1,20 @@
+flowchart TD
+  hd["Prod app security target"]
+  ok["OK: Certificate pinning"]
+  rj["OK: Root / jailbreak check<br/>(code default on)"]
+  pi["OK: Play Integrity / App Attest"]
+  ob["OK: Dart --obfuscate"]
+  r8["OK: R8 minifyEnabled true"]
+  ra["OK: RASP + code protection"]
+  br["OK: Build registration<br/>per prod build"]
+  as["OK: API_SECRET treated as public"]
+  hd --> ok
+  ok ~~~ rj
+  rj ~~~ pi
+  pi ~~~ ob
+  hd --> r8
+  r8 ~~~ ra
+  ra ~~~ br
+  br ~~~ as
+  class ok,rj,pi,ob,r8,ra,br,as good
+  classDef good fill:#e3f5e1,stroke:#2a7

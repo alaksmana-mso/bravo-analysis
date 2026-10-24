@@ -1,0 +1,17 @@
+flowchart LR
+  subgraph T["Today: rules checked by reviewers"]
+    t1["264 cross-feature imports<br/>not checked"]
+    t2["Stale generated files<br/>fixed after merge"]
+    t3["Workflow-only PRs<br/>get no checks"]
+  end
+  subgraph G["Target: rules checked by tools"]
+    g1["CI fails new<br/>feature-to-feature import"]
+    g2["CI fails Flutter import<br/>in domain code"]
+    g3["CI fails vendor SDK<br/>outside its adapter"]
+    g4["Reviewers and AI tools<br/>read the same written rules"]
+  end
+  T ==>|"guardrails plan"| G
+  class t1,t2,t3 now
+  class g1,g2,g3,g4 good
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

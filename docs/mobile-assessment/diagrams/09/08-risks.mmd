@@ -1,0 +1,8 @@
+flowchart LR
+  r1["Riverpod 3 changes<br/>behaviour quietly"]:::hot --> m1["Retry off at first; full tests;<br/>SIT smoke on 4 main journeys"]:::good
+  r2["Constructor to build()<br/>changes load timing"]:::hot --> m2["Test first state and<br/>first API call"]:::good
+  r3["Flows lose dialogs when<br/>the widget is gone"]:::hot --> m3["context.mounted after<br/>every await; back-button tests"]:::good
+  r4["Long tail of small features<br/>never converted"]:::hot --> m4["Ratchet only goes down;<br/>report counts every sprint"]:::good
+  r5["riverpod_lint or Riverpod 3<br/>conflicts with analyzer pins"]:::hot --> m5["Upgrade in its own PR;<br/>pin versions in one place"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,8 @@
+apply_loan  -- home address --> Firebase
+ loan events -- amount, income,
+                marital, purpose -> Mixpanel
+ logs        -- consent forced --> Datadog
+
+ build-prod-artifact.yml
+             -- no approval ---> prod build
+ root check  -- off if variable is missing

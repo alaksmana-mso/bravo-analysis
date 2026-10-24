@@ -1,0 +1,18 @@
+flowchart TD
+  hd["Largest files (lines)"]
+  f1["1. loan_detail_screen.dart<br/>1,315 ██████"]
+  f2["2. submission_controller.dart<br/>1,140 █████"]
+  f3["3. review_submission_screen.dart<br/>1,139 █████"]
+  f4["4. product_screen.dart<br/>1,004 █████"]
+  f5["5. kyc_use_case.dart<br/>970 ████"]
+  f6["6. router.dart (every route)<br/>870 ████"]
+  hd --> f1
+  f1 ~~~ f2
+  f2 ~~~ f3
+  hd --> f4
+  f4 ~~~ f5
+  f5 ~~~ f6
+  class f1,f2,f3,f4 hot
+  class f5,f6 now
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

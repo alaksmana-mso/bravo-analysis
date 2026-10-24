@@ -1,0 +1,11 @@
+flowchart LR
+  p09["Mobile plan 09:<br/>State management"]
+  p11["Mobile plan 11:<br/>Repo layout"] -->|"the checker; features<br/>cannot move with appRef"| p09
+  p08["Mobile plan 08:<br/>Layering"] -->|"rules leave notifiers<br/>and flows for domain"| p09
+  p10["Mobile plan 10:<br/>Dependency injection"] -->|"UiFeedback and other<br/>ports replace global reads"| p09
+  p02["Mobile plan 02:<br/>Analytics wrapper"] -->|"17 analytics reads<br/>via appRef"| p09
+  p09 -->|"DatadogLogObserver<br/>after the upgrade"| p05["Mobile plan 05:<br/>Logging and crashes"]
+  p12["Mobile plan 12:<br/>Feature flags"] -->|"18 remote-config reads<br/>via appRef"| p09
+  p03["Mobile plan 03:<br/>Testing"] -->|"notifier tests,<br/>lift the ban"| p09
+  class p09 now
+  classDef now fill:#fff4cc,stroke:#b80

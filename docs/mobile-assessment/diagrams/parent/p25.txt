@@ -1,0 +1,9 @@
+PR
+  -> lint/strict + custom_lint
+  -> format + generated-code check
+  -> dependency rules
+     (no feature -> feature imports,
+      domain has no Flutter import)
+  -> ratchet (no new violations)
+  -> mr-review skill (.claude/rules)
+  -> human review

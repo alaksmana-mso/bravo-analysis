@@ -1,0 +1,11 @@
+flowchart TD
+  e2e["E2E journeys<br/>separate repo, 18 specs,<br/>no register / payment"]
+  scr["Screen tests<br/>1,039 widget tests<br/>██████"]
+  ctl["Controller tests<br/>rejected by PR CI<br/>-"]
+  dom["Domain tests<br/>no domain layer<br/>-"]
+  cov["Coverage gate<br/>unclear (Codacy setting)"]
+  e2e ~~~ scr ~~~ ctl ~~~ dom ~~~ cov
+  class e2e,cov now
+  class ctl,dom hot
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef hot fill:#ffe1e1,stroke:#c00

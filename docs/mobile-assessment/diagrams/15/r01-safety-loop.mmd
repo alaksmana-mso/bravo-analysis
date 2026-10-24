@@ -1,0 +1,17 @@
+flowchart LR
+  pr["PR with Jira ticket"] --> net{"Parity net green?<br/>tests, goldens, fixtures,<br/>analytics names, e2e"}
+  net -- no --> fix["Fix before merge"]:::hot
+  fix --> pr
+  net -- yes --> cls{"Impact class"}
+  cls -- "A: no app change" --> doneA["Merge. Undo = revert"]:::good
+  cls -- "B: same behaviour" --> train["Weekly release train"]
+  cls -- "C: flagged / D: delta" --> one["Only one C or D<br/>in this release"]:::now
+  one --> train
+  train --> store["Play 5% → 20% → 50% → 100%<br/>iOS phased release"]
+  store --> health{"Health dashboard<br/>within thresholds?"}
+  health -- no --> back["Halt rollout or flag off"]:::hot
+  health -- yes --> flag["C/D: flag 1% → 10% → 50% → 100%<br/>cohort check each day"]
+  flag --> next["Next step"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

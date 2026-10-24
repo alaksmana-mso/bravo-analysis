@@ -1,0 +1,242 @@
+[
+ {
+  "index": 1,
+  "section": "Summary",
+  "label": "Today",
+  "ascii": "p01.txt"
+ },
+ {
+  "index": 2,
+  "section": "Summary",
+  "label": "Target",
+  "ascii": "p02.txt"
+ },
+ {
+  "index": 3,
+  "section": "Scope and evidence",
+  "label": "What we copy from Jago, and what we leave behind",
+  "ascii": "p03.txt"
+ },
+ {
+  "index": 4,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p04.txt"
+ },
+ {
+  "index": 5,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p05.txt"
+ },
+ {
+  "index": 6,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p06.txt"
+ },
+ {
+  "index": 7,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p07.txt"
+ },
+ {
+  "index": 8,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p08.txt"
+ },
+ {
+  "index": 9,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p09.txt"
+ },
+ {
+  "index": 10,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p10.txt"
+ },
+ {
+  "index": 11,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p11.txt"
+ },
+ {
+  "index": 12,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p12.txt"
+ },
+ {
+  "index": 13,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p13.txt"
+ },
+ {
+  "index": 14,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p14.txt"
+ },
+ {
+  "index": 15,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p15.txt"
+ },
+ {
+  "index": 16,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p16.txt"
+ },
+ {
+  "index": 17,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p17.txt"
+ },
+ {
+  "index": 18,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p18.txt"
+ },
+ {
+  "index": 19,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p19.txt"
+ },
+ {
+  "index": 20,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p20.txt"
+ },
+ {
+  "index": 21,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p21.txt"
+ },
+ {
+  "index": 22,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p22.txt"
+ },
+ {
+  "index": 23,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p23.txt"
+ },
+ {
+  "index": 24,
+  "section": "Side-by-side comparison",
+  "label": "Today",
+  "ascii": "p24.txt"
+ },
+ {
+  "index": 25,
+  "section": "Side-by-side comparison",
+  "label": "Target",
+  "ascii": "p25.txt"
+ },
+ {
+  "index": 26,
+  "section": "CI/CD compared step by step",
+  "label": "Today",
+  "ascii": "p26.txt"
+ },
+ {
+  "index": 27,
+  "section": "CI/CD compared step by step",
+  "label": "Target",
+  "ascii": "p27.txt"
+ },
+ {
+  "index": 28,
+  "section": "CI/CD compared step by step",
+  "label": "Today",
+  "ascii": "p28.txt"
+ },
+ {
+  "index": 29,
+  "section": "CI/CD compared step by step",
+  "label": "Target",
+  "ascii": "p29.txt"
+ },
+ {
+  "index": 30,
+  "section": "What else to work on",
+  "label": "Today",
+  "ascii": "p30.txt"
+ },
+ {
+  "index": 31,
+  "section": "What else to work on",
+  "label": "Target",
+  "ascii": "p31.txt"
+ },
+ {
+  "index": 32,
+  "section": "What else to work on",
+  "label": "Today",
+  "ascii": "p32.txt"
+ },
+ {
+  "index": 33,
+  "section": "What else to work on",
+  "label": "Target",
+  "ascii": "p33.txt"
+ },
+ {
+  "index": 34,
+  "section": "Security items",
+  "label": "Today",
+  "ascii": "p34.txt"
+ },
+ {
+  "index": 35,
+  "section": "Security items",
+  "label": "Target",
+  "ascii": "p35.txt"
+ },
+ {
+  "index": 36,
+  "section": "Security items",
+  "label": "Today",
+  "ascii": "p36.txt"
+ },
+ {
+  "index": 37,
+  "section": "Security items",
+  "label": "Target",
+  "ascii": "p37.txt"
+ },
+ {
+  "index": 38,
+  "section": "Plans (in priority order)",
+  "label": "Plans grouped by stage (numbers = priority)",
+  "ascii": "p38.txt"
+ },
+ {
+  "index": 39,
+  "section": "Roadmap",
+  "label": "Plans grouped by stage (numbers = priority)",
+  "ascii": "p39.txt"
+ },
+ {
+  "index": 40,
+  "section": "Open questions",
+  "label": "Plans grouped by stage (numbers = priority)",
+  "ascii": "p40.txt"
+ }
+]

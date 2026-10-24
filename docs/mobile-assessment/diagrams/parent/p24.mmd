@@ -1,0 +1,9 @@
+flowchart TD
+  pr["PR"]
+  l1["lint/strict"]
+  l2["dart format check"]
+  l3["generated-code check<br/>(on merge)"]
+  l4["human review<br/>(AGENTS.md)"]
+  pr --> l1 --> l2 --> l3 --> l4
+  class l3,l4 now
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,7 @@
+App code (59 call sites) --+
+ Flutter / platform errors -+-> DatadogLog
+                                  |
+                       raw text   |--> Datadog
+                       raw text   +--> Crashlytics
+
+ tracking consent: hard-coded "granted"

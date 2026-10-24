@@ -1,0 +1,15 @@
+Screens / components
+   |  fire a typed event
+   v
+ Event catalogue (typed classes)
+   |
+   v
+ AnalyticsPlatform (one interface)
+   |
+   v
+ PII filter + consent
+   |-> Firebase adapter
+   |-> Mixpanel adapter
+   |-> AppsFlyer adapter
+   |-> Insider adapter
+   +-> Datadog adapter

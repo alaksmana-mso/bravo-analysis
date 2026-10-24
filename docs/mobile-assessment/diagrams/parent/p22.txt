@@ -1,0 +1,6 @@
+E2E journeys      separate repo, 15 specs,
+                   no register / KYC
+ Screen tests      1,039 widget tests  ######
+ Controller tests  rejected by PR CI   -
+ Domain tests      no domain layer     -
+ Coverage gate     unclear (Codacy setting)

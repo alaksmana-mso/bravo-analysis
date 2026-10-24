@@ -1,0 +1,17 @@
+flowchart LR
+  p02["Mobile plan 02: Analytics wrapper"]:::now
+  p11["Mobile plan 11: Repo layout"]
+  p09["Mobile plan 09: State management"]
+  p10["Mobile plan 10: Dependency injection"]
+  p05["Mobile plan 05: Logging and crashes"]
+  p12["Mobile plan 12: Feature flags"]
+  p13["Mobile plan 13: Design system"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p11 -->|where shared_lib/analytics sits| p02
+  p09 -->|remove appRef from Digital*| p02
+  p10 -->|provider wiring and overrides| p02
+  p02 <-->|shared PII denylist and sanitiser| p05
+  p12 -->|experiment exposure events| p02
+  p13 -->|auto-tracking Digital* components| p02
+  p02 -->|grep ratchet becomes lint rule| p06
+  classDef now fill:#fff4cc,stroke:#b80

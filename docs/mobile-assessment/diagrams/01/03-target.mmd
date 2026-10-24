@@ -1,0 +1,16 @@
+flowchart TD
+  subgraph BUILD["Prod build pipeline, in build-prod.yml"]
+    direction LR
+    b1["R8 explicit in build.gradle<br/>keep rules reviewed"] --> b2["Protect build<br/>RASP vendor step"]
+    b2 --> b3["Sign and upload<br/>after environment approval"]
+    b3 --> b4["Register build<br/>for forgery checks"]
+  end
+  subgraph GUARD["Screen-capture guard, digital/lib/app/security"]
+    direction LR
+    s1["go_router observer"] --> s2(["Route on<br/>protected list?"])
+    s2 -->|yes| s3["Method channel"]
+    s3 --> s4["Android FLAG_SECURE"]
+    s3 --> s5["iOS hide on capture<br/>+ app-switcher blur"]
+    rc["Remote Config flag<br/>can switch off"] -.-> s1
+  end
+  BUILD ~~~ GUARD

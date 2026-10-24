@@ -1,0 +1,20 @@
+flowchart TD
+  s1["Step 1: stop the growth<br/>ratchets: state-notifier 72,<br/>app-ref 142, navigator-context 151"]
+  s2["Step 2: Riverpod 3 upgrade<br/>legacy.dart export, no conversions"]
+  s3["Step 3: appRef out of<br/>services and widgets, minus 39"]
+  s4["Step 4: appRef and navigatorContext<br/>out of flows"]
+  s5["Step 5: convert loan's<br/>21 controllers"]
+  s6["Step 6: convert the rest<br/>rl 8, auth 6, ro 5, then others"]
+  s7["Step 7: remove legacy layer<br/>and appRef declaration"]
+  p8["Mobile plan 08 step 6:<br/>flow split"]
+  subgraph SP1["1 sprint"]
+    s1
+    s2
+  end
+  subgraph SP2["2 to 3 sprints"]
+    s3
+    s4
+    s5
+  end
+  s1 --> s2 --> s3 --> s4 --> s5 --> s6 --> s7
+  p8 -.->|"done together"| s4

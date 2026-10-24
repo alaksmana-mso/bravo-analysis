@@ -1,0 +1,13 @@
+flowchart LR
+  Q{"How do we reach<br/>the improved app?"}
+  Q -->|"Option A"| A["Second app,<br/>new bundle id"]
+  Q -->|"Option B (chosen)"| B["Same app,<br/>improved in place"]
+  A --> a1["Users reinstall;<br/>secure data lost"]:::hot
+  A --> a2["Chases weekly<br/>releases for months"]:::hot
+  A --> a3["Big-bang cut-over<br/>of 23 features"]:::hot
+  B --> b1["Old + new path<br/>behind a switch flag"]:::good
+  B --> b2["Same tests on<br/>both paths"]:::good
+  B --> b3["Gradual rollout,<br/>flag = kill switch"]:::good
+  B --> b4["Old path deleted<br/>= parity done"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

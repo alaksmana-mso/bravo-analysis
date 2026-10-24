@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph T0["Today"]
+    a1["Components and theme<br/>inside digital/lib/app"]
+    a2["Seen only by running the app"]
+    a3["Colours typed by hand<br/>from Figma"]
+  end
+  subgraph T1["Target"]
+    b1["Own package<br/>shared_lib/design_system"]
+    b2["Every component in Widgetbook<br/>no app needed"]
+    b3["Named tokens for colour,<br/>type, spacing"]
+    b4["Later: tokens generated<br/>from Figma"]
+  end
+  a1 --> b1
+  a2 --> b2
+  a3 --> b3 -.-> b4
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class a1,a2,a3 now
+  class b1,b2,b3,b4 good

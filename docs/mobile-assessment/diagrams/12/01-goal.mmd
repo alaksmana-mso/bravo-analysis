@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph T0["Today"]
+    a1["44 Remote Config fields<br/>mapped by hand"]
+    a2["Mixpanel experiments<br/>separate API"]
+    a3["No owners, no dates"]
+  end
+  subgraph T1["Target"]
+    b1["One typed catalogue<br/>key, safe default,<br/>owner, removal date"]
+    b2["One port for reads<br/>Firebase or Mixpanel"]
+    b3["Old flags removed<br/>on a schedule"]
+  end
+  a1 --> b1
+  a2 --> b2
+  a3 --> b3
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class a1,a2,a3 now
+  class b1,b2,b3 good

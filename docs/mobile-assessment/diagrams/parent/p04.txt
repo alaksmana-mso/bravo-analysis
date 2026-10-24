@@ -1,0 +1,9 @@
+melos workspace
+ |
+ +-- digital/        app + ALL 23 features
+ |   +-- features/loan   <--+
+ |   +-- features/auth   <--+ free imports
+ |   +-- features/rl ... <--+ between features
+ |   +-- app/  router, theme, Digital*
+ +-- data/customer/  API client + models
+ +-- shared_lib/core/

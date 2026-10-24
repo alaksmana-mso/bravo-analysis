@@ -1,0 +1,8 @@
+flowchart LR
+  o1["Customer Mobile Apps squad"] --> w1["Workflows<br/>steps 2-9"]
+  o2["SRE / release engineering"] --> w2["Environments and reviewers"]
+  o2 --> w3["Self-hosted runners"]
+  o2 --> w4["Play and App Store access"]
+  w1 --> total["Size M<br/>about 3-4 sprints, spread out"]:::good
+  w2 --> total
+  classDef good fill:#e3f5e1,stroke:#2a7

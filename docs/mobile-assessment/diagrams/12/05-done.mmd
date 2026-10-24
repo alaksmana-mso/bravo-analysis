@@ -1,0 +1,12 @@
+flowchart LR
+  g1["0 refs to FirebaseRemoteConfig<br/>or MixpanelFeatureFlagService<br/>outside the 2 adapters"]
+  g2["0 refs to getRemoteConfigUseCase<br/>and RemoteConfig in digital/lib"]
+  g3["Test fails if a key string<br/>is outside a flags file"]
+  g4["Every release flag has owner<br/>and removeBy<br/>overdue test in PR pipeline"]
+  g5["featureFlagSurveyor and<br/>featureFlagLov gone"]
+  g6["Widget test: one flag change<br/>does not rebuild other readers"]
+  g7["Switch flags: owner, removeBy,<br/>default old path;<br/>CI fails when overdue"]
+  g8["No switch flag outlives<br/>its flip and delete"]
+  d["Done"]:::good
+  g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> g7 --> g8 --> d
+  classDef good fill:#e3f5e1,stroke:#2a7

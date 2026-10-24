@@ -1,0 +1,38 @@
+classDiagram
+  direction LR
+  class Flag~T~ {
+    <<sealed>>
+    +String key
+    +T defaultValue
+    +FlagSource source
+    +String owner
+    +DateTime removeBy
+    +bool realtime
+  }
+  class BoolFlag
+  class IntFlag
+  class StringFlag
+  class JsonFlag~T~
+  class FlagStore {
+    <<interface>>
+    +read(flag) T
+    +watch(flag) Stream
+  }
+  class FirebaseFlagSource
+  class MixpanelFlagSource
+  class HomeFlags {
+    <<per-feature catalogue>>
+    +inbox BoolFlag
+    +homeRevamp BoolFlag
+  }
+  class flagProvider {
+    <<StreamProvider.family>>
+  }
+  Flag <|-- BoolFlag
+  Flag <|-- IntFlag
+  Flag <|-- StringFlag
+  Flag <|-- JsonFlag
+  FlagStore <|.. FirebaseFlagSource
+  FlagStore <|.. MixpanelFlagSource
+  HomeFlags --> BoolFlag : defines
+  flagProvider --> FlagStore : watches one flag

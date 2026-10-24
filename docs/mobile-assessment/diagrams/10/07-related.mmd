@@ -1,0 +1,19 @@
+flowchart LR
+  me["Mobile plan 10:<br/>Dependency injection"]:::hot
+  p11["Mobile plan 11: Repo layout"]
+  p08["Mobile plan 08: Layering"]
+  p09["Mobile plan 09: State management"]
+  p02["Mobile plan 02: Analytics wrapper"]
+  p12["Mobile plan 12: Feature flags"]
+  p07["Mobile plan 07: Networking"]
+  p03["Mobile plan 03: Testing"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p11 -->|packages that need ports,<br/>extraction order| me
+  p08 -->|domain interfaces| me
+  p09 -->|removes appRef, UiFeedback| me
+  me -->|analyticsProvider port| p02
+  me -->|flag port| p12
+  me -->|NetworkConfig and HTTP client ports| p07
+  me -->|fakes for ports, wiring test| p03
+  me -->|checker rules in CI| p06
+  classDef hot fill:#ffe1e1,stroke:#c00

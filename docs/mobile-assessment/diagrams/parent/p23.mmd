@@ -1,0 +1,9 @@
+flowchart TD
+  e2e["E2E journeys<br/>register, KYC, loan,<br/>payment on real devices"]
+  scr["Screen tests<br/>keep<br/>████"]
+  ctl["Controller tests<br/>allowed<br/>████"]
+  dom["Domain tests<br/>fast, pure Dart<br/>██████"]
+  cov["Coverage gate<br/>changed files, start 70%"]
+  e2e ~~~ scr ~~~ ctl ~~~ dom ~~~ cov
+  class e2e,scr,ctl,dom,cov good
+  classDef good fill:#e3f5e1,stroke:#2a7

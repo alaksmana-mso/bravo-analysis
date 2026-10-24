@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph T0["Today"]
+    a1["128 global providers"]
+    a2["Any file reads any provider"]
+    a3["4 port overrides inline<br/>in main.dart"]
+    a4["Missing override fails<br/>only at runtime"]
+  end
+  subgraph T1["Target"]
+    b1["Riverpod stays the DI tool"]
+    b2["Feature providers private<br/>per package"]
+    b3["Outside needs read a port<br/>that throws until wired"]
+    b4["All wiring in one place<br/>app_overrides.dart"]
+    b5["Wiring test proves<br/>every port is wired"]
+  end
+  a1 --> b2
+  a2 --> b3
+  a3 --> b4
+  a4 --> b5
+  b1 --- b2
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class a1,a2,a3,a4 now
+  class b1,b2,b3,b4,b5 good

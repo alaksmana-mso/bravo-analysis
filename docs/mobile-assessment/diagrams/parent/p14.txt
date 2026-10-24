@@ -1,0 +1,8 @@
+Screens / controllers
+   |
+   |-- RemoteConfig model
+   |   (one wide class, 2,443-line
+   |    generated file) -----> Firebase RC
+   |
+   +-- Mixpanel flags
+       (experiments) --------> Mixpanel

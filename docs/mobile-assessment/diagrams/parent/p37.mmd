@@ -1,0 +1,9 @@
+flowchart LR
+  e1["events"] --> pa["PII allow-list"]
+  pa --> fb["Firebase"]
+  pa --> mx["Mixpanel"]
+  e3["logs"] --> sz["sanitizer +<br/>real consent"] --> dd["Datadog"]
+  e4["every prod build"] --> pe["protected env"]
+  e5["root check:<br/>on by default in code"]
+  class pa,sz,pe,e5 good
+  classDef good fill:#e3f5e1,stroke:#2a7

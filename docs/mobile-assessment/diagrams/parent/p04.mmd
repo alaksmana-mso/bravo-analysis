@@ -1,0 +1,14 @@
+flowchart TD
+  mw["melos workspace"]
+  dg["digital/<br/>app + ALL 23 features"]
+  mw --> dg
+  mw --> dc["data/customer/<br/>API client + models"]
+  mw --> co["shared_lib/core/"]
+  dg --> f1["features/loan"]
+  dg --> f2["features/auth"]
+  dg --> f3["features/rl ..."]
+  dg --> ap["app/<br/>router, theme, Digital*"]
+  f1 <-.->|"free imports"| f2
+  f2 <-.->|"free imports"| f3
+  class dg,f1,f2,f3 hot
+  classDef hot fill:#ffe1e1,stroke:#c00

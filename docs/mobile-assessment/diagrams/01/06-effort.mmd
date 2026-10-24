@@ -1,0 +1,8 @@
+flowchart LR
+  o1["SRE + squad lead"] --> w1["Step 0: secrets, environments, PRs<br/>S, days not sprints"]:::hot
+  o2["Customer Mobile Apps squad"] --> w2["R8, flags, storage, pbxproj,<br/>screen guard<br/>S, about 2 sprints"]
+  o2 --> w3["API_SECRET app side<br/>S"]
+  o3["Customer BFF team"] --> w4["API_SECRET backend side<br/>effort depends on BFF"]
+  o4["Security + squad"] --> w5["RASP<br/>M, 2-4 sprints after vendor"]
+  o5["IT management"] -->|budget owner| w5
+  classDef hot fill:#ffe1e1,stroke:#c00

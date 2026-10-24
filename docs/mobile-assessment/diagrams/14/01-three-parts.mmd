@@ -1,0 +1,9 @@
+flowchart LR
+  T["Tokens<br/>one named decision:<br/>color.brand.primary, spacing.md, radius.md"]:::tok --> C["Components<br/>built from tokens:<br/>DigitalButton, DigitalTextField, DigitalDialog"]:::comp
+  C --> S["Screens<br/>built from components:<br/>loan detail, KYC, payment"]:::scr
+  R["Rules and docs<br/>when to use what,<br/>Widgetbook, this page"]:::rule -.-> C
+  R -.-> S
+  classDef tok fill:#fff4cc,stroke:#b80
+  classDef comp fill:#e3f5e1,stroke:#2a7
+  classDef scr fill:#e1ecff,stroke:#2458b3
+  classDef rule fill:#f3e8ff,stroke:#7c3aed

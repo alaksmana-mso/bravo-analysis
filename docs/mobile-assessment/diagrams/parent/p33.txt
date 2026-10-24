@@ -1,0 +1,11 @@
+router.dart (composes only)
+   +-- loan_routes.dart
+   +-- auth_routes.dart
+   +-- <feature>_routes.dart ...
+
+ submission_controller.dart
+   +-- one notifier per step
+   +-- domain use cases
+
+ large screens
+   +-- private section widgets

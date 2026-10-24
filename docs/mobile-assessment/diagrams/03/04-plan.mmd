@@ -1,0 +1,28 @@
+flowchart TD
+  subgraph A["About 3 sprints: steps 1-4"]
+    direction LR
+    s1["1 Lift controller-test ban<br/>1 PR"]
+    s2["2 Write down test pyramid<br/>1 PR, docs in AGENTS.md"]
+    s3["3 Random test order<br/>1 PR"]
+    s4["4 Coverage gate on changed files<br/>1-2 PRs, start at 70%<br/>read Codacy setting first"]:::now
+    s1 --> s2 --> s3 --> s4
+  end
+  subgraph B["Ongoing and with QA"]
+    direction LR
+    s5["5 Unit tests for biggest files<br/>with Layering plan"]
+    s6["6 Connect e2e suite<br/>2-3 sprints with QA"]
+    s5 ~~~ s6
+  end
+  subgraph C["Parity net: steps 7-11"]
+    direction LR
+    s7["7 Golden screenshots<br/>5 key screens"]:::good
+    s8["8 SIT fixtures<br/>+ replay harness"]:::good
+    s9["9 Widget test on both paths<br/>flag off and on"]:::good
+    s10["10 E2E with flag forced<br/>off or on, same ids<br/>builds on step 6"]:::good
+    s11["11 Parity ledger template"]:::good
+    s7 ~~~ s8 ~~~ s9 ~~~ s10 ~~~ s11
+  end
+  s12["12 Optional: component goldens<br/>after design-system package"]
+  A --> B --> C --> s12
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

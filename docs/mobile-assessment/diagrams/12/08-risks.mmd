@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Key mistyped,<br/>feature silently uses default"]:::hot --> m1["Step 2 test compares keys<br/>with old mapping, copied not retyped"]:::good
+  r2["Default changes<br/>by accident"]:::hot --> m2["Copy from @Default<br/>test against defaultValue"]:::good
+  r3["Flag removed but<br/>not fully on in prod"]:::hot --> m3["Owner confirms in ticket<br/>console value checked first"]:::good
+  r4["Real-time update flips<br/>a flag mid-journey"]:::hot --> m4["Only realtime flags update live<br/>others on next app start"]:::good
+  r5["Overdue test blocks<br/>unrelated PRs"]:::hot --> m5["2-week grace<br/>owner can extend once"]:::good
+  r6["Mixpanel lookup slow<br/>network-only"]:::hot --> m6["Keep 10 s timeout and default<br/>prefetch later"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,13 @@
+flowchart LR
+  t1["Manual dispatch<br/>on a tag"] --> t2["Environment approval<br/>customer_app_prod"]:::good
+  t2 --> t3["Flutter from mise.toml"]
+  t3 --> t4["dart_defines.json<br/>written by one script"]
+  t4 --> t5["Build with R8<br/>check mapping.txt"]
+  t5 --> t6["Protect build<br/>RASP slot"]:::now
+  t6 --> t7["Align and sign"]
+  t7 --> t8["Upload: Play internal,<br/>TestFlight"]
+  t8 --> t9["Register build<br/>RASP slot"]:::now
+  t8 --> t10["Promote on Play<br/>0.05, 0.2, 0.5, 1.0"]:::good
+  bn["Build number from a counter<br/>that only goes up"] -.-> t5
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

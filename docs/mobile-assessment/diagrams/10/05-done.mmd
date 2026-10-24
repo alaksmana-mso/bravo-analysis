@@ -1,0 +1,18 @@
+flowchart LR
+  g1["main.dart has no inline overrides<br/>calls appOverrides"]
+  g2["Wiring test in CI covers every<br/>provider that throws UnimplementedError"]
+  g3["0 ProviderScope.containerOf<br/>outside digital/lib/app"]
+  g4["loan, auth, rl, ro read others<br/>only through allPorts"]
+  g5["No extracted barrel exports<br/>a screen or a notifier"]
+  g6["pubspec.lock has no<br/>get_it, injectable, kiwi"]
+  p1["Wiring test resolves every<br/>port on old and new path"]
+  p2["Flag deleted with its old wiring<br/>and per-path overrides"]
+  d["Done"]
+  g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> d
+  subgraph PAR["Parity"]
+    direction LR
+    p1 --> p2
+  end
+  p2 --> d
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class d good

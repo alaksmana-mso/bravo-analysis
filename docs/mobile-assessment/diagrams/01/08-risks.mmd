@@ -1,0 +1,9 @@
+flowchart LR
+  r1["R8 strips a reflected class<br/>crash only in release"]:::hot --> m1["Smoke list on prod-like build<br/>Play internal track first"]:::good
+  r2["Rotating SSH key breaks<br/>git fetches in CI"]:::hot --> m2["Update all secrets and deploy keys<br/>in one change window"]:::good
+  r3["Required reviewers<br/>slow hotfixes"]:::hot --> m3["At least 3 reviewers<br/>across SRE and release eng"]:::good
+  r4["Screen guard blocks<br/>support screenshots"]:::hot --> m4["Route list only<br/>flag to switch off"]:::good
+  r5["RASP flags users<br/>on custom ROMs"]:::hot --> m5["Report-only mode first<br/>watch false positives"]:::good
+  r6["Backend relies on<br/>api-secret somewhere"]:::hot --> m6["Search BFF code and gateway<br/>before rotating"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

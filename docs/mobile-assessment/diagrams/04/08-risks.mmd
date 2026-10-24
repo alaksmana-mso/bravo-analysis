@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Reusable workflows break<br/>a release build"]:::hot --> m1["Move SIT first<br/>old and new side by side"]:::good
+  r2["New build numbers collide<br/>with store numbers"]:::hot --> m2["Read highest store number<br/>set offset above it"]:::good
+  r3["Environment reviewers<br/>become a bottleneck"]:::hot --> m3["At least 3 reviewers<br/>documented hotfix path"]:::good
+  r4["Self-hosted runner is<br/>a single point of failure"]:::hot --> m4["Monitor it, fall back to<br/>GitHub-hosted runners"]:::good
+  r5["Staged rollout slows<br/>urgent fixes"]:::hot --> m5["Direct 100% promotion<br/>with two approvals"]:::good
+  r6["SHA pinning makes<br/>updates tedious"]:::hot --> m6["Dependabot opens<br/>update PRs"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

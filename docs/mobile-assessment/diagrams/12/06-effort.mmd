@@ -1,0 +1,13 @@
+flowchart LR
+  o["Customer Mobile Apps squad"]
+  fo["Each flag owner<br/>squad or product manager<br/>named in catalogue"]
+  sz["Size M<br/>about 2-3 sprints"]:::now
+  w1["Steps 1-3<br/>one sprint"]
+  w2["Steps 4-6<br/>1-2 sprints next to feature work"]
+  w3["Step 7 cleanup<br/>continues after"]
+  o --> sz
+  sz --> w1
+  sz --> w2
+  sz --> w3
+  fo --> w3
+  classDef now fill:#fff4cc,stroke:#b80

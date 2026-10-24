@@ -1,0 +1,13 @@
+flowchart TD
+  s1["manual dispatch"]
+  s2["approval = job step<br/>(env has no rule)"]
+  s3["Flutter 3.41.9<br/>(README says 3.38.5)"]
+  s4["~30 --dart-define from secrets"]
+  s5["build --obfuscate + R8<br/>(R8 by Flutter default, not explicit)"]
+  s6["sign<br/>(base64 keystore secret)"]
+  s7["Play internal + TestFlight"]
+  s8["symbols -> Crashlytics, Datadog"]
+  s1 --> s2 --> s3 --> s4 --> s5 --> s6 --> s7 --> s8
+  sd["Side door:<br/>build-prod-artifact.yml"] -->|"no approval"| sa["prod-signed APK + IPA"]
+  class s2,s3,s5,sd,sa hot
+  classDef hot fill:#ffe1e1,stroke:#c00

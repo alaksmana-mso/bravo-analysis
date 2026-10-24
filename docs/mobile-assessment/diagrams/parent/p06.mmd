@@ -1,0 +1,12 @@
+flowchart TD
+  sc["Screen"]
+  ct["Controller<br/>(business rules here)"]
+  uc["Use case<br/>(sometimes)"]
+  rp["Repository"]
+  hc["HttpClient"]
+  sc --> ct --> uc --> rp --> hc
+  rp -->|"API model (DTO)<br/>goes straight to the screen"| sc
+  class ct hot
+  class uc now
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

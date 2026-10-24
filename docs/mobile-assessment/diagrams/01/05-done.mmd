@@ -1,0 +1,34 @@
+flowchart TD
+  subgraph A["Step 0 gates"]
+    direction TB
+    d1["test.yaml gone from<br/>master and every release-*"]
+    d2["Both prod environments have<br/>reviewers + branch policy"]
+    d3["CI fails a PR that echoes secrets<br/>even if only .github changes"]
+    d4["GCP SA key and SSH key<br/>rotated, SRE confirms"]
+    d1 --> d2 --> d3 --> d4
+  end
+  subgraph B["App build gates"]
+    direction TB
+    d5["R8 explicit in build.gradle<br/>mapping.txt upload still works"]
+    d6["Root check runs<br/>when variable unset"]
+    d7["Protected routes black<br/>in screenshots and recordings"]
+    d5 --> d6 --> d7
+  end
+  subgraph C["Backend and decisions"]
+    direction TB
+    d8["No sensitive endpoint<br/>accepts api-secret alone"]
+    d9["RASP vendor<br/>decision recorded"]
+    d8 --> d9
+  end
+  subgraph P["Parity"]
+    direction TB
+    p1["Explicit-R8 build passes<br/>same smoke list and e2e as today"]
+    p2["Approved deltas in<br/>parity ledger, signed off"]
+    p1 --> p2
+  end
+  done["Plan 01 done"]:::good
+  d4 --> done
+  d7 --> done
+  d9 --> done
+  p2 --> done
+  classDef good fill:#e3f5e1,stroke:#2a7

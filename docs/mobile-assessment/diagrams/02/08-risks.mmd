@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Renamed event breaks<br/>a dashboard"]:::hot --> m1["Golden names in CI, DebugView,<br/>2-week count watch"]:::good
+  r2["Events doubled<br/>during the switch"]:::hot --> m2["Shims forward to new provider<br/>only one path sends"]:::good
+  r3["Fan-out sends Firebase events<br/>to Mixpanel, raises cost"]:::hot --> m3["Each event declares sinks<br/>default keeps today's routing"]:::good
+  r4["Auto names change<br/>when copy changes"]:::hot --> m4["Catalogue lists auto names<br/>so edits show in review"]:::good
+  r5["Removing PII changes<br/>reports people use"]:::hot --> m5["Dashboard owner sign-off<br/>before step 6 merge"]:::good
+  r6["Consent wiring blocks<br/>events by mistake"]:::hot --> m6["Default stays granted<br/>tests cover both states"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

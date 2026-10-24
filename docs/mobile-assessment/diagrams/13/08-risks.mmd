@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Moving code breaks<br/>many imports at once"]:::hot --> m1["Re-export file for one release<br/>one folder per PR"]:::good
+  r2["Auto-tracking event names<br/>change after refactor"]:::hot --> m2["Snapshot Mixpanel event names<br/>in a test, before and after"]:::good
+  r3["Widgetbook rots"]:::hot --> m3["add-component skill and PR checklist<br/>new component, new use case"]:::good
+  r4["Golden tests flaky<br/>across machines"]:::hot --> m4["Run only in CI on one Linux image<br/>update with a script"]:::good
+  r5["Figma variables incomplete,<br/>generated tokens wrong"]:::hot --> m5["Pipeline stays optional<br/>design signs off each export"]:::good
+  r6["Widgetbook site leaks<br/>unreleased UI"]:::hot --> m6["Host behind company login<br/>not public Pages"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

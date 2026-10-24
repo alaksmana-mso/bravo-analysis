@@ -1,0 +1,17 @@
+flowchart LR
+  me["Mobile plan 11:<br/>Repo layout"]:::hot
+  p08["Mobile plan 08: Layering"]
+  p09["Mobile plan 09: State management"]
+  p10["Mobile plan 10: Dependency injection"]
+  p13["Mobile plan 13: Design system"]
+  p02["Mobile plan 02: Analytics wrapper"]
+  p07["Mobile plan 07: Networking"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p08 -->|what goes inside each package| me
+  p09 -->|appRef removed before a move| me
+  p10 -->|ports, exit ports, app wiring| me
+  p13 -->|blocks every extraction| me
+  me -->|shared_lib/analytics| p02
+  me -->|shared_lib/network| p07
+  me -->|checker to run in CI| p06
+  classDef hot fill:#ffe1e1,stroke:#c00

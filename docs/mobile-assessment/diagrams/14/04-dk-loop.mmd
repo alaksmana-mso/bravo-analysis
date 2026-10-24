@@ -1,0 +1,12 @@
+flowchart LR
+  r["1. Weekly refinement<br/>designer + engineer<br/>ready for development"]:::step --> b["2. Build<br/>Figma link to AI via MCP<br/>rules + skills steer it"]:::step
+  b --> q{"3. Building block<br/>missing?"}:::ask
+  q -->|"yes: AI asks,<br/>never guesses"| d["Designer fills<br/>the gap in Figma"]:::design
+  d --> b
+  q -->|no| w["4. Review in Widgetbook<br/>every variant + state<br/>token inspector"]:::step
+  w --> a["5. Accept<br/>then production"]:::step
+  i["Figma node + verified date<br/>recorded per component"]:::note -.-> w
+  classDef step fill:#e3f5e1,stroke:#2a7
+  classDef ask fill:#fff4cc,stroke:#b80
+  classDef design fill:#f3e8ff,stroke:#7c3aed
+  classDef note fill:#f0f0f0,stroke:#888

@@ -1,0 +1,12 @@
+flowchart TD
+  d1["flutter_lints gone from<br/>every pubspec.yaml"] --> d2["CI fails stale<br/>generated files"]
+  d2 --> d3["CI fails new feature-to-feature<br/>import; 264 goes down monthly"]
+  d3 --> d4["CI fails Flutter or dio<br/>in a domain folder"]
+  d4 --> d5["CI fails vendor SDK<br/>outside its adapter"]
+  d5 --> d6["Workflow-only PRs run secret<br/>check and review bot"]
+  d6 --> d7[".claude/rules and mr-review<br/>linked from AGENTS.md"]
+  d7 --> p1["CI fails old-path and<br/>new-path cross imports"]
+  p1 --> p2["CI fails switch flag or old path<br/>past its removal date"]
+  p2 --> ok["Done"]
+  class ok good
+  classDef good fill:#e3f5e1,stroke:#2a7

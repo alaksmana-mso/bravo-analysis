@@ -1,0 +1,15 @@
+flowchart TD
+  subgraph pr["presentation"]
+    sc["Screen"] --> nt["Notifier"]
+  end
+  subgraph dm["domain (pure Dart)"]
+    uc["Use case"] --> en["Entity"]
+    uc --> po["Repository PORT"]
+  end
+  subgraph da["data"]
+    im["Repository IMPL<br/>(DTO -> entity mapper)"] --> hc["HttpClient"]
+  end
+  nt --> uc
+  po -.-|"IMPL implements PORT"| im
+  class uc,en,po good
+  classDef good fill:#e3f5e1,stroke:#2a7

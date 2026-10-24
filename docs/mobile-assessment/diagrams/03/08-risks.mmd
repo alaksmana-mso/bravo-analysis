@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Coverage gate blocks<br/>urgent fixes"]:::hot --> m1["skip-coverage label with<br/>lead approval, reviewed monthly"]:::good
+  r2["Low-value tests<br/>to hit the number"]:::hot --> m2["Gate changed files only<br/>moderate threshold"]:::good
+  r3["Random order exposes<br/>many flaky tests"]:::hot --> m3["Fix in one sprint<br/>skip plus ticket, never delete"]:::good
+  r4["E2E slow and flaky<br/>on device farm"]:::hot --> m4["Keep to 4 journeys<br/>retry once, track flake rate"]:::good
+  r5["Old Cucumber and new Mocha<br/>suites drift"]:::hot --> m5["Finish MIGRATION_PLAN.md<br/>before new journeys"]:::good
+  r6["Codacy and new gate<br/>disagree"]:::hot --> m6["Pick one source of truth<br/>after step 4"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

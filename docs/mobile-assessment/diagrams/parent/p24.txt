@@ -1,0 +1,5 @@
+PR
+  -> lint/strict
+  -> dart format check
+  -> generated-code check (on merge)
+  -> human review (AGENTS.md)

@@ -1,0 +1,9 @@
+flowchart TD
+  fg["Figma"]
+  tk["tokens"]
+  ds["design_system/ package<br/>(Digital* + theme)"]
+  fg -->|"token export<br/>(optional)"| tk --> ds
+  ds --> fp["feature packages"]
+  ds --> wb["Widgetbook (published)"]
+  class tk,ds,wb good
+  classDef good fill:#e3f5e1,stroke:#2a7

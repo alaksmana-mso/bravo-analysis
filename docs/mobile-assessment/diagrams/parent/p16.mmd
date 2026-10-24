@@ -1,0 +1,13 @@
+flowchart TD
+  rp["Repositories"]
+  subgraph hc["HttpClient (496 lines)"]
+    direction TB
+    h1["add auth header"]
+    h2["token refresh + 401 retry"]
+    h3["error -> typed exception<br/>(with x-trace-id)"]
+    h1 ~~~ h2 ~~~ h3
+  end
+  dio["dio"]
+  rp --> hc --> dio
+  class h1,h2,h3 hot
+  classDef hot fill:#ffe1e1,stroke:#c00

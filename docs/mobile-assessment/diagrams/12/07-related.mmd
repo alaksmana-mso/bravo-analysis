@@ -1,0 +1,15 @@
+flowchart LR
+  me["Mobile plan 12:<br/>Feature flags"]:::hot
+  p11["Mobile plan 11: Repo layout"]
+  p09["Mobile plan 09: State management"]
+  p10["Mobile plan 10: Dependency injection"]
+  p02["Mobile plan 02: Analytics wrapper"]
+  p01["Mobile plan 01: Security"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p11 -->|where the flags package lives| me
+  p09 -->|removes appRef reads of experiments| me
+  p10 -->|flag store provider, test overrides| me
+  p02 -->|exposure events, CI ratchet script| me
+  p01 -->|security switches stay build-time| me
+  p06 -->|lint against raw key strings| me
+  classDef hot fill:#ffe1e1,stroke:#c00

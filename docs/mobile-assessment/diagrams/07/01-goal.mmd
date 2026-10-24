@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph T["Today"]
+    t1["http_client.dart<br/>one class, 496 lines"]
+    t2["Refresh race on<br/>concurrent 401s"]
+    t3["No test fires<br/>requests at once"]
+  end
+  subgraph G["Target"]
+    g1["Small dio interceptors,<br/>one job each"]
+    g2["Single-flight refresh"]
+    g3["Concurrency tests<br/>prove it"]
+    g4["114 call sites<br/>unchanged"]
+  end
+  t1 --> g1
+  t2 --> g2
+  t3 --> g3
+  g1 --> g4
+  class t1,t2,t3 now
+  class g1,g2,g3,g4 good
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

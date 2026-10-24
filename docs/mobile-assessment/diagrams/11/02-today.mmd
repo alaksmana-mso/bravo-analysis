@@ -1,0 +1,23 @@
+flowchart LR
+  subgraph WS["Dart workspace: 3 members"]
+    direction TB
+    d["digital<br/>features: 23 folders, 355 files<br/>app: 155 files"]
+    c["data/customer: 123 files<br/>26 repository files<br/>customer.dart 115 exports"]
+    k["shared_lib/core: 23 files<br/>core.dart re-exports 12 packages"]
+  end
+  subgraph F["Biggest features, files"]
+    direction TB
+    f1["loan: 130 files, 25,626 lines"]
+    f2["auth: 41 files"]
+    f3["rl: 35 files"]
+    f4["ro: 25 files"]
+  end
+  d --> F
+  e["264 cross-feature import lines<br/>60 directed edges"]:::hot
+  y["14 two-way cycles<br/>loan in 8"]:::hot
+  r["router.dart: 870 lines, 78 routes<br/>94 feature files import it back"]:::hot
+  ap["301 of 355 feature files<br/>import digital/app"]:::hot
+  F --> e --> y
+  F --> r
+  F --> ap
+  classDef hot fill:#ffe1e1,stroke:#c00

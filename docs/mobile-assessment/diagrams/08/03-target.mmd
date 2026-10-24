@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph P["presentation/"]
+    direction TB
+    p1["Notifiers, screens,<br/>widgets"]
+    p2["flows/<br/>e.g. KycFlow"]
+    p3["Display format:<br/>dates, money, colours"]
+    p1 ~~~ p2 ~~~ p3
+  end
+  subgraph D["domain/ - pure Dart"]
+    direction TB
+    d1["Entities<br/>e.g. LoanApplicationStatus"]
+    d2["Repository interfaces"]
+    d3["Use cases and<br/>business rules"]
+    d1 ~~~ d2 ~~~ d3
+  end
+  subgraph DA["data/"]
+    direction TB
+    a1["DTOs<br/>protobuf names"]
+    a2["Mappers<br/>toDomain()"]
+    a3["Repository impl"]
+    a1 ~~~ a2 ~~~ a3
+  end
+  P -->|"calls use cases"| D
+  DA -->|"implements interfaces,<br/>maps DTO to entity"| D
+  di["di/<br/>provider declarations<br/>may import all three"] -.-> P
+  di -.-> D
+  di -.-> DA
+  class d1,d2,d3 good
+  classDef good fill:#e3f5e1,stroke:#2a7

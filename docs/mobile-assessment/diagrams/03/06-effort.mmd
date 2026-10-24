@@ -1,0 +1,10 @@
+flowchart LR
+  o1["Customer Mobile Apps squad"] --> w1["Steps 1-4<br/>about 3 sprints"]
+  o1 --> w2["Step 5, then ongoing"]
+  o1 --> w4["Step 7 golden tests<br/>optional"]
+  o2["QA<br/>automation-monorepo owners"] --> w3["Step 6 e2e journeys<br/>2-3 sprints"]
+  o1 --> w3
+  o3["SRE"] --> w5["Cross-repo e2e trigger"]
+  w5 --> w3
+  w1 --> total["Size M"]:::good
+  classDef good fill:#e3f5e1,stroke:#2a7

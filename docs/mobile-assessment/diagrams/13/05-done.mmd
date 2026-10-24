@@ -1,0 +1,19 @@
+flowchart LR
+  g1["shared_lib/design_system<br/>exists, app depends on it"]
+  g2["0 Digital component classes<br/>defined in digital/lib"]
+  g3["0 imports from the package<br/>into package:digital"]
+  g4["Widgetbook published<br/>from master, every component"]
+  g5["CI fails a PR adding<br/>a new raw Color outside package"]
+  g6["Golden tests cover<br/>at least 4 core components"]
+  g7["Optional: tokens generated<br/>from Figma JSON, CI checks sync"]
+  p1["Component goldens identical<br/>before and after the move"]
+  p2["Analytics golden names<br/>unchanged by steps 2 and 3"]
+  d["Done"]:::good
+  g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> d
+  subgraph PAR["Parity"]
+    direction LR
+    p1 --> p2
+  end
+  p2 --> d
+  g7 -.-> d
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,10 @@
+flowchart LR
+  g1["features/loan, auth, rl, ro<br/>are workspace packages<br/>no feature in pubspec.yaml"]
+  g2["feature-import for those 4 is 0<br/>total below 264, never rises"]
+  g3["0 feature files import<br/>app/navigation/router.dart"]
+  g4["arch_check.dart runs<br/>on every PR"]
+  g5["data/customer below 26<br/>repository files, none added"]
+  p1["Every extraction PR move-only<br/>tests and goldens green both sides"]
+  d["Done"]:::good
+  g1 --> g2 --> g3 --> g4 --> g5 --> p1 --> d
+  classDef good fill:#e3f5e1,stroke:#2a7

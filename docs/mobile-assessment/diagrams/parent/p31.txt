@@ -1,0 +1,8 @@
+riverpod          3.x   Notifier
+ freezed           3.x
+ firebase_*        current major
+ markdown          maintained package
+ lottie            current
+ geolocator        current
+ forked git deps   owner + upgrade path
+ flutter_meta_sdk  removed

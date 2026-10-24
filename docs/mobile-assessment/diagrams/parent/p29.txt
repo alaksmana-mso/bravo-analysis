@@ -1,0 +1,10 @@
+PR
+  -> conventional title + branch rules
+  -> analyze + format + generated files
+  -> workflow lint (no echo of secrets.*)
+  -> tests, random order
+     (controller tests allowed)
+  -> coverage gate on changed files
+  -> mr-review bot
+
+ .github/** changes run CI too

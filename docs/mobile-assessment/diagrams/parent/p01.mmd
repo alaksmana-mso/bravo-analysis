@@ -1,0 +1,17 @@
+flowchart TD
+  sc["Screens"]
+  fb["Firebase"]
+  mx["Mixpanel"]
+  sc -->|"logEvent x187<br/>(strings)"| fb
+  sc -->|"EventTracker"| mx
+  ct["StateNotifier controllers<br/>+ global appRef"]
+  rp["Repositories<br/>(API models reach the UI)"]
+  hc["HttpClient<br/>(auth + refresh inside)"]
+  sc --> ct --> rp --> hc
+  subgraph bt["Build and tests"]
+    pb["Prod build: obfuscate + R8 + pinning<br/>no RASP"]
+    ts["Tests: screens only<br/>controller tests rejected"]
+  end
+  hc ~~~ bt
+  class ct,rp,hc,pb,ts hot
+  classDef hot fill:#ffe1e1,stroke:#c00

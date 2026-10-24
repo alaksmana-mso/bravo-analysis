@@ -1,0 +1,13 @@
+Repositories
+   |
+   v
+ HttpClient (496 lines)
+ +--------------------------------+
+ | add auth header                |
+ | token refresh + 401 retry      |
+ | error -> typed exception       |
+ |        (with x-trace-id)       |
+ +--------------------------------+
+   |
+   v
+ dio

@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Sanitiser misses<br/>a new data shape"]:::hot --> m1["Tests per pattern,<br/>weekly PII query"]:::good
+  r2["Over-redaction hides<br/>the real error"]:::hot --> m2["Keep error type, endpoint,<br/>trace ID unredacted"]:::good
+  r3["Regex cost slows the app"]:::hot --> m3["Only warn and error,<br/>benchmark 10 KB body"]:::good
+  r4["Moving crash hooks loses<br/>early startup crashes"]:::hot --> m4["Monitoring.setup<br/>before runApp"]:::good
+  r5["User ID raises<br/>privacy concerns"]:::hot --> m5["ID only,<br/>sign-off before merge"]:::good
+  r6["Trace IDs do not<br/>match APM"]:::hot --> m6["Step 7 checks first,<br/>step 8 lists fixes"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

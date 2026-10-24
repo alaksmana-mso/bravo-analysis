@@ -1,0 +1,9 @@
+flowchart LR
+  p07["Mobile plan 07:<br/>Networking"]
+  p07 -->|"client under repository<br/>DTO-to-domain mapping"| p08["Mobile plan 08:<br/>Layering"]
+  p10["Mobile plan 10:<br/>Dependency injection"] -->|"dio instances and<br/>interceptors as providers"| p07
+  p05["Mobile plan 05:<br/>Logging and crashes"] <-->|"trace IDs, retry logs,<br/>RUM-to-APM spike"| p07
+  p01["Mobile plan 01:<br/>Security"] -->|"pinning, api-secret,<br/>integrity headers"| p07
+  p03["Mobile plan 03:<br/>Testing"] -->|"race and<br/>interceptor tests"| p07
+  class p07 now
+  classDef now fill:#fff4cc,stroke:#b80

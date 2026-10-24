@@ -1,0 +1,22 @@
+flowchart LR
+  subgraph PK["193 test files"]
+    direction TB
+    p1["digital: 145"]
+    p2["data/customer: 33"]
+    p3["shared_lib/core: 15"]
+  end
+  subgraph KD["What they are"]
+    direction TB
+    k1["1,039 testWidgets calls<br/>577 test calls"]
+    k2["85 screen tests<br/>25 repository, 13 use case"]
+    k3["3 controller tests<br/>0 golden, 0 integration_test"]:::now
+  end
+  PK --> KD
+  ban["Controller-test ban<br/>pr-pipeline.yml lines 42-49"]:::hot --> k3
+  KD --> cov["melos test<br/>coverage merged"]
+  cov --> cod["Codacy upload<br/>continue-on-error true"]:::now
+  cov --> son["SonarQube"]
+  cod --> rs["master ruleset: 3 required checks<br/>threshold set in Codacy UI"]
+  qa["automation-monorepo<br/>15 WebdriverIO specs"] -.->|"not linked to app PRs<br/>or releases"| app["bravo-customer-app"]
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,20 @@
+flowchart LR
+  subgraph T0["Today"]
+    a1["23 feature folders<br/>inside digital"]
+    a2["264 cross-feature<br/>import lines"]
+    a3["router.dart imports<br/>every feature"]
+  end
+  subgraph T1["Target"]
+    b1["loan, auth, rl, ro<br/>each its own package"]
+    b2["Small public surface<br/>per package"]
+    b3["No accidental imports:<br/>package does not depend on it"]
+    b4["digital only wires<br/>features together"]
+  end
+  a1 --> b1
+  a1 --> b2
+  a2 --> b3
+  a3 --> b4
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class a1,a2,a3 now
+  class b1,b2,b3,b4 good

@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph E["What exists in digital/lib/app"]
+    direction TB
+    t["theme: 6 files, 1,569 lines<br/>44 hard-coded colours<br/>useMaterial3 false"]
+    c1["ui/components: 16 files"]
+    c2["widget/components: 11 files"]
+    n["32 Digital classes"]
+  end
+  subgraph U["Used well"]
+    direction TB
+    u1["DigitalButton: 250 lines<br/>0 raw Material buttons"]
+    u2["DigitalColors: 1,040 lines<br/>49 raw Color outside theme"]
+    u3["DigitalText: 792 lines<br/>108 TextStyle outside theme"]
+  end
+  subgraph X["Blocks a separate package"]
+    direction TB
+    x1["10 files import<br/>analytics or tracker"]:::hot
+    x2["bank_account_form imports<br/>a feature screen"]:::hot
+    x3["8 component tests<br/>0 golden tests"]:::hot
+    x4["No Widgetbook<br/>no token pipeline"]:::hot
+  end
+  E --> U
+  E --> X
+  classDef hot fill:#ffe1e1,stroke:#c00

@@ -1,0 +1,20 @@
+flowchart TD
+  hd["Dependencies target"]
+  d1["riverpod 3.x<br/>Notifier"]
+  d2["freezed 3.x"]
+  d3["firebase_*<br/>current major"]
+  d4["markdown<br/>maintained package"]
+  d5["lottie<br/>current"]
+  d6["geolocator<br/>current"]
+  d7["forked git deps<br/>owner + upgrade path"]
+  d8["flutter_meta_sdk<br/>removed"]
+  hd --> d1
+  d1 ~~~ d2
+  d2 ~~~ d3
+  d3 ~~~ d4
+  hd --> d5
+  d5 ~~~ d6
+  d6 ~~~ d7
+  d7 ~~~ d8
+  class d1,d2,d3,d4,d5,d6,d7,d8 good
+  classDef good fill:#e3f5e1,stroke:#2a7

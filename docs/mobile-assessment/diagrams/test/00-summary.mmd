@@ -1,0 +1,16 @@
+flowchart LR
+  subgraph OK["Already close to Jago"]
+    A1[Obfuscation + pinning]
+    A2[Root check + Play Integrity]
+    A3[Play + TestFlight upload]
+  end
+  subgraph GAP["Main gaps"]
+    G1[No domain layer<br/>no module boundaries]
+    G2[Two analytics paths<br/>148 string event names]
+    G3[No coverage gate<br/>controller tests banned]
+    G4[No anti-tamper<br/>R8 probably off]
+  end
+  U["URGENT<br/>Reveal Secret workflow"]:::urgent
+  OK --> GAP
+  U -.-> GAP
+  classDef urgent fill:#ffd6d6,stroke:#c00,color:#600

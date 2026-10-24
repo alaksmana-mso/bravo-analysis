@@ -1,0 +1,17 @@
+flowchart LR
+  fig["Figma variables JSON<br/>optional, later"]
+  subgraph DS["shared_lib/design_system"]
+    direction LR
+    tok["Tokens: colour, text,<br/>spacing, radius"]
+    th["Theme via ThemeExtension<br/>or InheritedWidget"]
+    comp["Components<br/>no Riverpod, no app imports"]
+    tr["onTrack callback or<br/>ComponentTracker interface"]
+    tok --> th --> comp --> tr
+  end
+  app["digital app<br/>depends on the package<br/>holds the Mixpanel link"]
+  wb["Widgetbook<br/>one use case per component<br/>static web build"]
+  fig -.->|generator| tok
+  tr -->|app injects tracker| app
+  comp --> wb
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class DS good

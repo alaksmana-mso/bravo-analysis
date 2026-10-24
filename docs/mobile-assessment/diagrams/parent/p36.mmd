@@ -1,0 +1,8 @@
+flowchart LR
+  e1["apply_loan"] -->|"home address"| fb["Firebase"]
+  e2["loan events"] -->|"amount, income,<br/>marital, purpose"| mx["Mixpanel"]
+  e3["logs"] -->|"consent forced"| dd["Datadog"]
+  e4["build-prod-artifact.yml"] -->|"no approval"| pb["prod build"]
+  e5["root check:<br/>off if variable is missing"]
+  class e1,e2,e3,e4,e5 hot
+  classDef hot fill:#ffe1e1,stroke:#c00

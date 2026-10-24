@@ -1,0 +1,18 @@
+flowchart TD
+  subgraph S1["About 2 sprints: steps 1-4"]
+    direction LR
+    s1["1. Composition root<br/>and wiring test, 1 PR"]
+    s2["2. Write the rules, 1 PR<br/>containerOf ratchet, baseline 2"]
+    s3["3. UiFeedback port, 1-2 PRs<br/>23 CommonController reads<br/>with Mobile plan 09"]
+    s4["4. auth_api ports, 2-3 PRs<br/>SessionReader, LoginLauncher,<br/>KycLauncher, plan 11 step 5"]
+    s1 --> s2 --> s3 --> s4
+  end
+  subgraph S2["Ride on each feature extraction: steps 5-8"]
+    direction LR
+    s5["5. Exit ports per feature<br/>LoanExits first<br/>plan 11 step 4"]
+    s6["6. Shared service ports<br/>analytics, flags, network"]
+    s7["7. Per-package providers<br/>on extraction"]
+    s8["8. Shrink the big barrels<br/>customer.dart 115 exports"]
+    s5 --> s6 --> s7 --> s8
+  end
+  S1 --> S2

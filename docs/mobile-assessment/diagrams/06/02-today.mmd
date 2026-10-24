@@ -1,0 +1,37 @@
+flowchart LR
+  subgraph L["Lint"]
+    direction TB
+    l1["Root analysis_options.yaml<br/>lint/strict, lint ^2.1.0"]
+    l2["3 packages use<br/>the root file"]
+    l3["flutter_lints ^2.0.0<br/>unused dev dependency"]
+    l4["No custom_lint,<br/>no custom rules"]
+    l1 --> l2
+    l2 ~~~ l3 ~~~ l4
+  end
+  subgraph C["CI"]
+    direction TB
+    c1["pr-pipeline.yml<br/>melos analyze, tests,<br/>Codacy, Sonar"]
+    c2["on-merge-master.yml<br/>bot commits diff back"]
+    c3["Both skip PRs that<br/>only touch .github"]
+    c1 ~~~ c2 ~~~ c3
+  end
+  subgraph A["Architecture baseline, 23 features"]
+    direction TB
+    a1["264 cross-feature imports"]
+    a2["106 files, 60 pairs<br/>top: loan to auth 35"]
+    a3["0 vendor SDK imports<br/>in features"]
+    a4["No domain folder yet"]
+    a1 --> a2
+    a2 ~~~ a3 ~~~ a4
+  end
+  subgraph R["AI rules"]
+    direction TB
+    r1["AGENTS.md, 194 lines"]
+    r2["sync-ai-rules.yml copies to<br/>CLAUDE.md, Copilot, Codacy"]
+    r3["No .claude/rules,<br/>no skills"]
+    r1 --> r2
+    r2 ~~~ r3
+  end
+  L ~~~ C ~~~ A ~~~ R
+  class c2,c3,a1 hot
+  classDef hot fill:#ffe1e1,stroke:#c00

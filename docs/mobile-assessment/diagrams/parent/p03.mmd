@@ -1,0 +1,38 @@
+flowchart LR
+  subgraph jg["Jago (reference)"]
+    direction TB
+    j1["Layer model"]
+    j2["Ports + composition root"]
+    j3["Analytics fan-out"]
+    j4["Coverage gate"]
+    j5["RASP + build registration"]
+    j6["bloc library"]
+    j7["Kiwi + injectable"]
+    j8["oversized module_common"]
+    j9["rules checked by review"]
+  end
+  subgraph bf["BFI target (on Riverpod)"]
+    direction TB
+    b1["data / domain / presentation"]
+    b2["one composition root"]
+    b3["AnalyticsPlatform + typed events"]
+    b4["PR gate on changed files"]
+    b5["step in the prod pipeline"]
+    b6["keep Riverpod"]
+    b7["one DI: Riverpod providers"]
+    b8["small core package only"]
+    b9["rules checked in CI"]
+  end
+  j1 -->|"COPY"| b1
+  j2 -->|"COPY"| b2
+  j3 -->|"COPY"| b3
+  j4 -->|"COPY"| b4
+  j5 -->|"COPY"| b5
+  j6 -.-x|"SKIP"| b6
+  j7 -.-x|"SKIP"| b7
+  j8 -.-x|"SKIP"| b8
+  j9 -.-x|"SKIP"| b9
+  class b1,b2,b3,b4,b5,b6,b7,b8,b9 good
+  class j6,j7,j8,j9 hot
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00

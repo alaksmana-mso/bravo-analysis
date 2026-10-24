@@ -1,0 +1,18 @@
+flowchart TD
+  subgraph GATE["Coverage gate on changed files, after Jago"]
+    direction LR
+    c1["git diff vs merge base<br/>changed files per package"] --> c2["Strip generated<br/>and mock files"]
+    c2 --> c3["lcov extract<br/>changed files only"]
+    c3 --> c4["Take lowest<br/>line coverage"]
+    c4 --> c5(["Below threshold?<br/>fail"])
+  end
+  subgraph PYR["Test layers"]
+    direction LR
+    u["Unit: use cases, notifiers<br/>ProviderContainer + overrides"]:::good
+    w["Widget: one screen<br/>state per test"]
+    e["E2E: 4 journeys<br/>automation-monorepo"]
+    u ~~~ w ~~~ e
+  end
+  rnd["Random test order<br/>in the melos test script"] --> GATE
+  PYR ~~~ rnd
+  classDef good fill:#e3f5e1,stroke:#2a7

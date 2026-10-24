@@ -1,0 +1,15 @@
+flowchart TD
+  rp["Repositories"]
+  hc["HttpClient (thin)"]
+  subgraph ic["dio interceptor chain"]
+    direction TB
+    i1["1. AuthInterceptor"]
+    i2["2. RefreshInterceptor<br/>(single-flight,<br/>fixes the refresh race)"]
+    i3["3. RetryInterceptor"]
+    i4["4. Integrity header<br/>(x-integrity-id)"]
+    i5["5. Error mapper<br/>-> typed exception"]
+    i1 --> i2 --> i3 --> i4 --> i5
+  end
+  rp --> hc --> ic
+  class hc,i1,i2,i3,i4,i5 good
+  classDef good fill:#e3f5e1,stroke:#2a7

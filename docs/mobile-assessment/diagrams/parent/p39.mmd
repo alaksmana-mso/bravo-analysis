@@ -1,0 +1,42 @@
+flowchart LR
+  subgraph ph0["Phase 0: Now"]
+    direction TB
+    a1["Delete 'Reveal Secret',<br/>rotate the keys"]
+    a2["Protect the prod env"]
+    a1 ~~~ a2
+  end
+  subgraph ph1["Phase 1: Quick wins"]
+    direction TB
+    b1["Analytics interface"]
+    b2["R8 explicit + keep rules"]
+    b3["Coverage gate"]
+    b4["One Flutter version"]
+    b5["PII cleaner"]
+    b1 ~~~ b2 ~~~ b3 ~~~ b4 ~~~ b5
+  end
+  subgraph ph2["Phase 2: Architecture"]
+    direction TB
+    c1["Domain layer (loan)"]
+    c2["Controller tests"]
+    c3["Notifier, no appRef"]
+    c4["loan package"]
+    c5["Flag catalogue"]
+    c6["dio interceptors"]
+    c7["then: auth, rl, ro"]
+    c1 ~~~ c2 ~~~ c3 ~~~ c4 ~~~ c5 ~~~ c6 ~~~ c7
+  end
+  subgraph ph3["Phase 3: Platform"]
+    direction TB
+    d1["RASP + build registration"]
+    d2["Design-system package"]
+    d3["E2E suite"]
+    d4["Architecture checks in CI"]
+    d1 ~~~ d2 ~~~ d3 ~~~ d4
+  end
+  ph0 --> ph1 --> ph2 --> ph3
+  class a1,a2 hot
+  class b1,b2,b3,b4,b5 now
+  class c1,c2,c3,c4,c5,c6,c7,d1,d2,d3,d4 good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

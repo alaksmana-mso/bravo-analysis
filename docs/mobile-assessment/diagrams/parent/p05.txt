@@ -1,0 +1,12 @@
+melos workspace
+ |
+ +-- app/            router + composition root
+ +-- features/
+ |   +-- loan/       small public API
+ |   +-- loan_api/   contract others import
+ |   +-- auth/ ...
+ +-- design_system/  Digital* + theme
+ +-- data/customer/
+ +-- shared_lib/core/
+
+ rule: feature -> *_api, never feature -> feature

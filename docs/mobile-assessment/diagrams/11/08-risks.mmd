@@ -1,0 +1,8 @@
+flowchart LR
+  r1["Moving files<br/>breaks open PRs"]:::hot --> m1["One feature at a time<br/>announce a sprint ahead<br/>script rewrites imports"]:::good
+  r2["loan extraction stalls<br/>on its 8 cycles"]:::hot --> m2["Decouple in place first<br/>measure edges per sprint<br/>extract only at 0"]:::good
+  r3["New shared_lib package<br/>becomes a god module"]:::hot --> m3["One job per package<br/>review cross shared_lib imports"]:::good
+  r4["Build time grows<br/>with more packages"]:::hot --> m4["One lockfile via workspace<br/>track CI time per PR"]:::good
+  r5["Team adds edges<br/>while we cut them"]:::hot --> m5["Ratchet fails the PR"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

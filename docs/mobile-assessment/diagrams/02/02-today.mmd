@@ -1,0 +1,27 @@
+flowchart LR
+  subgraph S["Screens and controllers"]
+    direction TB
+    f1["81 files<br/>187 logEvent calls"]
+    f2["33 files import<br/>mixpanel_service.dart"]
+    f3["Digital* components<br/>auto-track by label"]
+  end
+  a1["analytics.dart<br/>144 lines"]
+  m1["mixpanel_service.dart<br/>400 lines"]
+  i1["insider_service.dart<br/>166 lines"]
+  f1 --> a1 --> fb["Firebase<br/>148 event names"]
+  f2 -->|29 direct calls| m1
+  f3 --> m1
+  m1 --> mp["Mixpanel<br/>name-action"]
+  m1 -->|copy of every event| i1 --> ins["Insider<br/>snake_case"]
+  pii["PII: customer_address,<br/>4 requireTrackValue fields"]:::hot
+  pii -.-> fb
+  pii -.-> mp
+  subgraph OTH["Other platforms"]
+    direction TB
+    ap["AppsFlyer, 244 lines<br/>no in-app events"]
+    dd["Datadog RUM<br/>1 custom action"]
+    cs["Consent hard-coded<br/>granted in main.dart"]:::now
+    cs --> dd
+  end
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,32 @@
+flowchart TD
+  subgraph WF["Workflows reaching prod secrets"]
+    direction TB
+    w1["test.yaml Reveal Secret<br/>master + 4 release branches"]:::hot
+    w2["build-prod-artifact.yml<br/>no approval"]:::hot
+    w3["build-prod.yml<br/>approval is a step, not a rule"]:::now
+    env["customer_app_prod<br/>no protection rules"]:::hot
+    sec["BRAVO_GCP_SA_KEY<br/>SSH_PRIVATE_KEY"]
+    w1 --> env
+    w2 --> env
+    w3 --> env
+    env --> sec
+  end
+  subgraph APP["App build gaps"]
+    direction TB
+    a1["R8 on (Flutter default)<br/>not explicit in build.gradle"]:::now
+    a2["API_SECRET header<br/>on every request"]:::now
+    a3["Root check code default off<br/>prod variable is true"]:::now
+    a4["No FLAG_SECURE<br/>no RASP"]:::now
+    a1 ~~~ a2 ~~~ a3 ~~~ a4
+  end
+  subgraph OK["Already good"]
+    direction TB
+    o1["Certificate pinning"]:::good
+    o2["x-integrity-id header"]:::good
+    o3["26 keys in secure storage"]:::good
+    o4["allowBackup false"]:::good
+    o1 ~~~ o2 ~~~ o3 ~~~ o4
+  end
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

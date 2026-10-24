@@ -1,0 +1,14 @@
+flowchart TD
+  r0["router.dart<br/>(composes only)"]
+  r0 --> r1["loan_routes.dart"]
+  r0 --> r2["auth_routes.dart"]
+  r0 --> r3["#lt;feature#gt;_routes.dart ..."]
+  s0["submission_controller.dart"]
+  s0 --> s1["one notifier per step"]
+  s0 --> s2["domain use cases"]
+  l0["large screens"]
+  l0 --> l1["private section widgets"]
+  r1 ~~~ s0
+  s1 ~~~ l0
+  class r1,r2,r3,s1,s2,l1 good
+  classDef good fill:#e3f5e1,stroke:#2a7

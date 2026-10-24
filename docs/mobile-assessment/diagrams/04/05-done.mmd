@@ -1,0 +1,31 @@
+flowchart TD
+  subgraph P["Prod safety"]
+    direction TB
+    d1["customer_app_prod has reviewers<br/>no secrets without approval"]
+    d2["Prod AAB built with R8<br/>named protection step"]
+    d3["Staged Play rollout<br/>crash-rate check between stages"]
+  end
+  subgraph W["Workflows"]
+    direction TB
+    d4["Flutter version only<br/>in mise.toml"]
+    d5["Every build number higher<br/>no manual input"]
+    d6["Under 1,500 lines<br/>dart-define listed once"]
+    d7["Every third-party action<br/>pinned to a SHA"]
+    d8["Workflow PRs run actionlint<br/>and the secret check"]
+  end
+  subgraph R["Parity"]
+    direction TB
+    d10["Two green e2e runs per RC<br/>flags off and on"]
+    d11["Cohort dashboard<br/>with agreed thresholds"]
+    d12["Kill-switch runbook<br/>rehearsed once in SIT"]
+  end
+  subgraph M["Measurement"]
+    direction TB
+    d9["Monthly report of the<br/>four delivery metrics"]
+  end
+  done["Plan 04 done"]:::good
+  P --> done
+  W --> done
+  R --> done
+  M --> done
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,8 @@
+digital/ package
+   |
+   +-- app/theme    <-- Figma (copied by hand)
+   +-- app/ui, app/widget
+   |     32 Digital* classes
+   +-- features/*   use Digital* (adoption high)
+
+ no separate package, no Widgetbook

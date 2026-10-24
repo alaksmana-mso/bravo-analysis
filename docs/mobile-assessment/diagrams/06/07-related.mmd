@@ -1,0 +1,12 @@
+flowchart LR
+  p06["Mobile plan 06:<br/>Lint and guardrails"]
+  p11["Mobile plan 11:<br/>Repo layout"] -->|"package boundaries replace<br/>part of import check"| p06
+  p08["Mobile plan 08:<br/>Layering"] -->|"domain folders<br/>for domain rules"| p06
+  p02["Mobile plan 02:<br/>Analytics wrapper"] -->|"adapter folders"| p06
+  p05["Mobile plan 05:<br/>Logging and crashes"] -->|"adapter folders"| p06
+  p12["Mobile plan 12:<br/>Feature flags"] -->|"adapter folders"| p06
+  p01["Mobile plan 01:<br/>Security"] -->|"workflow secret check"| p06
+  p03["Mobile plan 03:<br/>Testing"] -->|"test rules in AGENTS.md"| p06
+  p06 -->|"new jobs run here"| p04["Mobile plan 04:<br/>CI/CD"]
+  class p06 now
+  classDef now fill:#fff4cc,stroke:#b80

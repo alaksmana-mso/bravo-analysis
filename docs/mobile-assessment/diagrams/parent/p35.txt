@@ -1,0 +1,14 @@
+workflow change arrives in a PR
+   |
+   v
+ CI check: fail on echo of secrets.*
+   |
+   v
+ customer_app_prod env:
+ required reviewers
+   |
+   v
+ job runs, secrets stay masked
+
+ test.yaml deleted on every branch
+ BRAVO_GCP_SA_KEY + SSH_PRIVATE_KEY rotated

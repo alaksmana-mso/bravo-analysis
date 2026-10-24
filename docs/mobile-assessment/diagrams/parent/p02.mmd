@@ -1,0 +1,19 @@
+flowchart TD
+  sc["Screens"]
+  ap["AnalyticsPlatform"]
+  sc -->|"typed events"| ap
+  ap --> fb["Firebase"]
+  ap --> mx["Mixpanel"]
+  ap --> af["AppsFlyer ..."]
+  nt["Notifier / AsyncNotifier"]
+  uc["Domain use cases<br/>(pure Dart)"]
+  rp["Repositories<br/>(API model -> entity)"]
+  dio["dio + interceptors"]
+  sc --> nt --> uc --> rp --> dio
+  subgraph bt["Build and tests"]
+    pb["Prod build: obfuscate + R8 + RASP"]
+    ts["Tests: domain + controller + screen<br/>coverage gate + E2E"]
+  end
+  dio ~~~ bt
+  class ap,nt,uc,rp,dio,pb,ts good
+  classDef good fill:#e3f5e1,stroke:#2a7

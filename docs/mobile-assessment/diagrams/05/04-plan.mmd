@@ -1,0 +1,15 @@
+flowchart TD
+  s1["1. Sanitiser with tests"] --> s2["2. Monitoring port<br/>behind DatadogLog"]
+  s2 --> s3["3. Trace ID on<br/>every log line"]
+  s2 --> s4["4. Move crash hooks<br/>out of main.dart"]
+  s2 --> s5["5. Pseudonymous user ID<br/>DPO agrees first"]
+  s2 --> s6["6. Clean the 35<br/>known call sites"]
+  s7["7. Spike: RUM-to-APM<br/>linking check"] --> s8["8. Fix linking gaps<br/>if step 7 finds any"]
+  s2 --> s9["9. Remote log threshold<br/>and sampling"]
+  s6 --> s10["10. CI ratchet against<br/>new direct calls"]
+  subgraph SP["One sprint: steps 1 to 4"]
+    s1
+    s2
+    s3
+    s4
+  end

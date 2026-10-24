@@ -1,0 +1,7 @@
+Figma --(token export, optional)--> tokens
+                                       |
+                                       v
+ design_system/ package (Digital* + theme)
+   |                     |
+   v                     v
+ feature packages     Widgetbook (published)

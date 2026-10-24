@@ -1,0 +1,13 @@
+flowchart LR
+  p04["Mobile plan 04: CI/CD"]:::now
+  p01["Mobile plan 01: Security"]
+  p03["Mobile plan 03: Testing"]
+  p06["Mobile plan 06: Lint and guardrails"]
+  p13["Mobile plan 13: Design system"]
+  p05["Mobile plan 05: Logging and crashes"]
+  p01 -->|"step 0, R8, RASP vendor"| p04
+  p03 -->|"coverage gate, e2e after SIT build"| p04
+  p06 -->|"workflow checks, review bot"| p04
+  p13 -->|Widgetbook build and publish job| p04
+  p05 -->|crash-free rate for rollout| p04
+  classDef now fill:#fff4cc,stroke:#b80

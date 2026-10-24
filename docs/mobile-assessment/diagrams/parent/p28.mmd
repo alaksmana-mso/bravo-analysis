@@ -1,0 +1,12 @@
+flowchart TD
+  pr["PR"]
+  c1["conventional title"]
+  c2["block feat into<br/>release branches"]
+  c3["melos bootstrap"]
+  c4["analyze"]
+  c5["tests<br/>(controller tests rejected)"]
+  c6["Codacy / Sonar upload"]
+  pr --> c1 --> c2 --> c3 --> c4 --> c5 --> c6
+  nt["PRs touching only<br/>.github/** skip CI"]
+  class c5,nt hot
+  classDef hot fill:#ffe1e1,stroke:#c00

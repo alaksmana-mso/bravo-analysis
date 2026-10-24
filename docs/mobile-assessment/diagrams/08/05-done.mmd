@@ -1,0 +1,11 @@
+flowchart TD
+  d1["domain-purity count is 0<br/>strict in CI"] --> d2["dto-in-presentation 0 for<br/>loan, auth, rl, ro;<br/>total below 214"]
+  d2 --> d3["Domain tests run<br/>without Flutter binding"]
+  d3 --> d4["esign, kyc, kyc_spouse<br/>use cases gone"]
+  d4 --> d5["No feature-owned repository<br/>left in data/customer"]
+  d5 --> d6["AGENTS.md: Screen, Notifier,<br/>UseCase, Repository interface"]
+  d6 --> d7["Parity ledger per feature<br/>signed off, all rows done"]
+  d7 --> d8["Cohort check passed;<br/>old path and switch flag deleted"]
+  d8 --> ok["Done"]
+  class ok good
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,29 @@
+flowchart TD
+  subgraph PR["Every PR"]
+    direction TB
+    d1["No controller-test ban<br/>in pr-pipeline.yml"]
+    d2["Tests run in<br/>random order"]
+    d3["CI fails if changed files<br/>below threshold, start 70%"]
+    d4["Coverage check fails<br/>when upload fails"]
+  end
+  subgraph REL["Every release candidate"]
+    direction TB
+    d5["Register, KYC, loan, payment<br/>on real devices against SIT"]
+    d9["4 journeys pass with<br/>switch flag forced off and on"]
+  end
+  subgraph PN["Parity net"]
+    direction TB
+    d8["Goldens, SIT fixtures,<br/>both-paths helper, ledger"]
+    d10["AGENTS.md: keep same text,<br/>Semantics ids and Keys"]
+  end
+  subgraph Q["Over time"]
+    direction TB
+    d6["Unit test file for every<br/>notifier changed last quarter"]
+    d7["Median PR test time<br/>does not grow"]
+  end
+  done["Plan 03 done"]:::good
+  PR --> done
+  REL --> done
+  PN --> done
+  Q --> done
+  classDef good fill:#e3f5e1,stroke:#2a7

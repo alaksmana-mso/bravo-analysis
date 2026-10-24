@@ -1,0 +1,25 @@
+flowchart TD
+  subgraph P0["Step 0: urgent, this week"]
+    s01["1 Disable, then delete test.yaml<br/>master + 4 release branches"]:::hot
+    s02["2 Rotate BRAVO_GCP_SA_KEY<br/>and SSH_PRIVATE_KEY"]:::hot
+    s03["3 Required reviewers + branch rule<br/>on both prod environments"]:::hot
+    s04["4 CI check fails<br/>workflows that echo secrets"]:::hot
+    s05["5 Do not open<br/>old run logs"]
+    s01 --> s02 --> s03 --> s04 --> s05
+  end
+  subgraph FIX["Then, one or two PRs each"]
+    s1["Step 1: make R8 explicit<br/>review keep rules, 1 PR"]
+    s2["Step 2: security flags fail safe<br/>1 small PR"]
+    s3["Step 3: API_SECRET is public<br/>1-2 sprints, app + backend"]
+    s4["Step 4: screen-capture guard<br/>1-2 PRs"]
+    s5["Step 5: secure storage review<br/>1 PR"]
+    s6["Step 6: clean up project.pbxproj<br/>1 PR"]
+    s7["Step 7: choose RASP vendor<br/>decision, then 1-2 sprints"]
+  end
+  s8["Step 8: OWASP MASVS table<br/>updated each quarter"]:::good
+  cicd["Protection step in<br/>Mobile plan 04: CI/CD"]
+  P0 --> FIX
+  FIX -->|"actions per MASVS group"| s8
+  s7 --> cicd
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

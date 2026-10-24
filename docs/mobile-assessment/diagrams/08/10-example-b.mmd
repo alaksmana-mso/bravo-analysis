@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph T["Today"]
+    direction TB
+    c1["9 callers: promo, notification,<br/>calculator, draft card, deep link..."]:::hot -->|"import loan/submission"| e1["enterSubmissionScreen<br/>(WidgetRef, BuildContext)"]:::hot
+    e1 --> e2["LoadSubmissionDraftUseCase<br/>433 lines, call(BuildContext),<br/>dialog widget, loading overlay"]:::hot
+    e2 --> e3["context.pushNamed(submission)"]:::hot
+  end
+  subgraph G["Target"]
+    direction TB
+    d1["9 callers get<br/>onStartSubmission(product, draft, journey)<br/>wired by the app shell"]:::good --> d2["SubmissionEntryFlow (presentation):<br/>loading, block UI, draft dialog,<br/>start tracking, navigate"]:::good
+    d2 --> d3{"StartSubmission (domain, pure Dart)<br/>returns a decision"}:::good
+    d3 -->|Blocked| d4["show reason, stop"]:::good
+    d3 -->|ChooseDraft| d5["draft dialog, then proceed"]:::good
+    d3 -->|Proceed| d6["track journey, push submission"]:::good
+  end
+  T ~~~ G
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

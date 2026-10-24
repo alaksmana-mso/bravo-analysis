@@ -1,0 +1,22 @@
+flowchart TD
+  subgraph T["Today"]
+    direction TB
+    t1["Flutter version in 3 places<br/>2 different versions"]:::now
+    t2["Build numbers typed by hand<br/>or always +1"]:::now
+    t3["Prod environment<br/>has no protection rules"]:::hot
+    t4["13 workflows, 2,943 lines<br/>279 dart-define lines"]:::now
+  end
+  subgraph G["Target"]
+    direction TB
+    g1["One Flutter version<br/>in one file"]:::good
+    g2["Build numbers always go up<br/>no human input"]:::good
+    g3["Prod: environment approval,<br/>R8 explicit, RASP later,<br/>staged rollout"]:::good
+    g4["Short workflows<br/>delivery speed measured"]:::good
+  end
+  t1 --> g1
+  t2 --> g2
+  t3 --> g3
+  t4 --> g4
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,25 @@
+flowchart LR
+  subgraph API["auth_api package<br/>no Flutter, no Riverpod in interface"]
+    i1["KycLauncher interface"]
+    i2["kycLauncherProvider<br/>throws until wired"]
+  end
+  subgraph AUTH["auth feature"]
+    a1["authKycLauncherProvider<br/>implementation"]
+  end
+  subgraph LOAN["loan feature"]
+    l1["Internal providers<br/>lib/src, private"]
+    l2["LoanExits<br/>nullable callbacks"]
+  end
+  subgraph APP["digital app"]
+    c1["app_overrides.dart<br/>one list of Overrides"]
+    c2["ports.dart: allPorts"]
+    c3["wiring_test.dart"]
+  end
+  l1 -->|reads port| i2
+  i2 --- i1
+  c1 -->|overrides with| a1
+  c1 -->|fills openPayment etc<br/>with GoRouter push| l2
+  c1 -.->|overrides| i2
+  c3 -->|reads every port| c2
+  classDef good fill:#e3f5e1,stroke:#2a7
+  class c1,c2,c3 good

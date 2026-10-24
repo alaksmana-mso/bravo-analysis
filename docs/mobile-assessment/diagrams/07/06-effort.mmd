@@ -1,0 +1,7 @@
+flowchart LR
+  o1["Customer Mobile Apps squad"] --> w1["Sprint 1<br/>steps 1 to 3"]
+  o1 --> w2["Sprint 2<br/>steps 4 to 9"]
+  o2["SRE"] --> w3["Confirms x-request-id<br/>reaches backend logs<br/>step 4"]
+  w1 --> tot["Size S<br/>about 1 to 2 sprints<br/>most risk: race tests and refresh"]
+  w2 --> tot
+  w3 --> tot

@@ -1,0 +1,21 @@
+flowchart TD
+  rp["Repositories, 114 calls"] --> f["HttpClient facade<br/>flags in Options.extra"]
+  f -->|"apiDio"| q
+  subgraph q["apiDio interceptors 1 to 4"]
+    direction LR
+    i1["1 CertificatePinning<br/>unchanged"] --> i2["2 BaseHeaders<br/>plus x-request-id"]
+    i2 --> i3["3 DeviceIntegrity<br/>x-integrity-id"]
+    i3 --> i4["4 Auth<br/>stores token used"]
+  end
+  subgraph s["apiDio interceptors 5 to 8"]
+    direction LR
+    i5["5 Refresh<br/>on 401 INVALID_KEY"] --> i6["6 Retry<br/>GET only, max 2"]
+    i6 --> i7["7 ErrorMapping<br/>typed exceptions"]
+    i7 --> i8["8 ApiCallHistory<br/>non-prod only"]
+  end
+  q -->|"then"| s
+  q -.-> tr["TokenRefresher<br/>single-flight lock"]
+  s -.-> tr
+  tr --> auth["authDio: guest-authenticate,<br/>authorize; no auth or refresh"]
+  class tr good
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,9 @@
+App code ------------------+
+ Flutter / platform errors -+-> DatadogLog
+                                  |
+                                  v
+                            PII sanitizer
+                                  |--> Datadog
+                                  +--> Crashlytics
+
+ tracking consent: from the user's choice

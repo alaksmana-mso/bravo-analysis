@@ -1,0 +1,8 @@
+riverpod          2.6   StateNotifier
+ freezed           2.5
+ firebase_core     3.15  one major behind
+ flutter_markdown  0.6   discontinued
+ lottie            2.7
+ geolocator        11.1
+ forked git deps   pinned, no owner
+ flutter_meta_sdk  in pubspec, unused

@@ -1,0 +1,9 @@
+PR
+  -> conventional title
+  -> block feat into release branches
+  -> melos bootstrap
+  -> analyze
+  -> tests (controller tests rejected)
+  -> Codacy / Sonar upload
+
+ PRs touching only .github/** skip CI

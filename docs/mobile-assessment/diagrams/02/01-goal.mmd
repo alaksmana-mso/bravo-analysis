@@ -1,0 +1,20 @@
+flowchart TD
+  subgraph T["Today"]
+    direction TB
+    t1["Screens call Firebase<br/>187 logEvent calls"]:::now
+    t2["Screens call Mixpanel<br/>29 direct track calls"]:::now
+    t3["148 event names<br/>as string literals"]:::now
+    t4["Address and income<br/>sent to vendors"]:::hot
+  end
+  subgraph G["Target"]
+    direction TB
+    g1["One BFI Analytics interface"]:::good
+    g2["Typed events<br/>from one catalogue"]:::good
+    g3["Firebase, Mixpanel, Insider,<br/>AppsFlyer, Datadog RUM<br/>as adapters"]:::good
+    g4["Every dashboard event name<br/>stays exactly the same"]:::good
+    g1 --> g2 --> g3 --> g4
+  end
+  T -->|migrate| G
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

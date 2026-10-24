@@ -1,0 +1,9 @@
+flowchart LR
+  r1["Refresh change logs<br/>users out by mistake"]:::hot --> m1["Race tests first;<br/>Remote Config kill switch"]:::good
+  r2["Interceptor order bug<br/>sends no token"]:::hot --> m2["Test asserts order;<br/>SIT smoke: login, KYC, loan"]:::good
+  r3["Retry repeats a payment<br/>or submission"]:::hot --> m3["Retry only GET;<br/>tested in step 7"]:::good
+  r4["x-request-id rejected<br/>by gateway or WAF"]:::hot --> m4["Check with SRE<br/>on SIT before prod"]:::good
+  r5["Pinning differs<br/>on authDio"]:::hot --> m5["Same pinning interceptor;<br/>prod-like build test"]:::good
+  r6["Datadog tracing stops<br/>after moving clients"]:::hot --> m6["Tracing stays in HttpOverrides;<br/>check RUM after each step"]:::good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef good fill:#e3f5e1,stroke:#2a7

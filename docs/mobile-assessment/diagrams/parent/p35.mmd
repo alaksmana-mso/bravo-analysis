@@ -1,0 +1,10 @@
+flowchart TD
+  a1["Workflow change<br/>arrives in a PR"]
+  a2["CI check: fail on<br/>echo of secrets.*"]
+  a3["customer_app_prod env:<br/>required reviewers"]
+  a4["Job runs,<br/>secrets stay masked"]
+  a1 --> a2 --> a3 --> a4
+  nt["test.yaml deleted on every branch<br/>BRAVO_GCP_SA_KEY + SSH_PRIVATE_KEY<br/>rotated"]
+  a4 ~~~ nt
+  class a2,a3,a4,nt good
+  classDef good fill:#e3f5e1,stroke:#2a7

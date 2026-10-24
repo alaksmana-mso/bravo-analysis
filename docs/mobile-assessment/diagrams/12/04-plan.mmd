@@ -1,0 +1,25 @@
+flowchart TD
+  subgraph A["One sprint: steps 1-4"]
+    direction LR
+    s1["1. Port and adapters<br/>1 PR"]
+    s2["2. Catalogue the 44 keys<br/>1 PR"]
+    s3["3. Switch flags as a kind<br/>default old path, removeBy<br/>needed by Mobile plan 08"]:::good
+    s4["4. Bridge: RemoteConfig<br/>built from FlagStore, 1 PR"]
+    s1 --> s2 --> s3 --> s4
+  end
+  subgraph B["1-2 sprints: steps 5-7"]
+    direction LR
+    s5["5. Move call sites<br/>one feature per PR<br/>home, loan, auth, pin, rl, ro"]
+    s6["6. Move the 2 experiments<br/>1 PR"]
+    s7["7. Delete RemoteConfig<br/>2,814 generated lines, 1 PR"]
+    s5 --> s6 --> s7
+  end
+  subgraph C["Continues after"]
+    direction LR
+    s8["8. First cleanup<br/>1 PR per flag"]
+    s9["9. Lifecycle check in CI<br/>1 PR"]
+    s10["10. Debug override screen<br/>1 PR, optional"]
+    s8 --> s9 --> s10
+  end
+  A --> B --> C
+  classDef good fill:#e3f5e1,stroke:#2a7

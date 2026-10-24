@@ -1,0 +1,22 @@
+flowchart TD
+  hd["Dependencies today"]
+  d1["riverpod 2.6<br/>StateNotifier"]
+  d2["freezed 2.5"]
+  d3["firebase_core 3.15<br/>one major behind"]
+  d4["flutter_markdown 0.6<br/>discontinued"]
+  d5["lottie 2.7"]
+  d6["geolocator 11.1"]
+  d7["forked git deps<br/>pinned, no owner"]
+  d8["flutter_meta_sdk<br/>in pubspec, unused"]
+  hd --> d1
+  d1 ~~~ d2
+  d2 ~~~ d3
+  d3 ~~~ d4
+  hd --> d5
+  d5 ~~~ d6
+  d6 ~~~ d7
+  d7 ~~~ d8
+  class d1,d3,d4,d7,d8 hot
+  class d2,d5,d6 now
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

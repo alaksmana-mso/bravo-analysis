@@ -1,0 +1,8 @@
+flowchart TD
+  sc["Screens / controllers"]
+  rc["RemoteConfig model<br/>(one wide class,<br/>2,443-line generated file)"]
+  mf["Mixpanel flags<br/>(experiments)"]
+  sc --> rc --> frc["Firebase RC"]
+  sc --> mf --> mx["Mixpanel"]
+  class rc,mf hot
+  classDef hot fill:#ffe1e1,stroke:#c00
