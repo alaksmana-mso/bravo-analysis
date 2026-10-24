@@ -10,7 +10,7 @@ Layouts handled (text-level edits, the file's own formatting is kept):
   - `extraEnv: |` string block, at any indent (microservices-http.extraEnv, bfi `image:`-keyed charts)
   - `globalEnv: |` string block (LORA Temporal worker charts)
 Files with neither block are skipped and listed (infra charts: clamav, kafka, secrets, sqlproxy, UIs, ...).
-Apps in NO_LOGGING_LIBRARY_APPS have no squad repo and will never take a BFI logging library: skipped when adding, and
+Apps in NO_LOGGING_LIBRARY_APPS use no bfi-go-pkg or bfi-java-pkg module at all: skipped when adding, and
 `--remove --only <apps>` takes the entry out of their files.
 Apps in SKIP_APPS are third-party or vendor software that never reads the variable. They are left exactly
 as they are: an env change only restarts them, and Keycloak runs as one replica (20 Oct 2026, UAT).
@@ -43,17 +43,24 @@ SKIP_APPS = {
     "strategyone-batch-ws", "strategyone-lab", "strategyone-modelmgr",
     "strategyone-tus", "strategyone-wsd", "strategyone-wsp",  # vendor StrategyOne
 }
-# Apps with no squad repo that will never take a BFI logging library: .NET, PHP and standalone UI tools
-# owned outside the squads. Every squad service keeps the variable, whether or not it uses a library yet,
-# because all of them are expected to adopt one (decision 22 Oct 2026). Skipped when adding;
-# `--remove --only <apps>` takes the entry out of their files.
+# Apps whose code uses no module of bfi-go-pkg or bfi-java-pkg at all (rule set 24 Oct 2026: any module
+# counts, so bravo-lib-cryptox / bravo-lib-audit-trail users stay). They never read the variable; adding it
+# only restarts them. Verified 22 Oct 2026 from go.mod / pom.xml on each repo's default branch, or, where the
+# repo is not visible, from Datadog span language and manifest env names. Re-check an app when it adopts a
+# library, then remove it here. Skipped when adding; `--remove --only <apps>` takes the entry out.
 NO_LOGGING_LIBRARY_APPS = {
+    # app-deployment: Java on plain logback, no BFI module
+    "agreement", "approval-engine", "collateral", "core-proxy", "dominic", "employee", "journal",
+    "lms-gateway", "master", "product",
+    # app-deployment: other languages
+    "calculation", "ai-platform", "robot-scrape",
     # bfi-app-deployment: .NET
     "bfi-incentive-net-api", "bfi-payment-net-api", "bfi-syariah-net-api", "bfi-otrs-api", "bfi-otrs-ui",
-    # bfi-app-deployment: standalone UIs and tools with no squad repo
-    "bfi-formio-ui", "bfi-omni-middleware-ui", "bfi-panel-dashboard-ui", "ms-score-branch-ui",
-    # bfi-app-deployment: PHP and Python tools with no squad repo
-    "ares", "army", "pmotools", "pmotools2", "bfi-jira-data-migration-api",
+    # bfi-app-deployment: web front ends
+    "bfi-formio-ui", "bfi-omni-middleware-ui", "bfi-panel-dashboard-ui", "bfi-operation-ui", "ms-new-otrs-ui",
+    "bfi-website-cms", "bfi-corporate-website", "ms-score-branch-ui",
+    # bfi-app-deployment: PHP and Python tools
+    "ares", "iad-ams", "pcms", "army", "pmotools", "pmotools2", "bfi-jira-data-migration-api",
 }
 
 
