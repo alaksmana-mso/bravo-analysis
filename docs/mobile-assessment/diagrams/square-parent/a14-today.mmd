@@ -1,0 +1,13 @@
+flowchart TD
+  s1["manual dispatch<br/>(tag, version typed by hand)"]
+  s2["approval = job step<br/>2 of 9 people, GH_PAT"]
+  s3["Flutter 3.35.0<br/>copied into 37 places"]
+  s4["31 --dart-define per platform"]
+  s5["build --obfuscate + R8<br/>proguard-rules.pro missing"]
+  s6["sign (base64 keystore secret)"]
+  s7["Play internal + TestFlight"]
+  s8["symbols -> Crashlytics, Datadog<br/>no --version on the Datadog upload"]
+  s1 --> s2 --> s3 --> s4 --> s5 --> s6 --> s7 --> s8
+  sd["Side door:<br/>are-tracker-prod-deployment-build.yml"] -->|"no approval"| sa["prod-signed APK + IPA"]
+  class s2,s3,s5,s8,sd,sa hot
+  classDef hot fill:#ffe1e1,stroke:#c00

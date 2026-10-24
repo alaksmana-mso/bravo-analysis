@@ -1,0 +1,15 @@
+flowchart TD
+  mw["melos workspace"]
+  ft["features/agent_tools/"]
+  mw --> ap["agent_tools/<br/>app shell: router + composition root"]
+  mw --> ft
+  mw --> sd["shared_data/*<br/>plain Dart, generated in CI"]
+  mw --> co["shared_lib/core/<br/>+ pure barrel"]
+  ft --> f1["prospect/<br/>small public API"]
+  ft --> f1a["prospect_api/<br/>entities others import"]
+  ft --> f2["calculator/ ..."]
+  f2 -.->|"imports"| f1a
+  rule["Rule: feature -> *_api<br/>never feature -> feature"]
+  f2 ~~~ rule
+  class ap,ft,f1,f1a,rule,sd,co good
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,17 @@
+flowchart TD
+  repo["bravo-agency-app<br/>one monorepo, one CI"]
+  repo --> at["agent_tools/<br/>GENFI + MyShaf flavour"]
+  repo --> ar["are_tracker/<br/>SQUARE"]
+  repo --> mb["mybispro/<br/>MY BISPRO"]
+  repo --> sd["shared_data/ (9)<br/>agency, agent_marketing,<br/>onboarding, keycloak, sso ..."]
+  repo --> sl["shared_lib/<br/>core, crash_reporting, places"]
+  repo --> sf["shared_features/<br/>collab_form"]
+  at --> sd
+  ar --> sd
+  mb --> sd
+  at --> sl
+  ar --> sl
+  at --> sf
+  ar --> sf
+  class ar now
+  classDef now fill:#fff4cc,stroke:#b80

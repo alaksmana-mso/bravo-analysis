@@ -1,0 +1,8 @@
+flowchart LR
+  rp["Repositories<br/>(unchanged call sites)"] --> hc["core HttpClient"]
+  hc --> i1["headers"] --> i2["auth strategy<br/>(OtpAuthStrategy)"] --> i3["single-flight refresh<br/>retry once on 401"] --> i4["retry (GET only)"] --> i5["trace id"] --> i6["error mapping"] --> i7["pinning (every build)"]
+  i7 --> net["Backend"]
+  fl["useInterceptorClient flag<br/>default old, per app"]
+  hc ~~~ fl
+  class hc,i1,i2,i3,i4,i5,i6,i7,fl good
+  classDef good fill:#e3f5e1,stroke:#2a7

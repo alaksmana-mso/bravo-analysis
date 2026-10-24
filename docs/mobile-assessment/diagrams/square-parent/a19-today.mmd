@@ -1,0 +1,10 @@
+flowchart TD
+  w1["test.yaml 'Reveal Secret'<br/>SSH_PRIVATE_KEY, KNOWN_HOSTS<br/>0 runs, disabled by hand"]:::hot
+  w2["debugger.yaml<br/>52 secret echoes in 4 jobs<br/>ro_tools environments, still active"]:::hot
+  w3["ARE tracker SIT/UAT pipeline<br/>uploads keystore.jks + properties<br/>as an artifact, 156 runs"]:::hot
+  w4["convent SIT pipeline prints<br/>FIREBASE_API_KEY, 162 runs"]:::hot
+  how["sed 's/./& /g' puts a space between<br/>characters, so log masking fails"]:::now
+  w1 ~~~ w2 ~~~ w3 ~~~ w4
+  w4 ~~~ how
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

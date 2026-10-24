@@ -1,0 +1,13 @@
+flowchart TD
+  mw["melos workspace<br/>15 shared packages"]
+  ap["are_tracker/<br/>app + ALL 21 features<br/>(lib/features)"]
+  mw --> ap
+  mw --> sd["shared_data/*<br/>DTOs + repositories<br/>291k generated lines"]
+  mw --> co["shared_lib/core/"]
+  ap --> f1["lead"]
+  ap --> f2["company_submission"]
+  ap --> f3["profile, maintain ..."]
+  f1 <-.->|"89 free imports<br/>profile imported by 35 files"| f3
+  f2 <-.-> f1
+  class ap,f1,f2,f3,sd hot
+  classDef hot fill:#ffe1e1,stroke:#c00

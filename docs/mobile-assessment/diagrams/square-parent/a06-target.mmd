@@ -1,0 +1,9 @@
+flowchart TD
+  sc["Screens"] -->|"typed events<br/>from one catalogue"| ap["shared_lib/analytics<br/>Analytics port + PII denylist"]
+  ap --> fa["FirebaseAdapter"]
+  ap --> da["DatadogRumAdapter"]
+  ro["Router observer<br/>screen() to all adapters"] --> ap
+  gf["event-names.golden.txt<br/>parity oracle"]
+  ap ~~~ gf
+  class ap,fa,da,ro,gf good
+  classDef good fill:#e3f5e1,stroke:#2a7

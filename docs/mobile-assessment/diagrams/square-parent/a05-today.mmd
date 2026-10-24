@@ -1,0 +1,11 @@
+flowchart TD
+  sc["Screens"] --> ct["82 StateNotifier controllers<br/>ref.watch in callbacks: 0"]
+  ct --> pv["103 static final provider"]
+  md["main.dart: ProviderScope.overrides<br/>HttpClient variants, NetworkConfig,<br/>auth client"]
+  md --> pv
+  sg["Static singletons beside Riverpod:<br/>CrashReporter.instance,<br/>NavigationService.instance"]
+  pv -.-> sg
+  rp["shared_data: concrete repositories<br/>nothing below HttpClient can be faked"]
+  pv --> rp
+  class ct,sg,rp hot
+  classDef hot fill:#ffe1e1,stroke:#c00

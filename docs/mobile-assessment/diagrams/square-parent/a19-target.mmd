@@ -1,0 +1,8 @@
+flowchart TD
+  d1["Delete test.yaml, debugger.yaml,<br/>the Reveal-secret step and the keystore upload"]:::good
+  d2["delete the upload step<br/>reset the upload key (Play App Signing)"]:::good
+  d3["Rotate SSH_PRIVATE_KEY, BRAVO_GCP_SA_KEY,<br/>KEYCLOAK_CLIENT_SECRET, keystore passwords"]:::good
+  d4["Prod environments: release refs only<br/>workflow-lint on every PR<br/>(no echo of secrets.*, no keystore artifact)"]:::good
+  d5["Retire the ro_tools environments<br/>check bravo-ro-tools-apps too"]:::good
+  d1 --> d2 --> d3 --> d4 --> d5
+  classDef good fill:#e3f5e1,stroke:#2a7

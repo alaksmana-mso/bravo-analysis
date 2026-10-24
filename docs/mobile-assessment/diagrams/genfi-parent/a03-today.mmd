@@ -1,0 +1,13 @@
+flowchart TD
+  mw["melos workspace<br/>15 shared packages"]
+  ap["agent_tools/<br/>app + ALL 34 features<br/>(lib/feature)"]
+  mw --> ap
+  mw --> sd["shared_data/*<br/>DTOs + repositories<br/>291k generated lines"]
+  mw --> co["shared_lib/core/"]
+  ap --> f1["prospect"]
+  ap --> f2["calculator"]
+  ap --> f3["common ..."]
+  f1 <-.->|"129 free imports<br/>76 not into feature/common"| f3
+  f2 <-.-> f1
+  class ap,f1,f2,f3,sd hot
+  classDef hot fill:#ffe1e1,stroke:#c00

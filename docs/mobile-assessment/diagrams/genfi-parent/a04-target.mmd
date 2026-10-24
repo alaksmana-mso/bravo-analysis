@@ -1,0 +1,10 @@
+flowchart LR
+  sc["Screen"] --> nt["Notifier<br/>UI state only"]
+  nt --> uc["Use case<br/>(pure Dart, unit-tested)"]
+  uc --> pt["Port<br/>(interface in domain)"]
+  pt --> im["Port impl in data/<br/>wraps shared_data, maps DTO -> entity"]
+  im --> rp["shared_data repository"]
+  rule["domain-purity: strict<br/>dto-in-presentation: ratchet"]
+  pt ~~~ rule
+  class nt,uc,pt,im,rule good
+  classDef good fill:#e3f5e1,stroke:#2a7

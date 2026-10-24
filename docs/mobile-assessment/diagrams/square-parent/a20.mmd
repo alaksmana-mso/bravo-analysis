@@ -1,0 +1,39 @@
+flowchart LR
+  subgraph sa["Stage A: stop the leaks"]
+    direction TB
+    p01["01 Security (shared)"]
+    p02["02 CI/CD (shared)"]
+    p01 ~~~ p02
+  end
+  subgraph sb["Stage B: safety net"]
+    direction TB
+    p03["03 Logging and crashes"]
+    p04["04 Analytics wrapper"]
+    p05["05 Testing"]
+    p06["06 Networking (shared)"]
+    p07["07 Lint + guardrails (shared)"]
+    p03 ~~~ p04 ~~~ p05 ~~~ p06 ~~~ p07
+  end
+  subgraph sc["Stage C: architecture"]
+    direction TB
+    p08["08 Layering<br/>(lead + company_submission first)"]
+    p09["09 State management"]
+    p10["10 Repo layout (shared)"]
+    p13["13 Dependency injection"]
+    p08 ~~~ p09 ~~~ p10 ~~~ p13
+  end
+  subgraph sd["Stage D: platform"]
+    direction TB
+    p11["11 Feature flags"]
+    p12["12 Design system (shared)"]
+    p11 ~~~ p12
+  end
+  sa --> sb
+  sb -->|"refactors are<br/>now protected"| sc
+  sc --> sd
+  class p01,p02 hot
+  class p03,p04,p05,p06,p07 now
+  class p08,p09,p10,p13,p11,p12 good
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80
+  classDef good fill:#e3f5e1,stroke:#2a7

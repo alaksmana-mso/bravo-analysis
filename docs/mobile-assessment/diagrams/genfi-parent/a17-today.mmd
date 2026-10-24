@@ -1,0 +1,12 @@
+flowchart TD
+  subgraph T["Six largest files (prospect + calculator)"]
+    direction TB
+  f0["loan_info_screen.dart<br/>2,429 lines"]:::hot
+  f1["calculator_controller.dart<br/>2,290 lines"]:::hot
+  f2["collateral_screen.dart<br/>2,160 lines"]:::hot
+  f3["calculation_result_screen.dart<br/>2,038 lines"]:::hot
+  f4["loan_info_screen_controller.dart<br/>1,901 lines"]:::hot
+  f5["calculator_screen.dart<br/>1,862 lines"]:::hot
+  end
+  r["router.dart 1,564 lines, 75 routes<br/>every route in one file"]:::hot
+  classDef hot fill:#ffe1e1,stroke:#c00

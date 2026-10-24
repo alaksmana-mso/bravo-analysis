@@ -1,0 +1,15 @@
+flowchart TD
+  s1["dispatch from master or release-*<br/>version from the tag"]
+  s2["prod environment: release refs only<br/>+ 2-approval step (App token)"]
+  s3["one toolchain (mise.toml)"]
+  s4["defines from one file<br/>no secret the backend relies on"]
+  s5["build + R8 explicit<br/>reviewed keep rules"]
+  s6["protect + register (RASP slot)"]
+  s7["sign; fail without mapping.txt"]
+  s8["Play staged rollout<br/>iOS phased release"]
+  s9["symbols with --version<br/>to Crashlytics and Datadog"]
+  s1 --> s2 --> s3 --> s4 --> s5 --> s6 --> s7 --> s8 --> s9
+  rw["reusable workflows:<br/>checks, build-android, build-ios, distribute"]
+  s9 ~~~ rw
+  class s1,s2,s3,s4,s5,s6,s7,s8,s9,rw good
+  classDef good fill:#e3f5e1,stroke:#2a7

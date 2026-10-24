@@ -1,0 +1,7 @@
+flowchart TD
+  app["SQUARE screens"] --> ds["ds_1 in 195 files<br/>BfiColors 746, BfiText 536"]
+  app --> raw["Raw styling:<br/>46 TextStyle(, 10 TextButton(,<br/>20 raw Colors"]
+  four["(shared) four design systems<br/>ds_1, ds_2, ds_3, ui_theme<br/>no Widgetbook, no tokens"]
+  ds ~~~ four
+  class ds,raw,four hot
+  classDef hot fill:#ffe1e1,stroke:#c00

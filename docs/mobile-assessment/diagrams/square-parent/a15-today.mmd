@@ -1,0 +1,12 @@
+flowchart TD
+  pr["PR"]
+  c0["runs only when *.dart changes<br/>(.github, pubspec, Gradle, iOS: no checks)"]
+  c1["format"]
+  c2["analyze --fatal-infos"]
+  c3["pubghost (dead code allowed)"]
+  c4["tests --fail-fast<br/>(whole package coverage)"]
+  c5["coverage comment<br/>continue-on-error, no minimum"]
+  pr --> c0 --> c1 --> c2 --> c3 --> c4 --> c5
+  nt["ui_catalog, crash_reporting, myshaf:<br/>no paths-filter key, never tested"]
+  class c0,c3,c4,c5,nt hot
+  classDef hot fill:#ffe1e1,stroke:#c00

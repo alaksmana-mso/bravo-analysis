@@ -1,0 +1,8 @@
+flowchart TD
+  app["GENFI screens"] --> ds["ds_3 only<br/>delete ds_2 and the shim"]
+  ds --> wb["Widgetbook for ds_3<br/>(frontend-mobile-ui, GitHub Pages)"]
+  ds --> tk["Tokens from Figma variables<br/>(optional)"]
+  rt["no-raw-style ratchet<br/>baselines only go down"]
+  app ~~~ rt
+  class ds,wb,tk,rt good
+  classDef good fill:#e3f5e1,stroke:#2a7

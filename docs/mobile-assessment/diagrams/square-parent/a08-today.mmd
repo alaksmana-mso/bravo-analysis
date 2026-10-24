@@ -1,0 +1,9 @@
+flowchart TD
+  rc["Firebase Remote Config"] --> md["freezed RemoteConfig (23 fields)<br/>hand-mapped, 140-line repository<br/>no setDefaults"]
+  md --> sc["Screens and controllers"]
+  df["FEATURE_FLAG_NON_REGISTERED_MAINTAIN<br/>is a compile-time define"]
+  df --> sc
+  own["No owner, no removal date,<br/>no switch-flag kind"]
+  md ~~~ own
+  class md,df,own hot
+  classDef hot fill:#ffe1e1,stroke:#c00

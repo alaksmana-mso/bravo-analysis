@@ -1,0 +1,15 @@
+flowchart TD
+  sc["Screens"]
+  fb["Firebase"]
+  sc -->|"27 logEvent calls (strings)"| fb
+  ct["StateNotifier controllers<br/>(82)"]
+  rp["shared_data repositories<br/>(API models reach the UI)"]
+  hc["HttpClient + auth decorator<br/>(auth outside the client)"]
+  sc --> ct --> rp --> hc
+  subgraph bt["Build and tests"]
+    pb["Prod build: obfuscate + R8<br/>pinning prod only, no RASP"]
+    ts["Tests: screens + controllers<br/>no coverage gate, no E2E"]
+  end
+  hc ~~~ bt
+  class ct,rp,hc,pb,ts hot
+  classDef hot fill:#ffe1e1,stroke:#c00

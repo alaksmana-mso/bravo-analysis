@@ -1,0 +1,13 @@
+flowchart TD
+  cat["Typed flag catalogue per app<br/>key, default, owner, removal date"]
+  gen["Generator: setDefaults + key map"]
+  cat --> gen
+  pl["FeatureFlagPlatform<br/>(Remote Config adapter, FakeFlags)"]
+  gen --> pl
+  pl --> sc["Screens read flagProvider(...)"]
+  sw["SwitchFlag kind<br/>default = old path, read at journey start"]
+  cat --> sw
+  ci["CI fails on an overdue flag"]
+  cat ~~~ ci
+  class cat,gen,pl,sw,ci good
+  classDef good fill:#e3f5e1,stroke:#2a7

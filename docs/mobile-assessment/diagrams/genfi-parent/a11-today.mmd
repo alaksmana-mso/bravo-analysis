@@ -1,0 +1,7 @@
+flowchart TD
+  app["GENFI screens"] --> ds["ds_2 (154 files) + ds_3 (199)<br/>110 files import both<br/>local ds3 shim"]
+  app --> raw["Raw styling:<br/>92 raw Colors, 17 TextStyle("]
+  four["(shared) four design systems<br/>ds_1, ds_2, ds_3, ui_theme<br/>no Widgetbook, no tokens"]
+  ds ~~~ four
+  class ds,raw,four hot
+  classDef hot fill:#ffe1e1,stroke:#c00

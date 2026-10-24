@@ -1,0 +1,9 @@
+flowchart LR
+  q1["Who owns the plan?"] --> a1["agent_tools squad (Agency)<br/>+ one owner for the shared plans<br/>across the four apps"]
+  q2["RASP vendor and budget?"] --> a2["one decision for customer-app,<br/>agency-app and ro-tools-apps"]
+  q3["Coverage threshold?"] --> a3["start 70% on changed files,<br/>raise over time"]
+  q4["Generated code?"] --> a4["291,420 lines committed:<br/>generate in CI, or split the models"]
+  q5["Is the GENFI web build<br/>a supported target?"] --> a5["changes what pinning<br/>and Alice can do"]
+  q6["MyShaf: flavour of agent_tools<br/>or its own app?"] --> a6["own pipelines, environments<br/>and integrity check already"]
+  class q1,q2,q3,q4,q5,q6 now
+  classDef now fill:#fff4cc,stroke:#b80

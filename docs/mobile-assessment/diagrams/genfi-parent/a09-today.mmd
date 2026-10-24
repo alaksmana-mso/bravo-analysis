@@ -1,0 +1,10 @@
+flowchart TD
+  rp["Repositories"] --> dc["OtpHttpClient (264 lines)<br/>checks token before every call<br/>refresh single-flight, retry once"]
+  dc --> hc["core HttpClient (395 lines)<br/>no auth, no retry, no trace id<br/>pinning only if fingerprint set"]
+  hc --> net["Backend / Krakend / Keycloak"]
+  six["(shared) six near-identical<br/>auth decorators, 1,508 lines<br/>only one retries after refresh"]
+  dc ~~~ six
+  va["5 client variants in main.dart<br/>default, auth, Krakend,<br/>chat gateway, non-auth Krakend"]
+  dc ~~~ va
+  class dc,six,va hot
+  classDef hot fill:#ffe1e1,stroke:#c00

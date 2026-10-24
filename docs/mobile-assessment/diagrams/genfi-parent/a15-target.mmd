@@ -1,0 +1,12 @@
+flowchart TD
+  pr["PR"]
+  c0["workflow-lint + Codacy<br/>(every PR, no path filter)"]
+  c1["format + one lint set"]
+  c2["arch_check ratchet"]
+  c3["generated files fresh"]
+  c4["tests, random order,<br/>full failure list"]
+  c5["coverage gate on changed files<br/>(required check)"]
+  c6["review: Copilot + mr-review skill<br/>CODEOWNERS on guardrail files"]
+  pr --> c0 --> c1 --> c2 --> c3 --> c4 --> c5 --> c6
+  class c0,c1,c2,c3,c4,c5,c6 good
+  classDef good fill:#e3f5e1,stroke:#2a7

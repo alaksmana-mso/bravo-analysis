@@ -1,0 +1,7 @@
+flowchart TD
+  wf["4 workflows print or export secrets<br/>debugger.yaml: 52 echoes<br/>ARE tracker SIT/UAT pipeline<br/>uploads keystore.jks + properties<br/>as an artifact, 156 runs"]
+  env["Prod approval = workflow step<br/>_build variants: no approval<br/>environment rules: not verified"]
+  app["Pinning: prod only<br/>no Play Integrity / App Attest<br/>proguard-rules.pro missing<br/>CLIENT_SECRET + GOOGLE_API_KEY<br/>compiled into the app"]
+  wf ~~~ env ~~~ app
+  class wf,env,app hot
+  classDef hot fill:#ffe1e1,stroke:#c00

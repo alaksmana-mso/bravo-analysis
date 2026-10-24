@@ -1,0 +1,12 @@
+flowchart TD
+  subgraph T["Six largest files (lead + company_submission)"]
+    direction TB
+  f0["company_submission_prospect_step.dart<br/>1,195 lines"]:::hot
+  f1["no_deal_recalculation_screen.dart<br/>1,071 lines"]:::hot
+  f2["collateral_asset_info_screen.dart<br/>1,057 lines"]:::hot
+  f3["visit_report_form_screen.dart<br/>1,056 lines"]:::hot
+  f4["loan_controller.dart<br/>1,029 lines"]:::hot
+  f5["company_submission_collateral_step.dart<br/>944 lines"]:::hot
+  end
+  r["router.dart 628 lines, 32 routes<br/>every route in one file"]:::hot
+  classDef hot fill:#ffe1e1,stroke:#c00

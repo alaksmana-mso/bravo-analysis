@@ -1,0 +1,8 @@
+flowchart TD
+  wf["No secret in any log or artifact<br/>workflow-lint + Codacy on every PR<br/>secrets rotated, upload key reset"]
+  env["Prod environments: release refs only<br/>every prod-signed build behind<br/>the 2-approval step"]
+  app["Pinning in every build<br/>integrity verdicts enforced server-side<br/>reviewed proguard-rules.pro<br/>RASP: one vendor, three repos"]
+  pii["Consent provider, PII sanitiser,<br/>screen-capture guard on sensitive routes"]
+  wf ~~~ env ~~~ app ~~~ pii
+  class wf,env,app,pii good
+  classDef good fill:#e3f5e1,stroke:#2a7

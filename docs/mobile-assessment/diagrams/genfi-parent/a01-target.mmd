@@ -1,0 +1,18 @@
+flowchart TD
+  sc["Screens"]
+  ap["Analytics port"]
+  sc -->|"typed events"| ap
+  ap --> fb["Firebase"]
+  ap --> dd["Datadog RUM"]
+  nt["Notifier / AsyncNotifier"]
+  uc["Domain use cases<br/>(pure Dart)"]
+  rp["Ports over shared_data<br/>(DTO -> entity)"]
+  dio["core HttpClient<br/>+ interceptor chain"]
+  sc --> nt --> uc --> rp --> dio
+  subgraph bt["Build and tests"]
+    pb["Prod build: obfuscate + R8 + RASP<br/>pinning everywhere"]
+    ts["Tests: domain + notifier + screen<br/>coverage gate + E2E"]
+  end
+  dio ~~~ bt
+  class ap,nt,uc,rp,dio,pb,ts good
+  classDef good fill:#e3f5e1,stroke:#2a7

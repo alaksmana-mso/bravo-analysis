@@ -1,0 +1,9 @@
+flowchart TD
+  rc["Firebase Remote Config"] --> md["ConventFeatureFlag (20 keys)<br/>+ app config (10) + Sharia model (1)"]
+  md --> sc["Screens and controllers"]
+  df["raw getBool in main.dart<br/>compile-time FEATURE_* defines"]
+  df --> sc
+  own["No owner, no removal date,<br/>no switch-flag kind"]
+  md ~~~ own
+  class md,df,own hot
+  classDef hot fill:#ffe1e1,stroke:#c00

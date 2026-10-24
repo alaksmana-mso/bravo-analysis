@@ -1,0 +1,8 @@
+flowchart TD
+  l["One lint set for every package"]
+  c["tool/arch_check.dart with a ratchet:<br/>feature-boundary, domain-purity,<br/>dto-in-presentation, flutter-in-shared_data"]
+  b["AGENTS.md + .claude/rules<br/>mr-review skill, CODEOWNERS"]
+  ci["Checks run on every PR,<br/>not only *.dart changes"]
+  l ~~~ c ~~~ b ~~~ ci
+  class l,c,b,ci good
+  classDef good fill:#e3f5e1,stroke:#2a7

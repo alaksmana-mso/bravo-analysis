@@ -1,0 +1,11 @@
+flowchart TD
+  one["One interceptor chain in core<br/>auth strategies per app"]:::good
+  kc["One KeycloakRepository<br/>code flow with PKCE, no secret in the app"]:::good
+  ts["One TokenStore with namespaced keys"]:::good
+  cf["collab_form split by screen<br/>policies injected per app"]:::good
+  dd["Dead packages deleted,<br/>undeclared imports declared"]:::good
+  gen["Generated code: built in CI<br/>or committed with a freshness check"]:::good
+  co["core: pure barrel, no UI"]:::good
+  one ~~~ kc ~~~ ts
+  cf ~~~ dd ~~~ gen ~~~ co
+  classDef good fill:#e3f5e1,stroke:#2a7

@@ -1,0 +1,7 @@
+flowchart TD
+  wf["4 workflows print or export secrets<br/>debugger.yaml: 52 echoes<br/>convent SIT pipeline<br/>Reveal-secret step prints FIREBASE_API_KEY<br/>162 runs, latest 22 Oct 2026"]
+  env["Prod approval = workflow step<br/>_build variants: no approval<br/>environment rules: not verified"]
+  app["Pinning: prod only<br/>Play Integrity: MyShaf only<br/>proguard-rules.pro missing<br/>proxy switch reaches prod<br/>Alice in release builds"]
+  wf ~~~ env ~~~ app
+  class wf,env,app hot
+  classDef hot fill:#ffe1e1,stroke:#c00

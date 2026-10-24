@@ -1,0 +1,8 @@
+flowchart TD
+  err["Handled error / crash"] --> al["shared_lib/observability<br/>AppLogger + LogEvent"]
+  al --> sn["Sanitiser<br/>denied keys dropped,<br/>NIK / phone / email masked"]
+  sn --> s1["Datadog logs sink<br/>(error level, stack, trace id)"]
+  sn --> s2["Crashlytics sink<br/>(opaque agent id)"]
+  cs["ConsentState provider"] --> al
+  class al,sn,s1,s2,cs good
+  classDef good fill:#e3f5e1,stroke:#2a7

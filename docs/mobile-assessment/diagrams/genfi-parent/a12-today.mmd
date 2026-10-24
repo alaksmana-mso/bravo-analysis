@@ -1,0 +1,7 @@
+flowchart TD
+  t["149 test files<br/>665 widget, 823 unit<br/>33 controller tests<br/>controllers tested directly (good)"]
+  g["No coverage threshold<br/>report posted with continue-on-error<br/>--fail-fast hides failures<br/>no random order"]
+  e["No integration or E2E tests<br/>sso, integrity, pinning fork: 0 tests"]
+  t ~~~ g ~~~ e
+  class g,e hot
+  classDef hot fill:#ffe1e1,stroke:#c00

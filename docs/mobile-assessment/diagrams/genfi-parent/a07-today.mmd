@@ -1,0 +1,10 @@
+flowchart TD
+  err["Handled error<br/>(guardLog, provider observer)"]
+  lg["DatadogLog.e creates a logger<br/>and never writes to it"]
+  err --> lg
+  lg -.->|"nothing arrives"| dd["Datadog logs"]
+  lg --> cr["Crashlytics only<br/>off for MyShaf and web"]
+  pii["No PII cleaner<br/>crash key nik_marketing<br/>consent hard-coded granted"]
+  cr ~~~ pii
+  class lg,pii hot
+  classDef hot fill:#ffe1e1,stroke:#c00

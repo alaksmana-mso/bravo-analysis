@@ -1,0 +1,8 @@
+flowchart TD
+  g["Coverage gate on changed files<br/>start 70%, ratchet up"]
+  h["Random order, full failure list<br/>every shared package has tests"]
+  p["Parity net: goldens, recorded fixtures,<br/>both-paths tests, golden names file"]
+  e["E2E on real devices:<br/>visit report, lead submission,<br/>company submission<br/>nightly on SIT, gate on release candidates"]
+  g ~~~ h ~~~ p ~~~ e
+  class g,h,p,e good
+  classDef good fill:#e3f5e1,stroke:#2a7

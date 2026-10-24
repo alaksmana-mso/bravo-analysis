@@ -1,0 +1,9 @@
+flowchart TD
+  sc["Screens"]
+  wr["37-line Analytics wrapper<br/>27 logEvent calls in 25 files<br/>string names, some interpolated"]
+  sc --> wr
+  wr --> fb["Firebase only<br/>user id = employee NIK<br/>RUM events not processed"]
+  nv["Navigation observer<br/>sends screen names to RUM<br/>(separate path)"]
+  sc --> nv
+  class wr,fb hot
+  classDef hot fill:#ffe1e1,stroke:#c00

@@ -1,0 +1,11 @@
+flowchart TD
+  six["Six auth clients implement HttpClient<br/>1,508 lines, only OtpHttpClient retries"]:::hot
+  kc["Two KeycloakRepository classes<br/>one with the client secret"]:::hot
+  ts["Five token stores, one secure storage<br/>colliding keys (mkt, atk, rtk ...)"]:::hot
+  cf["collab_form 18,595 lines<br/>CollabFormAppId branches, 1 empty test<br/>imports core undeclared"]:::hot
+  dd["Dead: shared_data/document,<br/>onboarding_collab_form"]:::hot
+  gen["Generated code 291,420 lines<br/>vs 33,497 hand-written (8.7x), committed<br/>largest file 8,238 lines"]:::hot
+  co["core contains Flutter UI;<br/>stream and plain map to json"]:::hot
+  six ~~~ kc ~~~ ts
+  cf ~~~ dd ~~~ gen ~~~ co
+  classDef hot fill:#ffe1e1,stroke:#c00

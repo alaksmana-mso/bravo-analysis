@@ -1,0 +1,10 @@
+flowchart TD
+  rp["Repositories"] --> dc["SquareHttpClient (288 lines)<br/>refreshes Keycloak token<br/>BEFORE every request<br/>401: SessionExpired, no retry"]
+  dc --> hc["core HttpClient (395 lines)<br/>no auth, no retry, no trace id<br/>pinning only if fingerprint set"]
+  hc --> net["Backend / Krakend / Keycloak"]
+  six["(shared) six near-identical<br/>auth decorators, 1,508 lines<br/>only one retries after refresh"]
+  dc ~~~ six
+  va["3 client variants in main.dart<br/>Keycloak: password grant with<br/>client secret, or WebView<br/>code flow without PKCE"]
+  dc ~~~ va
+  class dc,six,va hot
+  classDef hot fill:#ffe1e1,stroke:#c00

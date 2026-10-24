@@ -1,0 +1,10 @@
+flowchart TD
+  err["Handled error<br/>(guardLog, provider observer)"]
+  lg["Log.e logs at debug level<br/>under a warning threshold"]
+  err --> lg
+  lg -.->|"nothing arrives"| dd["Datadog logs"]
+  lg --> cr["Crashlytics only<br/>skips session, socket, timeout"]
+  pii["No PII cleaner<br/>crash user id = NIK<br/>consent hard-coded granted"]
+  cr ~~~ pii
+  class lg,pii hot
+  classDef hot fill:#ffe1e1,stroke:#c00

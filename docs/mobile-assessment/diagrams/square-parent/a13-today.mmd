@@ -1,0 +1,8 @@
+flowchart TD
+  l["Three lint sets:<br/>strict_lint.yaml (1,176 lines),<br/>very_good_analysis, flutter_lints"]
+  c["CI: format, analyze --fatal-infos,<br/>pubghost (dead code allowed)"]
+  r["No dependency rules:<br/>89 cross-feature imports allowed<br/>shared_data imports flutter/material"]
+  b["Review: Copilot + Atlas webhook<br/>copilot-instructions.md only<br/>no .claude/rules, no CODEOWNERS"]
+  l ~~~ c ~~~ r ~~~ b
+  class l,r hot
+  classDef hot fill:#ffe1e1,stroke:#c00

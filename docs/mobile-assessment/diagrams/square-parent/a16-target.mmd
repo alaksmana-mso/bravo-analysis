@@ -1,0 +1,10 @@
+flowchart TD
+  subgraph G["Target"]
+    direction TB
+    g1["Riverpod 3 + Notifier<br/>(upgrade alone, then convert)"]:::good
+    g2["freezed 3; current firebase,<br/>markdown and storage packages"]:::good
+    g3["every git dependency has an owner<br/>and an upgrade path"]:::good
+    g4["pubghost strict: no undeclared imports"]:::good
+    g5["alice in dev_dependencies only"]:::good
+  end
+  classDef good fill:#e3f5e1,stroke:#2a7

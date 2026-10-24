@@ -1,0 +1,9 @@
+flowchart LR
+  sc["Screen"] --> ct["StateNotifier controller<br/>rules live here"]
+  ct --> rp["shared_data repository<br/>(concrete class, static provider)"]
+  rp --> hc["HttpClient"]
+  sc -.->|"reads repositories<br/>directly"| rp
+  rp -.->|"*Response DTOs<br/>reach screens"| sc
+  note["No domain layer<br/>0 domain folders"]
+  class ct,rp,note hot
+  classDef hot fill:#ffe1e1,stroke:#c00

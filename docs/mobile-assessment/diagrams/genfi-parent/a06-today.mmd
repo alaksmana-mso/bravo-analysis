@@ -1,0 +1,9 @@
+flowchart TD
+  sc["Screens"]
+  wr["ConventAnalyticsService<br/>5-value enum, 4 call sites<br/>key typo: proudct"]
+  sc --> wr
+  wr --> fb["Firebase only<br/>RUM screen names separate"]
+  nv["Navigation observer<br/>sends screen names to RUM<br/>(separate path)"]
+  sc --> nv
+  class wr,fb hot
+  classDef hot fill:#ffe1e1,stroke:#c00

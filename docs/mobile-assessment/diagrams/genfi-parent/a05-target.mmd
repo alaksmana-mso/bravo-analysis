@@ -1,0 +1,12 @@
+flowchart TD
+  sc["Screens"] --> nt["Notifier / AsyncNotifier<br/>(Riverpod 3)"]
+  nt --> uc["Use cases"]
+  uc --> pt["Ports (providers that throw<br/>until overridden)"]
+  cr["app/di/app_overrides.dart<br/>one composition root per app"]
+  cr -->|"overrides"| pt
+  tv["test/helpers/test_overrides.dart<br/>fakes per port"]
+  tv -->|"overrides"| pt
+  wt["wiring test reads every port"]
+  cr ~~~ wt
+  class nt,uc,pt,cr,tv,wt good
+  classDef good fill:#e3f5e1,stroke:#2a7

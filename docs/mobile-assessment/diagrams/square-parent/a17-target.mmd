@@ -1,0 +1,9 @@
+flowchart TD
+  subgraph G["Target"]
+    direction TB
+    g1["rules in domain use cases<br/>(pure Dart, unit-tested)"]:::good
+    g2["screens under 500 lines:<br/>widgets per section"]:::good
+    g3["notifiers hold UI state only"]:::good
+    g4["one <feature>_routes.dart per feature<br/>composed in router.dart"]:::good
+  end
+  classDef good fill:#e3f5e1,stroke:#2a7
