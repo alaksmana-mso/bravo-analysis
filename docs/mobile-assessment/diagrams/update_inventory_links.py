@@ -24,7 +24,9 @@ def fix_row(m):
     row = m.group(0)
     cells = re.findall(r"<t[dh][^>]*>.*?</t[dh]>", row, re.S)
     first = html.unescape(re.sub("<[^>]+>", "", cells[0])).strip()
-    row = re.sub(r'<t[dh] data-assess="1">.*?</t[dh]>', "", row, flags=re.S)  # drop our earlier cell
+    last = html.unescape(re.sub("<[^>]+>", "", cells[-1])).strip()
+    if len(cells) > 8 and (last == "Assessment" or last == "–" or "assessment" in last.lower()):
+        row = row.replace(cells[-1], "", 1); cells = cells[:-1]  # drop our earlier cell (Confluence strips data-* attributes)
     if cells[0].startswith("<th"): cell = '<th data-assess="1"><p>Assessment</p></th>'
     else:
         t = next((MAP[k] for k in MAP if first.startswith(k)), None)
@@ -38,7 +40,7 @@ items = [f"<li><p>{link(t)}</p></li>" for t in MAP.values() if t in live]
 rm = [f"<li><p>{link(t)}</p></li>" for t in ROADMAPS if t in live]
 sec += ("<p>One assessment page per store app, each a child of this page. Every assessment compares the app with the DK Jago app and ends in a roadmap ordered by risk to users.</p><ul>" + "".join(items) + "</ul>"
         "<p>Roadmaps: the BFI customer app has its own. The four agency apps share the phases that touch the monorepo and keep per-app pages for approved deltas, the pilot feature and the remaining features.</p><ul>" + "".join(rm) + "</ul>")
-s = re.sub(r'<h2 data-assess="1">Assessments</h2>.*?(?=<h2)', "", s, flags=re.S)  # drop earlier section
+s = re.sub(r'<h2[^>]*>Assessments</h2>.*?(?=<h2)', "", s, flags=re.S)  # drop earlier section(s)
 k = s.index("<h2>How we built the list</h2>")
 s = s[:k] + sec + s[k:]
 body = {"id": PID, "type": "page", "title": p["title"], "version": {"number": v + 1, "message": "Assessment links"}, "body": {"storage": {"value": s, "representation": "storage"}}}
