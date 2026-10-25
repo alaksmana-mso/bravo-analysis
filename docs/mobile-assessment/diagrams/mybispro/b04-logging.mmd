@@ -1,0 +1,8 @@
+flowchart LR
+  e["handled error<br/>or AsyncError in any provider"] --> g["guardLog / DatadogLog.e<br/>108 call sites + ProviderObserver"]
+  g --> c["createLogger(name: e.toString())"]:::hot
+  c -.->|".error() never called"| dd["Datadog Logs: nothing"]:::hot
+  e -.->|not wired| cr["Crashlytics: not a dependency"]:::hot
+  e --> rum["Datadog RUM: native crashes<br/>and unhandled Dart errors only"]:::good
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00

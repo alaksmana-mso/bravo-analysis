@@ -1,0 +1,12 @@
+flowchart LR
+  pr["pull request"] --> prc["pr-pipeline<br/>format, analyze, tests, Codacy<br/>4 of last 5 failed<br/>not required to merge"]:::hot
+  prc --> m["master<br/>1 approval, no required checks,<br/>admins not enforced"]:::hot
+  m --> trunk["trunk: tests + SIT apk<br/>no pin, no obfuscation,<br/>apk discarded"]:::now
+  tag["tag *-rotools<br/>about one per 9 days"] --> sit["deploy-sit: App Distribution<br/>WIF, no pin, no obfuscation"]:::now
+  uat["deploy-uat: dispatch<br/>pinned, proxy allowed,<br/>screenshots allowed"]:::now
+  prod["deploy-prod: dispatch<br/>approval 2 of 9, env 0 rules<br/>apk + aab, Play internal<br/>31 runs, last green 1 Oct"]:::good
+  dbg["debug.yml: prints fields of<br/>BRAVO_GCP_SA_KEY, still active"]:::hot
+  ios["iOS: no workflow,<br/>no Info.plist in git"]:::hot
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

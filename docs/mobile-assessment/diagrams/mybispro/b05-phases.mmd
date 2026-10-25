@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph shared["Agency apps roadmap: shared phases (MY BISPRO rows inside)"]
+    direction LR
+    p0["0 Close the leak"] --> p1["1 Safety net"] --> p2["2 Seams"] --> p4["4 Network chain"] --> p5["5 Call sites"] --> p6["6 Riverpod 3"] --> p8["8 Packages"] --> p10["10 Platform"]
+  end
+  subgraph own["MY BISPRO only (this page)"]
+    direction LR
+    b3["3 Approved deltas<br/>dummy note, flag name,<br/>pinning, proxy"]:::now --> b7["7 Pilot: inputprospect<br/>through the parity loop"]:::now --> b9["9 Other features"]:::now
+  end
+  p2 --> b3
+  p6 --> b7
+  classDef now fill:#fff4cc,stroke:#b80

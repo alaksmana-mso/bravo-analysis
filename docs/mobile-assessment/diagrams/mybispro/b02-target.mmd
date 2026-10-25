@@ -1,0 +1,7 @@
+flowchart LR
+  p["presentation<br/>screens + Notifiers<br/>(Riverpod 3)"]:::good --> d["domain<br/>pure Dart entities, use cases<br/>agent, prospect, loan rules"]:::good
+  dt["data<br/>repository impls that wrap<br/>shared_data, mappers to entities"]:::good --> d
+  dt --> net["one dio chain for the monorepo<br/>auth, refresh, retry, request id"]:::good
+  p --> ports["ports: Monitoring, Analytics,<br/>FeatureFlags, same as GENFI and SQUARE"]:::now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

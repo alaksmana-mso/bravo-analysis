@@ -1,0 +1,11 @@
+flowchart LR
+  scr["68 screens<br/>49 import shared_data directly<br/>4 files over 1,200 lines"]:::hot
+  ctl["61 StateNotifier controllers<br/>70 static final providers<br/>0 unit tests"]:::hot
+  repo["shared_data repositories<br/>agency, agent_marketing,<br/>onboarding, keycloak, user_iam"]:::now
+  http["core.HttpClient (dio)<br/>behind KeycloakHttpClient or<br/>AgentMarketingKeycloakHttpClient<br/>picked at start by a Remote Config flag"]:::now
+  scr --> ctl --> repo --> http
+  scr -.->|direct| repo
+  obs["DatadogLog.e: 108 call sites<br/>creates a logger, never writes<br/>no Crashlytics, no analytics"]:::hot
+  ctl -.-> obs
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

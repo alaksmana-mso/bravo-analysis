@@ -26,8 +26,10 @@ Phases 3, 7 and 9 are per app and sit under each app's roadmap page.
 | App | Folder | Store name | Users | Assessment |
 | --- | --- | --- | --- | --- |
 | GENFI | `agent_tools/` (convent flavour) | Agent Tools GENFI App | external agents | Genfi mobile app assessment |
-| MyShaf | `agent_tools/` (Sharia flavour) | MyShaf | external agents (Sharia) | covered by the GENFI pages |
+| MyShaf | `agent_tools/` (Sharia flavour) | MyShaf | external agents (Sharia) | MyShaf mobile app assessment (flavour of the GENFI code) |
 | SQUARE | `are_tracker/` | SQUARE (ARE Tracker) | BFI field staff | Square mobile app assessment |
-| MY BISPRO | `mybispro/` | MY BISPRO | BFI staff (Sharia) | no assessment yet; shared steps apply |
+| MY BISPRO | `mybispro/` | MY BISPRO | BFI staff (Sharia) | MY BISPRO mobile app assessment |
+
+**myBRO (RO Tools)** lives in its own repository, `bravo-ro-tools-apps`, split from this monorepo in December 2025 with copies of `core`, `sso`, `keycloak`, `ui_theme` and the pinning fork. Its steps are not rows on these pages. They mirror these phases and sit on myBRO (RO Tools) mobile app assessment.
 
 Facts on this page and its children were checked on 24 Oct 2026 against `bravo-agency-app` `master` @ `1e50b819` (22 Oct 2026), the revision the plan pages used.

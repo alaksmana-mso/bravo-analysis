@@ -1,0 +1,8 @@
+flowchart LR
+  all["ro_tools/lib<br/>112,371 hand-written lines"] --> inc["counted by coverage<br/>screens, widgets, app code"]:::good
+  all --> exc["excluded by combine_coverage.dart<br/>94 controllers (27,560 lines)<br/>request and response models<br/>navigation, dd_service, messaging"]:::hot
+  exc --> gap["28 controller tests for 94 controllers<br/>coverage number looks fine,<br/>the rules are untested"]:::hot
+  tpl["PR template asks for 80%<br/>nothing enforces it"]:::now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

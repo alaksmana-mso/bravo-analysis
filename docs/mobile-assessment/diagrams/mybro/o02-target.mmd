@@ -1,0 +1,7 @@
+flowchart LR
+  p["presentation<br/>screens + Notifiers (Riverpod 3)<br/>typed routes per journey"]:::good --> d["domain<br/>pure Dart: proposal and offering<br/>calculation rules, contact rules"]:::good
+  dt["data<br/>repositories behind interfaces,<br/>DTO to entity mappers"]:::good --> d
+  dt --> net["one dio chain<br/>auth, refresh, retry, request id<br/>shared with the agency monorepo"]:::good
+  p --> ports["ports: Monitoring (PII sanitiser),<br/>Analytics, FeatureFlags"]:::now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef now fill:#fff4cc,stroke:#b80

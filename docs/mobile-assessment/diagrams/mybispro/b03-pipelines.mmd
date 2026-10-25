@@ -1,0 +1,11 @@
+flowchart LR
+  push["push to master<br/>(mybispro/** only)"] --> trunk["trunk: DEV build<br/>Java 11, SDK 33, no Firebase defines<br/>APK built and discarded<br/>11 runs, last 5 failed"]:::hot
+  tag["tag *-mybispro"] --> sit["SIT: App Distribution<br/>19 runs, last 5 failed<br/>unpinned build"]:::hot
+  sit -.->|never ran| uat["UAT: dispatch<br/>0 runs"]:::now
+  uat -.-> prod["prod: dispatch<br/>14 runs, last 5 failed"]:::hot
+  prod --> appr["manual-approval 2 of 9<br/>env has 0 rules"]:::now
+  appr --> and["Android: Datadog symbols fail<br/>before the Play upload"]:::hot
+  appr --> ios["iOS: TestFlight upload,<br/>then a Crashlytics step<br/>for files that do not exist"]:::now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph shared["Agency apps roadmap: shared phases (pattern, same shared packages and workflows)"]
+    direction LR
+    p0["0 Close the leak"] --> p1["1 Safety net"] --> p2["2 Seams"] --> p4["4 Network chain"] --> p5["5 Call sites"] --> p6["6 Riverpod 3"] --> p8["8 Packages"] --> p10["10 Platform"]
+  end
+  subgraph ro["myBRO: own tickets in bravo-ro-tools-apps (table on this page)"]
+    direction LR
+    r0["R.0 debug.yml, env rules,<br/>required checks"]:::now --> r1["R.1 controllers in coverage,<br/>lint set, SIT pin"]:::now --> r3["R.3 approved deltas<br/>PR #456 revert, PII"]:::now --> r7["R.7 pilot: loan proposal<br/>calculator"]:::now --> r9["R.9 other features"]:::now
+  end
+  p0 -.-> r0
+  p1 -.-> r1
+  classDef now fill:#fff4cc,stroke:#b80

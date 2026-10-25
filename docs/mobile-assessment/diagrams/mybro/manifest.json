@@ -1,0 +1,8 @@
+[
+  {"file":"o01-today.mmd","heading":"Summary"},
+  {"file":"o02-target.mmd","heading":"Side-by-side comparison"},
+  {"file":"o03-pipelines.mmd","heading":"CI/CD compared step by step"},
+  {"file":"o04-posture.mmd","heading":"Security items"},
+  {"file":"o05-coverage.mmd","heading":"What else to work on"},
+  {"file":"o06-phases.mmd","heading":"Plans and roadmap"}
+]

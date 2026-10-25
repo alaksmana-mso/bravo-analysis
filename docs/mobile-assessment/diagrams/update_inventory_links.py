@@ -11,8 +11,8 @@ MAP = {  # store name (first cell) -> assessment page title
 }
 ROADMAPS = ["Mobile roadmap: step by step", "Agency apps roadmap: shared phases", "GENFI roadmap: step by step", "SQUARE roadmap: step by step"]
 def exists(t):
-    r = publish.req("GET", "/rest/api/content/search?cql=" + __import__("urllib.parse").parse.quote(f'type=page and space=EA and title="{t}"'))
-    return bool(r["results"])
+    q = __import__("urllib.parse").parse.urlencode({"spaceKey": "EA", "title": t, "limit": 1})
+    return bool(publish.req("GET", "/rest/api/content?" + q)["results"])  # exact title, no search-index lag
 def link(t): return f'<ac:link><ri:page ri:content-title="{html.escape(t, quote=True)}" /><ac:plain-text-link-body><![CDATA[{t}]]></ac:plain-text-link-body></ac:link>'
 p = publish.req("GET", f"/rest/api/content/{PID}?expand=body.storage,version"); s = p["body"]["storage"]["value"]; v = p["version"]["number"]
 live = {t for t in list(MAP.values()) + ROADMAPS if exists(t)}

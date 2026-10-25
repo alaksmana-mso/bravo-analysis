@@ -1,0 +1,11 @@
+flowchart LR
+  scr["103 screens<br/>46 use *Response DTOs<br/>largest 2,635 lines"]:::hot
+  ctl["94 StateNotifier controllers<br/>27,560 lines, the business rules<br/>largest 2,589 lines<br/>excluded from coverage"]:::hot
+  repo["27 repositories in lib/app/data<br/>concrete, static final provider"]:::now
+  http["core.HttpClient (dio)<br/>SsoHttpClient or KeycloakHttpClient<br/>picked at runtime by Remote Config"]:::now
+  scr --> ctl --> repo --> http
+  app["lib/app imports lib/features<br/>in 26 files<br/>8 two-way feature cycles"]:::hot
+  obs["Crashlytics + Datadog RUM + logs<br/>consent hard-coded granted<br/>user id, name, email sent"]:::now
+  ctl -.-> obs
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

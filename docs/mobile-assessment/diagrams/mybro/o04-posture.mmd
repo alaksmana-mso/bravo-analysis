@@ -1,0 +1,24 @@
+flowchart TD
+  subgraph sit["SIT and dev builds"]
+    s1["no certificate pin"]:::hot
+    s2["no obfuscation"]:::hot
+    s3["system proxy honoured"]:::hot
+    s4["screenshots allowed"]:::hot
+  end
+  subgraph uat["UAT builds (after PR #456, 2 Sep 2026)"]
+    u1["pinned"]:::good
+    u2["no obfuscation"]:::hot
+    u3["system proxy honoured"]:::hot
+    u4["screenshots allowed"]:::hot
+  end
+  subgraph prod["prod builds"]
+    p1["pinned"]:::good
+    p2["obfuscated, R8 on"]:::good
+    p3["no proxy"]:::good
+    p4["FLAG_SECURE on (Android)"]:::good
+    p5["KernelSU check dead,<br/>jailbreak fork works,<br/>no Play Integrity"]:::now
+    p6["debug build type signed<br/>with the release keystore"]:::now
+  end
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80
