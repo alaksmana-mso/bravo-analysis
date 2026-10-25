@@ -1,0 +1,7 @@
+[
+  {"file":"m01-flavour.mmd","heading":"Summary"},
+  {"file":"m02-gaps.mmd","heading":"Side-by-side comparison"},
+  {"file":"m03-pipelines.mmd","heading":"CI/CD compared step by step"},
+  {"file":"m04-drift.mmd","heading":"Release drift"},
+  {"file":"m05-options.mmd","heading":"Options"}
+]

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Turn plain-text page titles into Confluence page links (ac:link by content-title) on the
+"""Usage: link_titles.py [page_id ...]  (default: all roadmap pages)
+
+Turn plain-text page titles into Confluence page links (ac:link by content-title) on the
 agency roadmap pages. Skips text inside existing links and a page's own title. Idempotent."""
 import sys, re, json, html
 sys.path.insert(0, "/Users/mac-6000202/Documents/BFI_GITHUB/bravo-analysis/docs/mobile-assessment/diagrams")
@@ -14,8 +16,10 @@ PAGES = {  # title -> id (pages to edit AND titles to link)
 }
 EXTRA = ["Genfi mobile app assessment", "Square mobile app assessment", "Mobile roadmap: step by step", "BFI Mobile App Assessment",
          "Mobile plan 01a: RASP vendor comparison", "Mobile plan 01: Security"]
-plans = json.load(open("/private/tmp/claude-503/-Users-mac-6000202-Documents-BFI-GITHUB/84fae0bf-c66b-4f2a-8ff3-898e9839bfc6/scratchpad/square/plans/index.json"))
-EXTRA += list(plans.keys()) + ["GENFI plan 07: Layering", "SQUARE plan 05: Testing", "SQUARE plan 06: Networking", "SQUARE plan 07: Lint and guardrails", "SQUARE plan 13: Dependency injection"]
+import os
+plans = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "plan-titles.json")))
+EXTRA += list(plans.keys()) + ["GENFI plan 07: Layering", "SQUARE plan 05: Testing", "SQUARE plan 06: Networking", "SQUARE plan 07: Lint and guardrails", "SQUARE plan 13: Dependency injection",
+         "MyShaf mobile app assessment", "MY BISPRO mobile app assessment", "myBRO (RO Tools) mobile app assessment", "BFI Mobile apps and web apps list"]
 TITLES = sorted(set(list(PAGES.keys()) + EXTRA), key=len, reverse=True)
 def link(t): return f'<ac:link><ri:page ri:content-title="{html.escape(t, quote=True)}" /><ac:plain-text-link-body><![CDATA[{t}]]></ac:plain-text-link-body></ac:link>'
 def process(s, own):
@@ -41,7 +45,10 @@ def process(s, own):
         esc = re.sub(r'\x00(.*?)\x00', lambda m: link(m.group(1)), esc)
         out.append(esc)
     return "".join(out), n
-for title, pid in PAGES.items():
+TARGETS = dict(PAGES)
+if len(sys.argv) > 1:  # edit only the given page ids (titles fetched)
+    TARGETS = {publish.req("GET", f"/rest/api/content/{a}")["title"]: a for a in sys.argv[1:]}
+for title, pid in TARGETS.items():
     p = publish.req("GET", f"/rest/api/content/{pid}?expand=body.storage,version"); s = p["body"]["storage"]["value"]; v = p["version"]["number"]
     s2, n = process(s, title)
     if n == 0: print(f"{title}: nothing to link"); continue

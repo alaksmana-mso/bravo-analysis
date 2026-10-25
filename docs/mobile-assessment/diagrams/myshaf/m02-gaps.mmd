@@ -1,0 +1,16 @@
+flowchart TD
+  subgraph same["Same as GENFI (fix once, in the GENFI and shared plans)"]
+    direction LR
+    s1["Repo layout"] ~~~ s2["Layering"] ~~~ s3["State, DI"] ~~~ s4["Networking"] ~~~ s5["Design system, lint"]
+  end
+  subgraph diff["MyShaf only"]
+    direction LR
+    d1["Analytics wired,<br/>never enabled"]:::hot
+    d2["No crash reporting<br/>(Datadog errors only)"]:::hot
+    d3["Second flag model<br/>(1 key)"]:::now
+    d4["0 tests run the<br/>Sharia flavour"]:::hot
+    d5["Every CI run failed,<br/>SIT unpinned"]:::hot
+  end
+  same ~~~ diff
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

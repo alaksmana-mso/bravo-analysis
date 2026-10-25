@@ -1,0 +1,12 @@
+flowchart LR
+  tag["tag *-myshaf"] --> sit["SIT pipeline<br/>24 runs, 0 green<br/>unpinned build"]:::hot
+  sit -.->|never ran| uat["UAT pipeline<br/>0 runs"]:::now
+  uat -.-> prod["Prod pipeline<br/>8 runs, 0 green"]:::hot
+  prod --> appr["approval 2 of 9<br/>(env has 0 rules)"]:::now
+  appr --> ios["iOS build + TestFlight<br/>green on 18-19 Jun"]:::good
+  appr --> and["Android build green,<br/>Play upload fails"]:::hot
+  and --> art["signed AAB as 1-day artifact"]:::now
+  art -.->|by hand?| play["Play Store 1.3.1"]:::now
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80

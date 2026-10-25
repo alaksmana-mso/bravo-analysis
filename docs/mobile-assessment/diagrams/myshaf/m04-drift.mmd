@@ -1,0 +1,8 @@
+flowchart LR
+  jun["19 Jun 2026<br/>v1.3.1-beta.15-myshaf<br/>store binary frozen"]:::now
+  jun --> code["Jun to Oct: same files keep moving<br/>135 commits in agent_tools<br/>52 in shared packages<br/>0 mention Sharia"]:::hot
+  code --> genfi["GENFI: 75 tags, 1.14 to 1.17<br/>tested and rolled out"]:::good
+  code --> next["Next MyShaf build<br/>4 months of change,<br/>no Sharia test, no cohort"]:::hot
+  classDef good fill:#e3f5e1,stroke:#2a7
+  classDef hot fill:#ffe1e1,stroke:#c00
+  classDef now fill:#fff4cc,stroke:#b80
