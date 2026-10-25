@@ -22,15 +22,17 @@ i = s.index("<h3>In the stores</h3>"); j = s.index("</table>", i) + len("</table
 tbl = s[i:j]
 def fix_row(m):
     row = m.group(0)
-    cells = re.findall(r"<t[dh][^>]*>.*?</t[dh]>", row, re.S)
-    first = html.unescape(re.sub("<[^>]+>", "", cells[0])).strip()
-    last = html.unescape(re.sub("<[^>]+>", "", cells[-1])).strip()
-    if len(cells) > 8 and (last == "Assessment" or last == "–" or "assessment" in last.lower()):
-        row = row.replace(cells[-1], "", 1); cells = cells[:-1]  # drop our earlier cell (Confluence strips data-* attributes)
-    if cells[0].startswith("<th"): cell = '<th data-assess="1"><p>Assessment</p></th>'
+    full = re.findall(r"<t[dh][^>]*>.*?</t[dh]>", row, re.S)
+    def ours(c):
+        t = html.unescape(re.sub("<[^>]+>", "", c)).strip()
+        return t in ("", "Assessment", "–") or "assessment" in t.lower()
+    while len(full) > 8 and ours(full[-1]):  # drop our earlier cells (Confluence strips data-* attributes)
+        row = row[:row.rfind(full[-1])] + row[row.rfind(full[-1]) + len(full[-1]):]; full = full[:-1]
+    first = html.unescape(re.sub("<[^>]+>", "", full[0])).strip()
+    if full[0].startswith("<th"): cell = "<th><p>Assessment</p></th>"
     else:
         t = next((MAP[k] for k in MAP if first.startswith(k)), None)
-        cell = '<td data-assess="1"><p>' + (link(t) if t in live else ("–" if not t else html.escape(t) + " (not yet)")) + "</p></td>"
+        cell = "<td><p>" + (link(t) if t in live else ("–" if not t else html.escape(t) + " (not yet)")) + "</p></td>"
     return row.replace("</tr>", cell + "</tr>")
 tbl2 = re.sub(r"<tr>.*?</tr>", fix_row, tbl, flags=re.S)
 s = s[:i] + tbl2 + s[j:]
