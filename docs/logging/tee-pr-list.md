@@ -17,6 +17,24 @@ Proof it works: every service that has shipped it stopped producing padding at t
 - **All 25 together:** about **2,440 GB a day goes down to under 10 GB a day.** That is about **$7,300 a month (Rp 117 million), or about Rp 1.4 billion a year.**
 - **Across all of Datadog:** ingestion went from **1,970 GB a day** (week of 14–20 Oct) to **714 GB a day** (23–27 Oct). That is 64% less. The estate fell by less than the 1,827 GB saved, because repeat-order grew by about 250 GB a day in the same weeks.
 
+**Evidence from Datadog (screenshots taken 29 Oct)**
+
+1. **Datadog billing: Plan & Usage → Log Management → Ingested Logs.** This is what Datadog bills us for. Daily ingested logs, 1 Sep to 31 Oct.
+    - October so far (1–27 Oct): **34.0 TB, 5.76 TB (15%) less than the same days in September.**
+    - Late September and mid-October peaks were 2–3 TB a day. From 22 Oct, when the large services were fixed, the bars drop to about 0.7 TB a day.
+    - The 256 GB a month in the contract was used up early in the month. Everything above it (33.7 TB in October) is on-demand, so every GB saved is a GB not paid for.
+    - The billing page was last updated 2 days before the screenshot, so the last days of October are not in it yet.
+
+    ![Datadog billing: daily ingested logs, Sep–Oct 2026](img/tee/01-billing-ingested-logs-daily.png)
+
+2. **Datadog Metrics Explorer: the 16 fixed services.** `datadog.estimated_usage.logs.ingested_bytes`, sum by service, daily, 1–27 Oct. Each line falls to almost zero on its release day (13–22 Oct). The top line is audit-trail, at up to 0.9 TB a day before its fix on 21 Oct.
+
+    ![Datadog metrics: daily ingested bytes of the 16 fixed services, 1–27 Oct](img/tee/02-fixed-services-daily-bytes.png)
+
+3. **Datadog Metrics Explorer: services still to fix.** Same metric, 1–27 Oct. repeat-order (yellow) grows almost every day since 12 Oct, from about 40 GB to **622 GB a day on 27 Oct**. It still runs v3.52.3 with plain `tee` on 29 Oct. The other services in this chart are under 50 GB a day each.
+
+    ![Datadog metrics: daily ingested bytes of services still to fix, 1–27 Oct](img/tee/03-not-yet-fixed-daily-bytes.png)
+
 How the numbers were made:
 
 - **Before** is the average GB a day over the 7 full days before the release day.
